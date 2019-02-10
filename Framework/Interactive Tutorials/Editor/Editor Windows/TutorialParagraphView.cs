@@ -123,8 +123,6 @@ namespace Unity.InteractiveTutorials
 
                         if (EditorGUILayout.BeginFadeGroup(m_FadeGroupAnim.faded))
                         {
-                            GUILayout.Space(2);
-
                             var backgroundStyle = isActiveCriterion ? AllTutorialStyles.bgTheInBetweenText : AllTutorialStyles.theInBetweenTextNotActiveOrCompleted;
                             EditorGUILayout.BeginHorizontal(backgroundStyle, GUILayout.ExpandWidth(true));
                             GUILayout.Label(paragraph.text, AllTutorialStyles.theInBetweenText);

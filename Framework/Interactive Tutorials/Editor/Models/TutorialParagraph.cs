@@ -37,7 +37,7 @@ namespace Unity.InteractiveTutorials
         string m_Summary = "";
 
         public string text { get { return m_Text; } set { m_Text = value; } }
-        [SerializeField, TextArea(1, 5)]
+        [SerializeField, TextArea(1, 15)]
         string m_Text = "";
 
         [SerializeField]

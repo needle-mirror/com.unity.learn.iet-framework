@@ -74,7 +74,7 @@ namespace Unity.InteractiveTutorials.Tests
             m_Tutorial.m_Pages[0].m_Paragraphs = new TutorialParagraphCollection(new[] { paragraph });
 
             m_Window = EditorWindow.GetWindow<TutorialWindow>();
-
+            m_Window.showTabClosedDialog = false;
             m_Window.SetTutorial(m_Tutorial, reload: false);
         }
 
@@ -148,7 +148,7 @@ namespace Unity.InteractiveTutorials.Tests
                 Assert.AreEqual(secondPage, m_Window.currentTutorial.currentPage);
 
                 // go back
-                automatedWindow.Click(FindElementWithStyle(automatedWindow, AllTutorialStyles.iconButtonBack, "back button"));
+                automatedWindow.Click(FindElementWithStyle(automatedWindow, AllTutorialStyles.backButton, "back button"));
                 yield return null;
                 m_Window.RepaintImmediately();
                 Assert.AreEqual(firstPage, m_Window.currentTutorial.currentPage);
@@ -176,7 +176,7 @@ namespace Unity.InteractiveTutorials.Tests
                 firstPageCriterion.Complete(true);
                 yield return null;
                 m_Window.RepaintImmediately();
-                automatedWindow.Click(FindElementWithStyle(automatedWindow, AllTutorialStyles.iconButtonBack, "back button"));
+                automatedWindow.Click(FindElementWithStyle(automatedWindow, AllTutorialStyles.backButton, "back button"));
                 yield return null;
                 m_Window.RepaintImmediately();
 
@@ -228,7 +228,7 @@ namespace Unity.InteractiveTutorials.Tests
                 automatedWindow.Click(FindElementWithText(automatedWindow, nextButtonText, "next button"));
                 yield return null;
                 m_Window.RepaintImmediately();
-                automatedWindow.Click(FindElementWithStyle(automatedWindow, AllTutorialStyles.iconButtonBack, "back button"));
+                automatedWindow.Click(FindElementWithStyle(automatedWindow, AllTutorialStyles.backButton, "back button"));
                 yield return null;
                 m_Window.RepaintImmediately();
 
@@ -264,7 +264,7 @@ namespace Unity.InteractiveTutorials.Tests
                 automatedWindow.Click(FindElementWithText(automatedWindow, nextButtonText, "next button"));
                 yield return null;
                 m_Window.RepaintImmediately();
-                automatedWindow.Click(FindElementWithStyle(automatedWindow, AllTutorialStyles.iconButtonBack, "back button"));
+                automatedWindow.Click(FindElementWithStyle(automatedWindow, AllTutorialStyles.backButton, "back button"));
                 yield return null;
                 m_Window.RepaintImmediately();
 
@@ -328,7 +328,7 @@ namespace Unity.InteractiveTutorials.Tests
                 automatedWindow.Click(FindElementWithText(automatedWindow, nextButtonText, "next button"));
                 yield return null;
                 m_Window.RepaintImmediately();
-                automatedWindow.Click(FindElementWithStyle(automatedWindow, AllTutorialStyles.iconButtonBack, "back button"));
+                automatedWindow.Click(FindElementWithStyle(automatedWindow, AllTutorialStyles.backButton, "back button"));
                 yield return null;
                 m_Window.RepaintImmediately();
             }

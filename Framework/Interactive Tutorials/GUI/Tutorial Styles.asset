@@ -15,9 +15,13 @@ MonoBehaviour:
   m_Skin: {fileID: 11400000, guid: e9c45368bc94c4eb6a1c831241fa9db6, type: 2}
   m_OrderedListDelimiter: .
   m_UnorderedListBullet: "\u2022"
-  m_MaskingColor: {r: 0.05882353, g: 0.16470589, b: 0.19607843, a: 0.50980395}
-  m_HighlightColor: {r: 0.17697577, g: 0.662666, b: 0.9150943, a: 1}
-  m_BlockedInteractionColor: {r: 0.1764706, g: 0.6627451, b: 0.9137255, a: 0.23529412}
+  m_MaskingColor: {r: 0.11213955, g: 0.179666, b: 0.2264151, a: 0.29411766}
+  m_HighlightColor: {r: 0.3915094, g: 0.7492484, b: 1, a: 1}
+  m_BlockedInteractionColor: {r: 0.16078432, g: 0.63529414, b: 0.96862745, a: 0.019607844}
   m_HighlightThickness: 3
-  m_HighlightAnimationSpeed: 1.5
-  m_HighlightAnimationDelay: 5
+  m_HighlightAnimationSpeed: 7.52
+  m_HighlightAnimationDelay: 0
+  TextColorMainDarkSkin: {r: 1, g: 1, b: 1, a: 1}
+  TextColorMainLightSkin: {r: 0, g: 0, b: 0, a: 1}
+  TextColorSecondaryDarkSkin: {r: 0.66, g: 0.66, b: 0.66, a: 1}
+  TextColorSecondaryLightSkin: {r: 0.33, g: 0.33, b: 0.33, a: 1}

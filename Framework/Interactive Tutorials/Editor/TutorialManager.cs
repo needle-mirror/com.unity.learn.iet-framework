@@ -35,13 +35,20 @@ namespace Unity.InteractiveTutorials
 
         Tutorial m_Tutorial;
 
-        TutorialWindow GetTutorialWindow()
+        public static bool IsLoadingLayout { get; private set; }
+
+        internal static TutorialWindow GetTutorialWindow()
         {
             return Resources.FindObjectsOfTypeAll<TutorialWindow>().FirstOrDefault();
         }
 
         public void StartTutorial(Tutorial tutorial)
         {
+            // Is the previous tutorial finished? Make sure to record the progress.
+            // by trying to progress to the next page which will take care of it.
+            if (m_Tutorial && m_Tutorial.completed)
+                m_Tutorial.TryGoToNextPage();
+
             m_Tutorial = tutorial;
 
             // Ensure we are in edit mode
@@ -63,23 +70,27 @@ namespace Unity.InteractiveTutorials
             }
         }
 
-        event Action AfterWindowClosed;
+        //event Action AfterWindowClosed;
 
         void StartTutorialInEditMode()
         {
             if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
                 return;
 
-            // Postpone start of tutorial until window is closed
-            var tutorialWindow = GetTutorialWindow();
-            if (tutorialWindow != null)
-            {
-                tutorialWindow.Close();
-                AfterWindowClosed += StartTutorialInEditMode;
-                return;
-            }
+            // New behavior: the default layout will contain the tutorial window 
+            // always so make sure to to save the layout before closing the window.
 
-            AfterWindowClosed -= StartTutorialInEditMode;
+
+            // Postpone start of tutorial until window is closed
+            //var tutorialWindow = GetTutorialWindow();
+            //if (tutorialWindow != null)
+            //{
+            //    tutorialWindow.Close();
+            //    AfterWindowClosed += StartTutorialInEditMode;
+            //    return;
+            //}
+
+            //AfterWindowClosed -= StartTutorialInEditMode;
 
             SaveOriginalScenes();
             SaveOriginalWindowLayout();
@@ -87,7 +98,7 @@ namespace Unity.InteractiveTutorials
             m_Tutorial.LoadWindowLayout();
 
             // Ensure TutorialWindow is open and set the current tutorial
-            tutorialWindow = EditorWindow.GetWindow<TutorialWindow>();
+            var tutorialWindow = EditorWindow.GetWindow<TutorialWindow>();
             tutorialWindow.SetTutorial(m_Tutorial);
 
             m_Tutorial.ResetProgress();
@@ -97,12 +108,11 @@ namespace Unity.InteractiveTutorials
                 LoadTutorialDefaultsIntoAssetsFolder();
         }
 
-        public void TutorialWindowDestroyed()
+        public void RestoreOriginalState()
         {
             RestoreOriginalScenes();
             RestoreOriginalWindowLayout();
-
-            AfterWindowClosed?.Invoke();
+            //AfterWindowClosed?.Invoke();
         }
 
         public void ResetTutorial()
@@ -147,18 +157,26 @@ namespace Unity.InteractiveTutorials
 
         static void SaveOriginalWindowLayout()
         {
-            // Save current layout so we can restore it later
             WindowLayoutProxy.SaveWindowLayout(k_OriginalLayoutPath);
         }
 
         internal void RestoreOriginalWindowLayout()
         {
-            // Restore original layout if it exists
             if (File.Exists(k_OriginalLayoutPath))
             {
-                EditorUtility.LoadWindowLayout(k_OriginalLayoutPath);
+                LoadWindowLayout(k_OriginalLayoutPath);
                 File.Delete(k_OriginalLayoutPath);
             }
+        }
+
+        public static bool LoadWindowLayout(string path)
+        {
+            IsLoadingLayout = true;
+            var successful = EditorUtility.LoadWindowLayout(path);
+            if (!successful)
+                Debug.LogError($"Failed to load layout from \"{path}\".");
+            IsLoadingLayout = false;
+            return successful;
         }
 
         [Serializable]
@@ -171,9 +189,9 @@ namespace Unity.InteractiveTutorials
         string m_OriginalActiveSceneAssetPath;
         SceneInfo[] m_OriginalScenes;
 
+        // Saves current state of open/loaded scenes so we can restore later
         void SaveOriginalScenes()
         {
-            // Save current state of open/loaded scenes so we can restore later
             m_OriginalActiveSceneAssetPath = SceneManager.GetActiveScene().path;
             m_OriginalScenes = new SceneInfo[SceneManager.sceneCount];
             for (var sceneIndex = 0; sceneIndex < m_OriginalScenes.Length; sceneIndex++)

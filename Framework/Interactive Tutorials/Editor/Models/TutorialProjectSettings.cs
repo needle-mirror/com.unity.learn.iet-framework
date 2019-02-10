@@ -12,7 +12,7 @@ namespace Unity.InteractiveTutorials
             {
                 if (s_Instance == null)
                 {
-                    var assetGUIDs = AssetDatabase.FindAssets("t:Unity.InteractiveTutorials.TutorialProjectSettings");
+                    var assetGUIDs = AssetDatabase.FindAssets($"t:{typeof(TutorialProjectSettings).FullName}");
                     if (assetGUIDs.Length == 0)
                         s_Instance = CreateInstance<TutorialProjectSettings>();
                     else
@@ -53,7 +53,7 @@ namespace Unity.InteractiveTutorials
             {
                 if (m_UseLegacyStartupBehavior)
                 {
-                    var guids = AssetDatabase.FindAssets("t:Tutorial");
+                    var guids = AssetDatabase.FindAssets($"t:{typeof(Tutorial).FullName}");
                     if (guids.Length > 0)
                     {
                         var assetPath = AssetDatabase.GUIDToAssetPath(guids[0]);
@@ -75,7 +75,10 @@ namespace Unity.InteractiveTutorials
             {
                 if(!m_TutorialStyle)
                 {
-                    m_TutorialStyle = AssetDatabase.LoadAssetAtPath<TutorialStyles>("Packages/com.unity.learn.iet-framework/Framework/Interactive Tutorials/GUI/Tutorial Styles.asset");
+                    // TODO IET unit test the the file exist.
+                    m_TutorialStyle = AssetDatabase.LoadAssetAtPath<TutorialStyles>(
+                        "Packages/com.unity.learn.iet-framework/Framework/Interactive Tutorials/GUI/Tutorial Styles.asset"
+                    );
                 }
                 return m_TutorialStyle;
             }

@@ -349,11 +349,9 @@ namespace Unity.InteractiveTutorials
         private static IEnumerable<GUIViewProxy> GetMatchingViews(
             UnmaskedView unmaskedView,
             List<GUIViewProxy> allViews,
-            Dictionary<GUIViewProxy, HashSet<EditorWindow>> viewsWithWindows
-            )
+            Dictionary<GUIViewProxy, HashSet<EditorWindow>> viewsWithWindows)
         {
             var matchingViews = new HashSet<GUIViewProxy>(new GUIViewProxyComparer());
-
 
             switch (unmaskedView.m_SelectorType)
             {
@@ -361,12 +359,11 @@ namespace Unity.InteractiveTutorials
                     var targetEditorWindowType = unmaskedView.editorWindowType;
                     if (targetEditorWindowType == null)
                     {
-                        throw new ArgumentException(
-                            string.Format(
-                                "Specified unmasked view does not refer to a known EditorWindow type:\n{0}",
-                                JsonUtility.ToJson(unmaskedView, true)
-                                ), "unmaskedView"
-                            );
+                        // TODO demoted exceptions to warnings due to refactoring WIP
+                        Debug.LogWarning(//throw new ArgumentException(
+                            $"Specified unmasked view does not refer to a known EditorWindow type:\n{JsonUtility.ToJson(unmaskedView, true)}"
+                            //, "unmaskedView"
+                        );
                     }
                     if (targetEditorWindowType != null)
                     {
@@ -401,12 +398,10 @@ namespace Unity.InteractiveTutorials
                     var targetViewType = unmaskedView.m_ViewType.type;
                     if (targetViewType == null)
                     {
-                        throw new ArgumentException(
-                            string.Format(
-                                "Specified unmasked view does not refer to a known GUIView type:\n{0}",
-                                JsonUtility.ToJson(unmaskedView, true)
-                                ), "unmaskedView"
-                            );
+                        Debug.LogWarning(//throw new ArgumentException(
+                            $"Specified unmasked view does not refer to a known GUIView type:\n{JsonUtility.ToJson(unmaskedView, true)}"
+                            //, "unmaskedView"
+                        );
                     }
                     if (targetViewType != null)
                     {
@@ -421,12 +416,10 @@ namespace Unity.InteractiveTutorials
 
             if (matchingViews.Count == 0)
             {
-                throw new ArgumentException(
-                    string.Format(
-                        "Specified unmasked view refers to a view that could not be found:\n{0}",
-                        JsonUtility.ToJson(unmaskedView, true)
-                        ), "unmaskedView"
-                    );
+                Debug.LogWarning(//throw new ArgumentException(
+                    $"Specified unmasked view refers to a view that could not be found:\n{JsonUtility.ToJson(unmaskedView, true)}"
+                    //, "unmaskedView"
+                );
             }
 
             return matchingViews;

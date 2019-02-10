@@ -204,7 +204,7 @@ namespace Unity.InteractiveTutorials
         public class TutorialProgressStatus
         {
             public string lessonId;
-            public string status;
+            public string status; // TODO make an enum instead
 
             public enum Status
             {

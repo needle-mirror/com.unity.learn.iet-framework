@@ -63,15 +63,18 @@ namespace Unity.InteractiveTutorials
                     if (t < 0d)
                         return;
 
-                    var alpha = Mathf.Cos((float)t * highlightAnimationSpeed) + 0.5f;
+                    var baseBorderWidth = 4.2f;
+                    var borderWidthAmplitude = 2.1f;
+                    var animatedBorderWidth = Mathf.Cos((float)t * highlightAnimationSpeed) * borderWidthAmplitude + baseBorderWidth;
                     foreach (var highlighter in s_Highlighters)
                     {
                         if (highlighter == null)
                             continue;
 
-                        var color = highlighter.style.borderColor.value;
-                        color.a = alpha;
-                        highlighter.style.borderColor = color;
+                        highlighter.style.borderLeftWidth = animatedBorderWidth;
+                        highlighter.style.borderRightWidth = animatedBorderWidth;
+                        highlighter.style.borderTopWidth = animatedBorderWidth;
+                        highlighter.style.borderBottomWidth = animatedBorderWidth;
                     }
                     foreach (var view in s_HighlightedViews)
                     {
@@ -200,6 +203,7 @@ namespace Unity.InteractiveTutorials
                     var rects = maskViewData.rects;
                     // unclip highlight to apply as "outer stroke" if it is being applied to some control(s) in the view
                     var unclip = rects.Count > 1 || rects[0] != viewRect;
+                    var borderRadius = 5.0f;
                     foreach (var rect in rects)
                     {
                         var highlighter = new VisualElement();
@@ -208,6 +212,12 @@ namespace Unity.InteractiveTutorials
                         highlighter.style.borderRightWidth = highlightThickness;
                         highlighter.style.borderTopWidth = highlightThickness;
                         highlighter.style.borderBottomWidth = highlightThickness;
+
+                        highlighter.style.borderBottomLeftRadius = borderRadius;
+                        highlighter.style.borderTopLeftRadius = borderRadius;
+                        highlighter.style.borderBottomRightRadius = borderRadius;
+                        highlighter.style.borderTopRightRadius = borderRadius;
+
                         highlighter.pickingMode = PickingMode.Ignore;
                         var layout = rect;
                         if (unclip)

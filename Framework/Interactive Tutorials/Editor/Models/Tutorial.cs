@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -27,15 +25,12 @@ namespace Unity.InteractiveTutorials
 
         public static event Action<Tutorial> tutorialPagesChanged;
 
-        public string windowTitle { get { return m_WindowTitle; } }
-        [Header("Content")]
-        [SerializeField]
-        string m_WindowTitle = "Tutorials";
-
         public string tutorialTitle { get { return m_TutorialTitle; } }
+        [Header("Content")]
         [SerializeField]
         string m_TutorialTitle = "";
 
+        public string lessonId { get { return m_LessonId; } }
         [SerializeField]
         string m_LessonId = "";
 
@@ -82,6 +77,8 @@ namespace Unity.InteractiveTutorials
         [SerializeField]
         private TutorialWelcomePage m_CompletedPage = null;
 
+        // TODO Handle these states in a better fashion instead of boolean farming
+        // e.g. typeof(currentPage) == WelcomePage
         [SerializeField]
         internal bool IsWelcomingPageShowing = true;
         [SerializeField]
@@ -124,8 +121,9 @@ namespace Unity.InteractiveTutorials
         {
             get
             {
-                return m_Pages.count == 0 ?
-                    null : m_Pages[m_CurrentPageIndex = Mathf.Min(m_CurrentPageIndex, m_Pages.count - 1)];
+                return m_Pages.count == 0
+                    ? null
+                    : m_Pages[m_CurrentPageIndex = Mathf.Min(m_CurrentPageIndex, m_Pages.count - 1)];
             }
         }
 
@@ -140,7 +138,6 @@ namespace Unity.InteractiveTutorials
         UnityObject m_WindowLayout = null;
 
         public bool isAutoCompleting { get { return m_AutoCompletion.running; } }
-        public string LessonId { get { return m_LessonId; } }
 
         public void StartAutoCompletion()
         {
@@ -220,15 +217,14 @@ namespace Unity.InteractiveTutorials
                 return;
 
             var layoutPath = AssetDatabase.GetAssetPath(m_WindowLayout);
-            EditorUtility.LoadWindowLayout(layoutPath);
+            TutorialManager.LoadWindowLayout(layoutPath);
         }
 
         internal void ResetProgress()
         {
             foreach (var page in m_Pages)
             {
-                if (page != null)
-                    page.ResetUserProgress();
+                page?.ResetUserProgress();
             }
             m_CurrentPageIndex = 0;
             IsWelcomingPageShowing = true;
@@ -239,32 +235,24 @@ namespace Unity.InteractiveTutorials
 
         protected virtual void OnTutorialInitiated()
         {
-            if (tutorialInitiated != null)
-                tutorialInitiated();
+            tutorialInitiated?.Invoke();
         }
 
         protected virtual void OnTutorialCompleted()
         {
-            if (tutorialCompleted != null)
-                tutorialCompleted();
+            tutorialCompleted?.Invoke();
         }
 
         protected virtual void OnPageInitiated(TutorialPage page, int index)
         {
-            if (page != null)
-                page.Initiate();
-
-            if (pageInitiated != null)
-                pageInitiated(page, index);
+            page?.Initiate();
+            pageInitiated?.Invoke(page, index);
         }
 
         protected virtual void OnGoingBack(TutorialPage page)
         {
-            if (page != null)
-                page.RemoveCompletionRequirements();
-
-            if (goingBack != null)
-                goingBack(page);
+            page?.RemoveCompletionRequirements();
+            goingBack?.Invoke(page);
         }
 
         public void SkipToLastPage()

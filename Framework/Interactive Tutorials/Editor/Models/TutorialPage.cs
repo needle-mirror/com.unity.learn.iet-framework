@@ -28,6 +28,7 @@ namespace Unity.InteractiveTutorials
 
         public bool allCriteriaAreSatisfied { get; private set; }
 
+        [Obsolete]
         public string sectionTitle { get { return m_SectionTitle; } }
         [Header("Content")]
         [SerializeField]

@@ -186,7 +186,7 @@ namespace Unity.InteractiveTutorials
             }
             if (conclusion == TutorialConclusion.Completed)
                 PageShown(Instance.lastPage, Instance.lastPageIndex + 1);  // "Show" a dummy page to get the last page to report
-            var data = new TutorialAnalyticsEventData(Instance.currentTutorial.name, Instance.currentTutorial.version, conclusion, Instance.currentTutorial.LessonId);
+            var data = new TutorialAnalyticsEventData(Instance.currentTutorial.name, Instance.currentTutorial.version, conclusion, Instance.currentTutorial.lessonId);
             UsabilityAnalyticsProxy.SendEvent("tutorial", Instance.currentTutorialStartTime, DateTime.UtcNow - Instance.currentTutorialStartTime, false, data);
             DebugLog("Tutorial Ended");
             Instance.currentTutorial = null;
