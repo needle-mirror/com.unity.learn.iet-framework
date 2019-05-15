@@ -57,8 +57,8 @@ namespace Unity.InteractiveTutorials
         private static readonly GUIContent s_RestartPromptYes = new GUIContent("Yes");
         private static readonly GUIContent s_RestartPromptNo = new GUIContent("No");
 
-        private static readonly GUIContent s_ExitPromptTitle = new GUIContent("Exit Tutorial?");
-        private static readonly GUIContent s_ExitPromptText = new GUIContent("You are about to exit the tutorial and lose all of your progress. Do you wish to exit?");
+        private static readonly GUIContent s_ExitPromptTitle = new GUIContent("Exit Walkthrough?");
+        private static readonly GUIContent s_ExitPromptText = new GUIContent("You are about to exit the walkthrough and lose all of your progress.\n\nYou can find the walkthroughs later by selecting the 'Template Walkthrough' file in the Project window.\n\nDo you wish to exit?");
         private static readonly GUIContent s_ExitPromptYes = new GUIContent("Yes");
         private static readonly GUIContent s_ExitPromptNo = new GUIContent("No");
 
