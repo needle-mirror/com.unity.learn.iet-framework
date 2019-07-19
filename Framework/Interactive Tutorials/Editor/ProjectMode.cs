@@ -6,7 +6,7 @@ namespace Unity.InteractiveTutorials
     {
         public static bool IsAuthoringMode()
         {
-            return Type.GetType("Unity.InteractiveTutorials.TutorialExporterWindow, Assembly-CSharp-Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null") != null;
+            return Type.GetType("Unity.InteractiveTutorials.TutorialExporterWindow, Unity.InternalAPIEditorBridgeDev.005, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null") != null;
         }
     }
 }

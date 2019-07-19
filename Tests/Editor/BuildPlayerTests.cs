@@ -12,7 +12,9 @@ namespace Unity.InteractiveTutorials.Tests
         {
             get
             {
-                const string buildName = "BuildPlayerTests_Build";
+                // NOTE Use "Builds" subfolder in order to make this test pass locally when
+                // using Windows & Visual Studio
+                const string buildName = "Builds/BuildPlayerTests_Build";
                 if (Application.platform == RuntimePlatform.OSXEditor)
                     return buildName + ".app";
                 return buildName;

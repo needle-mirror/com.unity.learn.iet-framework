@@ -149,14 +149,16 @@ public class ReadmeEditor : Editor {
 		m_BodyStyle = new GUIStyle(EditorStyles.label);
 		m_BodyStyle.wordWrap = true;
 		m_BodyStyle.fontSize = readme.TextBodySize;
-        
-		m_TitleStyle = new GUIStyle(m_BodyStyle);
+
+		m_TitleStyle = new GUIStyle(EditorStyles.boldLabel);
+		m_TitleStyle.wordWrap = true;
 		m_TitleStyle.fontSize = readme.TextTitleSize;
 		
 	    m_DescriptionStyle = new GUIStyle(m_BodyStyle);
 	    m_DescriptionStyle.fontSize = readme.TextProjectDescriptionSize;
 
-		m_HeadingStyle = new GUIStyle(m_BodyStyle);
+		m_HeadingStyle = new GUIStyle(EditorStyles.boldLabel);
+		m_HeadingStyle.wordWrap = true;
 		m_HeadingStyle.fontSize = readme.TextHeadingSize;
 		
 		m_LinkStyle = new GUIStyle(m_BodyStyle);
@@ -204,7 +206,7 @@ public class ReadmeEditor : Editor {
 
     bool Button (GUIContent label, params GUILayoutOption[] options)
     {
-        return GUILayout.Button(label, ButtonStyle,GUILayout.Height(40),GUILayout.Width(200));
+        return GUILayout.Button(label, ButtonStyle,GUILayout.Height(32),GUILayout.Width(200));
     }
 }
 

@@ -37,6 +37,22 @@ namespace Unity.InteractiveTutorials
     [Serializable]
     public class UnmaskedView
     {
+        static Stack<EditorWindow> s_EditorWindowsToShow = new Stack<EditorWindow>();
+
+        static UnmaskedView()
+        {
+            EditorApplication.update += OnEditorUpdate;
+        }
+
+        static void OnEditorUpdate()
+        {
+            while (s_EditorWindowsToShow.Any())
+            {
+                var window = s_EditorWindowsToShow.Pop();
+                if (window != null)
+                    window.Show();
+            }
+        }
 
         public class MaskData : ICloneable
         {
@@ -360,7 +376,11 @@ namespace Unity.InteractiveTutorials
                         var window = Resources.FindObjectsOfTypeAll(targetEditorWindowType).Cast<EditorWindow>().ToArray().FirstOrDefault();
                         if (window == null || window.GetParent() == null)
                             return matchingViews;
-                        window.Show();
+
+                        // Postpone showing window until next editor update
+                        // GetMatchingViews could be called in response to window closing
+                        s_EditorWindowsToShow.Push(window);
+
                         if (!allViews.Contains(window.GetParent()))
                             allViews.Add(window.GetParent());
                         foreach (var view in allViews)

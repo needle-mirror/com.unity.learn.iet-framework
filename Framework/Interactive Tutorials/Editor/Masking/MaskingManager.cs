@@ -19,8 +19,6 @@ namespace Unity.InteractiveTutorials
         {
             rects.Clear();
 
-            var unmaskedViewsKeys = s_UnmaskedViews.Keys.ToList();
-            Debug.Log(unmaskedViewsKeys.Count);
             MaskViewData maskViewData;
             if (s_UnmaskedViews.TryGetValue(view, out maskViewData))
             {

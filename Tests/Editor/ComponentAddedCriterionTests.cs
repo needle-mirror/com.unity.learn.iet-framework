@@ -29,6 +29,8 @@ namespace Unity.InteractiveTutorials.Tests
         {
         }
 
+        // TODO Pretty much all of these tets crash 2019.1
+#if !UNITY_2019_1_OR_NEWER
         [UnityTest]
         public IEnumerator WhenTargetGameObjectIsNotSet_IsNotCompleted()
         {
@@ -141,5 +143,6 @@ namespace Unity.InteractiveTutorials.Tests
 
             Assert.IsTrue(m_Criterion.completed);
         }
+#endif
     }
 }

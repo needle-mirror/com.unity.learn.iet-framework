@@ -83,15 +83,15 @@ MonoBehaviour:
   m_button:
     m_Name: button
     m_Normal:
-      m_Background: {fileID: 2800000, guid: 9136243fe4ffa44afb5f032c4655944b, type: 3}
+      m_Background: {fileID: 2800000, guid: 878645da069e34c5088b3d7c3c2ef90f, type: 3}
       m_ScaledBackgrounds: []
       m_TextColor: {r: 1, g: 1, b: 1, a: 1}
     m_Hover:
-      m_Background: {fileID: 2800000, guid: 97a5a50158f264781ad23b3c6f1e40ca, type: 3}
+      m_Background: {fileID: 2800000, guid: fcdf668b5aa2d414f852003c8c78d5c8, type: 3}
       m_ScaledBackgrounds: []
       m_TextColor: {r: 1, g: 1, b: 1, a: 1}
     m_Active:
-      m_Background: {fileID: 2800000, guid: f50e1dc2a344b470cb943a6c54594fd7, type: 3}
+      m_Background: {fileID: 2800000, guid: f1cb0ff35acd64d9b8e5979aeac4991a, type: 3}
       m_ScaledBackgrounds: []
       m_TextColor: {r: 1, g: 1, b: 1, a: 1}
     m_Focused:
@@ -115,12 +115,12 @@ MonoBehaviour:
       m_ScaledBackgrounds: []
       m_TextColor: {r: 0, g: 0, b: 0, a: 1}
     m_Border:
-      m_Left: 0
-      m_Right: 0
-      m_Top: 0
-      m_Bottom: 0
+      m_Left: 8
+      m_Right: 8
+      m_Top: 8
+      m_Bottom: 8
     m_Margin:
-      m_Left: 12
+      m_Left: 25
       m_Right: 12
       m_Top: 14
       m_Bottom: 0
@@ -1356,7 +1356,7 @@ MonoBehaviour:
   m_CustomStyles:
   - m_Name: Background
     m_Normal:
-      m_Background: {fileID: 2800000, guid: c96ae3a499d2242f884b2e055fd2de26, type: 3}
+      m_Background: {fileID: 2800000, guid: 2e88a70efad114caea2c593deceddcf2, type: 3}
       m_ScaledBackgrounds: []
       m_TextColor: {r: 1, g: 1, b: 1, a: 1}
     m_Hover:
@@ -1422,7 +1422,7 @@ MonoBehaviour:
     m_StretchHeight: 0
   - m_Name: CompletedElementBackground
     m_Normal:
-      m_Background: {fileID: 2800000, guid: cc964b3c8225849b4a5a643bb26e0854, type: 3}
+      m_Background: {fileID: 2800000, guid: 28767434ebbb44a17a99da7d9f5cbd23, type: 3}
       m_ScaledBackgrounds: []
       m_TextColor: {r: 1, g: 1, b: 1, a: 1}
     m_Hover:
@@ -1454,14 +1454,14 @@ MonoBehaviour:
       m_ScaledBackgrounds: []
       m_TextColor: {r: 0, g: 0, b: 0, a: 1}
     m_Border:
-      m_Left: 0
-      m_Right: 0
-      m_Top: 0
-      m_Bottom: 0
+      m_Left: 8
+      m_Right: 8
+      m_Top: 8
+      m_Bottom: 8
     m_Margin:
-      m_Left: 0
-      m_Right: 0
-      m_Top: 0
+      m_Left: 25
+      m_Right: 25
+      m_Top: 10
       m_Bottom: 0
     m_Padding:
       m_Left: 0
@@ -1488,7 +1488,7 @@ MonoBehaviour:
     m_StretchHeight: 1
   - m_Name: ActiveElementBackground
     m_Normal:
-      m_Background: {fileID: 2800000, guid: 1651d0ddf920d4f4b834f6319e1f05c6, type: 3}
+      m_Background: {fileID: 2800000, guid: f5e7d4905fcf24920b520603413c3381, type: 3}
       m_ScaledBackgrounds: []
       m_TextColor: {r: 1, g: 1, b: 1, a: 1}
     m_Hover:
@@ -1520,14 +1520,14 @@ MonoBehaviour:
       m_ScaledBackgrounds: []
       m_TextColor: {r: 0, g: 0, b: 0, a: 1}
     m_Border:
-      m_Left: 0
-      m_Right: 0
-      m_Top: 0
-      m_Bottom: 0
+      m_Left: 8
+      m_Right: 8
+      m_Top: 8
+      m_Bottom: 8
     m_Margin:
-      m_Left: 0
-      m_Right: 0
-      m_Top: 0
+      m_Left: 25
+      m_Right: 25
+      m_Top: 10
       m_Bottom: 0
     m_Padding:
       m_Left: 0
@@ -1554,7 +1554,7 @@ MonoBehaviour:
     m_StretchHeight: 1
   - m_Name: InActiveElementBackground
     m_Normal:
-      m_Background: {fileID: 2800000, guid: cc964b3c8225849b4a5a643bb26e0854, type: 3}
+      m_Background: {fileID: 2800000, guid: 4e3cd834d941d48d4beef214d3e94bf6, type: 3}
       m_ScaledBackgrounds: []
       m_TextColor: {r: 0, g: 0, b: 0, a: 1}
     m_Hover:
@@ -1586,14 +1586,14 @@ MonoBehaviour:
       m_ScaledBackgrounds: []
       m_TextColor: {r: 0, g: 0, b: 0, a: 1}
     m_Border:
-      m_Left: 0
-      m_Right: 0
-      m_Top: 0
-      m_Bottom: 0
+      m_Left: 8
+      m_Right: 8
+      m_Top: 8
+      m_Bottom: 8
     m_Margin:
-      m_Left: 0
-      m_Right: 0
-      m_Top: 0
+      m_Left: 25
+      m_Right: 25
+      m_Top: 10
       m_Bottom: 0
     m_Padding:
       m_Left: 0
@@ -1620,7 +1620,7 @@ MonoBehaviour:
     m_StretchHeight: 1
   - m_Name: SectionTitleBackground
     m_Normal:
-      m_Background: {fileID: 2800000, guid: cc964b3c8225849b4a5a643bb26e0854, type: 3}
+      m_Background: {fileID: 2800000, guid: 5585ec240e3d849d39e92b01f9332ae6, type: 3}
       m_ScaledBackgrounds: []
       m_TextColor: {r: 1, g: 1, b: 1, a: 1}
     m_Hover:
@@ -1752,7 +1752,7 @@ MonoBehaviour:
     m_StretchHeight: 0
   - m_Name: FullGreyBackground
     m_Normal:
-      m_Background: {fileID: 2800000, guid: cc964b3c8225849b4a5a643bb26e0854, type: 3}
+      m_Background: {fileID: 2800000, guid: 2e88a70efad114caea2c593deceddcf2, type: 3}
       m_ScaledBackgrounds: []
       m_TextColor: {r: 1, g: 1, b: 1, a: 1}
     m_Hover:
@@ -2190,18 +2190,18 @@ MonoBehaviour:
       m_Top: 0
       m_Bottom: 0
     m_Padding:
-      m_Left: 0
+      m_Left: 5
       m_Right: 16
-      m_Top: 8
-      m_Bottom: 8
+      m_Top: 10
+      m_Bottom: 10
     m_Overflow:
       m_Left: 0
       m_Right: 0
       m_Top: 0
       m_Bottom: 0
     m_Font: {fileID: 0}
-    m_FontSize: 13
-    m_FontStyle: 0
+    m_FontSize: 12
+    m_FontStyle: 1
     m_Alignment: 0
     m_WordWrap: 1
     m_RichText: 1
@@ -2259,7 +2259,7 @@ MonoBehaviour:
       m_Left: 28
       m_Right: 20
       m_Top: 16
-      m_Bottom: 16
+      m_Bottom: 0
     m_Overflow:
       m_Left: 0
       m_Right: 0
@@ -2346,7 +2346,7 @@ MonoBehaviour:
     m_StretchHeight: 0
   - m_Name: ImageStyle
     m_Normal:
-      m_Background: {fileID: 0}
+      m_Background: {fileID: 2800000, guid: 5e343a45b8744448ca8a77715f0f2235, type: 3}
       m_ScaledBackgrounds: []
       m_TextColor: {r: 0, g: 0, b: 0, a: 1}
     m_Hover:
@@ -2380,7 +2380,7 @@ MonoBehaviour:
     m_Border:
       m_Left: 0
       m_Right: 0
-      m_Top: 0
+      m_Top: 10
       m_Bottom: 0
     m_Margin:
       m_Left: 0
@@ -2478,9 +2478,9 @@ MonoBehaviour:
     m_StretchHeight: 0
   - m_Name: InstructionLabelIconNotCompleted
     m_Normal:
-      m_Background: {fileID: 2800000, guid: e1c2bb1a6ca4845b3a7abe1a43a79ba2, type: 3}
+      m_Background: {fileID: 2800000, guid: 185156b425ccf41ed8c47a4c7c6d397d, type: 3}
       m_ScaledBackgrounds:
-      - {fileID: 2800000, guid: 7c06a22ff031f4c14b4f804202115882, type: 3}
+      - {fileID: 2800000, guid: ea38226a5bc604f73a8dd1dd7932038d, type: 3}
       m_TextColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
     m_Hover:
       m_Background: {fileID: 0}
@@ -2516,10 +2516,10 @@ MonoBehaviour:
       m_Top: 0
       m_Bottom: 0
     m_Margin:
-      m_Left: 10
-      m_Right: 8
-      m_Top: 7
-      m_Bottom: 0
+      m_Left: 12
+      m_Right: 6
+      m_Top: 8
+      m_Bottom: 8
     m_Padding:
       m_Left: 0
       m_Right: 0
@@ -2545,9 +2545,9 @@ MonoBehaviour:
     m_StretchHeight: 0
   - m_Name: InstructionLabelIconCompleted
     m_Normal:
-      m_Background: {fileID: 2800000, guid: b19b6fc871da6471da2cc9653a65d1bf, type: 3}
+      m_Background: {fileID: 2800000, guid: 4d3432c1ca29344e39c6363a16fc8db7, type: 3}
       m_ScaledBackgrounds:
-      - {fileID: 2800000, guid: 910cbcc3464024d91bc528c324f2a7d2, type: 3}
+      - {fileID: 2800000, guid: 0aff1b0c509b040509a27864d858f4f2, type: 3}
       m_TextColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
     m_Hover:
       m_Background: {fileID: 0}
@@ -2583,10 +2583,10 @@ MonoBehaviour:
       m_Top: 0
       m_Bottom: 0
     m_Margin:
-      m_Left: 10
-      m_Right: 8
-      m_Top: 7
-      m_Bottom: 0
+      m_Left: 12
+      m_Right: 6
+      m_Top: 8
+      m_Bottom: 8
     m_Padding:
       m_Left: 0
       m_Right: 0
@@ -2680,7 +2680,7 @@ MonoBehaviour:
     m_Normal:
       m_Background: {fileID: 0}
       m_ScaledBackgrounds: []
-      m_TextColor: {r: 0, g: 0.15686275, b: 0.20784314, a: 1}
+      m_TextColor: {r: 0, g: 0.15686275, b: 0.20784314, a: 0.78431374}
     m_Hover:
       m_Background: {fileID: 0}
       m_ScaledBackgrounds: []
@@ -2720,10 +2720,10 @@ MonoBehaviour:
       m_Top: 0
       m_Bottom: 0
     m_Padding:
-      m_Left: 16
+      m_Left: 26
       m_Right: 16
-      m_Top: 16
-      m_Bottom: 16
+      m_Top: 8
+      m_Bottom: 12
     m_Overflow:
       m_Left: 0
       m_Right: 0
@@ -2744,7 +2744,7 @@ MonoBehaviour:
     m_StretchHeight: 0
   - m_Name: TopBarBackground
     m_Normal:
-      m_Background: {fileID: 2800000, guid: c96ae3a499d2242f884b2e055fd2de26, type: 3}
+      m_Background: {fileID: 2800000, guid: b2a2059210fe64eb9889e7a0673cb648, type: 3}
       m_ScaledBackgrounds: []
       m_TextColor: {r: 0, g: 0.15686275, b: 0.20784314, a: 1}
     m_Hover:
@@ -3078,7 +3078,7 @@ MonoBehaviour:
     m_StretchHeight: 0
   - m_Name: BGTheInBetweenText
     m_Normal:
-      m_Background: {fileID: 2800000, guid: 65e92bdfb11484892985fab5fed468f2, type: 3}
+      m_Background: {fileID: 2800000, guid: 8cc2f1fa74db94cdfbb0b8147960ccb1, type: 3}
       m_ScaledBackgrounds: []
       m_TextColor: {r: 0, g: 0.15686275, b: 0.20784314, a: 1}
     m_Hover:
@@ -3110,13 +3110,13 @@ MonoBehaviour:
       m_ScaledBackgrounds: []
       m_TextColor: {r: 1, g: 0, b: 0, a: 1}
     m_Border:
-      m_Left: 0
-      m_Right: 0
-      m_Top: 0
-      m_Bottom: 0
+      m_Left: 8
+      m_Right: 8
+      m_Top: 8
+      m_Bottom: 8
     m_Margin:
-      m_Left: 3
-      m_Right: 2
+      m_Left: 25
+      m_Right: 25
       m_Top: 0
       m_Bottom: 0
     m_Padding:
@@ -3144,7 +3144,7 @@ MonoBehaviour:
     m_StretchHeight: 0
   - m_Name: BGTheInBetweenTextNotActiveOrCompleted
     m_Normal:
-      m_Background: {fileID: 2800000, guid: cdd49ceea6caf4309a57e8a91cc86487, type: 3}
+      m_Background: {fileID: 2800000, guid: c48c25a0685c04b10bdb4eab4fc1b6c2, type: 3}
       m_ScaledBackgrounds: []
       m_TextColor: {r: 0, g: 0.15686275, b: 0.20784314, a: 1}
     m_Hover:
@@ -3176,13 +3176,13 @@ MonoBehaviour:
       m_ScaledBackgrounds: []
       m_TextColor: {r: 1, g: 0, b: 0, a: 1}
     m_Border:
-      m_Left: 0
-      m_Right: 0
-      m_Top: 0
-      m_Bottom: 0
+      m_Left: 8
+      m_Right: 8
+      m_Top: 8
+      m_Bottom: 8
     m_Margin:
-      m_Left: 3
-      m_Right: 2
+      m_Left: 25
+      m_Right: 25
       m_Top: 0
       m_Bottom: 0
     m_Padding:
@@ -3342,15 +3342,15 @@ MonoBehaviour:
     m_StretchHeight: 0
   - m_Name: NextButton
     m_Normal:
-      m_Background: {fileID: 2800000, guid: 9136243fe4ffa44afb5f032c4655944b, type: 3}
+      m_Background: {fileID: 2800000, guid: 878645da069e34c5088b3d7c3c2ef90f, type: 3}
       m_ScaledBackgrounds: []
       m_TextColor: {r: 1, g: 1, b: 1, a: 1}
     m_Hover:
-      m_Background: {fileID: 2800000, guid: 97a5a50158f264781ad23b3c6f1e40ca, type: 3}
+      m_Background: {fileID: 2800000, guid: fcdf668b5aa2d414f852003c8c78d5c8, type: 3}
       m_ScaledBackgrounds: []
       m_TextColor: {r: 1, g: 1, b: 1, a: 1}
     m_Active:
-      m_Background: {fileID: 2800000, guid: f50e1dc2a344b470cb943a6c54594fd7, type: 3}
+      m_Background: {fileID: 2800000, guid: f1cb0ff35acd64d9b8e5979aeac4991a, type: 3}
       m_ScaledBackgrounds: []
       m_TextColor: {r: 1, g: 1, b: 1, a: 1}
     m_Focused:
@@ -3374,10 +3374,10 @@ MonoBehaviour:
       m_ScaledBackgrounds: []
       m_TextColor: {r: 1, g: 1, b: 1, a: 1}
     m_Border:
-      m_Left: 0
-      m_Right: 0
-      m_Top: 0
-      m_Bottom: 0
+      m_Left: 8
+      m_Right: 8
+      m_Top: 8
+      m_Bottom: 8
     m_Margin:
       m_Left: 0
       m_Right: 12
@@ -3408,7 +3408,7 @@ MonoBehaviour:
     m_StretchHeight: 1
   - m_Name: NextButtonDisabled
     m_Normal:
-      m_Background: {fileID: 2800000, guid: 3eabc698a203b4999be85f064f6dafe7, type: 3}
+      m_Background: {fileID: 2800000, guid: 53593955dae60460489d1a8bfd694d52, type: 3}
       m_ScaledBackgrounds: []
       m_TextColor: {r: 0.30980393, g: 0.30980393, b: 0.30980393, a: 1}
     m_Hover:
@@ -3440,10 +3440,10 @@ MonoBehaviour:
       m_ScaledBackgrounds: []
       m_TextColor: {r: 1, g: 1, b: 1, a: 1}
     m_Border:
-      m_Left: 0
-      m_Right: 0
-      m_Top: 0
-      m_Bottom: 0
+      m_Left: 8
+      m_Right: 8
+      m_Top: 8
+      m_Bottom: 8
     m_Margin:
       m_Left: 0
       m_Right: 12
@@ -3474,7 +3474,7 @@ MonoBehaviour:
     m_StretchHeight: 1
   - m_Name: ProgressBar
     m_Normal:
-      m_Background: {fileID: 2800000, guid: de4fb675fb7e54feba3158439d136fdf, type: 3}
+      m_Background: {fileID: 2800000, guid: b74071590687245c59a2333df73ad456, type: 3}
       m_ScaledBackgrounds: []
       m_TextColor: {r: 1, g: 1, b: 1, a: 1}
     m_Hover:
