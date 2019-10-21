@@ -359,10 +359,9 @@ namespace Unity.InteractiveTutorials
                     var targetEditorWindowType = unmaskedView.editorWindowType;
                     if (targetEditorWindowType == null)
                     {
-                        // TODO demoted exceptions to warnings due to refactoring WIP
-                        Debug.LogWarning(//throw new ArgumentException(
-                            $"Specified unmasked view does not refer to a known EditorWindow type:\n{JsonUtility.ToJson(unmaskedView, true)}"
-                            //, "unmaskedView"
+                        throw new ArgumentException(
+                            $"Specified unmasked view does not refer to a known EditorWindow type:\n{JsonUtility.ToJson(unmaskedView, true)}",
+                            "unmaskedView"
                         );
                     }
                     if (targetEditorWindowType != null)
@@ -398,9 +397,9 @@ namespace Unity.InteractiveTutorials
                     var targetViewType = unmaskedView.m_ViewType.type;
                     if (targetViewType == null)
                     {
-                        Debug.LogWarning(//throw new ArgumentException(
-                            $"Specified unmasked view does not refer to a known GUIView type:\n{JsonUtility.ToJson(unmaskedView, true)}"
-                            //, "unmaskedView"
+                        throw new ArgumentException(
+                            $"Specified unmasked view does not refer to a known GUIView type:\n{JsonUtility.ToJson(unmaskedView, true)}",
+                            "unmaskedView"
                         );
                     }
                     if (targetViewType != null)
@@ -414,13 +413,15 @@ namespace Unity.InteractiveTutorials
                     break;
             }
 
-            if (matchingViews.Count == 0)
-            {
-                Debug.LogWarning(//throw new ArgumentException(
-                    $"Specified unmasked view refers to a view that could not be found:\n{JsonUtility.ToJson(unmaskedView, true)}"
-                    //, "unmaskedView"
-                );
-            }
+            // TODO Not necessarily exception worthy. We are using a "delayed masking" occasionally, e.g. when switching
+            // to Play mode and we want to unmask Game view which is not yet visible (in the background tab by defaul).
+            //if (matchingViews.Count == 0)
+            //{
+            //    throw new ArgumentException(
+            //        $"Specified unmasked view refers to a view that could not be found:\n{JsonUtility.ToJson(unmaskedView, true)}"
+            //        , "unmaskedView"
+            //    );
+            //}
 
             return matchingViews;
         }

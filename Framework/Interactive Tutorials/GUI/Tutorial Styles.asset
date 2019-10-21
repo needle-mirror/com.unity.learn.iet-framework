@@ -15,7 +15,7 @@ MonoBehaviour:
   m_Skin: {fileID: 11400000, guid: e9c45368bc94c4eb6a1c831241fa9db6, type: 2}
   m_OrderedListDelimiter: .
   m_UnorderedListBullet: "\u2022"
-  m_MaskingColor: {r: 0.11213955, g: 0.179666, b: 0.2264151, a: 0.29411766}
+  m_MaskingColor: {r: 0.11213955, g: 0.179666, b: 0.2264151, a: 0.5882353}
   m_HighlightColor: {r: 0.3915094, g: 0.7492484, b: 1, a: 1}
   m_BlockedInteractionColor: {r: 0.16078432, g: 0.63529414, b: 0.96862745, a: 0.019607844}
   m_HighlightThickness: 3

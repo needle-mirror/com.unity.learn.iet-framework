@@ -37,6 +37,9 @@ namespace Unity.InteractiveTutorials
 
         public static bool IsLoadingLayout { get; private set; }
 
+        public static event Action aboutToLoadLayout;
+        public static event Action<bool> layoutLoaded; // bool == successful
+
         internal static TutorialWindow GetTutorialWindow()
         {
             return Resources.FindObjectsOfTypeAll<TutorialWindow>().FirstOrDefault();
@@ -44,6 +47,20 @@ namespace Unity.InteractiveTutorials
 
         public void StartTutorial(Tutorial tutorial)
         {
+            if (tutorial == null)
+            {
+                Debug.LogError("Null Tutorial.");
+                return;
+            }
+
+            // NOTE maximizeOnPlay=true was causing problems at some point
+            // (tutorial was closed for some reason) but that problem seems to be gone.
+            // Keeping this here in case the problem returns.
+            //GameViewProxy.maximizeOnPlay = false;
+
+            // Prevent Game view flashing briefly when starting tutorial.
+            EditorWindow.GetWindow<SceneView>().Focus();
+
             // Is the previous tutorial finished? Make sure to record the progress.
             // by trying to progress to the next page which will take care of it.
             if (m_Tutorial && m_Tutorial.completed)
@@ -70,49 +87,42 @@ namespace Unity.InteractiveTutorials
             }
         }
 
-        //event Action AfterWindowClosed;
-
         void StartTutorialInEditMode()
         {
-            if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
-                return;
+            // TODO HACK double delay to resolve various issue (e.g. black screen during save modifications dialog
+            // Revisit and fix properly.
+            EditorApplication.delayCall += delegate
+            {
+                EditorApplication.delayCall += delegate
+                {
+                    if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+                        return;
 
-            // New behavior: the default layout will contain the tutorial window 
-            // always so make sure to to save the layout before closing the window.
+                    // TODO document why this is done
+                    EditorWindow.GetWindow<SceneView>().Focus();
 
+                    SaveOriginalScenes();
+                    SaveOriginalWindowLayout();
 
-            // Postpone start of tutorial until window is closed
-            //var tutorialWindow = GetTutorialWindow();
-            //if (tutorialWindow != null)
-            //{
-            //    tutorialWindow.Close();
-            //    AfterWindowClosed += StartTutorialInEditMode;
-            //    return;
-            //}
+                    m_Tutorial.LoadWindowLayout();
 
-            //AfterWindowClosed -= StartTutorialInEditMode;
+                    // Ensure TutorialWindow is open and set the current tutorial
+                    var tutorialWindow = EditorWindow.GetWindow<TutorialWindow>();
+                    tutorialWindow.SetTutorial(m_Tutorial);
 
-            SaveOriginalScenes();
-            SaveOriginalWindowLayout();
+                    m_Tutorial.ResetProgress();
 
-            m_Tutorial.LoadWindowLayout();
-
-            // Ensure TutorialWindow is open and set the current tutorial
-            var tutorialWindow = EditorWindow.GetWindow<TutorialWindow>();
-            tutorialWindow.SetTutorial(m_Tutorial);
-
-            m_Tutorial.ResetProgress();
-
-            // Do not overwrite workspace in authoring mode, use version control instead.
-            if (!ProjectMode.IsAuthoringMode())
-                LoadTutorialDefaultsIntoAssetsFolder();
+                // Do not overwrite workspace in authoring mode, use version control instead.
+                if (!ProjectMode.IsAuthoringMode())
+                    LoadTutorialDefaultsIntoAssetsFolder();
+                };
+            };
         }
 
         public void RestoreOriginalState()
         {
             RestoreOriginalScenes();
             RestoreOriginalWindowLayout();
-            //AfterWindowClosed?.Invoke();
         }
 
         public void ResetTutorial()
@@ -172,9 +182,11 @@ namespace Unity.InteractiveTutorials
         public static bool LoadWindowLayout(string path)
         {
             IsLoadingLayout = true;
+            aboutToLoadLayout?.Invoke();
             var successful = EditorUtility.LoadWindowLayout(path);
             if (!successful)
                 Debug.LogError($"Failed to load layout from \"{path}\".");
+            layoutLoaded?.Invoke(successful);
             IsLoadingLayout = false;
             return successful;
         }
@@ -205,8 +217,9 @@ namespace Unity.InteractiveTutorials
             }
         }
 
-        internal void RestoreOriginalScenes()
+        internal void RestoreOriginalScenes( )
         {
+
             // Don't restore scene state if we didn't save it in the first place
             if (string.IsNullOrEmpty(m_OriginalActiveSceneAssetPath))
                 return;

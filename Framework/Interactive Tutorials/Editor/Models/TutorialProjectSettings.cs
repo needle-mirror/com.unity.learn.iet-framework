@@ -37,6 +37,11 @@ namespace Unity.InteractiveTutorials
         }
 
         [SerializeField]
+        [Tooltip("Initial scene that is loaded when the project is started for the first time.")]
+        SceneAsset m_InitialScene = null;
+        public SceneAsset initialScene => m_InitialScene;
+
+        [SerializeField]
         bool m_RestoreDefaultAssetsOnTutorialReload = true;
         public bool restoreDefaultAssetsOnTutorialReload { get { return m_RestoreDefaultAssetsOnTutorialReload; } }
 

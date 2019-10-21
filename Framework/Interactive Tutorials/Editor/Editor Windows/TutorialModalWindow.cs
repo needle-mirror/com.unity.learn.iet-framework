@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Unity.InteractiveTutorials
 {
-    // Utilizes masking for the modality.
+    // A modal/utility window. Utilizes masking for the modality.
     class TutorialModalWindow : EditorWindow
     {
         const int kWidth = 700;
@@ -22,7 +22,8 @@ namespace Unity.InteractiveTutorials
 
         public static bool Visible { get; private set; }
 
-        public static bool MaskingEnabled { get; private set; }
+        // Remember to set prior to calling TryToShow().
+        public static bool MaskingEnabled { get; set; } = false;
 
         public static void TryToShow(string windowTitle, TutorialWelcomePage welcomePage, Action onClose)
         {
@@ -47,7 +48,8 @@ namespace Unity.InteractiveTutorials
 
             window.Show();
 
-            window.Mask();
+            if (MaskingEnabled)
+                window.Mask();
         }
 
         void OnEnable()

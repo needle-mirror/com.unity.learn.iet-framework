@@ -4,9 +4,11 @@ namespace Unity.InteractiveTutorials
 {
     public static class TutorialWindowMenuItem
     {
-        public const string Menu = "Tutorials/";
+        public const string Menu = "Tutorials";
+        public const string MenuPath = Menu + "/";
+        public const string Item = "Show Tutorials";
 
-        [MenuItem(Menu + "Open Walkthroughs")]
+        [MenuItem(MenuPath + Item)]
         static void OpenTutorialWindow()
         {
             TutorialWindow.CreateWindow();

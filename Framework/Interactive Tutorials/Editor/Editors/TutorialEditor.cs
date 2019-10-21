@@ -50,7 +50,7 @@ namespace Unity.InteractiveTutorials
         private void OnUndoRedoPerformed()
         {
             if (tutorial != null)
-                tutorial.RaiseTutorialPagesChangedEvent();
+                tutorial.RaiseTutorialPagesModified();
         }
 
         private UndoPropertyModification[] OnPostprocessModifications(UndoPropertyModification[] modifications)
@@ -74,7 +74,7 @@ namespace Unity.InteractiveTutorials
             }
 
             if (pagesChanged)
-                tutorial.RaiseTutorialPagesChangedEvent();
+                tutorial.RaiseTutorialPagesModified();
 
             return modifications;
         }

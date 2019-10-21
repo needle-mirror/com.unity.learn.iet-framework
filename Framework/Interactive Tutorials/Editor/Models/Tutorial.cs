@@ -23,7 +23,7 @@ namespace Unity.InteractiveTutorials
             }
         }
 
-        public static event Action<Tutorial> tutorialPagesChanged;
+        public static event Action<Tutorial> tutorialPagesModified;
 
         public string tutorialTitle { get { return m_TutorialTitle; } }
         [Header("Content")]
@@ -137,6 +137,8 @@ namespace Unity.InteractiveTutorials
              "Linux: ~/.config/Preferences/Unity/<version>/Layouts")]
         UnityObject m_WindowLayout = null;
 
+        internal string windowLayoutPath => AssetDatabase.GetAssetPath(m_WindowLayout);
+
         public bool isAutoCompleting { get { return m_AutoCompletion.running; } }
 
         public void StartAutoCompletion()
@@ -189,10 +191,9 @@ namespace Unity.InteractiveTutorials
             return false;
         }
 
-        public void RaiseTutorialPagesChangedEvent()
+        public void RaiseTutorialPagesModified()
         {
-            if (tutorialPagesChanged != null)
-                tutorialPagesChanged(this);
+            tutorialPagesModified?.Invoke(this);
         }
 
         void LoadScene()

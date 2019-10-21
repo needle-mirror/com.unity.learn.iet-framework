@@ -14,8 +14,7 @@ Example:
 
     {
         "dependencies": {
-            "com.unity.learn.iet-framework": "0.1.6-preview",
-            "com.unity.learn.iet-framework.authoring": "0.1.2-preview"
+            "com.unity.learn.iet-framework": "0.1.6-preview"
         }
     }
-Make sure tp use the latest version available of the package.
+Make sure to use the latest version available of the package.

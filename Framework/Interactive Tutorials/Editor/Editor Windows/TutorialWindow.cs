@@ -20,7 +20,7 @@ namespace Unity.InteractiveTutorials
         {
             instance = GetWindow<TutorialWindow>(s_WindowTitleContent.text);
             instance.minSize = new Vector2(kMinWidth, kMinHeight);
-            TutorialManager.LoadWindowLayout(Readme.k_DefaultLayout);
+            TutorialManager.LoadWindowLayout(TutorialContainer.k_UserLayoutPath);
             return instance;
         }
 
@@ -72,24 +72,26 @@ namespace Unity.InteractiveTutorials
         //    "Returning to the first step will restart the tutorial and you will lose all of your progress. Do you wish to restart?"
         //);
 
-        const string kMenuPath = "'Tutorials -> Open Walkthroughs'";
+        // Unity's menu guide convetion: text in italics, '>' used as a separator
+        // TODO EditorUtility.DisplayDialog doesn't support italics so cannot use rich text here.
+        static readonly string kMenuPathGuide = TutorialWindowMenuItem.Menu + ">" + TutorialWindowMenuItem.Item;
 
-        private static readonly GUIContent s_ExitPromptTitle = new GUIContent("Exit Walkthrough?");
-        private static readonly string s_ExitTooltip = "Exit Walkthrough";
+        private static readonly GUIContent s_ExitPromptTitle = new GUIContent("Exit Tutorial?");
+        private static readonly string s_ExitTooltip = "Exit Tutorial";
         private static readonly GUIContent s_ExitPromptText = new GUIContent(
-            $"You are about to exit the walkthrough and lose all of your progress.\n\n" +
-            $"You can find the walkthroughs later from the menu by choosing {kMenuPath}.\n\n" +
+            $"You are about to exit the tutorial and lose all of your progress.\n\n" +
+            $"You can find the tutorials later from the menu by choosing {kMenuPathGuide}.\n\n" +
             $"Do you wish to exit?"
         );
 
-        private static readonly GUIContent s_TabClosedDialogTitle = new GUIContent("Close Learn");
+        private static readonly GUIContent s_TabClosedDialogTitle = new GUIContent("Close Tutorials");
         private static readonly GUIContent s_TabClosedDialogText = new GUIContent(
-            $"You can find the walkthroughs later from the menu by choosing {kMenuPath}."
+            $"You can find the tutorials later from the menu by choosing {kMenuPathGuide}."
         );
 
         internal Tutorial currentTutorial { get; private set; }
 
-        internal Readme readme
+        internal TutorialContainer readme
         {
             get { return m_Readme; }
             private set
@@ -100,7 +102,7 @@ namespace Unity.InteractiveTutorials
                     FetchTutorialStates();
             }
         }
-        [SerializeField] Readme m_Readme;
+        [SerializeField] TutorialContainer m_Readme;
         [SerializeField] Card[] m_Cards = { };
 
         private bool maskingEnabled
@@ -165,7 +167,7 @@ namespace Unity.InteractiveTutorials
 
             GUIViewProxy.positionChanged += OnGUIViewPositionChanged;
             HostViewProxy.actualViewChanged += OnHostViewActualViewChanged;
-            Tutorial.tutorialPagesChanged += OnTutorialPagesChanged;
+            Tutorial.tutorialPagesModified += OnTutorialPagesModified;
             // test for page completion state changes (rather than criteria completion/invalidation directly)
             // so that page completion state will be up-to-date
             TutorialPage.criteriaCompletionStateTested += OnTutorialPageCriteriaCompletionStateTested;
@@ -189,7 +191,7 @@ namespace Unity.InteractiveTutorials
 
             ClearTutorialListener();
 
-            Tutorial.tutorialPagesChanged -= OnTutorialPagesChanged;
+            Tutorial.tutorialPagesModified -= OnTutorialPagesModified;
             TutorialPage.criteriaCompletionStateTested -= OnTutorialPageCriteriaCompletionStateTested;
             TutorialPage.tutorialPageMaskingSettingsChanged -= OnTutorialPageMaskingSettingsChanged;
             TutorialPage.tutorialPageNonMaskingSettingsChanged -= OnTutorialPageNonMaskingSettingsChanged;
@@ -225,6 +227,8 @@ namespace Unity.InteractiveTutorials
 
         void OnHostViewActualViewChanged()
         {
+            if (TutorialManager.IsLoadingLayout)
+                return;
             // do not mask immediately in case unmasked GUIView doesn't exist yet
             // TODO disabled for now in order to get Welcome dialog masking working
             //QueueMaskUpdate();
@@ -279,8 +283,12 @@ namespace Unity.InteractiveTutorials
             {
                 case Tutorial.ExitBehavior.ShowHomeWindow:
                     if (completed)
+                    {
                         HomeWindowProxy.ShowTutorials();
-                    else if (EditorUtility.DisplayDialog(s_HomePromptTitle.text, s_HomePromptText.text, s_PromptYes.text, s_PromptNo.text))
+                    }
+                    else if (
+                        !IsInProgress() ||
+                        EditorUtility.DisplayDialog(s_HomePromptTitle.text, s_HomePromptText.text, s_PromptYes.text, s_PromptNo.text))
                     {
                         HomeWindowProxy.ShowTutorials();
                         GUIUtility.ExitGUI();
@@ -294,7 +302,9 @@ namespace Unity.InteractiveTutorials
                         ResetTutorial();
                         TutorialManager.instance.RestoreOriginalState();
                     }
-                    else if (EditorUtility.DisplayDialog(s_ExitPromptTitle.text, s_ExitPromptText.text, s_PromptYes.text, s_PromptNo.text))
+                    else if(
+                        !IsInProgress() ||
+                        EditorUtility.DisplayDialog(s_ExitPromptTitle.text, s_ExitPromptText.text, s_PromptYes.text, s_PromptNo.text))
                     {
                         SetTutorial(null);
                         ResetTutorial();
@@ -426,6 +436,14 @@ namespace Unity.InteractiveTutorials
         private bool IsFirstPage()
         {
             return currentTutorial != null && currentTutorial.currentPageIndex == 0;
+        }
+
+        // Returns true if some real progress has been done (criteria on some page finished).
+        private bool IsInProgress()
+        {
+            return currentTutorial
+                ?.pages.Any(pg => pg.paragraphs.Any(p => p.criteria.Any() && pg.allCriteriaAreSatisfied))
+                ?? false;
         }
 
         protected override void OnResized_Internal()
@@ -747,6 +765,9 @@ namespace Unity.InteractiveTutorials
 
         void Footer(/*Rect windowRect*/)
         {
+            if (currentTutorial == null)
+                return;
+
             using(new EditorGUILayout.VerticalScope(
                 AllTutorialStyles.darkBackground, GUILayout.Height(62), GUILayout.ExpandWidth(true)))
             {
@@ -937,16 +958,6 @@ namespace Unity.InteractiveTutorials
                 .OrderBy(card => card.section.orderInView)
                 .ToList();
 
-            if (others.Any())
-            {
-                using(new GUILayout.HorizontalScope())
-                {
-                    GUILayout.FlexibleSpace();
-                    GUILayout.Label("OTHER RESOURCES", AllTutorialStyles.sectionTitleLabel);
-                    GUILayout.FlexibleSpace();
-                }
-            }
-
             for(int index = 0; index < others.Count; ++index)
             {
                 GUILayout.BeginHorizontal();
@@ -1008,7 +1019,7 @@ namespace Unity.InteractiveTutorials
             }
         }
 
-        private void OnTutorialPagesChanged(Tutorial sender)
+        private void OnTutorialPagesModified(Tutorial sender)
         {
             if (sender == null || currentTutorial == null || currentTutorial != sender)
                 return;
@@ -1044,6 +1055,8 @@ namespace Unity.InteractiveTutorials
 
         void OnGUIViewPositionChanged(UnityObject sender)
         {
+            if (TutorialManager.IsLoadingLayout)
+                return;
             if (sender.GetType().Name == "TooltipView")
                 return;
             ApplyMaskingSettings(true);
@@ -1051,7 +1064,9 @@ namespace Unity.InteractiveTutorials
 
         private void ApplyMaskingSettings(bool applyMask)
         {
-            if (!applyMask || !maskingEnabled || currentTutorial == null || currentTutorial.currentPage == null || IsParentNull())
+            // TODO IsParentNull() probably not needed anymore as TutorialWindow is always parented in the current design & layout.
+            if (!applyMask || !maskingEnabled || currentTutorial == null ||
+                currentTutorial.currentPage == null || IsParentNull() || TutorialManager.IsLoadingLayout)
             {
                 MaskingManager.Unmask();
                 InternalEditorUtility.RepaintAllViews();
@@ -1161,16 +1176,13 @@ namespace Unity.InteractiveTutorials
 
         #region Migrated from ReadmeEditor
 
-        const string k_ShowedFirstLaunchExperience = "ReadmeEditor.showedFirstLaunchExperience";
-
         class Card
         {
-            public Readme.Section section;
+            public TutorialContainer.Section section;
             public GUIContent content;
         }
 
         // Deprecated styles for old-style sections
-        // NOTE HeadingStyle and BodyStyle are still used for the font sizes.
         GUIStyle ButtonStyle { get; set; } = new GUIStyle();
         GUIStyle LinkStyle { get; set; } = new GUIStyle();
         GUIStyle TitleStyle { get; set; } = new GUIStyle();
@@ -1179,60 +1191,12 @@ namespace Unity.InteractiveTutorials
         GUIStyle BodyStyle { get; set; } = new GUIStyle();
         bool m_DeprecatedStylesInitialized;
 
-        [InitializeOnLoadMethod]
-        static void DelayedRunFirstLaunchExperience()
-        {
-            EditorApplication.delayCall += delegate
-            {
-                RunFirstLaunchExperience(false);
-            };
-        }
-
-        internal static void RunFirstLaunchExperience(bool force)
-        {
-            if (force || !SessionState.GetBool(k_ShowedFirstLaunchExperience, false))
-            {
-                var readme = FindReadme();
-                if (readme != null)
-                    readme.LoadTutorialProjectLayout(force);
-
-                var welcomePage = FindWelcomePage();
-                if (welcomePage != null)
-                {
-                    TutorialModalWindow.TryToShow("Welcome", welcomePage, () => { });
-                    SessionState.SetBool(k_ShowedFirstLaunchExperience, true);
-                }
-
-                var wnd = TutorialManager.GetTutorialWindow();
-                if (wnd)
-                    wnd.showStartHereMarker = true;
-            }
-        }
-
-        internal static TutorialWelcomePage FindWelcomePage()
-        {
-            var guids = AssetDatabase.FindAssets($"t:{typeof(TutorialWelcomePage).FullName}");
-            if(guids.Length == 0)
-            {
-                Debug.Log("No TutorialWelcomePage found in the project.");
-                return null;
-            }
-
-            if(guids.Length > 1)
-            {
-                Debug.LogWarning("More than one TutorialWelcomePage found in the project.");
-            }
-
-            var assetPath = AssetDatabase.GUIDToAssetPath(guids[0]);
-            return AssetDatabase.LoadAssetAtPath<TutorialWelcomePage>(assetPath);
-        }
-
         // Returns Readme iff one Readme exists in the project.
-        public static Readme FindReadme()
+        public static TutorialContainer FindReadme()
         {
-            var ids = AssetDatabase.FindAssets($"t:{typeof(Readme).FullName}");
+            var ids = AssetDatabase.FindAssets($"t:{typeof(TutorialContainer).FullName}");
             return ids.Length == 1
-                ? (Readme)AssetDatabase.LoadMainAssetAtPath(AssetDatabase.GUIDToAssetPath(ids[0]))
+                ? (TutorialContainer)AssetDatabase.LoadMainAssetAtPath(AssetDatabase.GUIDToAssetPath(ids[0]))
                 : null;
         }
 
@@ -1280,7 +1244,7 @@ namespace Unity.InteractiveTutorials
 
         void MarkTutorialCompleted(string lessonId, bool completed)
         {
-            var sections = readme?.sections ?? new Readme.Section[0];
+            var sections = readme?.sections ?? new TutorialContainer.Section[0];
             var section = Array.Find(sections, s => s.TutorialId == lessonId);
             if (section != null)
             {
@@ -1353,7 +1317,7 @@ namespace Unity.InteractiveTutorials
 
         void InitCards()
         {
-            var sections = readme?.sections ?? new Readme.Section[0];
+            var sections = readme?.sections ?? new TutorialContainer.Section[0];
             m_Cards = new Card[sections.Length];
             for(int i = 0; i < sections.Length; ++i)
             {
@@ -1366,7 +1330,7 @@ namespace Unity.InteractiveTutorials
             }
         }
 
-        void UpdateCard(Readme.Section section)
+        void UpdateCard(TutorialContainer.Section section)
         {
             var card = Array.Find(m_Cards, c => c.section == section);
             if (card != null && card.section.image != null)
@@ -1375,7 +1339,7 @@ namespace Unity.InteractiveTutorials
             }
         }
 
-        static GUIContent CreateCardContent(Readme.Section s, int titleTextSize = 12, int descriptionTextSize = 11)
+        static GUIContent CreateCardContent(TutorialContainer.Section s, int titleTextSize = 12, int descriptionTextSize = 11)
         {
             return new GUIContent
             {

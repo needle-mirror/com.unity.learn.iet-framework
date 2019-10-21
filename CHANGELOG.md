@@ -4,10 +4,14 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.18] - 2019-02-10
+## [0.2.0] - 2019-10-21
 ### Changed
  - New single-panel approach, Readme and Tutorials are shown in the same window which is always visible.
- - TODO: more details
+ - Renewed visual style for Tutorial Window and Readme.
+### Added
+ - Welcome dialog feature.
+ - Ability to show the Project window's state for the end-user when saving layouts for tutorials.
+ - Readme class renamed to more suitable TutorialContainer.
 
 ## [0.1.17] - 2019-07-19
 ### Changed
