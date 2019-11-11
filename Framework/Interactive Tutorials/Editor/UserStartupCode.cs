@@ -59,8 +59,9 @@ namespace Unity.InteractiveTutorials
                 wnd.showStartHereMarker = true;
         }
 
-        internal static string initFileMarkerPath = "Temp/InitCodeMarker";
-        internal static string dontRunInitCodeMarker = "Assets/DontRunInitCodeMarker";
+        internal static readonly string initFileMarkerPath = "InitCodeMarker";
+        // Folder so that user can easily create this from the Editor's Project view.
+        internal static readonly string dontRunInitCodeMarker = "Assets/DontRunInitCodeMarker";
 
         static UserStartupCode()
         {

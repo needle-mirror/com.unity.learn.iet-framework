@@ -4,14 +4,23 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2019-11-11
+### Fixed
+ - Do not show the Welcome dialog and load the IET window layout every time an IET project is started.
+ - Fixed IET initialization when a Microgame is loaded from the Asset Store.
+
+### Changed
+ - Do not clear the description of a tutorial card when a tutorial is marked as completed.
+ 
 ## [0.2.0] - 2019-10-21
 ### Changed
+ - `Readme` class renamed to more suitable `TutorialContainer`.
+ 
+## [0.1.18] - 2019-10-21
+### Changed
  - New single-panel approach, Readme and Tutorials are shown in the same window which is always visible.
- - Renewed visual style for Tutorial Window and Readme.
-### Added
- - Welcome dialog feature.
- - Ability to show the Project window's state for the end-user when saving layouts for tutorials.
- - Readme class renamed to more suitable TutorialContainer.
+ - Ability to save the Project window's state for the end-user when saving layouts for tutorials.
+ - `Readme` class moved into `Unity.InteractiveTutorials` namespace.
 
 ## [0.1.17] - 2019-07-19
 ### Changed
@@ -27,7 +36,7 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  - Warning message when the user is about to exit the tutorial.
 
 ### Changed
- - When clicking on "Help/Template Walkthroughs" if the inspector window is not visible, the Inspector window will be shown
+ - When clicking on *Help > Template Walkthroughs* if the inspector window is not visible, the Inspector window will be shown
 
 ## [0.1.14] - 2019-02-12
 ### Fixed
@@ -71,7 +80,7 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fixed authoring of scene object references.
 ### Removed
-- Remove Window > Tutorials menu item.
+- Remove *Window > Tutorials* menu item.
 
 ## [0.1.6] - 2018-12-06
 ### Fixed
@@ -79,7 +88,7 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix compilation errors at build time due to incorrectly configured Assembly Definition asset.
 - Fix inconsistent line endings.
 - Fix CS0649 warnings.
-- Fix Help > Template Walkthroughs menu item not finding Readme asset.
+- Fix *Help > Template Walkthroughs* menu item not finding Readme asset.
 
 ## [0.1.5] - 2018-12-04
 ### Fixed

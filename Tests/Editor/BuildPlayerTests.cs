@@ -51,7 +51,8 @@ namespace Unity.InteractiveTutorials.Tests
                         return BuildTarget.StandaloneWindows;
 
                     case RuntimePlatform.LinuxEditor:
-                        return BuildTarget.StandaloneLinux;
+                        // NOTE Universal & 32-bit Linux support dropped after 2018 LTS
+                        return BuildTarget.StandaloneLinux64;
 
                     default:
                         throw new ArgumentOutOfRangeException();

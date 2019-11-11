@@ -207,7 +207,14 @@ namespace Unity.InteractiveTutorials
                     foreach (var rect in rects)
                     {
                         var highlighter = new VisualElement();
+#if UNITY_2019_3_OR_NEWER
+                        highlighter.style.borderLeftColor = highlightColor;
+                        highlighter.style.borderRightColor = highlightColor;
+                        highlighter.style.borderTopColor = highlightColor;
+                        highlighter.style.borderBottomColor = highlightColor;
+#else
                         highlighter.style.borderColor = highlightColor;
+#endif
                         highlighter.style.borderLeftWidth = highlightThickness;
                         highlighter.style.borderRightWidth = highlightThickness;
                         highlighter.style.borderTopWidth = highlightThickness;

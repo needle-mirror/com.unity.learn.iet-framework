@@ -20,7 +20,9 @@ namespace Unity.InteractiveTutorials
         {
             instance = GetWindow<TutorialWindow>(s_WindowTitleContent.text);
             instance.minSize = new Vector2(kMinWidth, kMinHeight);
-            TutorialManager.LoadWindowLayout(TutorialContainer.k_UserLayoutPath);
+            var readme = FindReadme();
+            if (readme != null)
+                readme .LoadTutorialProjectLayout();
             return instance;
         }
 
@@ -40,7 +42,7 @@ namespace Unity.InteractiveTutorials
 
         private const int k_NumberOfPixelsThatTriggerLongerTitle = 8;
 
-        internal static readonly float s_AuthoringModeToolbarButtonWidth = 100f;
+        internal static readonly float s_AuthoringModeToolbarButtonWidth = 115;
 
         private bool canMoveToNextPage =>
             currentTutorial.currentPage.allCriteriaAreSatisfied ||
@@ -592,7 +594,7 @@ namespace Unity.InteractiveTutorials
                 {
                     if (!readme)
                     {
-                        EditorGUILayout.HelpBox("No Readme found/selected. Please create/select one.", MessageType.Info);
+                        EditorGUILayout.HelpBox("No Tutorial Container found/selected. Please create/select one.", MessageType.Info);
                         return;
                     }
                     else
@@ -1339,15 +1341,14 @@ namespace Unity.InteractiveTutorials
             }
         }
 
-        static GUIContent CreateCardContent(TutorialContainer.Section s, int titleTextSize = 12, int descriptionTextSize = 11)
+        static GUIContent CreateCardContent(TutorialContainer.Section s, int titleTextSize = 12, int descriptionTextSize = 11, int completedTextSize = 10)
         {
             return new GUIContent
             {
                 image = s.tutorialCompleted ? s.completedImage : s.image,
-                text = RichText.Size(RichText.Bold(s.heading), titleTextSize) + "\n" +
-                    (s.tutorialCompleted
-                        ? RichText.Size(RichText.Color(RichText.Bold("COMPLETED"), "grey"), descriptionTextSize)
-                        : RichText.Size(s.text, descriptionTextSize))
+                text = RichText.Size(RichText.Bold(s.heading), titleTextSize)
+                      + "\n" + RichText.Size(s.text, descriptionTextSize) +
+                      (s.tutorialCompleted ? "\n" + RichText.Size(RichText.Color(RichText.Bold("COMPLETED"), "grey"), completedTextSize) : "")
             };
         }
 
