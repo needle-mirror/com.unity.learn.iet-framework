@@ -936,7 +936,7 @@ namespace Unity.InteractiveTutorials
                     {
                         if(LinkLabel(new GUIContent(section.linkText), LinkStyle))
                         {
-                            Application.OpenURL(section.url);
+                            section.OpenUrl();
                         }
                     }
 
@@ -979,7 +979,7 @@ namespace Unity.InteractiveTutorials
                         }
                         else if(!string.IsNullOrEmpty(section.linkText))
                         {
-                            Application.OpenURL(section.url);
+                            section.OpenUrl();
                         }
                     }
                 }
@@ -1001,7 +1001,7 @@ namespace Unity.InteractiveTutorials
                     {
                         if(LinkLabel(new GUIContent(section.linkText), LinkStyle))
                         {
-                            Application.OpenURL(section.url);
+                            section.OpenUrl();
                         }
                     }
 

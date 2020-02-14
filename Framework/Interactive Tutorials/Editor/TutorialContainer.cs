@@ -37,6 +37,7 @@ namespace Unity.InteractiveTutorials
             public string text;
             public string linkText; // text is not shown for new-style section cards, but required to make the card the open the URL
             public string url;
+            public bool authorizedUrl; // use for Unity Connect URLs
             public string buttonText; // not used for new-style section cards
             [SerializeField]
             private Tutorial tutorial = null;
@@ -55,6 +56,14 @@ namespace Unity.InteractiveTutorials
             public void StartTutorial()
             {
                 TutorialManager.instance.StartTutorial(tutorial);
+            }
+
+            public void OpenUrl()
+            {
+                if (authorizedUrl && UnityConnectProxy.loggedIn)
+                    UnityConnectProxy.OpenAuthorizedURLInWebBrowser(url);
+                else
+                    Application.OpenURL(url);
             }
 
             // returns true if the state was found from EditorPrefs

@@ -4,6 +4,10 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.2] - 2020-02-14
+### Added
+ - Support for authorized URLs (Unity Connect auto-login).
+ 
 ## [0.2.1] - 2019-11-11
 ### Fixed
  - Do not show the Welcome dialog and load the IET window layout every time an IET project is started.
