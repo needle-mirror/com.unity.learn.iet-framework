@@ -1,6 +1,9 @@
 using System;
-using UnityEngine;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
+using UnityEngine;
+using UnityEngine.Analytics;
 
 namespace Unity.InteractiveTutorials
 {
@@ -263,5 +266,50 @@ namespace Unity.InteractiveTutorials
             UsabilityAnalyticsProxy.SendEvent("tutorialParagraph", Instance.currentParagraphStartTime, DateTime.UtcNow - Instance.currentParagraphStartTime, false, data);
             Instance.currentParagraphIndex = -1;
         }
+
+        #region New analytics, using EditorAnalytics instead of UsabilityAnalytics
+        // Use for external references/links, documentation, assets, etc.
+        // https://docs.google.com/spreadsheets/d/1vftlkO4yps3qUoPgM2wnbJu4YwRO3fZ4cS7IELk4Gww/edit#gid=1343103808
+        public struct ExternalReferenceEventData
+        {
+            public int ts; // timestamp
+            public string id;
+            public string title;
+            public string type; // e.g. Asset Store or Mods
+            public string path; // URL
+        }
+
+        static bool s_EventRegistered = false;
+        const int k_MaxEventsPerHour = 1000;
+        const int k_MaxNumberOfElements = 1000;
+        const string k_VendorKey = "unity.iet"; // the format needs to be "unity.xxx"
+        const string k_EventName = "iet_externalReference";
+
+        static bool EnableAnalytics()
+        {
+            var res = EditorAnalytics.RegisterEventWithLimit(k_EventName, k_MaxEventsPerHour, k_MaxNumberOfElements, k_VendorKey);
+            s_EventRegistered = res == AnalyticsResult.Ok;
+            return s_EventRegistered;
+        }
+
+        public static AnalyticsResult SendExternalReferenceEvent(string url, string title, string contentType, string id = null)
+        {
+            if (!EditorAnalytics.enabled)
+                return AnalyticsResult.AnalyticsDisabled;
+            if (!EnableAnalytics())
+                return AnalyticsResult.AnalyticsDisabled;
+
+            var data = new ExternalReferenceEventData
+            {
+                ts = DateTime.UtcNow.Millisecond,
+                id = id,
+                title = title,
+                type = contentType,
+                path = url
+            };
+
+            return EditorAnalytics.SendEventWithLimit(k_EventName, data);
+        }
+        #endregion
     }
 }

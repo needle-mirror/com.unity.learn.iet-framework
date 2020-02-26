@@ -35,9 +35,11 @@ namespace Unity.InteractiveTutorials
             public int orderInView;
             public string heading;
             public string text;
+            [Tooltip("Used as content type metadata for external references/URLs")]
             public string linkText; // text is not shown for new-style section cards, but required to make the card the open the URL
             public string url;
-            public bool authorizedUrl; // use for Unity Connect URLs
+            [Tooltip("Use for Unity Connect auto-login, shortened URLs do not work for authorized")]
+            public bool authorizedUrl;
             public string buttonText; // not used for new-style section cards
             [SerializeField]
             private Tutorial tutorial = null;
@@ -60,10 +62,15 @@ namespace Unity.InteractiveTutorials
 
             public void OpenUrl()
             {
+                if (string.IsNullOrEmpty(url))
+                    return;
+
                 if (authorizedUrl && UnityConnectProxy.loggedIn)
                     UnityConnectProxy.OpenAuthorizedURLInWebBrowser(url);
                 else
                     Application.OpenURL(url);
+
+                AnalyticsHelper.SendExternalReferenceEvent(url, heading, linkText, tutorial?.lessonId);
             }
 
             // returns true if the state was found from EditorPrefs
