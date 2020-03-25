@@ -14,6 +14,7 @@ namespace Unity.InteractiveTutorials
             this.paragraph = paragraph;
             if (paragraph.type == ParagraphType.Instruction)
             {
+                if (m_FadeGroupAnim == null) m_FadeGroupAnim = new AnimBool(false);
                 m_FadeGroupAnim.valueChanged.AddListener(window.Repaint);
             }
             this.orderedListDelimiter = orderedListDelimiter;
@@ -50,6 +51,18 @@ namespace Unity.InteractiveTutorials
         private int m_InstructionIndex;
 
         TutorialWindow m_TutorialWindow;
+
+        public void RepaintSoon()
+        {
+            //m_TutorialWindow.Repaint();
+            m_TutorialWindow.UpdateVideoFrame(videoTextureCache);
+            EditorApplication.update -= RepaintSoon;
+            repainting = false;
+        }
+
+        Texture videoTextureCache;
+
+        bool repainting = false;
 
         public void Draw(ref bool previousTaskState, bool pageCompleted)
         {
@@ -179,17 +192,23 @@ namespace Unity.InteractiveTutorials
                         if (paragraph.video == null)
                             break;
 
-                        var texture = m_TutorialWindow.videoPlaybackManager.GetTextureForVideoClip(paragraph.video);
 
-                        using (new EditorGUILayout.HorizontalScope(AllTutorialStyles.videoStyle))
+
+                        //using (new EditorGUILayout.HorizontalScope(AllTutorialStyles.videoStyle))
+                        // {
+                        //    GUILayout.FlexibleSpace();
+                        //    var position = GUILayoutUtility.GetRect(texture.width, texture.height, GUILayout.ExpandWidth(false), GUILayout.ExpandHeight(false));
+                        //    GUI.DrawTexture(position, texture);
+                        //    GUILayout.FlexibleSpace();
+                        // }
+
+                        if (!repainting)
                         {
-                            GUILayout.FlexibleSpace();
-                            var position = GUILayoutUtility.GetRect(texture.width, texture.height, GUILayout.ExpandWidth(false), GUILayout.ExpandHeight(false));
-                            GUI.DrawTexture(position, texture);
-                            GUILayout.FlexibleSpace();
+                            videoTextureCache = m_TutorialWindow.videoPlaybackManager.GetTextureForVideoClip(paragraph.video);
+                            repainting = true;
+                            EditorApplication.update += RepaintSoon;
                         }
 
-                        m_TutorialWindow.Repaint();
                     }
                     break;
             }

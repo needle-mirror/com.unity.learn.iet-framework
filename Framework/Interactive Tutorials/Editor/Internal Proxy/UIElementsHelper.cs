@@ -24,21 +24,28 @@ namespace Unity.InteractiveTutorials
 
         static UIElementsHelper()
         {
-            s_AddMethod = GetMethod<VisualElement>("Add", typeof(VisualElement)) ?? GetMethod<VisualContainer>("AddChild", typeof(VisualElement));
+            // NOTE  Add, Remove and Parent are public and stable since 2019.1 so these can be removed from here.
+            s_AddMethod = GetMethod<VisualElement>("Add", typeof(VisualElement))
+                ?? GetMethod<VisualContainer>("AddChild", typeof(VisualElement));
             if (s_AddMethod == null)
                 Debug.LogError("Cannot find method VisualContainer.AddChild/VisualElement.Add");
 
-            s_RemoveMethod = GetMethod<VisualElement>("Remove", typeof(VisualElement)) ?? GetMethod<VisualContainer>("RemoveChild", typeof(VisualElement));
+            s_RemoveMethod = GetMethod<VisualElement>("Remove", typeof(VisualElement))
+                ?? GetMethod<VisualContainer>("RemoveChild", typeof(VisualElement));
             if (s_RemoveMethod == null)
                 Debug.LogError("Cannot find method VisualContainer.RemoveChild/VisualElement.Remove");
 
-            s_ParentProperty = GetProperty<VisualElement>("parent", typeof(VisualElement)) ?? GetProperty<VisualElement>("parent", typeof(VisualContainer));
+            s_ParentProperty = GetProperty<VisualElement>("parent", typeof(VisualElement))
+                ?? GetProperty<VisualElement>("parent", typeof(VisualContainer));
             if (s_ParentProperty == null)
                 Debug.LogError("Cannot find property VisualElement.parent");
 
-            s_VisualTreeProperty = GetProperty<GUIView>("visualTree", typeof(VisualElement)) ?? GetProperty<GUIView>("visualTree", typeof(VisualContainer));
+#if !UNITY_2020_1_OR_NEWER
+            s_VisualTreeProperty = GetProperty<GUIView>("visualTree", typeof(VisualElement))
+                ?? GetProperty<GUIView>("visualTree", typeof(VisualContainer));
             if (s_VisualTreeProperty == null)
                 Debug.LogError("Cannot find property GUIView.visualTree");
+#endif
         }
 
         static MethodInfo GetMethod<T>(string name, params Type[] parameterTypes)
@@ -95,7 +102,11 @@ namespace Unity.InteractiveTutorials
 
         public static VisualElement GetVisualTree(GUIViewProxy guiViewProxy)
         {
+#if UNITY_2020_1_OR_NEWER
+            return EditorWindowBackendManager.GetBackend(guiViewProxy.guiView).visualTree as VisualElement;
+#else
             return (VisualElement)s_VisualTreeProperty.GetValue(guiViewProxy.guiView, new object[0]);
+#endif
         }
 
         public static void SetLayout(this VisualElement element, Rect rect)

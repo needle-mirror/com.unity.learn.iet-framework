@@ -4,6 +4,13 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2020-03-25
+### Changed
+ - Raised the required Unity version to 2019.3.
+ - Removed flexible spaces surrounding a video paragraph.
+### Fixed
+ - UI flickering on macOS and Unity 2019.3 when a tutorial page had a video.
+
 ## [0.2.3] - 2020-02-26
 ### Added
  - Analytics event for clicking external references/URLs.

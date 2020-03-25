@@ -117,6 +117,18 @@ namespace Unity.InteractiveTutorials
 
         public static void AddMaskToView(GUIViewProxy view, VisualElement child)
         {
+            // Since 2019.3(?), we must suppress input to the elements behind masks.
+            // TODO Doesn't suppress everything, e.g. tooltips are shown still.
+            child.RegisterCallback<MouseDownEvent>((e) => e.StopPropagation());
+            child.RegisterCallback<MouseUpEvent>((e) => e.StopPropagation());
+            child.RegisterCallback<MouseMoveEvent>((e) => e.StopPropagation());
+            child.RegisterCallback<WheelEvent>((e) => e.StopPropagation());
+            child.RegisterCallback<PointerDownEvent>((e) => e.StopPropagation());
+            child.RegisterCallback<PointerUpEvent>((e) => e.StopPropagation());
+            child.RegisterCallback<PointerMoveEvent>((e) => e.StopPropagation());
+            child.RegisterCallback<KeyDownEvent>((e) => e.StopPropagation());
+            child.RegisterCallback<KeyUpEvent>((e) => e.StopPropagation());
+
             if (view.IsDockedToEditor())
             {
                 UIElementsHelper.Add(UIElementsHelper.GetVisualTree(view), child);
@@ -125,9 +137,11 @@ namespace Unity.InteractiveTutorials
             {
                 var viewVisualElement = UIElementsHelper.GetVisualTree(view);
 
-                Debug.Assert(viewVisualElement.Children().Count() == 2
+                Debug.Assert(
+                    viewVisualElement.Children().Count() == 2
                     && viewVisualElement.Children().Count(viewChild => viewChild is IMGUIContainer) == 1,
-                    "Could not find the expected VisualElement structure");
+                    "Could not find the expected VisualElement structure"
+                );
 
                 foreach (var visualElement in viewVisualElement.Children())
                 {

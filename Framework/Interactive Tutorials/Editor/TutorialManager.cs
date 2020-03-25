@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -112,16 +113,16 @@ namespace Unity.InteractiveTutorials
 
                     m_Tutorial.ResetProgress();
 
-                // Do not overwrite workspace in authoring mode, use version control instead.
-                if (!ProjectMode.IsAuthoringMode())
-                    LoadTutorialDefaultsIntoAssetsFolder();
+                    // Do not overwrite workspace in authoring mode, use version control instead.
+                    if (!ProjectMode.IsAuthoringMode())
+                        LoadTutorialDefaultsIntoAssetsFolder();
                 };
             };
         }
 
         public void RestoreOriginalState()
         {
-            RestoreOriginalScenes();
+            EditorCoroutines.Editor.EditorCoroutineUtility.StartCoroutineOwnerless(RestoreOriginalScenes());
             RestoreOriginalWindowLayout();
         }
 
@@ -217,23 +218,23 @@ namespace Unity.InteractiveTutorials
             }
         }
 
-        internal void RestoreOriginalScenes( )
+        internal IEnumerator RestoreOriginalScenes()
         {
-
             // Don't restore scene state if we didn't save it in the first place
-            if (string.IsNullOrEmpty(m_OriginalActiveSceneAssetPath))
-                return;
+            if (string.IsNullOrEmpty(m_OriginalActiveSceneAssetPath)) { yield break; }
 
             // Exit play mode so we can open scenes (without necessarily loading them)
             EditorApplication.isPlaying = false;
 
+            yield return new WaitForEndOfFrame(); //going out of play mode requires a frame
+
             foreach (var sceneInfo in m_OriginalScenes)
             {
                 // Don't open scene if path is empty (this is the case for a new unsaved unmodified scene)
-                if (sceneInfo.assetPath == string.Empty)
-                    continue;
+                if (sceneInfo.assetPath == string.Empty) { continue; }
 
                 var openSceneMode = sceneInfo.wasLoaded ? OpenSceneMode.Additive : OpenSceneMode.AdditiveWithoutLoading;
+                
                 EditorSceneManager.OpenScene(sceneInfo.assetPath, openSceneMode);
             }
 

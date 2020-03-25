@@ -12,54 +12,64 @@ namespace Unity.InteractiveTutorials
         //    Debug.Assert(style != null, $"Syle '{name} not found.");
         //}
 
+        public static GUIStyle FindStyle(GUIStyle style, string name)
+        {
+            if (style == null)
+            {
+                style = GUI.skin.FindStyle(name);
+            }
+            return style;
+        }
+
         static AllTutorialStyles()
         {
-            headerLabel = GUI.skin.FindStyle(s_HeaderStyleName);
-            instructionLabel = GUI.skin.FindStyle(s_InstructionLabelStyleName);
-            line = GUI.skin.FindStyle(s_LineStyleName);
-            listPrefix = GUI.skin.FindStyle(s_ListPrefixStyleName);
-            list = GUI.skin.FindStyle(s_ListStyleName);
-            progressLabel = GUI.skin.FindStyle(s_ProgressLabelStyle);
-            sectionTitleLabel = GUI.skin.FindStyle(s_SectionTitleLabelStyle);
-            theInBetweenText = GUI.skin.FindStyle(s_TheInBetweenTextStyle);
-            narrativeStyle = GUI.skin.FindStyle(s_Narrative);
-            switchTutorialStyle = GUI.skin.FindStyle(s_SwitchTutorialStyleName);
-            imageStyle = GUI.skin.FindStyle(s_ImageStyle);
-            videoStyle = GUI.skin.FindStyle(s_VideoStyle);
+            headerLabel = FindStyle(headerLabel, s_HeaderStyleName);
+            instructionLabel = FindStyle(instructionLabel, s_InstructionLabelStyleName);
+            line = FindStyle(line, s_LineStyleName);
+            listPrefix = FindStyle(listPrefix, s_ListPrefixStyleName);
+            list = FindStyle(list, s_ListStyleName);
+            progressLabel = FindStyle(progressLabel, s_ProgressLabelStyle);
+            sectionTitleLabel = FindStyle(sectionTitleLabel, s_SectionTitleLabelStyle);
+            theInBetweenText = FindStyle(theInBetweenText, s_TheInBetweenTextStyle);
+            narrativeStyle = FindStyle(narrativeStyle, s_Narrative);
+            switchTutorialStyle = FindStyle(switchTutorialStyle, s_SwitchTutorialStyleName);
+            imageStyle = FindStyle(imageStyle, s_ImageStyle);
+            videoStyle = FindStyle(videoStyle, s_VideoStyle);
 
-            sectionTitleBackground = GUI.skin.FindStyle(s_SectionTitleBackground);
-            topBarBackground = GUI.skin.FindStyle(s_TopBarBackground);
-            headerBGStyle = GUI.skin.FindStyle(s_HeaderStyleBG);
-            listBGStyle = GUI.skin.FindStyle(s_ListBG);
-            theInBetweenTextNotActiveOrCompleted = GUI.skin.FindStyle(s_TheInBetweenTextStyleNotActiveOrCompleted);
-            completedElementBackground = GUI.skin.FindStyle(s_CompletedElementBackgroundStyle);
-            activeElementBackground = GUI.skin.FindStyle(s_ActiveElementBackgroundStyle);
-            inActiveElementBackground = GUI.skin.FindStyle(s_InActiveElementBackgroundStyle);
-            darkBackground = GUI.skin.FindStyle(s_DarkBackground);
-            bgTheInBetweenText = GUI.skin.FindStyle(s_BGTheInBetweenText);
-            background = GUI.skin.FindStyle(s_Background);
+            sectionTitleBackground = FindStyle(sectionTitleBackground, s_SectionTitleBackground);
+            topBarBackground = FindStyle(topBarBackground, s_TopBarBackground);
 
-            footer = GUI.skin.FindStyle(s_Footer);
-            paginationLabel = GUI.skin.FindStyle(s_PaginationLabel);
-            nextButton = GUI.skin.FindStyle(s_NextButton);
-            nextButtonDisabled = GUI.skin.FindStyle(s_NextButtonDisabled);
-            backButton = GUI.skin.FindStyle(s_BackButton);
-            backButtonDisabled = GUI.skin.FindStyle(s_BackButtonDisabled);
-            progressBar = GUI.skin.FindStyle(s_ProgressBar);
+            headerBGStyle = FindStyle(headerBGStyle, s_HeaderStyleBG);
+            listBGStyle = FindStyle(listBGStyle, s_ListBG);
+            theInBetweenTextNotActiveOrCompleted = FindStyle(theInBetweenTextNotActiveOrCompleted, s_TheInBetweenTextStyleNotActiveOrCompleted);
+            completedElementBackground = FindStyle(completedElementBackground, s_CompletedElementBackgroundStyle);
+            activeElementBackground = FindStyle(activeElementBackground, s_ActiveElementBackgroundStyle);
+            inActiveElementBackground = FindStyle(inActiveElementBackground, s_InActiveElementBackgroundStyle);
+            darkBackground = FindStyle(darkBackground, s_DarkBackground);
+            bgTheInBetweenText = FindStyle(bgTheInBetweenText, s_BGTheInBetweenText);
+            background = FindStyle(background, s_Background);
 
-            //iconButtonBack = GUI.skin.FindStyle(s_IconButtonBack);
-            iconButtonReset = GUI.skin.FindStyle(s_IconButtonReset);
-            iconButtonHome = GUI.skin.FindStyle(s_IconButtonHome);
-            iconButtonClose = GUI.skin.FindStyle(s_IconButtonClose);
-            instructionLabelIconCompleted = GUI.skin.FindStyle(s_InstructionLabelIconStyleCompleted);
-            instructionLabelIconNotCompleted = GUI.skin.FindStyle(s_InstructionLabelIconStyleNotCompleted);
+            footer = FindStyle(footer, s_Footer);
+            paginationLabel = FindStyle(paginationLabel, s_PaginationLabel);
+            nextButton = FindStyle(nextButton, s_NextButton);
+            nextButtonDisabled = FindStyle(nextButtonDisabled, s_NextButtonDisabled);
+            backButton = FindStyle(backButton, s_BackButton);
+            backButtonDisabled = FindStyle(backButtonDisabled, s_BackButtonDisabled);
+            progressBar = FindStyle(progressBar, s_ProgressBar);
 
-            tutorialCard = GUI.skin.FindStyle(s_TutorialCard);
-            linkCard = GUI.skin.FindStyle(s_LinkCard);
+            //iconButtonBack = FindStyle(,s_IconButtonBack);
+            iconButtonReset = FindStyle(iconButtonReset, s_IconButtonReset);
+            iconButtonHome = FindStyle(iconButtonHome, s_IconButtonHome);
+            iconButtonClose = FindStyle(iconButtonClose, s_IconButtonClose);
+            instructionLabelIconCompleted = FindStyle(instructionLabelIconCompleted, s_InstructionLabelIconStyleCompleted);
+            instructionLabelIconNotCompleted = FindStyle(instructionLabelIconNotCompleted, s_InstructionLabelIconStyleNotCompleted);
 
-            welcomeDialogButton = GUI.skin.FindStyle(s_WelcomeDialogButton);
+            tutorialCard = FindStyle(tutorialCard, s_TutorialCard);
+            linkCard = FindStyle(linkCard, s_LinkCard);
 
-            tooltip = GUI.skin.FindStyle(s_Tooltip);
+            welcomeDialogButton = FindStyle(welcomeDialogButton, s_WelcomeDialogButton);
+
+            tooltip = FindStyle(tooltip, s_Tooltip);
         }
 
         private static readonly string s_InstructionLabelStyleName = "Instruction Label";
@@ -155,6 +165,8 @@ namespace Unity.InteractiveTutorials
         public static GUIStyle welcomeDialogButton;
 
         public static GUIStyle tooltip;
+
+
     }
 
     class TutorialStyles : ScriptableObject
