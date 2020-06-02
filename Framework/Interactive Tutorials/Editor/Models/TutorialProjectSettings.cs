@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
@@ -78,7 +79,7 @@ namespace Unity.InteractiveTutorials
         {
             get
             {
-                if(!m_TutorialStyle)
+                if (!m_TutorialStyle)
                 {
                     // TODO IET unit test the the file exist.
                     m_TutorialStyle = AssetDatabase.LoadAssetAtPath<TutorialStyles>(

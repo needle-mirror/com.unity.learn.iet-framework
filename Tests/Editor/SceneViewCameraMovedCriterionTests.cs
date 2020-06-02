@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -55,7 +55,6 @@ namespace Unity.InteractiveTutorials.Tests
             Assert.IsTrue(m_Criterion.completed);
         }
 
-
         [UnityTest]
         public IEnumerator NoLastActiveSceneView_ThenSceneViewIsActivated_ShouldNotComplete()
         {
@@ -77,7 +76,6 @@ namespace Unity.InteractiveTutorials.Tests
             Assert.IsFalse(m_Criterion.completed);
         }
 
-        
         [UnityTest]
         public IEnumerator NoLastActiveSceneView_ThenSceneViewIsActivated_ThenUserMovesCamera_IsComplete()
         {
@@ -95,11 +93,12 @@ namespace Unity.InteractiveTutorials.Tests
 
             var position = SceneView.lastActiveSceneView.camera.transform.position;
             SceneView.lastActiveSceneView.camera.transform.position = position + Vector3.down;
-            
+
             yield return null;
 
             Assert.IsTrue(m_Criterion.completed);
         }
+
 #endif
     }
 }

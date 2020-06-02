@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Unity.InteractiveTutorials
 {
     [Serializable]
-    class TypedCriterion
+    public class TypedCriterion
     {
         [SerializeField]
         [SerializedTypeFilter(typeof(Criterion))]

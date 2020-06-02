@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Transactions;
 using UnityEditor;
 using UnityEngine;
@@ -64,7 +64,7 @@ namespace Unity.InteractiveTutorials
             if (m_InitialValue != null)
                 return;
 
-            if(string.IsNullOrEmpty(m_MaterialPropertyPath) || target.ReferencedObject == null)
+            if (string.IsNullOrEmpty(m_MaterialPropertyPath) || target.ReferencedObject == null)
                 return;
 
             var property = FindProperty(m_MaterialPropertyPath, (Material)target.ReferencedObject);
@@ -78,11 +78,8 @@ namespace Unity.InteractiveTutorials
             EditorApplication.update -= UpdateCompletion;
         }
 
-        
-
         protected override bool EvaluateCompletion()
         {
-
             InitializeRequiredStateIfNeeded();
 
             if (m_InitialValue == null)

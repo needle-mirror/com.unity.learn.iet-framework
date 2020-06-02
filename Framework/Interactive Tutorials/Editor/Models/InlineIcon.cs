@@ -6,7 +6,7 @@ using UnityObject = UnityEngine.Object;
 namespace Unity.InteractiveTutorials
 {
     [Serializable]
-    class InlineIcon
+    public class InlineIcon
     {
         [SerializeField]
         UnityObject m_Asset = null;

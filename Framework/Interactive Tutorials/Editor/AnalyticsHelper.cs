@@ -166,6 +166,13 @@ namespace Unity.InteractiveTutorials
 #endif
         }
 
+        static void DebugError(string message, params object[] args)
+        {
+#if DEBUG_TUTORIALS
+            Debug.LogErrorFormat(message, args);
+#endif
+        }
+
         internal static void TutorialStarted(Tutorial tutorial)
         {
             if (Instance.currentTutorial != null)
@@ -188,9 +195,17 @@ namespace Unity.InteractiveTutorials
                 return;
             }
             if (conclusion == TutorialConclusion.Completed)
+            {
                 PageShown(Instance.lastPage, Instance.lastPageIndex + 1);  // "Show" a dummy page to get the last page to report
-            var data = new TutorialAnalyticsEventData(Instance.currentTutorial.name, Instance.currentTutorial.version, conclusion, Instance.currentTutorial.lessonId);
-            UsabilityAnalyticsProxy.SendEvent("tutorial", Instance.currentTutorialStartTime, DateTime.UtcNow - Instance.currentTutorialStartTime, false, data);
+            }
+
+            SendTutorialEvent
+            (
+                Instance.currentTutorial.name, Instance.currentTutorial.version, conclusion,
+                Instance.currentTutorial.lessonId, Instance.currentTutorialStartTime,
+                DateTime.UtcNow - Instance.currentTutorialStartTime, false
+            );
+
             DebugLog("Tutorial Ended");
             Instance.currentTutorial = null;
         }
@@ -206,27 +221,36 @@ namespace Unity.InteractiveTutorials
             {
                 if (Instance.currentPageIndex < Instance.lastPageIndex)
                 {
-                    var data = new TutorialPageAnalyticsEventData(Instance.currentTutorial.name, Instance.currentPageIndex, Instance.currentPage.guid, TutorialPageConclusion.Reviewed);
-                    UsabilityAnalyticsProxy.SendEvent("tutorialPage", Instance.currentPageStartTime, DateTime.UtcNow - Instance.currentPageStartTime, false, data);
+                    SendTutorialPageEvent
+                    (
+                        Instance.currentTutorial.name, Instance.currentPageIndex, Instance.currentPage.guid,
+                        TutorialPageConclusion.Reviewed, Instance.currentPageStartTime,
+                        DateTime.UtcNow - Instance.currentPageStartTime, false
+                    );
+
                     DebugLog("Page Reviewed: {0}", Instance.currentPageIndex);
                 }
                 else if (pageIndex > Instance.lastPageIndex)
                 {
-                    var data = new TutorialPageAnalyticsEventData(Instance.currentTutorial.name, Instance.lastPageIndex, Instance.lastPage.guid, TutorialPageConclusion.Completed);
-                    UsabilityAnalyticsProxy.SendEvent("tutorialPage", Instance.lastPageStartTime, DateTime.UtcNow - Instance.lastPageStartTime, false, data);
+                    SendTutorialPageEvent
+                    (
+                        Instance.currentTutorial.name, Instance.lastPageIndex, Instance.lastPage.guid,
+                        TutorialPageConclusion.Completed, Instance.lastPageStartTime,
+                        DateTime.UtcNow - Instance.lastPageStartTime, false
+                    );
+
                     DebugLog("Page Completed: {0}", Instance.lastPageIndex);
                 }
             }
             Instance.currentPageIndex = pageIndex;
             Instance.currentPage = page;
             Instance.currentPageStartTime = DateTime.UtcNow;
-            if (Instance.currentPageIndex > Instance.lastPageIndex)
-            {
-                Instance.lastPageIndex = pageIndex;
-                Instance.lastPage = page;
-                Instance.lastPageStartTime = DateTime.UtcNow;
-                Instance.currentParagraphIndex = -1;
-            }
+            if (Instance.currentPageIndex <= Instance.lastPageIndex) { return; }
+
+            Instance.lastPageIndex = pageIndex;
+            Instance.lastPage = page;
+            Instance.lastPageStartTime = DateTime.UtcNow;
+            Instance.currentParagraphIndex = -1;
         }
 
         internal static void ParagraphStarted(int paragraphIndex)
@@ -237,7 +261,9 @@ namespace Unity.InteractiveTutorials
                 return;
             }
             if (Instance.currentParagraphIndex >= 0)
+            {
                 ParagraphEnded(true);
+            }
             DebugLog("Paragraph Started: {0}", paragraphIndex);
             Instance.currentParagraphStartTime = DateTime.UtcNow;
             Instance.currentParagraphIndex = paragraphIndex;
@@ -262,14 +288,21 @@ namespace Unity.InteractiveTutorials
             }
             DebugLog("Paragraph Ended: regression = {0}", regressed);
             var conclusion = regressed ? TutorialParagraphConclusion.Regressed : TutorialParagraphConclusion.Completed;
-            var data = new TutorialParagraphAnalyticsEventData(Instance.currentTutorial.name, Instance.currentPageIndex, Instance.currentParagraphIndex, conclusion);
-            UsabilityAnalyticsProxy.SendEvent("tutorialParagraph", Instance.currentParagraphStartTime, DateTime.UtcNow - Instance.currentParagraphStartTime, false, data);
+
+            SendTutorialParagraphEvent
+            (
+                Instance.currentTutorial.name, Instance.currentPageIndex, Instance.currentParagraphIndex, conclusion,
+                Instance.currentParagraphStartTime, DateTime.UtcNow - Instance.currentParagraphStartTime, false
+            );
+
             Instance.currentParagraphIndex = -1;
         }
 
         #region New analytics, using EditorAnalytics instead of UsabilityAnalytics
-        // Use for external references/links, documentation, assets, etc.
-        // https://docs.google.com/spreadsheets/d/1vftlkO4yps3qUoPgM2wnbJu4YwRO3fZ4cS7IELk4Gww/edit#gid=1343103808
+        /// <summary>
+        /// Use for external references/links, documentation, assets, etc.
+        /// https://docs.google.com/spreadsheets/d/1vftlkO4yps3qUoPgM2wnbJu4YwRO3fZ4cS7IELk4Gww/edit#gid=1343103808
+        /// </summary>
         public struct ExternalReferenceEventData
         {
             public int ts; // timestamp
@@ -278,26 +311,127 @@ namespace Unity.InteractiveTutorials
             public string type; // e.g. Asset Store or Mods
             public string path; // URL
         }
+        public struct ExternalReferenceImpressionEventData
+        {
+            public int ts; // timestamp
+            public string id;
+            public string title;
+            public string type; // e.g. Asset Store or Mods
+            public string path; // URL
+        }
 
-        static bool s_EventRegistered = false;
+        public struct TutorialEventData
+        {
+            public int ts; // timestamp
+            public string tutorialName;
+            public string version;
+            public int conclusion;
+            public string lessonID;
+            public int startTime;
+            public int duration;
+            public bool isBlocking;
+        }
+
+        public struct TutorialPageEventData
+        {
+            public int ts; // timestamp
+            public string tutorialName;
+            public int pageIndex;
+            public string guid;
+            public int conclusion;
+            public int startTime;
+            public int duration;
+            public bool isBlocking;
+        }
+
+        public struct TutorialParagraphEventData
+        {
+            public int ts; // timestamp
+            public string tutorialName;
+            public int pageIndex;
+            public int paragraphIndex;
+            public int conclusion;
+            public int startTime;
+            public int duration;
+            public bool isBlocking;
+        }
+
         const int k_MaxEventsPerHour = 1000;
         const int k_MaxNumberOfElements = 1000;
         const string k_VendorKey = "unity.iet"; // the format needs to be "unity.xxx"
-        const string k_EventName = "iet_externalReference";
 
-        static bool EnableAnalytics()
+        const string k_EventExternalReference = "iet_externalReference";
+        const string k_EventExternalReferenceImpression = "iet_externalReferenceImpression";
+        const string k_EventTutorial = "iet_tutorial";
+        const string k_EventTutorialPage = "iet_tutorialPage";
+        const string k_EventTutorialParagraph = "iet_tutorialParagraph";
+
+        static bool RegisterEvent(string name)
         {
-            var res = EditorAnalytics.RegisterEventWithLimit(k_EventName, k_MaxEventsPerHour, k_MaxNumberOfElements, k_VendorKey);
-            s_EventRegistered = res == AnalyticsResult.Ok;
-            return s_EventRegistered;
+            AnalyticsResult result = EditorAnalytics.RegisterEventWithLimit(name, k_MaxEventsPerHour, k_MaxNumberOfElements, k_VendorKey);
+            if (result != AnalyticsResult.Ok)
+            {
+                DebugError("Error in RegisterEvent: {0}", result);
+                return false;
+            }
+            return true;
+        }
+
+        public static AnalyticsResult SendTutorialEvent(string tutorialName, string version, TutorialConclusion conclusion, string lessonID, DateTime startTime, TimeSpan duration, bool isBlocking)
+        {
+            if (!EditorAnalytics.enabled || !RegisterEvent(k_EventTutorial)) { return AnalyticsResult.AnalyticsDisabled; }
+            var data = new TutorialEventData
+            {
+                ts = DateTime.UtcNow.Millisecond,
+                tutorialName = tutorialName,
+                version = version,
+                conclusion = (int)conclusion,
+                lessonID = lessonID,
+                duration = duration.Milliseconds,
+                startTime = startTime.Millisecond,
+                isBlocking = isBlocking
+            };
+
+            return SendEvent(k_EventTutorial, data);
+        }
+
+        public static AnalyticsResult SendTutorialPageEvent(string tutorialName, int pageIndex, string guid, TutorialPageConclusion conclusion, DateTime startTime, TimeSpan duration, bool isBlocking)
+        {
+            if (!EditorAnalytics.enabled || !RegisterEvent(k_EventTutorialPage)) { return AnalyticsResult.AnalyticsDisabled; }
+            var data = new TutorialPageEventData
+            {
+                ts = DateTime.UtcNow.Millisecond,
+                tutorialName = tutorialName,
+                pageIndex = pageIndex,
+                guid = guid,
+                conclusion = (int)conclusion,
+                duration = duration.Milliseconds,
+                startTime = startTime.Millisecond,
+                isBlocking = isBlocking
+            };
+            return SendEvent(k_EventTutorialPage, data);
+        }
+
+        public static AnalyticsResult SendTutorialParagraphEvent(string tutorialName, int pageIndex, int paragraphIndex, TutorialParagraphConclusion conclusion, DateTime startTime, TimeSpan duration, bool isBlocking)
+        {
+            if (!EditorAnalytics.enabled || !RegisterEvent(k_EventTutorialParagraph)) { return AnalyticsResult.AnalyticsDisabled; }
+            var data = new TutorialParagraphEventData
+            {
+                ts = DateTime.UtcNow.Millisecond,
+                tutorialName = tutorialName,
+                pageIndex = pageIndex,
+                paragraphIndex = paragraphIndex,
+                conclusion = (int)conclusion,
+                duration = duration.Milliseconds,
+                startTime = startTime.Millisecond,
+                isBlocking = isBlocking
+            };
+            return SendEvent(k_EventTutorialParagraph, data);
         }
 
         public static AnalyticsResult SendExternalReferenceEvent(string url, string title, string contentType, string id = null)
         {
-            if (!EditorAnalytics.enabled)
-                return AnalyticsResult.AnalyticsDisabled;
-            if (!EnableAnalytics())
-                return AnalyticsResult.AnalyticsDisabled;
+            if (!EditorAnalytics.enabled || !RegisterEvent(k_EventExternalReference)) { return AnalyticsResult.AnalyticsDisabled; }
 
             var data = new ExternalReferenceEventData
             {
@@ -307,8 +441,32 @@ namespace Unity.InteractiveTutorials
                 type = contentType,
                 path = url
             };
+            return SendEvent(k_EventExternalReference, data);
+        }
 
-            return EditorAnalytics.SendEventWithLimit(k_EventName, data);
+        public static AnalyticsResult SendExternalReferenceImpressionEvent(string url, string title, string contentType, string id = null)
+        {
+            if (!EditorAnalytics.enabled || !RegisterEvent(k_EventExternalReferenceImpression)) { return AnalyticsResult.AnalyticsDisabled; }
+
+            var data = new ExternalReferenceImpressionEventData
+            {
+                ts = DateTime.UtcNow.Millisecond,
+                id = id,
+                title = title,
+                type = contentType,
+                path = url
+            };
+            return SendEvent(k_EventExternalReferenceImpression, data);
+        }
+
+        static AnalyticsResult SendEvent(string eventName, object parameters)
+        {
+            AnalyticsResult result = EditorAnalytics.SendEventWithLimit(eventName, parameters);
+            if (result != AnalyticsResult.Ok)
+            {
+                DebugError("Error in {0}: {1}", eventName, result);
+            }
+            return result;
         }
         #endregion
     }

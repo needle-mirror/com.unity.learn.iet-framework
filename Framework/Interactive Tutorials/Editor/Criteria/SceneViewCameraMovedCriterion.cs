@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEditor;
 using UnityEngine;
 
@@ -15,7 +15,6 @@ namespace Unity.InteractiveTutorials
 
         public override void StartTesting()
         {
-
             UpdateInitialCameraPositionIfNeeded();
             UpdateCompletion();
 
@@ -27,7 +26,7 @@ namespace Unity.InteractiveTutorials
             if (m_InitialPositionInitialized)
                 return;
 
-            if(SceneView.lastActiveSceneView == null)
+            if (SceneView.lastActiveSceneView == null)
                 return;
 
             m_InitialPositionInitialized = true;
@@ -50,7 +49,6 @@ namespace Unity.InteractiveTutorials
             var currentPosition = SceneView.lastActiveSceneView.camera.transform.position;
             var currentOrientation = SceneView.lastActiveSceneView.camera.transform.localRotation;
             return m_InitialCameraPosition != currentPosition || m_InitialCameraOrientation != currentOrientation;
-
         }
 
         public override bool AutoComplete()

@@ -9,7 +9,7 @@ using UnityObject = UnityEngine.Object;
 
 namespace Unity.InteractiveTutorials
 {
-    class Tutorial : ScriptableObject
+    public class Tutorial : ScriptableObject
     {
         [Serializable]
         public class TutorialPageCollection : CollectionWrapper<TutorialPage>
@@ -40,7 +40,7 @@ namespace Unity.InteractiveTutorials
 
         [Header("Scene Data")]
         [SerializeField]
-        UnityEditor.SceneAsset m_Scene = null;
+        SceneAsset m_Scene = null;
         [SerializeField]
         SceneViewCameraSettings m_DefaultSceneCameraSettings = null;
 
@@ -65,9 +65,9 @@ namespace Unity.InteractiveTutorials
         [SerializeField]
         SkipTutorialBehavior m_SkipTutorialBehavior = SkipTutorialBehavior.SameAsExitBehavior;
 
-        public UnityEngine.Object assetSelectedOnExit { get { return m_AssetSelectedOnExit; } }
+        public UnityObject assetSelectedOnExit { get { return m_AssetSelectedOnExit; } }
         [SerializeField]
-        UnityEngine.Object m_AssetSelectedOnExit = null;
+        UnityObject m_AssetSelectedOnExit = null;
 
         public TutorialWelcomePage welcomePage { get { return m_WelcomePage; } }
         [Header("Pages"), SerializeField]
@@ -92,7 +92,7 @@ namespace Unity.InteractiveTutorials
         public event Action tutorialInitiated;
         public event Action<TutorialPage, int> pageInitiated;
         public event Action<TutorialPage> goingBack;
-        public event Action tutorialCompleted;
+        public event Action<bool> tutorialCompleted;
 
         public Tutorial()
         {
@@ -129,12 +129,12 @@ namespace Unity.InteractiveTutorials
 
         public int pageCount { get { return m_Pages.count; } }
 
-        public bool completed { get { return pageCount == 0 || (currentPageIndex == pageCount - 1 && currentPage != null && currentPage.allCriteriaAreSatisfied); } }
+        public bool completed { get { return pageCount == 0 || (currentPageIndex >= pageCount - 2 && currentPage != null && currentPage.allCriteriaAreSatisfied); } }
 
         [SerializeField, Tooltip("Saved layouts can be found in the following directories:\n" +
-             "Windows: %APPDATA%/Unity/<version>/Preferences/Layouts\n" +
-             "macOS: ~/Library/Preferences/Unity/<version>/Layouts\n" +
-             "Linux: ~/.config/Preferences/Unity/<version>/Layouts")]
+            "Windows: %APPDATA%/Unity/<version>/Preferences/Layouts\n" +
+            "macOS: ~/Library/Preferences/Unity/<version>/Layouts\n" +
+            "Linux: ~/.config/Preferences/Unity/<version>/Layouts")]
         UnityObject m_WindowLayout = null;
 
         internal string windowLayoutPath => AssetDatabase.GetAssetPath(m_WindowLayout);
@@ -175,17 +175,24 @@ namespace Unity.InteractiveTutorials
                 return false;
             if (m_Pages.count == m_CurrentPageIndex + 1)
             {
-                OnTutorialCompleted();
-                IsCompletedPageShowing = true;
+                OnTutorialCompleted(true);
+                IsCompletedPageShowing = true; //[TODO] is this needed?
                 return false;
             }
             int newIndex = Mathf.Min(m_Pages.count - 1, m_CurrentPageIndex + 1);
             if (newIndex != m_CurrentPageIndex)
             {
                 if (currentPage != null)
+                {
                     currentPage.OnPageCompleted();
+                }
                 m_CurrentPageIndex = newIndex;
                 OnPageInitiated(currentPage, m_CurrentPageIndex);
+                if (m_Pages.count == m_CurrentPageIndex + 1)
+                {
+                    OnTutorialCompleted(false);
+                    IsCompletedPageShowing = true; //[TODO] is this needed?
+                }
                 return true;
             }
             return false;
@@ -239,9 +246,9 @@ namespace Unity.InteractiveTutorials
             tutorialInitiated?.Invoke();
         }
 
-        protected virtual void OnTutorialCompleted()
+        protected virtual void OnTutorialCompleted(bool exitTutorial)
         {
-            tutorialCompleted?.Invoke();
+            tutorialCompleted?.Invoke(exitTutorial);
         }
 
         protected virtual void OnPageInitiated(TutorialPage page, int index)

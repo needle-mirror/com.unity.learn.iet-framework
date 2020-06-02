@@ -24,7 +24,7 @@ namespace Unity.InteractiveTutorials
                 if (
                     (m_Items[i] == null && value != null) ||
                     (m_Items[i] != null && !m_Items[i].Equals(value))
-                    )
+                )
                 {
                     m_Items[i] = value;
                 }

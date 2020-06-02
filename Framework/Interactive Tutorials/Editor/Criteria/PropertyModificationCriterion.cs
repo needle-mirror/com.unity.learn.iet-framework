@@ -67,7 +67,7 @@ namespace Unity.InteractiveTutorials
         public override void StartTesting()
         {
             var target = m_Target.sceneObjectReference.ReferencedObject;
-            if(m_TargetValueMode == TargetValueMode.TargetValue)
+            if (m_TargetValueMode == TargetValueMode.TargetValue)
                 completed = PropertyFulfillCriterion(target, m_PropertyPath);
             else
             {
@@ -114,14 +114,14 @@ namespace Unity.InteractiveTutorials
             foreach (var m in modifications)
             {
                 if (m.currentValue.target == target)
-                { 
-                    if(IsCompoundPropertyMatch(m.currentValue.propertyPath))
+                {
+                    if (IsCompoundPropertyMatch(m.currentValue.propertyPath))
                     {
                         var propertyModification = m.currentValue;
                         propertyModification.propertyPath = propertyPath;
                         result.Add(m.currentValue);
                     }
-                    else if(m.currentValue.propertyPath == m_PropertyPath)
+                    else if (m.currentValue.propertyPath == m_PropertyPath)
                         result.Add(m.currentValue);
                 }
             }
@@ -178,7 +178,7 @@ namespace Unity.InteractiveTutorials
             throw new Exception("unknown TargetValueType");
         }
 
-        bool DoesPropertyMatches(SerializedProperty property,string value)
+        bool DoesPropertyMatches(SerializedProperty property, string value)
         {
             switch (targetValueType)
             {
@@ -260,7 +260,6 @@ namespace Unity.InteractiveTutorials
             return false;
         }
 
-        
         bool SetPropertyToDifferentValueThan(SerializedProperty property, string value)
         {
             switch (targetValueType)
@@ -308,7 +307,6 @@ namespace Unity.InteractiveTutorials
             return false;
         }
 
-
         bool PropertyFulfillCriterion(UnityObject target, string propertyPath)
         {
             if (target == null)
@@ -322,7 +320,7 @@ namespace Unity.InteractiveTutorials
 
             if (property == null)
                 return false;
-            
+
             if (!DoPropertyTypeMatches(property))
                 return false;
 

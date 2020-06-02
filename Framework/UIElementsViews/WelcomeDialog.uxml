@@ -1,0 +1,17 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
+    <ui:VisualElement name="MainContainer" class="MainContainer">
+        <Style src="WelcomeDialog.uss" />
+        <ui:VisualElement name="LeftColumn" class="LeftColumn" style="background-image: url('WelcomeDialogArt.png');" />
+        <ui:VisualElement name="RightColumn" class="RightColumn">
+            <ui:VisualElement name="TextContainer" class="TextContainer">
+                <ui:Label text="Get Started with Unity" class="Heading" />
+                <ui:Label text="FPS MICROGAME" class="Subheading" />
+                <ui:Label text="Are you ready to make your very own version of this FPS micro-game?" class="Description" />
+                <ui:Label text="To help you along the way, thi s project contains interactive tutorials that will teach you about the basics of the Unity Engine." class="Description" />
+                <ui:Label text="You can access the Tutorials window any time from the Unity main menu:" class="Description" />
+                <ui:Label text="Tutorials > Show Tutorials" class="Description" style="-unity-font-style: italic;" />
+            </ui:VisualElement>
+            <ui:Button text="Get Started" name="GetStartedButton" class="Button" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

@@ -76,7 +76,7 @@ namespace Unity.InteractiveTutorials
                 EditorApplication.playModeStateChanged += PostponeStartTutorialToEditMode;
             }
             else
-                StartTutorialInEditMode();
+                StartTutorialImmediateEditMode();
         }
 
         void PostponeStartTutorialToEditMode(PlayModeStateChange playModeStateChange)
@@ -84,8 +84,35 @@ namespace Unity.InteractiveTutorials
             if (playModeStateChange == PlayModeStateChange.EnteredEditMode)
             {
                 EditorApplication.playModeStateChanged -= PostponeStartTutorialToEditMode;
-                StartTutorialInEditMode();
+                StartTutorialImmediateEditMode();
             }
+        }
+
+        void StartTutorialImmediateEditMode()
+        {
+            // TODO HACK double delay to resolve various issue (e.g. black screen during save modifications dialog
+            // Revisit and fix properly.
+
+            if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+                return;
+
+            // TODO document why this is done
+            EditorWindow.GetWindow<SceneView>().Focus();
+
+            SaveOriginalScenes();
+            SaveOriginalWindowLayout();
+
+            m_Tutorial.LoadWindowLayout();
+
+            // Ensure TutorialWindow is open and set the current tutorial
+            var tutorialWindow = EditorWindow.GetWindow<TutorialWindow>();
+            tutorialWindow.SetTutorial(m_Tutorial);
+
+            m_Tutorial.ResetProgress();
+
+            // Do not overwrite workspace in authoring mode, use version control instead.
+            if (!ProjectMode.IsAuthoringMode())
+                LoadTutorialDefaultsIntoAssetsFolder();
         }
 
         void StartTutorialInEditMode()
@@ -141,7 +168,7 @@ namespace Unity.InteractiveTutorials
                 EditorApplication.playModeStateChanged += PostponeResetTutorialToEditMode;
             }
             else
-                StartTutorialInEditMode();
+                StartTutorialImmediateEditMode();
         }
 
         void PostponeResetTutorialToEditMode(PlayModeStateChange playModeStateChange)
@@ -234,7 +261,7 @@ namespace Unity.InteractiveTutorials
                 if (sceneInfo.assetPath == string.Empty) { continue; }
 
                 var openSceneMode = sceneInfo.wasLoaded ? OpenSceneMode.Additive : OpenSceneMode.AdditiveWithoutLoading;
-                
+
                 EditorSceneManager.OpenScene(sceneInfo.assetPath, openSceneMode);
             }
 
@@ -293,10 +320,10 @@ namespace Unity.InteractiveTutorials
                 foreach (var directory in defaultsDirectory.GetDirectories())
                     directory.Delete(true);
             }
-            DirectoryCopy(Application.dataPath, defaultsPath, null);
+            DirectoryCopy(Application.dataPath, defaultsPath);
         }
 
-        static void DirectoryCopy(string sourceDirectory, string destinationDirectory, HashSet<string> dirtyMetaFiles)
+        internal static void DirectoryCopy(string sourceDirectory, string destinationDirectory, HashSet<string> dirtyMetaFiles = default)
         {
             // Get the subdirectories for the specified directory.
             DirectoryInfo dir = new DirectoryInfo(sourceDirectory);

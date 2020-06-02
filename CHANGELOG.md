@@ -4,6 +4,17 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2020-06-02
+###  Changed
+- Refactor `TutorialWindow` to use UI Toolkit instead of IMGUI.
+- Breaking change: `TutorialContainer` and `TutorialParagraph` assets refactored without backward-compatibility.
+- Analytics: using `EditorAnalytics` instead of `UsabilityAnalytics` as the API for all events.
+- `TutorialPage`: instead of arbitrary set of `TutorialParagraph`s, the page has a fixed set of fields. `TutorialParagraph` will be deprecated in the near future.
+### Added
+- `TutorialPageEditor`: a new simplified authoring view.
+- Preliminary localization support.
+- Analytics: added an event for external reference (e.g. link cards) impressions
+
 ## [0.3.0] - 2020-03-25
 ### Changed
  - Raised the required Unity version to 2019.3.

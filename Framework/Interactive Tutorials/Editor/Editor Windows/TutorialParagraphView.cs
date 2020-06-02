@@ -54,10 +54,9 @@ namespace Unity.InteractiveTutorials
 
         public void RepaintSoon()
         {
-            //m_TutorialWindow.Repaint();
+            m_TutorialWindow.Repaint();
             m_TutorialWindow.UpdateVideoFrame(videoTextureCache);
             EditorApplication.update -= RepaintSoon;
-            repainting = false;
         }
 
         Texture videoTextureCache;
@@ -130,7 +129,7 @@ namespace Unity.InteractiveTutorials
                             }
 
                             m_FadeGroupAnim.target = m_ShouldShowText;
-                            if (pageCompleted && !string.IsNullOrEmpty(paragraph.text))
+                            if (pageCompleted && !string.IsNullOrEmpty(paragraph.InstructionTitle))
                                 m_FadeGroupAnim.value = true;
                         }
 
@@ -138,7 +137,7 @@ namespace Unity.InteractiveTutorials
                         {
                             var backgroundStyle = isActiveCriterion ? AllTutorialStyles.bgTheInBetweenText : AllTutorialStyles.theInBetweenTextNotActiveOrCompleted;
                             EditorGUILayout.BeginHorizontal(backgroundStyle, GUILayout.ExpandWidth(true));
-                            GUILayout.Label(paragraph.text, AllTutorialStyles.theInBetweenText);
+                            GUILayout.Label(paragraph.InstructionTitle, AllTutorialStyles.theInBetweenText);
                             EditorGUILayout.EndHorizontal();
                         }
                         EditorGUILayout.EndFadeGroup();
@@ -147,7 +146,7 @@ namespace Unity.InteractiveTutorials
                     break;
                 case ParagraphType.Narrative:
                     EditorGUILayout.BeginHorizontal(AllTutorialStyles.headerBGStyle, GUILayout.ExpandWidth(true));
-                    GUILayout.Label(paragraph.text, AllTutorialStyles.narrativeStyle);
+                    GUILayout.Label(paragraph.InstructionTitle, AllTutorialStyles.narrativeStyle);
                     EditorGUILayout.EndHorizontal();
                     break;
                 case ParagraphType.SwitchTutorial:
@@ -158,7 +157,7 @@ namespace Unity.InteractiveTutorials
                     break;
                 case ParagraphType.OrderedList:
                     EditorGUILayout.BeginVertical(AllTutorialStyles.listBGStyle, GUILayout.ExpandWidth(true));
-                    string[] listItems = paragraph.text.Split('\n');
+                    string[] listItems = paragraph.InstructionTitle.Split('\n');
                     for (int i = 0, length = listItems.Length; i < length; ++i)
                     {
                         GUILayout.BeginHorizontal();
@@ -170,7 +169,7 @@ namespace Unity.InteractiveTutorials
                     break;
                 case ParagraphType.UnorderedList:
                     EditorGUILayout.BeginVertical(AllTutorialStyles.listBGStyle, GUILayout.ExpandWidth(true));
-                    foreach (var listItem in paragraph.text.Split('\n'))
+                    foreach (var listItem in paragraph.InstructionTitle.Split('\n'))
                     {
                         GUILayout.BeginHorizontal();
                         GUILayout.Label(unorderedListBullet, AllTutorialStyles.listPrefix);
@@ -180,35 +179,19 @@ namespace Unity.InteractiveTutorials
                     EditorGUILayout.EndVertical();
                     break;
                 case ParagraphType.Image:
-                    using (new EditorGUILayout.HorizontalScope(AllTutorialStyles.imageStyle))
+                    if (!repainting)
                     {
-                        GUILayout.FlexibleSpace();
-                        GUILayout.Label(paragraph.image, GUIStyle.none);
-                        GUILayout.FlexibleSpace();
+                        videoTextureCache = paragraph.image;
+                        //repainting = true;
+                        EditorApplication.update += RepaintSoon;
+                        // TODO currently draws image all the time - let's draw it once for each page
                     }
                     break;
                 case ParagraphType.Video:
+                    if (paragraph.video != null && !repainting)
                     {
-                        if (paragraph.video == null)
-                            break;
-
-
-
-                        //using (new EditorGUILayout.HorizontalScope(AllTutorialStyles.videoStyle))
-                        // {
-                        //    GUILayout.FlexibleSpace();
-                        //    var position = GUILayoutUtility.GetRect(texture.width, texture.height, GUILayout.ExpandWidth(false), GUILayout.ExpandHeight(false));
-                        //    GUI.DrawTexture(position, texture);
-                        //    GUILayout.FlexibleSpace();
-                        // }
-
-                        if (!repainting)
-                        {
-                            videoTextureCache = m_TutorialWindow.videoPlaybackManager.GetTextureForVideoClip(paragraph.video);
-                            repainting = true;
-                            EditorApplication.update += RepaintSoon;
-                        }
-
+                        videoTextureCache = m_TutorialWindow.videoPlaybackManager.GetTextureForVideoClip(paragraph.video);
+                        EditorApplication.update += RepaintSoon;
                     }
                     break;
             }

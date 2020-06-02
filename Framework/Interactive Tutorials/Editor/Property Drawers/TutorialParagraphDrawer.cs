@@ -19,7 +19,7 @@ namespace Unity.InteractiveTutorials
 
         protected override void DisplayChildProperty(
             Rect position, SerializedProperty parentProperty, SerializedProperty childProperty, GUIContent label
-            )
+        )
         {
             ParagraphType type = (ParagraphType)parentProperty.FindPropertyRelative(k_TypePath).intValue;
             switch (childProperty.name)
@@ -43,7 +43,7 @@ namespace Unity.InteractiveTutorials
                         return;
                     break;
                 case k_SummaryPath:
-                    if (type != ParagraphType.Instruction)
+                    if ((type != ParagraphType.Instruction) && (type != ParagraphType.Narrative))
                         return;
                     break;
                 case k_ImagePath:
@@ -76,7 +76,7 @@ namespace Unity.InteractiveTutorials
                         return -EditorGUIUtility.standardVerticalSpacing;
                     break;
                 case k_SummaryPath:
-                    if (type != ParagraphType.Instruction)
+                    if ((type != ParagraphType.Instruction) && (type != ParagraphType.Narrative))
                         return -EditorGUIUtility.standardVerticalSpacing;
                     break;
                 case k_ImagePath:

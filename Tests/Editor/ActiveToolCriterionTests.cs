@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine.TestTools;
@@ -12,7 +12,7 @@ namespace Unity.InteractiveTutorials.Tests
         {
             Tools.current = Tool.None;
         }
-        
+
         [UnityTest]
         public IEnumerator WhenToolsDoNotMatch_IsNotCompleted()
         {
@@ -21,19 +21,18 @@ namespace Unity.InteractiveTutorials.Tests
 
             Assert.IsFalse(m_Criterion.completed);
         }
-        
+
         [UnityTest]
         public IEnumerator ActivatingRequiredTool_IsCompleted()
         {
             m_Criterion.targetTool = Tool.Move;
             Tools.current = Tool.Move;
-            
+
             yield return null;
 
             Assert.IsTrue(m_Criterion.completed);
         }
 
-        
         [UnityTest]
         public IEnumerator AutoComplete_IsCompleted()
         {
@@ -43,7 +42,5 @@ namespace Unity.InteractiveTutorials.Tests
 
             Assert.IsTrue(m_Criterion.completed);
         }
-
     }
-
 }

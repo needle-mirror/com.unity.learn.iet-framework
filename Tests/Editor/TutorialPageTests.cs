@@ -116,8 +116,8 @@ namespace Unity.InteractiveTutorials.Tests
                 {
                     m_Type = ParagraphType.Instruction,
                     m_Criteria = new TypedCriterionCollection(
-                            new[] { new TypedCriterion(new SerializedType(typeof(MockCriterion)), secondCriterion) }
-                            )
+                        new[] { new TypedCriterion(new SerializedType(typeof(MockCriterion)), secondCriterion) }
+                    )
                 };
                 m_Page.m_Paragraphs =
                     new TutorialParagraphCollection(new[] { m_Page.paragraphs.First(), secondInstruction });

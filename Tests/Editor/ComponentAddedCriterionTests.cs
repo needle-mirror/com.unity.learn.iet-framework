@@ -107,7 +107,8 @@ namespace Unity.InteractiveTutorials.Tests
         {
             m_Criterion.requiredComponents = new[] { typeof(ComponentA), typeof(ComponentB), null, typeof(ComponentA) };
 
-            CollectionAssert.AreEquivalent(new[] {
+            CollectionAssert.AreEquivalent(new[]
+            {
                 "1: Unity.InteractiveTutorials.Tests.ComponentAddedCriterionTests+ComponentA",
                 "2: Unity.InteractiveTutorials.Tests.ComponentAddedCriterionTests+ComponentB",
                 "4: Unity.InteractiveTutorials.Tests.ComponentAddedCriterionTests+ComponentA"
@@ -143,6 +144,7 @@ namespace Unity.InteractiveTutorials.Tests
 
             Assert.IsTrue(m_Criterion.completed);
         }
+
 #endif
     }
 }

@@ -67,7 +67,7 @@ namespace Unity.InteractiveTutorials
                 position.height = EditorGUI.GetPropertyHeight(alternativeEditorWindowTypes, true);
                 EditorGUI.PropertyField(position, alternativeEditorWindowTypes);
             }
-            
+
             position.y += position.height + EditorGUIUtility.standardVerticalSpacing;
             var unmaskType = property.FindPropertyRelative(k_UnmaskTypePath);
             position.height = EditorGUI.GetPropertyHeight(unmaskType, true);

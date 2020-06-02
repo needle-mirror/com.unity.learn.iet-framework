@@ -28,7 +28,7 @@ namespace Unity.InteractiveTutorials
 
         public Vector3 pivot { get { return m_Pivot; } }
         [SerializeField]
-        Vector3 m_Pivot = default ;
+        Vector3 m_Pivot = default;
 
         public Quaternion rotation { get { return m_Rotation; } }
         [SerializeField]

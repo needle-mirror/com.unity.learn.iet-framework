@@ -131,6 +131,7 @@ namespace Unity.InteractiveTutorials.Tests
 
             Assert.That(m_Criterion.completed, Is.True);
         }
+
 #endif
     }
 }

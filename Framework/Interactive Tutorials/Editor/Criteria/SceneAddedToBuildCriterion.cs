@@ -1,4 +1,4 @@
-﻿using UnityEditor;
+using UnityEditor;
 using UnityEngine;
 
 namespace Unity.InteractiveTutorials
@@ -51,7 +51,6 @@ namespace Unity.InteractiveTutorials
                 }
             }
             return false;
-
         }
 
         public override bool AutoComplete()

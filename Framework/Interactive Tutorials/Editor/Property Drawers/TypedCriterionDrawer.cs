@@ -29,7 +29,7 @@ namespace Unity.InteractiveTutorials
             IterateCriterion(
                 property.FindPropertyRelative(k_CriterionField),
                 p => height += EditorGUI.GetPropertyHeight(p) + EditorGUIUtility.standardVerticalSpacing
-                );
+            );
             height -= EditorGUIUtility.standardVerticalSpacing;
             return height;
         }
@@ -110,8 +110,8 @@ namespace Unity.InteractiveTutorials
                 Undo.DestroyObjectImmediate(criterionProperty.objectReferenceValue);
 
             var criterionType = System.Type.GetType(
-                    parentProperty.FindPropertyRelative(k_TypeField).FindPropertyRelative("m_TypeName").stringValue
-                    );
+                parentProperty.FindPropertyRelative(k_TypeField).FindPropertyRelative("m_TypeName").stringValue
+            );
 
             if (criterionType != null)
             {

@@ -150,7 +150,6 @@ namespace Unity.InteractiveTutorials.Tests
             }
             finally
             {
-
                 AssetDatabase.DeleteAsset(tempPath);
                 AssetDatabase.DeleteAsset(testPrefabVariantPath);
             }
@@ -290,5 +289,4 @@ namespace Unity.InteractiveTutorials.Tests
             return go;
         }
     }
-
 }

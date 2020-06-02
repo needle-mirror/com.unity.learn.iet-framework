@@ -105,7 +105,6 @@ namespace Unity.InteractiveTutorials.Tests
 
 
             yield return null;
-
         }
 
         [UnityTest]
@@ -207,7 +206,6 @@ namespace Unity.InteractiveTutorials.Tests
             Assert.IsTrue(m_Criterion.completed);
         }
 
-        
         [UnityTest]
         public IEnumerator WhenTargetPropertyIsModifiedToColorTarget_IsCompleted()
         {
@@ -221,7 +219,7 @@ namespace Unity.InteractiveTutorials.Tests
             property.colorValue = Color.red;
             so.ApplyModifiedProperties();
             yield return null;
-            
+
             Assert.IsTrue(m_Criterion.completed);
         }
 
@@ -423,7 +421,7 @@ namespace Unity.InteractiveTutorials.Tests
 
             Assert.IsFalse(m_Criterion.completed);
         }
-        
+
         [UnityTest]
         public IEnumerator DifferentThanInitial_WhenTargetPropertyIsModifiedToDifferentDecimal_IsCompleted()
         {
@@ -434,7 +432,7 @@ namespace Unity.InteractiveTutorials.Tests
             m_Criterion.targetValueType = PropertyModificationCriterion.TargetValueType.Decimal;
             var so = new SerializedObject(m_GameObject.transform);
             SerializedProperty property = so.FindProperty("m_LocalPosition");
-            property.vector3Value = new Vector3(10,5,0);
+            property.vector3Value = new Vector3(10, 5, 0);
             so.ApplyModifiedProperties();
             yield return null;
 
@@ -470,7 +468,7 @@ namespace Unity.InteractiveTutorials.Tests
 
             Assert.IsFalse(m_Criterion.completed);
         }
-        
+
         [UnityTest]
         public IEnumerator DifferentThanInitial_WhenTargetPropertyIsModifiedToDifferentColor_IsCompleted()
         {
@@ -488,7 +486,6 @@ namespace Unity.InteractiveTutorials.Tests
             Assert.IsTrue(m_Criterion.completed);
         }
 
-        
         [UnityTest]
         public IEnumerator DifferentThanInitial_WhenNoModificationIsDoneBoolean_IsNotCompleted()
         {
@@ -500,7 +497,7 @@ namespace Unity.InteractiveTutorials.Tests
 
             Assert.IsFalse(m_Criterion.completed);
         }
-        
+
         [UnityTest]
         public IEnumerator DifferentThanInitial_WhenTargetPropertyIsModifiedToDifferentBoolean_IsCompleted()
         {
@@ -517,7 +514,7 @@ namespace Unity.InteractiveTutorials.Tests
 
             Assert.IsTrue(m_Criterion.completed);
         }
-        
+
         [UnityTest]
         public IEnumerator DifferentThanInitial_WhenNoModificationIsDoneInteger_IsNotCompleted()
         {
@@ -529,7 +526,7 @@ namespace Unity.InteractiveTutorials.Tests
 
             Assert.IsFalse(m_Criterion.completed);
         }
-        
+
         [UnityTest]
         public IEnumerator DifferentThanInitial_WhenTargetPropertyIsModifiedToDifferentInteger_IsCompleted()
         {
@@ -545,6 +542,7 @@ namespace Unity.InteractiveTutorials.Tests
 
             Assert.IsTrue(m_Criterion.completed);
         }
+
         [UnityTest]
         public IEnumerator DifferentThanInitial_WhenNoModificationIsDoneText_IsNotCompleted()
         {
@@ -556,7 +554,7 @@ namespace Unity.InteractiveTutorials.Tests
 
             Assert.IsFalse(m_Criterion.completed);
         }
-        
+
         [UnityTest]
         public IEnumerator DifferentThanInitial_WhenTargetPropertyIsModifiedToDifferentText_IsCompleted()
         {
@@ -572,6 +570,7 @@ namespace Unity.InteractiveTutorials.Tests
 
             Assert.IsTrue(m_Criterion.completed);
         }
+
 #endif
     }
 }

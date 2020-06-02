@@ -57,31 +57,31 @@ namespace Unity.InteractiveTutorials
         static MaskingManager()
         {
             EditorApplication.update += delegate
+            {
+                // do not animate unless enough time has passed since masking was last applied
+                var t = EditorApplication.timeSinceStartup - s_LastHighlightTime - highlightAnimationDelay;
+                if (t < 0d)
+                    return;
+
+                var baseBorderWidth = 4.2f;
+                var borderWidthAmplitude = 2.1f;
+                var animatedBorderWidth = Mathf.Cos((float)t * highlightAnimationSpeed) * borderWidthAmplitude + baseBorderWidth;
+                foreach (var highlighter in s_Highlighters)
                 {
-                    // do not animate unless enough time has passed since masking was last applied
-                    var t = EditorApplication.timeSinceStartup - s_LastHighlightTime - highlightAnimationDelay;
-                    if (t < 0d)
-                        return;
+                    if (highlighter == null)
+                        continue;
 
-                    var baseBorderWidth = 4.2f;
-                    var borderWidthAmplitude = 2.1f;
-                    var animatedBorderWidth = Mathf.Cos((float)t * highlightAnimationSpeed) * borderWidthAmplitude + baseBorderWidth;
-                    foreach (var highlighter in s_Highlighters)
-                    {
-                        if (highlighter == null)
-                            continue;
-
-                        highlighter.style.borderLeftWidth = animatedBorderWidth;
-                        highlighter.style.borderRightWidth = animatedBorderWidth;
-                        highlighter.style.borderTopWidth = animatedBorderWidth;
-                        highlighter.style.borderBottomWidth = animatedBorderWidth;
-                    }
-                    foreach (var view in s_HighlightedViews)
-                    {
-                        if (view.Key.isValid)
-                            view.Key.Repaint();
-                    }
-                };
+                    highlighter.style.borderLeftWidth = animatedBorderWidth;
+                    highlighter.style.borderRightWidth = animatedBorderWidth;
+                    highlighter.style.borderTopWidth = animatedBorderWidth;
+                    highlighter.style.borderBottomWidth = animatedBorderWidth;
+                }
+                foreach (var view in s_HighlightedViews)
+                {
+                    if (view.Key.isValid)
+                        view.Key.Repaint();
+                }
+            };
         }
 
         public static void Unmask()
@@ -157,7 +157,7 @@ namespace Unity.InteractiveTutorials
         public static void Mask(
             UnmaskedView.MaskData unmaskedViewsAndRegionsMaskData, Color maskColor,
             UnmaskedView.MaskData highlightedRegionsMaskData, Color highlightColor, Color blockedInteractionsColor, float highlightThickness
-            )
+        )
         {
             Unmask();
 

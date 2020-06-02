@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 using System.Linq;
 using UnityEditor;
@@ -31,7 +30,7 @@ namespace Unity.InteractiveTutorials
             var readme = TutorialWindow.FindReadme();
             if (readme)
             {
-                WindowLayoutProxy.ReplaceLastProjectPathWithCurrentProjectPath(readme.projectLayoutPath);
+                WindowLayoutProxy.ReplaceLastProjectPathWithCurrentProjectPath(readme.ProjectLayoutPath);
             }
 
             AssetDatabase.FindAssets($"t:{typeof(Tutorial).FullName}")
@@ -51,7 +50,7 @@ namespace Unity.InteractiveTutorials
             var welcomePage = FindWelcomePage();
             if (welcomePage != null)
             {
-                TutorialModalWindow.TryToShow("Welcome", welcomePage, () => { });
+                TutorialModalWindow.TryToShow("Welcome", welcomePage, () => {});
             }
 
             var wnd = TutorialManager.GetTutorialWindow();
@@ -65,6 +64,19 @@ namespace Unity.InteractiveTutorials
 
         static UserStartupCode()
         {
+            // Language change trigger an assembly reload.
+            if (LoadPreviousEditorLanguage() != LocalizationDatabaseProxy.currentEditorLanguage)
+            {
+                SaveCurrentEditorLanguage();
+
+                var title = Localization.Tr("Editor Language Change Detected");
+                var msg = Localization.Tr("It's recommended to restart the Editor for the language change to be applied fully.");
+                var ok = Localization.Tr("Restart");
+                var cancel = Localization.Tr("Continue without restarting");
+                if (EditorUtility.DisplayDialog(title, msg, ok, cancel))
+                    RestartEditor();
+            }
+
             if (IsDontRunInitCodeMarkerSet())
                 return;
             if (IsInitialized())
@@ -73,7 +85,7 @@ namespace Unity.InteractiveTutorials
             EditorApplication.update += InitRunStartupCode;
         }
 
-        private static void InitRunStartupCode()
+        static void InitRunStartupCode()
         {
             SetInitialized();
             EditorApplication.update -= InitRunStartupCode;
@@ -85,7 +97,7 @@ namespace Unity.InteractiveTutorials
             return File.Exists(initFileMarkerPath);
         }
 
-        private static bool IsDontRunInitCodeMarkerSet()
+        static bool IsDontRunInitCodeMarkerSet()
         {
             return Directory.Exists(dontRunInitCodeMarker);
         }
@@ -110,6 +122,29 @@ namespace Unity.InteractiveTutorials
 
             var assetPath = AssetDatabase.GUIDToAssetPath(guids[0]);
             return AssetDatabase.LoadAssetAtPath<TutorialWelcomePage>(assetPath);
+        }
+
+        static SystemLanguage LoadPreviousEditorLanguage() =>
+            (SystemLanguage)EditorPrefs.GetInt("EditorLanguage", (int)SystemLanguage.English);
+
+        static void SaveCurrentEditorLanguage() =>
+            EditorPrefs.SetInt("EditorLanguage", (int)LocalizationDatabaseProxy.currentEditorLanguage);
+
+        // TODO as a menu item temporarily for dev/testing purposes, will be removed
+        [MenuItem(TutorialWindowMenuItem.MenuPath + "Restart Editor")]
+        static void RestartEditor()
+        {
+            // In older versions, calling EditorApplication.OpenProject() while having unsaved modifications
+            // can cause us to get stuck in a dialog loop. This seems to be fixed in 2020.1 (and newer?).
+            // As a workaround, ask for saving before starting to restart the Editor for real. However,
+            // we get the dialog twice and it can cause issues if user chooses first "Don't save" and then tries
+            // to "Cancel" in the second dialog.
+#if !UNITY_2020_1_OR_NEWER
+            if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+#endif
+            {
+                EditorApplication.OpenProject(Application.dataPath + "/..");
+            }
         }
     }
 }

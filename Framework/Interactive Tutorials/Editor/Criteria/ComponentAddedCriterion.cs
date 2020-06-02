@@ -79,7 +79,7 @@ namespace Unity.InteractiveTutorials
                     typeAndFutureReference.futureReference = CreateFutureObjectReference();
 
                 typeAndFutureReference.futureReference.referenceName = string.Format("{0}: {1}",
-                        requiredComponentsIndex, type.FullName);
+                    requiredComponentsIndex, type.FullName);
             }
 
             if (requiredComponentsIndex != 0)

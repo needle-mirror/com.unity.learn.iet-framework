@@ -90,7 +90,7 @@ namespace Unity.InteractiveTutorials
                     }
                 }
 
-                if (prefabParent == null) 
+                if (prefabParent == null)
                     continue;
 
                 // Ensure future prefab parent is infact a prefab parent
@@ -116,7 +116,7 @@ namespace Unity.InteractiveTutorials
                         if (futurePrefabInstance.futureReference == null)
                         {
                             var referenceName = string.Format("{0}: {1} ({2})", futurePrefabInstanceIndex + 1,
-                                    prefabParent.name, prefabParent.GetType().Name);
+                                prefabParent.name, prefabParent.GetType().Name);
                             futurePrefabInstance.futureReference = CreateFutureObjectReference(referenceName);
                             updateFutureReferenceNames = true;
                         }

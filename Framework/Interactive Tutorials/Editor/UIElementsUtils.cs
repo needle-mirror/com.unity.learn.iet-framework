@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine.UIElements;
 
 namespace Unity.InteractiveTutorials
@@ -31,6 +31,6 @@ namespace Unity.InteractiveTutorials
         public static void Show(string elementName, VisualElement parent) { Show(parent.Query<VisualElement>(elementName)); }
         public static void Hide(VisualElement element) { element.style.display = DisplayStyle.None; }
         public static void Show(VisualElement element) { element.style.display = DisplayStyle.Flex; }
-        public static bool IsVisible(VisualElement element) { return element.style.display != DisplayStyle.None; }
+        public static bool IsVisible(VisualElement element) { return (element == null) ? false : element.style.display != DisplayStyle.None; }
     }
 }

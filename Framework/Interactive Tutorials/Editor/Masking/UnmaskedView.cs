@@ -147,7 +147,7 @@ namespace Unity.InteractiveTutorials
                             string.Join(", ", viewWithWindow.Value.Select(w => w.GetType().Name).ToArray())
                             ),
                         "unmaskedViews"
-                        );
+                    );
                 }
             }
 
@@ -244,8 +244,8 @@ namespace Unity.InteractiveTutorials
                             break;
                         default:
                             Debug.LogErrorFormat(
-                            "No method currently implemented for selecting using specified mode: {0}",
-                            controlSelector.selectorMode
+                                "No method currently implemented for selecting using specified mode: {0}",
+                                controlSelector.selectorMode
                             );
                             break;
                     }
@@ -256,11 +256,10 @@ namespace Unity.InteractiveTutorials
                         {
                             const int padding = 5;
                             regionRect.x = padding;
-                            regionRect.width = viewRects.Key.position.width - padding *2;
+                            regionRect.width = viewRects.Key.position.width - padding * 2;
                         }
                         viewRects.Value.rects.Add(regionRect);
                     }
-
                 }
 
                 GUIViewDebuggerHelperProxy.StopDebugging();

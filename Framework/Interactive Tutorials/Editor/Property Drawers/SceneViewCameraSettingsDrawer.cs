@@ -82,9 +82,9 @@ namespace Unity.InteractiveTutorials
                         {
                             SceneView sceneView = EditorWindow.GetWindow<SceneView>();
                             property.FindPropertyRelative(k_CameraModePath).intValue = (int)(
-                                    sceneView.in2DMode ?
-                                    SceneViewCameraMode.SceneView2D : SceneViewCameraMode.SceneView3D
-                                    );
+                                sceneView.in2DMode ?
+                                SceneViewCameraMode.SceneView2D : SceneViewCameraMode.SceneView3D
+                            );
                             property.FindPropertyRelative(k_OrthographicPath).boolValue = sceneView.orthographic;
                             property.FindPropertyRelative(k_SizePath).floatValue = sceneView.size;
                             property.FindPropertyRelative(k_PivotPath).vector3Value = sceneView.pivot;

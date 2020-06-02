@@ -30,12 +30,12 @@ namespace Unity.InteractiveTutorials
             var fileContents = new List<string>();
             try
             {
-                using(StreamReader reader = new StreamReader(filePath))
+                using (StreamReader reader = new StreamReader(filePath))
                 {
                     string line;
                     string toReplace = "m_LastProjectPath: ";
                     string replaceWith = Directory.GetCurrentDirectory();
-                    while((line = reader.ReadLine()) != null)
+                    while ((line = reader.ReadLine()) != null)
                     {
                         line = ReplaceAfter(toReplace, replaceWith, line);
                         line = ReplaceAfter("m_Readme: ", "{fileID: 0}", line);
@@ -43,16 +43,16 @@ namespace Unity.InteractiveTutorials
                     }
                 }
 
-                using(StreamWriter writer = new StreamWriter(filePath, false))
+                using (StreamWriter writer = new StreamWriter(filePath, false))
                 {
-                    for(int i = 0; i < fileContents.Count; i++)
+                    for (int i = 0; i < fileContents.Count; i++)
                     {
                         writer.WriteLine(fileContents[i]);
                     }
                 }
                 return true;
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Debug.LogException(e);
                 return false;

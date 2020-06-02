@@ -50,14 +50,14 @@ namespace Unity.InteractiveTutorials
                 return;
             }
             GetTutorial(lessonId, (list) =>
+            {
+                var lesson = list.FirstOrDefault(s => s.lessonId == lessonId);
+                if (lesson == null || string.IsNullOrEmpty(lesson.status.Trim()))
                 {
-                    var lesson = list.FirstOrDefault(s => s.lessonId == lessonId);
-                    if (lesson == null || string.IsNullOrEmpty(lesson.status.Trim()))
-                    {
-                        // The fact no entries exist means the user never opened (started) this tutorial
-                        LogTutorialStatusUpdate(lessonId, TutorialProgressStatus.Status.Started.ToString());
-                    }
-                });
+                    // The fact no entries exist means the user never opened (started) this tutorial
+                    LogTutorialStatusUpdate(lessonId, TutorialProgressStatus.Status.Started.ToString());
+                }
+            });
         }
 
         public static void LogTutorialEnded(string lessonId)
@@ -67,16 +67,16 @@ namespace Unity.InteractiveTutorials
                 return;
             }
             GetTutorial(lessonId, (list) =>
+            {
+                var lesson = list.FirstOrDefault(s => s.lessonId == lessonId);
+                if (lesson == null || lesson.status != TutorialProgressStatus.Status.Finished.ToString())
                 {
-                    var lesson = list.FirstOrDefault(s => s.lessonId == lessonId);
-                    if (lesson == null || lesson.status != TutorialProgressStatus.Status.Finished.ToString())
-                    {
-                        // We only set the status to Finished if:
-                        // there was no entry (which should not happen)
-                        // the current status is Started
-                        LogTutorialStatusUpdate(lessonId, TutorialProgressStatus.Status.Finished.ToString());
-                    }
-                });
+                    // We only set the status to Finished if:
+                    // there was no entry (which should not happen)
+                    // the current status is Started
+                    LogTutorialStatusUpdate(lessonId, TutorialProgressStatus.Status.Finished.ToString());
+                }
+            });
         }
 
         private static bool IsLessonIdValid(string lessonId)
@@ -100,14 +100,14 @@ namespace Unity.InteractiveTutorials
         public static void PrintAllTutorials()
         {
             GetAllTutorials((tutorials) =>
+            {
+                var result = "";
+                foreach (var tutorial in tutorials)
                 {
-                    var result = "";
-                    foreach (var tutorial in tutorials)
-                    {
-                        result += tutorial.lessonId + ": " + tutorial.status + "\n";
-                    }
-                    Debug.Log(result);
-                });
+                    result += tutorial.lessonId + ": " + tutorial.status + "\n";
+                }
+                Debug.Log(result);
+            });
         }
 
         public static void GetAllTutorials(Action<List<TutorialProgressStatus>> action)
@@ -117,7 +117,12 @@ namespace Unity.InteractiveTutorials
 
         private static bool IsRequestSuccess(UnityWebRequest unityWebRequest)
         {
+#if UNITY_2020_1_OR_NEWER
+            if ((unityWebRequest.result == UnityWebRequest.Result.ConnectionError)
+            || (unityWebRequest.result == UnityWebRequest.Result.ProtocolError))
+#else
             if (unityWebRequest.isNetworkError || unityWebRequest.isHttpError)
+#endif
             {
                 LogWarningOnlyInAuthoringMode(unityWebRequest.error);
                 return false;
@@ -132,14 +137,14 @@ namespace Unity.InteractiveTutorials
             var address = HostAddress + getLink;
             var req = MakeGetLessonsRequest(address, lessonId);
             SendWebRequest(req, (UnityWebRequest r) =>
+            {
+                if (!IsRequestSuccess(r))
                 {
-                    if (!IsRequestSuccess(r))
-                    {
-                        return;
-                    }
-                    var lessonResponses = TutorialProgressStatus.ParseResponses(r.downloadHandler.text);
-                    action(lessonResponses);
-                });
+                    return;
+                }
+                var lessonResponses = TutorialProgressStatus.ParseResponses(r.downloadHandler.text);
+                action(lessonResponses);
+            });
         }
 
         public static void LogTutorialStatusUpdate(string lessonId, string lessonStatus)
@@ -157,12 +162,12 @@ namespace Unity.InteractiveTutorials
             req.SetRequestHeader("Authorization", "Bearer " + UnityConnectProxy.GetAccessToken());
 
             SendWebRequest(req, r =>
+            {
+                if (!IsRequestSuccess(r))
                 {
-                    if (!IsRequestSuccess(r))
-                    {
-                        return;
-                    }
-                });
+                    return;
+                }
+            });
         }
 
         private static void SendWebRequest(UnityWebRequest request, Action<UnityWebRequest> onFinished)

@@ -21,7 +21,8 @@ namespace Unity.InteractiveTutorials.Tests
             );
 
             // these two windows are docked together in the test layout
-            var unmaskedViews = new[] {
+            var unmaskedViews = new[]
+            {
                 UnmaskedView.CreateInstanceForEditorWindow<SceneView>(),
                 UnmaskedView.CreateInstanceForEditorWindow<GameView>(),
             };
@@ -36,21 +37,23 @@ namespace Unity.InteractiveTutorials.Tests
         [Test]
         public void TestGetViewsAndRects_ForNamedControlsInToolbar()
         {
-            var unmaskedViews = new[] {
+            var unmaskedViews = new[]
+            {
                 UnmaskedView.CreateInstanceForGUIView<Toolbar>(
-                    new[] {
-                    new GUIControlSelector() { selectorMode = GUIControlSelector.Mode.NamedControl, controlName = "ToolbarPersistentToolsPan" },
-                    new GUIControlSelector() { selectorMode = GUIControlSelector.Mode.NamedControl, controlName = "ToolbarPersistentToolsTranslate" },
-                    new GUIControlSelector() { selectorMode = GUIControlSelector.Mode.NamedControl, controlName = "ToolbarPersistentToolsRotate" },
-                    new GUIControlSelector() { selectorMode = GUIControlSelector.Mode.NamedControl, controlName = "ToolbarPersistentToolsScale" },
-                    new GUIControlSelector() { selectorMode = GUIControlSelector.Mode.NamedControl, controlName = "ToolbarPersistentToolsRect" },
-                    new GUIControlSelector() { selectorMode = GUIControlSelector.Mode.NamedControl, controlName = "ToolbarToolPivotPositionButton" },
-                    new GUIControlSelector() { selectorMode = GUIControlSelector.Mode.NamedControl, controlName = "ToolbarToolPivotOrientationButton" },
-                    new GUIControlSelector() { selectorMode = GUIControlSelector.Mode.NamedControl, controlName = "ToolbarPlayModePlayButton" },
-                    new GUIControlSelector() { selectorMode = GUIControlSelector.Mode.NamedControl, controlName = "ToolbarPlayModePauseButton" },
-                    new GUIControlSelector() { selectorMode = GUIControlSelector.Mode.NamedControl, controlName = "ToolbarPlayModeStepButton" },
-                }
-                    )
+                    new[]
+                    {
+                        new GUIControlSelector() { selectorMode = GUIControlSelector.Mode.NamedControl, controlName = "ToolbarPersistentToolsPan" },
+                        new GUIControlSelector() { selectorMode = GUIControlSelector.Mode.NamedControl, controlName = "ToolbarPersistentToolsTranslate" },
+                        new GUIControlSelector() { selectorMode = GUIControlSelector.Mode.NamedControl, controlName = "ToolbarPersistentToolsRotate" },
+                        new GUIControlSelector() { selectorMode = GUIControlSelector.Mode.NamedControl, controlName = "ToolbarPersistentToolsScale" },
+                        new GUIControlSelector() { selectorMode = GUIControlSelector.Mode.NamedControl, controlName = "ToolbarPersistentToolsRect" },
+                        new GUIControlSelector() { selectorMode = GUIControlSelector.Mode.NamedControl, controlName = "ToolbarToolPivotPositionButton" },
+                        new GUIControlSelector() { selectorMode = GUIControlSelector.Mode.NamedControl, controlName = "ToolbarToolPivotOrientationButton" },
+                        new GUIControlSelector() { selectorMode = GUIControlSelector.Mode.NamedControl, controlName = "ToolbarPlayModePlayButton" },
+                        new GUIControlSelector() { selectorMode = GUIControlSelector.Mode.NamedControl, controlName = "ToolbarPlayModePauseButton" },
+                        new GUIControlSelector() { selectorMode = GUIControlSelector.Mode.NamedControl, controlName = "ToolbarPlayModeStepButton" },
+                    }
+                )
             };
 
             var viewsAndRects = UnmaskedView.GetViewsAndRects(unmaskedViews).m_MaskData;
@@ -69,12 +72,14 @@ namespace Unity.InteractiveTutorials.Tests
                 EditorWindow.GetWindow<InspectorWindow>();
                 yield return null;
 
-                var unmaskedViews = new[] {
+                var unmaskedViews = new[]
+                {
                     UnmaskedView.CreateInstanceForEditorWindow<InspectorWindow>(
-                        new[] {
-                        new GUIControlSelector() { selectorMode = GUIControlSelector.Mode.Property, targetType = typeof(Transform), propertyPath = "m_LocalPosition" }
-                    }
-                        )
+                        new[]
+                        {
+                            new GUIControlSelector() { selectorMode = GUIControlSelector.Mode.Property, targetType = typeof(Transform), propertyPath = "m_LocalPosition" }
+                        }
+                    )
                 };
                 var viewsAndRects = UnmaskedView.GetViewsAndRects(unmaskedViews).m_MaskData;
                 Assert.AreEqual(1, viewsAndRects.Count, "Did not find one view for the Inspector");
@@ -101,12 +106,14 @@ namespace Unity.InteractiveTutorials.Tests
                 EditorWindow.GetWindow<InspectorWindow>();
                 yield return null;
 
-                var unmaskedViews = new[] {
+                var unmaskedViews = new[]
+                {
                     UnmaskedView.CreateInstanceForEditorWindow<InspectorWindow>(
-                        new[] {
-                        new GUIControlSelector() { selectorMode = GUIControlSelector.Mode.Property, targetType = typeof(SpriteRenderer), propertyPath = "m_Color" }
-                    }
-                        )
+                        new[]
+                        {
+                            new GUIControlSelector() { selectorMode = GUIControlSelector.Mode.Property, targetType = typeof(SpriteRenderer), propertyPath = "m_Color" }
+                        }
+                    )
                 };
                 var viewsAndRects = UnmaskedView.GetViewsAndRects(unmaskedViews).m_MaskData;
                 Assert.AreEqual(1, viewsAndRects.Count, "Did not find one view for the Inspector");
@@ -169,9 +176,11 @@ namespace Unity.InteractiveTutorials.Tests
                     }
                 }
 
-                var unmaskedViews = new[] {
+                var unmaskedViews = new[]
+                {
                     UnmaskedView.CreateInstanceForEditorWindow<InspectorWindow>(
-                        new[] {
+                        new[]
+                        {
                             new GUIControlSelector()
                             {
                                 selectorMode = GUIControlSelector.Mode.Property,
@@ -199,7 +208,6 @@ namespace Unity.InteractiveTutorials.Tests
                     "Found property rect does not contain of label rect of expected found property");
                 Assert.That(rect.yMax, Is.LessThanOrEqualTo(labelRectOfExpectedFoundProperty.yMax),
                     "Found property rect does not contain of label rect of expected found property");
-
             }
             finally
             {

@@ -1,4 +1,4 @@
-﻿using UnityEditor;
+using UnityEditor;
 using UnityEngine;
 
 namespace Unity.InteractiveTutorials
@@ -81,7 +81,7 @@ namespace Unity.InteractiveTutorials
 
         public override bool AutoComplete()
         {
-            if(m_EditorWindowType.type == null)
+            if (m_EditorWindowType.type == null)
             {
                 return false;
             }

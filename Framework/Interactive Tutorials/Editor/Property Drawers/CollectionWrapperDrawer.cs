@@ -41,37 +41,37 @@ namespace Unity.InteractiveTutorials
                 EditorGUI.PropertyField(rect, reorderableList.serializedProperty.GetArrayElementAtIndex(index), true);
             label = label != null ? new GUIContent(label) : new GUIContent(property.displayName);
             reorderableList.drawHeaderCallback = delegate(Rect rect) {
-                    int oldIndent = EditorGUI.indentLevel;
-                    EditorGUI.indentLevel = 0;
-                    EditorGUI.LabelField(rect, label);
-                    EditorGUI.indentLevel = oldIndent;
-                };
+                int oldIndent = EditorGUI.indentLevel;
+                EditorGUI.indentLevel = 0;
+                EditorGUI.LabelField(rect, label);
+                EditorGUI.indentLevel = oldIndent;
+            };
             reorderableList.elementHeightCallback = delegate(int index)
-                {
-                    return EditorGUI.GetPropertyHeight(reorderableList.serializedProperty.GetArrayElementAtIndex(index)) +
-                        EditorGUIUtility.standardVerticalSpacing * 2f + 1f;
-                };
+            {
+                return EditorGUI.GetPropertyHeight(reorderableList.serializedProperty.GetArrayElementAtIndex(index)) +
+                    EditorGUIUtility.standardVerticalSpacing * 2f + 1f;
+            };
             reorderableList.onAddCallback = delegate(ReorderableList lst) {
-                    ++lst.serializedProperty.arraySize;
-                    lst.serializedProperty.serializedObject.ApplyModifiedProperties();
-                };
+                ++lst.serializedProperty.arraySize;
+                lst.serializedProperty.serializedObject.ApplyModifiedProperties();
+            };
             reorderableList.onRemoveCallback = delegate(ReorderableList lst) {
-                    int index = lst.index;
-                    if (index >= lst.serializedProperty.arraySize)
-                    {
-                        return;
-                    }
-                    SerializedProperty element = lst.serializedProperty.GetArrayElementAtIndex(index);
-                    if (
-                        element.propertyType == SerializedPropertyType.ObjectReference &&
-                        element.objectReferenceValue != null
-                        )
-                    {
-                        lst.serializedProperty.DeleteArrayElementAtIndex(index);
-                    }
+                int index = lst.index;
+                if (index >= lst.serializedProperty.arraySize)
+                {
+                    return;
+                }
+                SerializedProperty element = lst.serializedProperty.GetArrayElementAtIndex(index);
+                if (
+                    element.propertyType == SerializedPropertyType.ObjectReference &&
+                    element.objectReferenceValue != null
+                )
+                {
                     lst.serializedProperty.DeleteArrayElementAtIndex(index);
-                    lst.serializedProperty.serializedObject.ApplyModifiedProperties();
-                };
+                }
+                lst.serializedProperty.DeleteArrayElementAtIndex(index);
+                lst.serializedProperty.serializedObject.ApplyModifiedProperties();
+            };
             m_Widgets[key] = reorderableList;
             OnReorderableListCreated(reorderableList);
             return reorderableList;

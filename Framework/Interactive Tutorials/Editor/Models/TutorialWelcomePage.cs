@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Unity.InteractiveTutorials
 {
-    class TutorialWelcomePage : ScriptableObject
+    public class TutorialWelcomePage : ScriptableObject
     {
         public Texture icon { get { return m_Icon; } }
         [SerializeField]

@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine.TestTools;
@@ -94,7 +94,6 @@ namespace Unity.InteractiveTutorials.Tests
             return AssetDatabase.LoadAssetAtPath<SceneAsset>(sceneAssetPath);
         }
 
-        
         public static void RemoveSceneFromBuildSettings(SceneAsset scene)
         {
             if (EditorBuildSettings.scenes.Length == 0)
@@ -123,6 +122,7 @@ namespace Unity.InteractiveTutorials.Tests
             }
             EditorBuildSettings.scenes = scenes;
         }
+
 #endif
     }
 }

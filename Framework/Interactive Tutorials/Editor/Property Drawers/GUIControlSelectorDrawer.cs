@@ -81,7 +81,7 @@ namespace Unity.InteractiveTutorials
                     position,
                     string.Format("No drawing implemented yet for selector mode {0}", (GUIControlSelector.Mode)selectorMode.intValue),
                     MessageType.Error
-                    );
+                );
             }
         }
     }

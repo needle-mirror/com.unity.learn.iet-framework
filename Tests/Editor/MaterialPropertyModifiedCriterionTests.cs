@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
@@ -40,7 +40,7 @@ namespace Unity.InteractiveTutorials.Tests
 
             Assert.IsFalse(m_Criterion.completed);
         }
-        
+
         [UnityTest]
         public IEnumerator WhenTargetIsEmpty_IsNotCompleted()
         {
@@ -55,7 +55,7 @@ namespace Unity.InteractiveTutorials.Tests
             UnityObject[] mats = new[] { material };
             return MaterialEditor.GetMaterialProperty(mats, path);
         }
-        
+
         [UnityTest]
         public IEnumerator WhenDifferentPropertyOnTheSameTargetIsModified_IsNotCompleted()
         {
@@ -67,8 +67,6 @@ namespace Unity.InteractiveTutorials.Tests
 
             Assert.IsFalse(m_Criterion.completed);
         }
-
-        
 
         [UnityTest]
         public IEnumerator WhenSamePropertyOnDifferentTargetIsModified_IsNotCompleted()
@@ -83,7 +81,6 @@ namespace Unity.InteractiveTutorials.Tests
             Assert.IsFalse(m_Criterion.completed);
         }
 
-        
         [UnityTest]
         public IEnumerator WhenSamePropertyOnTargetIsModified_IsCompleted()
         {
@@ -97,6 +94,7 @@ namespace Unity.InteractiveTutorials.Tests
 
             Assert.IsTrue(m_Criterion.completed);
         }
+
 #endif
     }
 }

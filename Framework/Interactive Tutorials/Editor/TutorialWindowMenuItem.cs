@@ -11,7 +11,7 @@ namespace Unity.InteractiveTutorials
         [MenuItem(MenuPath + Item)]
         static void OpenTutorialWindow()
         {
-            TutorialWindow.CreateWindow();
+            TutorialWindow.CreateWindowAndLoadLayout();
         }
     }
 }

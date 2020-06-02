@@ -1,6 +1,6 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 namespace Unity.InteractiveTutorials.Tests
 {
-    class TestAsset : ScriptableObject { }
+    class TestAsset : ScriptableObject {}
 }

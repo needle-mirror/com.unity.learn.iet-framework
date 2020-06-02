@@ -6,7 +6,7 @@ using UnityEngine.Serialization;
 namespace Unity.InteractiveTutorials
 {
     [Serializable]
-    class MaskingSettings
+    public class MaskingSettings
     {
         public const string k_EnabledPath = "m_MaskingEnabled";
         public const string k_UnmaskedViewsPath = "m_UnmaskedViews";

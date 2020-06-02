@@ -1,0 +1,60 @@
+.MainContainer {
+    flex-grow: 1;
+    flex-direction: row;
+    background-color: rgb(221, 221, 221);
+}
+
+.LeftColumn {
+    flex-grow: 1;
+    -unity-background-scale-mode: scale-and-crop;
+    flex-basis: 1px;
+}
+
+.RightColumn {
+    flex-grow: 1;
+    flex-basis: 1px;
+    padding-left: 30px;
+    padding-right: 30px;
+    padding-top: 30px;
+    padding-bottom: 30px;
+}
+
+.Button {
+    font-size: 14px;
+    -unity-font-style: bold;
+    padding-left: 12px;
+    padding-right: 12px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    background-color: rgb(39, 161, 245);
+    color: rgb(255, 255, 255);
+    border-left-color: rgb(3, 137, 231);
+    border-right-color: rgb(3, 137, 231);
+    border-top-color: rgb(3, 137, 231);
+    border-bottom-color: rgb(3, 137, 231);
+}
+
+.Heading {
+    font-size: 24px;
+    -unity-font-style: bold;
+    color: rgb(0, 0, 0);
+    margin-bottom: 5px;
+}
+
+.Subheading {
+    font-size: 12px;
+    -unity-font-style: bold;
+    margin-bottom: 20px;
+    color: rgb(128, 128, 128);
+}
+
+.Description {
+    white-space: normal;
+    font-size: 15px;
+    margin-bottom: 15px;
+    color: rgb(0, 0, 0);
+}
+
+.TextContainer {
+    flex-grow: 1;
+}

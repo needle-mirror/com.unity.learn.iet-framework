@@ -51,8 +51,8 @@ namespace Unity.InteractiveTutorials.Tests
             m_Tutorial = ScriptableObject.CreateInstance<Tutorial>();
 
             m_Tutorial.m_Pages = new Tutorial.TutorialPageCollection(
-                    new[] { ScriptableObject.CreateInstance<TutorialPage>(), ScriptableObject.CreateInstance<TutorialPage>() }
-                    );
+                new[] { ScriptableObject.CreateInstance<TutorialPage>(), ScriptableObject.CreateInstance<TutorialPage>() }
+            );
             for (int i = 0; i < m_Tutorial.m_Pages.count; ++i)
             {
                 m_Tutorial.m_Pages[i].name = string.Format("{0}-PAGE-{1}", TestContext.CurrentContext.Test.FullName, i + 1);
@@ -64,13 +64,14 @@ namespace Unity.InteractiveTutorials.Tests
             {
                 m_Type = ParagraphType.Instruction,
                 m_Criteria = new TypedCriterionCollection(
-                        new[] {
-                    new TypedCriterion(new SerializedType(typeof(MockCriterion)), ScriptableObject.CreateInstance<MockCriterion>())
-                }
-                        )
+                    new[]
+                    {
+                        new TypedCriterion(new SerializedType(typeof(MockCriterion)), ScriptableObject.CreateInstance<MockCriterion>())
+                    }
+                )
             };
             paragraph.summary = firstPageInstructionSummary;
-            paragraph.text = firstPageInstructionText;
+            paragraph.InstructionText = firstPageInstructionText;
             m_Tutorial.m_Pages[0].m_Paragraphs = new TutorialParagraphCollection(new[] { paragraph });
 
             m_Window = EditorWindow.GetWindow<TutorialWindow>();
@@ -125,7 +126,8 @@ namespace Unity.InteractiveTutorials.Tests
             return result;
         }
 
-        [UnityTest][Ignore("Imgui elements in containers, TODO")]
+        [Ignore("TODO Revisit tests after the refactoring is done")]
+        [UnityTest]
         public IEnumerator CanClickNextButton_WhenRevistingCompletedPage_WhenItsCriteriaHaveBeenLaterInvalidated()
         {
             using (var automatedWindow = new AutomatedWindow<TutorialWindow>(m_Window))
@@ -148,7 +150,7 @@ namespace Unity.InteractiveTutorials.Tests
                 Assert.AreEqual(secondPage, m_Window.currentTutorial.currentPage);
 
                 // go back
-                automatedWindow.Click(FindElementWithStyle(automatedWindow, m_Window.allTutorialStyles .backButton, "back button"));
+                automatedWindow.Click(FindElementWithStyle(automatedWindow, m_Window.allTutorialStyles.backButton, "back button"));
                 yield return null;
                 m_Window.RepaintImmediately();
                 Assert.AreEqual(firstPage, m_Window.currentTutorial.currentPage);
@@ -162,7 +164,8 @@ namespace Unity.InteractiveTutorials.Tests
             }
         }
 
-        [UnityTest][Ignore("Imgui elements in containers, TODO")]
+        [Ignore("TODO Revisit tests after the refactoring is done")]
+        [UnityTest]
         public IEnumerator ClickingBackButton_WhenPreviousPageHasAutoAdvanceOnCompleteSet_MovesToPreviousPage()
         {
             // let first page auto-advance on completion
@@ -185,7 +188,8 @@ namespace Unity.InteractiveTutorials.Tests
             }
         }
 
-        [UnityTest][Ignore("Imgui elements in containers, TODO")]
+        [Ignore("TODO Revisit tests after the refactoring is done")]
+        [UnityTest]
         public IEnumerator FirstInstructionIsExpandedAndInteractable_WhenPageLoads()
         {
             using (var automatedWindow = new AutomatedWindow<TutorialWindow>(m_Window))
@@ -216,7 +220,8 @@ namespace Unity.InteractiveTutorials.Tests
             }
         }
 
-        [UnityTest][Ignore("Imgui elements in containers, TODO")]
+        [Ignore("TODO Revisit tests after the refactoring is done")]
+        [UnityTest]
         public IEnumerator InstructionsAreExpandedAndDisabled_WhenRevisitingCompletedPage()
         {
             using (var automatedWindow = new AutomatedWindow<TutorialWindow>(m_Window))
@@ -241,7 +246,8 @@ namespace Unity.InteractiveTutorials.Tests
             }
         }
 
-        [UnityTest][Ignore("Imgui elements in containers, TODO")]
+        [Ignore("TODO Revisit tests after the refactoring is done")]
+        [UnityTest]
         public IEnumerator InstructionsAreStyledAsCompleteButNotActive_WhenRevisitingCompletedPage()
         {
             m_Window.RepaintImmediately();
@@ -275,6 +281,9 @@ namespace Unity.InteractiveTutorials.Tests
         }
 
         [Test]
+#if UNITY_2020_1_OR_NEWER
+        [Ignore("TODO Unity 2020 support")]
+#endif
         public void ApplyMasking_WhenPageIsActivated()
         {
             firstPage.m_Paragraphs[0].maskingSettings.SetUnmaskedViews(new[] { UnmaskedView.CreateInstanceForGUIView<Toolbar>() });
@@ -296,7 +305,8 @@ namespace Unity.InteractiveTutorials.Tests
             }
         }
 
-        [UnityTest][Ignore("Imgui elements in containers, TODO")]
+        [Ignore("TODO Revisit tests after the refactoring is done")]
+        [UnityTest]
         public IEnumerator ApplyMasking_ToAllViewsExceptTutorialWindowAndTooltips_WhenRevisitingCompletedPage()
         {
             firstPage.m_Paragraphs[0].maskingSettings.SetUnmaskedViews(new[] { UnmaskedView.CreateInstanceForGUIView<Toolbar>() });
@@ -344,6 +354,9 @@ namespace Unity.InteractiveTutorials.Tests
         }
 
         [Test]
+#if UNITY_2020_1_OR_NEWER
+        [Ignore("TODO Unity 2020 support")]
+#endif
         public void ApplyHighlighting_ToUnmaskedViews_WhenPageOnlyContainsNarrativeParagraphs()
         {
             firstPage.m_Paragraphs[0].m_Type = ParagraphType.Narrative;
@@ -400,11 +413,12 @@ namespace Unity.InteractiveTutorials.Tests
                 selectorMode = GUIControlSelector.Mode.NamedControl, controlName = "ToolbarPlayModePlayButton"
             };
             firstPage.m_Paragraphs[0].maskingSettings.SetUnmaskedViews(
-                new[] {
-                UnmaskedView.CreateInstanceForGUIView<Toolbar>(new[] { playButtonContrlSelector }),
-                UnmaskedView.CreateInstanceForGUIView<AppStatusBar>()
-            }
-                );
+                new[]
+                {
+                    UnmaskedView.CreateInstanceForGUIView<Toolbar>(new[] { playButtonContrlSelector }),
+                    UnmaskedView.CreateInstanceForGUIView<AppStatusBar>()
+                }
+            );
             firstPage.m_Paragraphs[0].maskingSettings.enabled = true;
             firstPage.RaiseTutorialPageMaskingSettingsChangedEvent();
 
@@ -440,11 +454,12 @@ namespace Unity.InteractiveTutorials.Tests
         public void ApplyHighlighting_ToAllUnmaskedWindowsAndViews_WhenMaskingSettingsOnlySpecifyEntireWindowsAndViews()
         {
             firstPage.m_Paragraphs[0].maskingSettings.SetUnmaskedViews(
-                new[] {
-                UnmaskedView.CreateInstanceForGUIView<Toolbar>(),
-                UnmaskedView.CreateInstanceForGUIView<AppStatusBar>()
-            }
-                );
+                new[]
+                {
+                    UnmaskedView.CreateInstanceForGUIView<Toolbar>(),
+                    UnmaskedView.CreateInstanceForGUIView<AppStatusBar>()
+                }
+            );
             firstPage.m_Paragraphs[0].maskingSettings.enabled = true;
             firstPage.RaiseTutorialPageMaskingSettingsChangedEvent();
 
@@ -463,6 +478,5 @@ namespace Unity.InteractiveTutorials.Tests
                     Assert.IsFalse(MaskingManager.IsHighlighted(new GUIViewProxy(view), rects));
             }
         }
-
     }
 }

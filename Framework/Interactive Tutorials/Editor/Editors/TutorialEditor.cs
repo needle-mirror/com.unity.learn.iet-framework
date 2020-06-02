@@ -20,7 +20,7 @@ namespace Unity.InteractiveTutorials
         private static readonly Regex s_MatchPagesPropertyPath =
             new Regex(
                 string.Format("^({0}\\.Array\\.size)|(^({0}\\.Array\\.data\\[\\d+\\]))", Regex.Escape(k_PagesPropertyPath))
-                );
+            );
 
         Tutorial tutorial { get { return (Tutorial)target; } }
 
@@ -32,9 +32,9 @@ namespace Unity.InteractiveTutorials
             if (serializedObject.FindProperty(k_PagesPropertyPath) == null)
             {
                 m_WarningMessage = string.Format(
-                        "Unable to locate property path {0} on this object. Automatic masking updates will not work.",
-                        k_PagesPropertyPath
-                        );
+                    "Unable to locate property path {0} on this object. Automatic masking updates will not work.",
+                    k_PagesPropertyPath
+                );
             }
 
             Undo.postprocessModifications += OnPostprocessModifications;

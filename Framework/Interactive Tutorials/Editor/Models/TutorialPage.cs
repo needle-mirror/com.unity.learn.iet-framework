@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using UnityEditor;
 using UnityEngine;
-using UnityObject = UnityEngine.Object;
 
 namespace Unity.InteractiveTutorials
 {
@@ -15,7 +13,7 @@ namespace Unity.InteractiveTutorials
         NotPlaying
     }
 
-    class TutorialPage : ScriptableObject
+    public class TutorialPage : ScriptableObject
     {
         public static event Action<TutorialPage> criteriaCompletionStateTested;
         public static event Action<TutorialPage> tutorialPageMaskingSettingsChanged;
@@ -23,17 +21,11 @@ namespace Unity.InteractiveTutorials
 
         internal event Action<TutorialPage> playedCompletionSound;
 
-        public bool hasMovedToNextPage { get { return m_HasMovedToNextPage; } }
-        private bool m_HasMovedToNextPage;
+        public bool hasMovedToNextPage { get; private set; }
 
         public bool allCriteriaAreSatisfied { get; private set; }
 
-        [Obsolete]
-        public string sectionTitle { get { return m_SectionTitle; } }
-        [Header("Content")]
-        [SerializeField]
-        string m_SectionTitle = "";
-        public IEnumerable<TutorialParagraph> paragraphs { get { return m_Paragraphs; } }
+        public TutorialParagraphCollection paragraphs { get { return m_Paragraphs; } }
         [SerializeField]
         internal TutorialParagraphCollection m_Paragraphs = new TutorialParagraphCollection();
 
@@ -44,6 +36,8 @@ namespace Unity.InteractiveTutorials
                 MaskingSettings result = null;
                 for (int i = 0, count = m_Paragraphs.count; i < count; ++i)
                 {
+                    if (!m_Paragraphs[i].maskingSettings.enabled) { continue; }
+
                     result = m_Paragraphs[i].maskingSettings;
                     if (!m_Paragraphs[i].completed)
                         break;
@@ -71,6 +65,7 @@ namespace Unity.InteractiveTutorials
                 }
             }
         }
+
         [SerializeField]
         string m_DoneButton = "Done";
         public string doneButton
@@ -98,21 +93,19 @@ namespace Unity.InteractiveTutorials
         [SerializeField]
         AudioClip m_CompletedSound = null;
 
-        public bool autoAdvanceOnComplete { get { return m_autoAdvance; } set { m_autoAdvance = value; }}
+        public bool autoAdvanceOnComplete { get { return m_autoAdvance; } set { m_autoAdvance = value; } }
         [Header("Auto advance on complete?")]
         [SerializeField]
         bool m_autoAdvance;
 
         public void RaiseTutorialPageMaskingSettingsChangedEvent()
         {
-            if (tutorialPageMaskingSettingsChanged != null)
-                tutorialPageMaskingSettingsChanged(this);
+            tutorialPageMaskingSettingsChanged?.Invoke(this);
         }
 
         public void RaiseTutorialPageNonMaskingSettingsChangedEvent()
         {
-            if (tutorialPageNonMaskingSettingsChanged != null)
-                tutorialPageNonMaskingSettingsChanged(this);
+            tutorialPageNonMaskingSettingsChanged?.Invoke(this);
         }
 
         static Queue<WeakReference<TutorialPage>> s_DeferedValidationQueue = new Queue<WeakReference<TutorialPage>>();
@@ -194,7 +187,7 @@ namespace Unity.InteractiveTutorials
             if (GetIndicesForCriterion(futureReference.criterion, out paragraphIndex, out criterionIndex))
             {
                 futureReference.name = string.Format("Paragraph {0}, Criterion {1}, {2}",
-                        paragraphIndex + 1, criterionIndex + 1, futureReference.referenceName);
+                    paragraphIndex + 1, criterionIndex + 1, futureReference.referenceName);
             }
         }
 
@@ -244,7 +237,7 @@ namespace Unity.InteractiveTutorials
                 }
             }
             allCriteriaAreSatisfied = false;
-            m_HasMovedToNextPage = false;
+            hasMovedToNextPage = false;
         }
 
         internal void SetupCompletionRequirements()
@@ -314,8 +307,7 @@ namespace Unity.InteractiveTutorials
                         Undo.ClearAll();
                         if (m_CompletedSound != null)
                             AudioUtilProxy.PlayClip(m_CompletedSound);
-                        if (playedCompletionSound != null)
-                            playedCompletionSound(this);
+                        playedCompletionSound?.Invoke(this);
                     }
                 }
             }
@@ -347,14 +339,13 @@ namespace Unity.InteractiveTutorials
                     break;
             }
 
-            if (criteriaCompletionStateTested != null)
-                criteriaCompletionStateTested(this);
+            criteriaCompletionStateTested?.Invoke(this);
         }
 
         public void OnPageCompleted()
         {
             RemoveCompletionRequirements();
-            m_HasMovedToNextPage = true;
+            hasMovedToNextPage = true;
         }
     }
 }

@@ -56,7 +56,7 @@ namespace Unity.InteractiveTutorials
                 CallingConventions.Any,
                 parameterTypes,
                 null
-                );
+            );
         }
 
         static PropertyInfo GetProperty<T>(string name, Type returnType)
@@ -67,7 +67,7 @@ namespace Unity.InteractiveTutorials
                 returnType,
                 new Type[0],
                 null
-                );
+            );
         }
 
         public static void Add(VisualElement element, VisualElement child)

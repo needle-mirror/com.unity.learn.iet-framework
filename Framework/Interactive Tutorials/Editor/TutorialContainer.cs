@@ -1,119 +1,133 @@
-﻿using System;
+using System;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace Unity.InteractiveTutorials
 {
     public class TutorialContainer : ScriptableObject
     {
+        public event Action Modified;
+
+        public Texture2D HeaderBackground;
+
+        public LocalizableString Title;
+
+        public LocalizableString ProjectName;
+
+        public LocalizableString Description;
+
+        [Tooltip("Can be used to override the default layout specified by the Tutorial Framework.")]
+        public UnityEngine.Object ProjectLayout;
+
+        public Section[] Sections = {};
+
+        public string ProjectLayoutPath =>
+            ProjectLayout != null ? AssetDatabase.GetAssetPath(ProjectLayout) : k_DefaultLayoutPath;
+
         // The default layout used when a NUO project is started for the first time.
         // TODO IET unit test the the file exist.
         // TODO IET unit test the the layout contains TutorialWindow.
-        private const string k_DefaultLayout =
+        const string k_DefaultLayoutPath =
             "Packages/com.unity.learn.iet-framework/Framework/Interactive Tutorials/TutorialInfo/Layout.wlt";
         // The original layout is copied into this.
-        internal const string k_UserLayoutPath = "Temp/UserLayout.wlt";
-
-        // Instead of icon we will use a header background for the new design.
-        [FormerlySerializedAs("icon")]
-        public Texture2D headerBackground;
-        public string title = "";
-        public string projectName = "";
-        public string description = "";
-        [Tooltip("Can be used the override the default layout of the IET framework.")]
-        public UnityEngine.Object projectLayout = null;
-        public Section[] sections;
-
-        public string projectLayoutPath =>
-            projectLayout != null ? AssetDatabase.GetAssetPath(projectLayout) : k_DefaultLayout;
+        const string k_UserLayoutPath = "Temp/UserLayout.wlt";
 
         [Serializable]
         public class Section
         {
-            public int orderInView;
-            public string heading;
-            public string text;
+            public int OrderInView;
+
+            public LocalizableString Heading;
+
+            public LocalizableString Text;
+
+            // TODO Rename
             [Tooltip("Used as content type metadata for external references/URLs")]
-            public string linkText; // text is not shown for new-style section cards, but required to make the card the open the URL
-            public string url;
-            [Tooltip("Use for Unity Connect auto-login, shortened URLs do not work for authorized")]
-            public bool authorizedUrl;
-            public string buttonText; // not used for new-style section cards
+            public string LinkText;
+
+            [Tooltip("Setting the URL will take precedence and make the card act as a link card instead of a tutorial card")]
+            public string Url;
+
+            [Tooltip("Use for Unity Connect auto-login, shortened URLs do not work")]
+            public bool AuthorizedUrl;
+
+            public Texture2D Image;
+
             [SerializeField]
-            private Tutorial tutorial = null;
-            public Texture2D image;
-            public Texture2D completedImage;
-            [NonSerialized]
-            public bool tutorialCompleted;
+            Tutorial Tutorial = null;
 
-            // TODO rename, cards are now buttons inherently
-            public bool CanDrawButton => !string.IsNullOrEmpty(buttonText) && tutorial;
+            public bool TutorialCompleted { get; set; }
 
-            public string TutorialId => tutorial?.lessonId ?? "";
+            public bool IsTutorial => Url.IsNullOrEmpty();
 
-            public string EditorPrefsKey => $"Unity.InteractiveTutorials.lesson{TutorialId}";
+            public string TutorialId => Tutorial?.lessonId.AsEmptyIfNull();
+
+            public string SessionStateKey => $"Unity.InteractiveTutorials.lesson{TutorialId}";
 
             public void StartTutorial()
             {
-                TutorialManager.instance.StartTutorial(tutorial);
+                TutorialManager.instance.StartTutorial(Tutorial);
             }
 
             public void OpenUrl()
             {
-                if (string.IsNullOrEmpty(url))
+                if (string.IsNullOrEmpty(Url))
                     return;
 
-                if (authorizedUrl && UnityConnectProxy.loggedIn)
-                    UnityConnectProxy.OpenAuthorizedURLInWebBrowser(url);
+                if (AuthorizedUrl && UnityConnectProxy.loggedIn)
+                    UnityConnectProxy.OpenAuthorizedURLInWebBrowser(Url);
                 else
-                    Application.OpenURL(url);
+                    Application.OpenURL(Url);
 
-                AnalyticsHelper.SendExternalReferenceEvent(url, heading, linkText, tutorial?.lessonId);
+                AnalyticsHelper.SendExternalReferenceEvent(Url, Heading.Untranslated, LinkText, Tutorial?.lessonId);
             }
 
             // returns true if the state was found from EditorPrefs
             public bool LoadState()
             {
                 const string nonexisting = "NONEXISTING";
-                var state = EditorPrefs.GetString(EditorPrefsKey, nonexisting);
+                var state = SessionState.GetString(SessionStateKey, nonexisting);
                 if (state == "")
                 {
-                    tutorialCompleted = false;
+                    TutorialCompleted = false;
                 }
                 else if (state == "Finished")
                 {
-                    tutorialCompleted = true;
+                    TutorialCompleted = true;
                 }
                 return state != nonexisting;
             }
 
             public void SaveState()
             {
-                EditorPrefs.SetString(EditorPrefsKey, tutorialCompleted ? "Finished" : "");
+                SessionState.SetString(SessionStateKey, TutorialCompleted ? "Finished" : "");
             }
-
         }
 
         void OnValidate()
         {
             SortSections();
-            for (int i = 0; i < sections.Length; ++i)
+            for (int i = 0; i < Sections.Length; ++i)
             {
-                sections[i].orderInView = i * 2;
+                Sections[i].OrderInView = i * 2;
             }
         }
 
         void SortSections()
         {
-            Array.Sort(sections, (x, y) => x.orderInView.CompareTo(y.orderInView));
+            Array.Sort(Sections, (x, y) => x.OrderInView.CompareTo(y.OrderInView));
         }
 
         public void LoadTutorialProjectLayout()
         {
-            File.Copy(projectLayoutPath, k_UserLayoutPath, overwrite:true);
+            File.Copy(ProjectLayoutPath, k_UserLayoutPath, overwrite: true);
             TutorialManager.LoadWindowLayout(k_UserLayoutPath);
+        }
+
+        public void RaiseModifiedEvent()
+        {
+            Modified?.Invoke();
         }
     }
 }

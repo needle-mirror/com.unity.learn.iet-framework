@@ -133,6 +133,7 @@ namespace Unity.InteractiveTutorials.Tests
 
             Assert.AreEqual(prefabInstance, futureReferences.First().sceneObjectReference.ReferencedObject);
         }
+
 #endif
     }
 }

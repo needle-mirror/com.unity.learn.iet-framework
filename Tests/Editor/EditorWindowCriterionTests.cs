@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -24,7 +24,6 @@ namespace Unity.InteractiveTutorials.Tests
                     w.Close();
                 }
             }
-
         }
 
         // TODO Pretty much all of these tets crash 2019.1
@@ -85,6 +84,7 @@ namespace Unity.InteractiveTutorials.Tests
 
             Assert.IsFalse(m_Criterion.completed);
         }
+
 #endif
     }
 }

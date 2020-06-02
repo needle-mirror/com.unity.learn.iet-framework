@@ -125,7 +125,7 @@ namespace Unity.InteractiveTutorials.Tests
             yield return new WaitForDelayCall();
 
             // Assert that original layout is restored (i.e. TestWindow1 should exist)
-            Assert.That(Resources.FindObjectsOfTypeAll<TestWindow1>(), Is.Not.Empty,"TestWindow1 is not present");
+            Assert.That(Resources.FindObjectsOfTypeAll<TestWindow1>(), Is.Not.Empty, "TestWindow1 is not present");
         }
 
         //TODO Failing [UnityTest]
@@ -141,10 +141,10 @@ namespace Unity.InteractiveTutorials.Tests
             yield return new WaitForDelayCall();
 
             // Assert that tutorial layout is restored (i.e. TestWindow2 should not longer be present)
-            Assert.That(Resources.FindObjectsOfTypeAll<TestWindow2>(), Is.Empty,"TestWindow2 is present");
+            Assert.That(Resources.FindObjectsOfTypeAll<TestWindow2>(), Is.Empty, "TestWindow2 is present");
 
             // Assert that original layout was not restored (i.e. TestWindow1 should not be present)
-            Assert.That(Resources.FindObjectsOfTypeAll<TestWindow1>(), Is.Empty,"TestWindow1 is present");
+            Assert.That(Resources.FindObjectsOfTypeAll<TestWindow1>(), Is.Empty, "TestWindow1 is present");
         }
 
         //TODO Failing [UnityTest]

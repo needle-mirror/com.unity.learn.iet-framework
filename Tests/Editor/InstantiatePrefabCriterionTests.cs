@@ -173,21 +173,23 @@ namespace Unity.InteractiveTutorials.Tests
             Selection.activeObject = prefabInstance;
             yield return null;
 
-            CollectionAssert.AreEqual(new[] {
+            CollectionAssert.AreEqual(new[]
+            {
                 futureReferences.First(f => f.referenceName == "1: PrefabWithGrandchild (GameObject)"),
                 futureReferences.First(f => f.referenceName == "2: PrefabWithGrandchild (Transform)"),
                 futureReferences.First(f => f.referenceName == "3: Child (GameObject)"),
                 futureReferences.First(f => f.referenceName == "4: Child (Transform)"),
                 futureReferences.First(f => f.referenceName == "5: Grandchild (GameObject)"),
                 futureReferences.First(f => f.referenceName == "6: Grandchild (Transform)"),
-            }.Select(f => f.sceneObjectReference.ReferencedObject), new UnityObject[] {
-                prefabInstance,
-                prefabInstance.transform,
-                prefabInstance.transform.GetChild(0).gameObject,
-                prefabInstance.transform.GetChild(0),
-                prefabInstance.transform.GetChild(0).GetChild(0).gameObject,
-                prefabInstance.transform.GetChild(0).GetChild(0),
-            });
+            }.Select(f => f.sceneObjectReference.ReferencedObject), new UnityObject[]
+                {
+                    prefabInstance,
+                    prefabInstance.transform,
+                    prefabInstance.transform.GetChild(0).gameObject,
+                    prefabInstance.transform.GetChild(0),
+                    prefabInstance.transform.GetChild(0).GetChild(0).gameObject,
+                    prefabInstance.transform.GetChild(0).GetChild(0),
+                });
         }
 
         [UnityTest]
@@ -209,6 +211,7 @@ namespace Unity.InteractiveTutorials.Tests
 
             Assert.IsTrue(m_Criterion.completed);
         }
+
 #endif
     }
 }

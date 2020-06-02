@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Unity.InteractiveTutorials
 {
@@ -30,16 +30,16 @@ namespace Unity.InteractiveTutorials
             if (Visible)
                 return;
 
-            var window = GetWindow<TutorialModalWindow>(utility:true, windowTitle);
+            var window = GetWindow<TutorialModalWindow>(utility: true, windowTitle);
             window.onClose = onClose;
             var pos = window.position;
             window.minSize = window.maxSize = new Vector2(kWidth, kHeight);
-            window.CenterOnMainWin();
+            EditorWindowUtils.CenterOnMainWindow(window);
 
             window.m_WelcomePage = welcomePage;
             var styles = window.m_Styles;
 
-            foreach(var paragraph in window.m_WelcomePage.paragraphs)
+            foreach (var paragraph in window.m_WelcomePage.paragraphs)
             {
                 window.m_Paragraphs.Add(
                     new TutorialParagraphView(paragraph, window, styles.orderedListDelimiter, styles.unorderedListBullet, -1)
@@ -55,6 +55,32 @@ namespace Unity.InteractiveTutorials
         void OnEnable()
         {
             Visible = true;
+            var root = this.rootVisualElement;
+            //IMGUIContainer iMGUIContainer = new IMGUIContainer(OnGUIOld);
+            //root.Add(iMGUIContainer);
+            VisualTreeAsset welcomeDialogAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>("Packages/com.unity.learn.iet-framework/Framework/UIElementsViews/WelcomeDialog.uxml");
+            StyleSheet rootstyle = AssetDatabase.LoadAssetAtPath<StyleSheet>("Packages/com.unity.learn.iet-framework/Framework/UIElementsViews/WelcomeDialog.uss");
+            VisualElement rootContainer = welcomeDialogAsset.CloneTree().Q("MainContainer");
+            rootContainer.styleSheets.Add(rootstyle);
+            Button GetStartedButton = rootContainer.Q<Button>("GetStartedButton");
+            m_WelcomePage = UserStartupCode.FindWelcomePage();
+
+            GetStartedButton.clicked += Close;
+            GetStartedButton.text = m_WelcomePage.m_StartButtonLabel;
+
+            ((Label)rootContainer.Q("TextContainer").ElementAt(1)).text = m_WelcomePage.title;
+            int currentElement = 2;
+            foreach (TutorialParagraph paragraph in m_WelcomePage.paragraphs)
+            {
+                ((Label)rootContainer.Q("TextContainer").ElementAt(currentElement)).text = paragraph.InstructionTitle;
+                currentElement++;
+            }
+
+
+            if (m_WelcomePage != null && m_WelcomePage.icon != null)
+                rootContainer.Q("LeftColumn").style.backgroundImage = Background.FromTexture2D((Texture2D)m_WelcomePage.icon);
+
+            root.Add(rootContainer);
             //Mask();
         }
 
@@ -72,7 +98,7 @@ namespace Unity.InteractiveTutorials
                 Repaint();
         }
 
-        void OnGUI()
+        void OnGUIOld()
         {
             if (m_Styles == null)
             {
@@ -99,10 +125,10 @@ namespace Unity.InteractiveTutorials
             GUISkin oldSkin = GUI.skin;
             GUI.skin = m_Styles.skin;
 
-            using(new EditorGUILayout.HorizontalScope(GUILayout.Width(kWidth), GUILayout.Height(kHeight)))
+            using (new EditorGUILayout.HorizontalScope(GUILayout.Width(kWidth), GUILayout.Height(kHeight)))
             {
                 // left column, "image column"
-                using(new EditorGUILayout.VerticalScope(GUILayout.Width(kLeftColumnWidth), GUILayout.Height(kHeight)))
+                using (new EditorGUILayout.VerticalScope(GUILayout.Width(kLeftColumnWidth), GUILayout.Height(kHeight)))
                 {
                     GUILayout.Label(GUIContent.none);
                 }
@@ -112,34 +138,31 @@ namespace Unity.InteractiveTutorials
                 }
 
                 // right column
-                using(new EditorGUILayout.HorizontalScope(AllTutorialStyles.background))
+                using (new EditorGUILayout.HorizontalScope(AllTutorialStyles.background))
                 {
+                    GUILayout.Space(8f);
 
-                  GUILayout.Space(8f);
-
-                using(new EditorGUILayout.VerticalScope(AllTutorialStyles.background, GUILayout.Height(kHeight)))
-                {
-
-
-                    const bool pageCompleted = false;
-                    var previousTaskState = true;
-                    foreach(var paragraph in m_Paragraphs)
+                    using (new EditorGUILayout.VerticalScope(AllTutorialStyles.background, GUILayout.Height(kHeight)))
                     {
-                        if (paragraph.paragraph.type == ParagraphType.Instruction)
-                            GUILayout.Space(2f);
-
-                        paragraph.Draw(ref previousTaskState, pageCompleted);
-                    }
-
-                    using(new EditorGUILayout.HorizontalScope())
-                    {
-                        if (GUILayout.Button(m_WelcomePage.startButtonLabel, AllTutorialStyles.welcomeDialogButton))
+                        const bool pageCompleted = false;
+                        var previousTaskState = true;
+                        foreach (var paragraph in m_Paragraphs)
                         {
-                            Close();
+                            if (paragraph.paragraph.type == ParagraphType.Instruction)
+                                GUILayout.Space(2f);
+
+                            paragraph.Draw(ref previousTaskState, pageCompleted);
                         }
-                        GUILayout.FlexibleSpace();
+
+                        using (new EditorGUILayout.HorizontalScope())
+                        {
+                            if (GUILayout.Button(m_WelcomePage.startButtonLabel, AllTutorialStyles.welcomeDialogButton))
+                            {
+                                Close();
+                            }
+                            GUILayout.FlexibleSpace();
+                        }
                     }
-                }
                 }
             }
 
@@ -198,59 +221,5 @@ namespace Unity.InteractiveTutorials
             MaskingManager.Unmask();
             MaskingEnabled = false;
         }
-    }
-}
-
-// TODO Clean up and move to some utility file
-// http://answers.unity.com/answers/960709/view.html
-public static class Extensions
-{
-    public static Type[] GetAllDerivedTypes(this AppDomain aAppDomain, Type aType)
-    {
-        var result = new List<Type>();
-        var assemblies = aAppDomain.GetAssemblies();
-        foreach(var assembly in assemblies)
-        {
-            var types = assembly.GetTypes();
-            foreach(var type in types)
-            {
-                if(type.IsSubclassOf(aType))
-                    result.Add(type);
-            }
-        }
-        return result.ToArray();
-    }
-
-    public static Rect GetEditorMainWindowPos()
-    {
-        var containerWinType = AppDomain.CurrentDomain.GetAllDerivedTypes(typeof(ScriptableObject)).Where(t => t.Name == "ContainerWindow").FirstOrDefault();
-        if(containerWinType == null)
-            throw new MissingMemberException("Can't find internal type ContainerWindow. Maybe something has changed inside Unity");
-        var showModeField = containerWinType.GetField("m_ShowMode", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        var positionProperty = containerWinType.GetProperty("position", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-        if(showModeField == null || positionProperty == null)
-            throw new MissingFieldException("Can't find internal fields 'm_ShowMode' or 'position'. Maybe something has changed inside Unity");
-        var windows = Resources.FindObjectsOfTypeAll(containerWinType);
-        foreach(var win in windows)
-        {
-            var showmode = (int)showModeField.GetValue(win);
-            if(showmode == 4) // main window
-            {
-                var pos = (Rect)positionProperty.GetValue(win, null);
-                return pos;
-            }
-        }
-        throw new NotSupportedException("Can't find internal main window. Maybe something has changed inside Unity");
-    }
-
-    public static void CenterOnMainWin(this EditorWindow aWin)
-    {
-        var main = GetEditorMainWindowPos();
-        var pos = aWin.position;
-        float w = (main.width - pos.width) * 0.5f;
-        float h = (main.height - pos.height) * 0.5f;
-        pos.x = main.x + w;
-        pos.y = main.y + h;
-        aWin.position = pos;
     }
 }

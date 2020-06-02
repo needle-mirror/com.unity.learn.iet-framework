@@ -10,11 +10,13 @@ namespace Unity.InteractiveTutorials.Tests
     {
         static IEnumerable GetHoleTestCases()
         {
-            var rects = new List<Rect>() {
+            var rects = new List<Rect>()
+            {
                 new Rect(10, 10, 10, 10)
             };
             var area = new Rect(0, 0, 100, 100);
-            var expected = new List<Rect>() {
+            var expected = new List<Rect>()
+            {
                 new Rect(0,  0, 100,  10),
                 new Rect(0,  10, 10,  10),
                 new Rect(20, 10, 80,  10),
@@ -22,12 +24,14 @@ namespace Unity.InteractiveTutorials.Tests
             };
             yield return new TestCaseData(rects, area, expected).SetName("OneHoleCase");
 
-            rects = new List<Rect>() {
+            rects = new List<Rect>()
+            {
                 new Rect(10, 10, 10, 10),
                 new Rect(30, 30, 10, 10)
             };
             area = new Rect(0, 0, 100, 100);
-            expected = new List<Rect>() {
+            expected = new List<Rect>()
+            {
                 new Rect(0,  0,  100, 10),
                 new Rect(0,  10, 10,  10),
                 new Rect(20, 10, 80,  10),
@@ -38,12 +42,14 @@ namespace Unity.InteractiveTutorials.Tests
             };
             yield return new TestCaseData(rects, area, expected).SetName("TwoNonIntersectingHoles");
 
-            rects = new List<Rect>() {
+            rects = new List<Rect>()
+            {
                 new Rect(10, 10, 10, 10),
                 new Rect(15, 15, 10, 10)
             };
             area = new Rect(0, 0, 100, 100);
-            expected = new List<Rect>() {
+            expected = new List<Rect>()
+            {
                 new Rect(0,  0,  100, 10),
                 new Rect(0,  10, 10,  5),
                 new Rect(20, 10, 80,  5),
