@@ -12,46 +12,46 @@ namespace Unity.InteractiveTutorials
         internal static void RunStartupCode()
         {
             var projectSettings = TutorialProjectSettings.instance;
-
             if (projectSettings.initialScene != null)
                 EditorSceneManager.OpenScene(AssetDatabase.GetAssetPath(projectSettings.initialScene));
 
             TutorialManager.WriteAssetsToTutorialDefaultsFolder();
 
-            if (projectSettings.startupTutorial != null)
-                TutorialManager.instance.StartTutorial(projectSettings.startupTutorial);
-
             // Ensure Editor is in predictable state
             EditorPrefs.SetString("ComponentSearchString", string.Empty);
             Tools.current = Tool.Move;
+
 
             // Replace LastProjectPaths in window layouts used in tutorials so that e.g.
             // pre-saved Project window states work correctly.
             var readme = TutorialWindow.FindReadme();
             if (readme)
             {
-                WindowLayoutProxy.ReplaceLastProjectPathWithCurrentProjectPath(readme.ProjectLayoutPath);
+                TutorialManager.PrepareWindowLayout(readme.ProjectLayoutPath);
             }
 
             AssetDatabase.FindAssets($"t:{typeof(Tutorial).FullName}")
                 .Select(guid =>
                     AssetDatabase.LoadAssetAtPath<Tutorial>(AssetDatabase.GUIDToAssetPath(guid)).windowLayoutPath
                 )
+                .Where(StringExt.IsNotNullOrEmpty)
                 .Distinct()
                 .ToList()
                 .ForEach(layoutPath =>
                 {
-                    WindowLayoutProxy.ReplaceLastProjectPathWithCurrentProjectPath(layoutPath);
+                    TutorialManager.PrepareWindowLayout(layoutPath);
                 });
 
-            if (readme != null)
+
+            if (readme)
                 readme.LoadTutorialProjectLayout();
 
-            var welcomePage = FindWelcomePage();
-            if (welcomePage != null)
-            {
-                TutorialModalWindow.TryToShow("Welcome", welcomePage, () => {});
-            }
+            // NOTE camera settings can be applied successfully only after potential layout changes
+            if (projectSettings.InitialCameraSettings != null && projectSettings.InitialCameraSettings.enabled)
+                projectSettings.InitialCameraSettings.Apply();
+
+            if (projectSettings.WelcomePage)
+                TutorialModalWindow.TryToShow(projectSettings.WelcomePage, () => {});
 
             var wnd = TutorialManager.GetTutorialWindow();
             if (wnd)
@@ -105,23 +105,6 @@ namespace Unity.InteractiveTutorials
         public static void SetInitialized()
         {
             File.CreateText(initFileMarkerPath).Close();
-        }
-
-        internal static TutorialWelcomePage FindWelcomePage()
-        {
-            var guids = AssetDatabase.FindAssets($"t:{typeof(TutorialWelcomePage).FullName}");
-            if (guids.Length == 0)
-            {
-                return null;
-            }
-
-            if (guids.Length > 1)
-            {
-                Debug.LogWarning("More than one TutorialWelcomePage found in the project.");
-            }
-
-            var assetPath = AssetDatabase.GUIDToAssetPath(guids[0]);
-            return AssetDatabase.LoadAssetAtPath<TutorialWelcomePage>(assetPath);
         }
 
         static SystemLanguage LoadPreviousEditorLanguage() =>

@@ -1,17 +1,17 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
-    <ui:VisualElement name="MainContainer" class="MainContainer">
-        <Style src="WelcomeDialog.uss" />
-        <ui:VisualElement name="LeftColumn" class="LeftColumn" style="background-image: url('WelcomeDialogArt.png');" />
-        <ui:VisualElement name="RightColumn" class="RightColumn">
-            <ui:VisualElement name="TextContainer" class="TextContainer">
-                <ui:Label text="Get Started with Unity" class="Heading" />
-                <ui:Label text="FPS MICROGAME" class="Subheading" />
-                <ui:Label text="Are you ready to make your very own version of this FPS micro-game?" class="Description" />
-                <ui:Label text="To help you along the way, thi s project contains interactive tutorials that will teach you about the basics of the Unity Engine." class="Description" />
-                <ui:Label text="You can access the Tutorials window any time from the Unity main menu:" class="Description" />
-                <ui:Label text="Tutorials > Show Tutorials" class="Description" style="-unity-font-style: italic;" />
+    <ui:VisualElement name="MainContainer" class="container--welcome-dialog">
+        <ui:VisualElement name="ContentContainer" class="container--welcome-dialog-content">
+            <Style src="Main.uss" />
+            <ui:VisualElement name="HeaderContainer" class="container--welcome-dialog-media">
+                <ui:VisualElement name="HeaderMedia" class="image--welcome-dialog" />
             </ui:VisualElement>
-            <ui:Button text="Get Started" name="GetStartedButton" class="Button" />
+            <ui:ScrollView name="TutorialListScrollView">
+                <ui:VisualElement name="TextContainer" class="container--welcome-dialog-text">
+                    <ui:Label name="Heading" text="" class="label--welcome-dialog-title" />
+                    <ui:VisualElement name="Description" class="label--welcome-dialog-description" />
+                </ui:VisualElement>
+            </ui:ScrollView>
         </ui:VisualElement>
+        <ui:VisualElement name="ButtonContainer" class="container--welcome-dialog-actions"/>
     </ui:VisualElement>
 </ui:UXML>

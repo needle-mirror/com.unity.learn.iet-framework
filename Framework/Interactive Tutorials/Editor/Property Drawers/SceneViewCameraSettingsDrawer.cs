@@ -15,7 +15,7 @@ namespace Unity.InteractiveTutorials
         const string k_FrameObjectPath = "m_FrameObject";
         const string k_EnabledPath = "m_Enabled";
 
-        static readonly float s_PaddedLineHeight = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+        static readonly float k_PaddedLineHeight = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
@@ -35,9 +35,26 @@ namespace Unity.InteractiveTutorials
             foreach (string name in subpropertyNames)
             {
                 SerializedProperty subProperty = property.FindPropertyRelative(name);
-                current.height = EditorGUI.GetPropertyHeight(subProperty, true);
+                // Showing raw quaternions to the user is useless, use Euler angles instead.
+                bool isQuat = subProperty.type == "Quaternion";
+                current.height = EditorGUI.GetPropertyHeight(subProperty, !isQuat);
                 if (!measureOnly)
-                    EditorGUI.PropertyField(current, subProperty, true);
+                {
+                    if (isQuat)
+                    {
+                        Vector3 euler = subProperty.quaternionValue.eulerAngles;
+                        EditorGUI.BeginProperty(current, new GUIContent(subProperty.name), subProperty);
+                        EditorGUI.BeginChangeCheck();
+                        euler = EditorGUI.Vector3Field(current, subProperty.displayName, euler);
+                        if (EditorGUI.EndChangeCheck())
+                            subProperty.quaternionValue = Quaternion.Euler(euler);
+                        EditorGUI.EndProperty();
+                    }
+                    else
+                    {
+                        EditorGUI.PropertyField(current, subProperty, true);
+                    }
+                }
                 current.y += current.height + EditorGUIUtility.standardVerticalSpacing;
             }
             current.height = original.height - (current.y - original.y);
@@ -51,9 +68,14 @@ namespace Unity.InteractiveTutorials
             {
                 SerializedProperty enabled = property.FindPropertyRelative(k_EnabledPath);
                 if (!measureOnly)
-                    property.isExpanded = enabled.boolValue = EditorGUI.ToggleLeft(new Rect(position.x, position.y, position.width, EditorGUIUtility.singleLineHeight), label, enabled.boolValue);
-                current.y += s_PaddedLineHeight;
-                current.height -= s_PaddedLineHeight;
+                {
+                    enabled.boolValue = EditorGUI.ToggleLeft(
+                        new Rect(position.x, position.y, position.width, EditorGUIUtility.singleLineHeight), label, enabled.boolValue
+                    );
+                    property.isExpanded = enabled.boolValue;
+                }
+                current.y += k_PaddedLineHeight;
+                current.height -= k_PaddedLineHeight;
                 if (!property.isExpanded)
                     return current.y - position.y;
 
@@ -90,7 +112,7 @@ namespace Unity.InteractiveTutorials
                             property.FindPropertyRelative(k_PivotPath).vector3Value = sceneView.pivot;
                             property.FindPropertyRelative(k_RotationPath).quaternionValue = sceneView.rotation;
                         }
-                        current.y += s_PaddedLineHeight;
+                        current.y += k_PaddedLineHeight;
                     }
                 }
             }

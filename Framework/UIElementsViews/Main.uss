@@ -1,3 +1,7 @@
+/****************************
+*  TUTORIAL PANEL
+****************************/
+
 .container {
     background-color: #DEDDDE;
     flex-grow: 1;
@@ -353,13 +357,75 @@
     flex-basis: 1px;
 }
 
-/*
-.button--tutorial-action:disabled {
-    background-color: rgba(200, 200, 200, 0.3);
-}
-*/
-
 .button--next-tutorial {
     margin: 15px;
     min-height: 28px;
+}
+
+/****************************
+*  WELCOME DIALOG
+****************************/
+
+.container--welcome-dialog {
+    flex-grow: 1;
+}
+
+.container--welcome-dialog-content {
+    flex-grow: 1;
+    background-color: rgb(221, 221, 221);
+}
+
+.container--welcome-dialog-media {
+    background-color: #252625;
+    align-items: center;
+    min-height: 200px;
+}
+
+.image--welcome-dialog {
+    min-height: 200px;
+    width: 700px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.label--welcome-dialog-title {
+    font-size: 20px;
+    -unity-font-style: bold;
+    color: rgb(0, 0, 0);
+    margin: 15px;
+    margin-bottom: 10px;
+}
+
+.label--welcome-dialog-description {
+    white-space: normal;
+    font-size: 14px;
+    margin-left: 15px;
+    margin-right: 15px;
+    margin-bottom: 15px;
+    color: rgb(0, 0, 0);
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.container--welcome-dialog-text {
+    flex-grow: 1;
+}
+
+.container--welcome-dialog-actions {
+    flex-direction: row;
+    border-top-width: 1px;
+    border-color: rgba(0,0,0,0.1);
+    padding: 12px;
+    min-height: 56px;
+    align-items: center;
+    justify-content: center;
+}
+
+.container--welcome-dialog-actions Button {
+    min-height: 32px;
+    padding-left: 12px;
+    padding-right: 12px;
+    -unity-font-style: bold;
+    font-size: 14px;
+    margin-left: 6px;
+    margin-right: 6px;
 }

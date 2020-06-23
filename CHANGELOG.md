@@ -4,10 +4,40 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2020-06-23
+### Added
+- `TutorialWelcomePage`/`TutorialModalWindow`:
+  - can be authored at real-time,
+  - added a simple `TutorialWelcomePageEditor` with "Show Welcome Dialog" functionality,
+  - rich text support, and
+  - fully configurable button row.
+- `LocalizableTextArea` support for `LocalizableString`s, similar to `TextArea` for `string`s.
+- Allow specifying `InitialCameraSettings` in `TutorialProjectSettings`.
+
+### Changed
+- Masking is not assumed and enforced for every tutorial page, allowing to mix masked and unmasked pages in the same tutorial.
+- **Breaking change**: `TutorialWelcomePage` asset refactored without backward-compatibility.
+- `TutorialProjectSettings`:
+  - the welcome page for the project needs to be set explicitly,
+  - `StartupTutorial` is not started automatically, and
+  - `UseLegacyStartupBehavior` false by default.
+- Authoring: single linebreaks rendered as expected instead of new paragraphs.
+- Refactored and combined all the styles, removed `WelcomeDialog.uss`.
+- Updated the style of the welcome dialog.
+- Improvement: `SceneViewCameraSettingsDrawer` shows rotation as Euler angles instead of raw Quaternion components.
+- Improvement: Save and restore SceneView's state (i.e. camera's state) when entering and exiting tutorials.
+- Dependencies: update Editor Coroutines to 1.0.0.
+
+### Fixed
+- Single linebreaks now make a linebreak and two linebreaks make a paragraph.
+- `TutorialModalWindow`: Fixed hiding of `HeaderContainer` if none/null image set.
+- Instead of modifying the original window layout files in the project, a working copy is created and modified.
+- Fixed null reference exceptions when starting a Tutorial which has no pages.
+
 ## [0.4.0] - 2020-06-02
 ###  Changed
 - Refactor `TutorialWindow` to use UI Toolkit instead of IMGUI.
-- Breaking change: `TutorialContainer` and `TutorialParagraph` assets refactored without backward-compatibility.
+- **Breaking change**: `TutorialContainer` and `TutorialParagraph` assets refactored without backward-compatibility.
 - Analytics: using `EditorAnalytics` instead of `UsabilityAnalytics` as the API for all events.
 - `TutorialPage`: instead of arbitrary set of `TutorialParagraph`s, the page has a fixed set of fields. `TutorialParagraph` will be deprecated in the near future.
 ### Added

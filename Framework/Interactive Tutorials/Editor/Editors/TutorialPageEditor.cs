@@ -253,7 +253,7 @@ namespace Unity.InteractiveTutorials
         void DrawSimplifiedInspector()
         {
             EditorGUILayout.BeginVertical();
-            
+
             EditorGUILayout.LabelField("Header Media Type");
             m_HeaderMediaType = (HeaderMediaType)EditorGUILayout.EnumPopup(GUIContent.none, m_HeaderMediaType);
             m_Type.intValue = (int)m_HeaderMediaType;

@@ -1,8 +1,55 @@
-using UnityEditor;
 using UnityEngine;
 
 namespace Unity.InteractiveTutorials
 {
+    class TutorialStyles : ScriptableObject
+    {
+        public Color MaskingColor => m_MaskingColor;
+        [SerializeField]
+        Color m_MaskingColor = new Color32(0, 40, 53, 204);
+
+        public Color HighlightColor => m_HighlightColor;
+        [SerializeField]
+        Color m_HighlightColor = new Color32(0, 198, 223, 255);
+
+        public Color BlockedInteractionColor => m_BlockedInteractionColor;
+        [SerializeField]
+        Color m_BlockedInteractionColor = new Color(1, 1, 1, 0.5f);
+
+        public float HighlightThickness => m_HighlightThickness;
+        [SerializeField, Range(0f, 10f)]
+        float m_HighlightThickness = 3f;
+
+        [SerializeField, Range(0f, 10f)]
+        float m_HighlightAnimationSpeed = 1.5f;
+
+        [SerializeField, Range(0f, 10f)]
+        float m_HighlightAnimationDelay = 5f;
+
+        #region TODO Will be deprecated and deleted
+        public string OrderedListDelimiter => m_OrderedListDelimiter;
+        [SerializeField]
+        string m_OrderedListDelimiter = ".";
+
+        public string UnorderedListBullet => m_UnorderedListBullet;
+        [SerializeField]
+        string m_UnorderedListBullet = "\u2022";
+        #endregion
+
+        void OnEnable()
+        {
+            MaskingManager.highlightAnimationSpeed = m_HighlightAnimationSpeed;
+            MaskingManager.highlightAnimationDelay = m_HighlightAnimationDelay;
+        }
+
+        void OnValidate()
+        {
+            MaskingManager.highlightAnimationSpeed = m_HighlightAnimationSpeed;
+            MaskingManager.highlightAnimationDelay = m_HighlightAnimationDelay;
+        }
+    }
+
+    #region TODO Will be deprecated and deleted
     class AllTutorialStyles
     {
         public static GUIStyle FindStyle(GUIStyle style, string name)
@@ -158,73 +205,6 @@ namespace Unity.InteractiveTutorials
         public static GUIStyle welcomeDialogButton;
 
         public static GUIStyle tooltip;
-    }
-
-    class TutorialStyles : ScriptableObject
-    {
-        public static void DisplayErrorMessage(string fileName)
-        {
-            EditorGUILayout.HelpBox(
-                string.Format(
-                    "No styles assigned. Did you forget to assign a default one in the inspector for {0}? Assign one and reopen this window.",
-                    fileName
-                    ),
-                MessageType.Error
-            );
-        }
-
-        public GUISkin skin { get { return m_Skin; } }
-        [SerializeField]
-        GUISkin m_Skin = null;
-
-        public string orderedListDelimiter { get { return m_OrderedListDelimiter; } }
-        [SerializeField]
-        string m_OrderedListDelimiter = ".";
-
-        public string unorderedListBullet { get { return m_UnorderedListBullet; } }
-        [SerializeField]
-        string m_UnorderedListBullet = "\u2022";
-
-        public Color maskingColor { get { return m_MaskingColor; } }
-        [SerializeField]
-        private Color m_MaskingColor = new Color32(0, 40, 53, 204);
-
-        public Color highlightColor { get { return m_HighlightColor; } }
-        [SerializeField]
-        private Color m_HighlightColor = new Color32(0, 198, 223, 255);
-
-        public float highlightThickness { get { return m_HighlightThickness; } }
-
-        public Color blockedInteractionColor { get { return m_BlockedInteractionColor; } }
-        [SerializeField]
-        private Color m_BlockedInteractionColor = new Color(1, 1, 1, 0.5f);
-
-        [SerializeField, Range(0f, 10f)]
-        private float m_HighlightThickness = 3f;
-
-        [SerializeField, Range(0f, 10f)]
-        private float m_HighlightAnimationSpeed = 1.5f;
-
-        [SerializeField, Range(0f, 10f)]
-        private float m_HighlightAnimationDelay = 5f;
-
-        public Color TextColorMainDarkSkin = Color.white;
-        public Color TextColorMainLightSkin = Color.black;
-
-        public Color TextColorSecondaryDarkSkin = new Color(0.66f, 0.66f, 0.66f);
-        public Color TextColorSecondaryLightSkin = new Color(0.33f, 0.33f, 0.33f);
-
-        void OnEnable()
-        {
-            MaskingManager.highlightAnimationSpeed = m_HighlightAnimationSpeed;
-            MaskingManager.highlightAnimationDelay = m_HighlightAnimationDelay;
-        }
-
-        void OnValidate()
-        {
-            MaskingManager.highlightAnimationSpeed = m_HighlightAnimationSpeed;
-            MaskingManager.highlightAnimationDelay = m_HighlightAnimationDelay;
-        }
     }
 
     /// <summary>
@@ -387,4 +367,5 @@ namespace Unity.InteractiveTutorials
 
         public GUIStyle tooltip;
     }
+    #endregion
 }

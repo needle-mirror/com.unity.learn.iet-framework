@@ -12,6 +12,30 @@ namespace Unity.InteractiveTutorials
 {
     class TutorialManager : ScriptableObject
     {
+        struct SceneViewState
+        {
+            public bool In2DMode;
+            public bool Orthographic;
+            public float Size;
+            public Vector3 Point;
+            public Quaternion Direction;
+        }
+
+        [System.Serializable]
+        struct SceneInfo
+        {
+            public string AssetPath;
+            public bool WasLoaded;
+        }
+
+        SceneViewState m_OriginalSceneView;
+        string m_OriginalActiveSceneAssetPath;
+
+        [SerializeField]
+        SceneInfo[] m_OriginalScenes;
+        // The original layout files are copied into this folder for modifications.
+        const string k_UserLayoutDirectory = "Temp";
+        // The original/previous layout is stored into this when loading new layouts.
         internal const string k_OriginalLayoutPath = "Temp/OriginalLayout.dwlt";
         const string k_DefaultsFolder = "Tutorial Defaults";
 
@@ -101,6 +125,7 @@ namespace Unity.InteractiveTutorials
 
             SaveOriginalScenes();
             SaveOriginalWindowLayout();
+            SaveSceneViewState();
 
             m_Tutorial.LoadWindowLayout();
 
@@ -131,6 +156,7 @@ namespace Unity.InteractiveTutorials
 
                     SaveOriginalScenes();
                     SaveOriginalWindowLayout();
+                    SaveSceneViewState();
 
                     m_Tutorial.LoadWindowLayout();
 
@@ -151,6 +177,7 @@ namespace Unity.InteractiveTutorials
         {
             EditorCoroutines.Editor.EditorCoroutineUtility.StartCoroutineOwnerless(RestoreOriginalScenes());
             RestoreOriginalWindowLayout();
+            RestoreSceneViewState();
         }
 
         public void ResetTutorial()
@@ -206,6 +233,28 @@ namespace Unity.InteractiveTutorials
                 File.Delete(k_OriginalLayoutPath);
             }
         }
+        void SaveSceneViewState()
+        {
+            var sv = EditorWindow.GetWindow<SceneView>();
+            m_OriginalSceneView.In2DMode = sv.in2DMode;
+            m_OriginalSceneView.Point = sv.pivot;
+            m_OriginalSceneView.Direction = sv.rotation;
+            m_OriginalSceneView.Size = sv.size;
+            m_OriginalSceneView.Orthographic = sv.orthographic;
+        }
+
+        void RestoreSceneViewState()
+        {
+            var sv = EditorWindow.GetWindow<SceneView>();
+            sv.in2DMode = m_OriginalSceneView.In2DMode;
+            sv.LookAt(
+                m_OriginalSceneView.Point,
+                m_OriginalSceneView.Direction,
+                m_OriginalSceneView.Size,
+                m_OriginalSceneView.Orthographic,
+                instant: true
+            );
+        }
 
         public static bool LoadWindowLayout(string path)
         {
@@ -219,17 +268,55 @@ namespace Unity.InteractiveTutorials
             return successful;
         }
 
-        [Serializable]
-        struct SceneInfo
+        public static bool LoadWindowLayoutWorkingCopy(string path) =>
+            LoadWindowLayout(GetWorkingCopyWindowLayoutPath(path));
+
+        public static string GetWorkingCopyWindowLayoutPath(string layoutPath) =>
+            $"{k_UserLayoutDirectory}/{new FileInfo(layoutPath).Name}";
+
+        // Makes a copy of the window layout file and replaces LastProjectPaths in the window layout
+        // so that pre-saved Project window states work correctly. Also resets TutorialWindow's readme in the layout.
+        // Returns path to the new layout file.
+        public static string PrepareWindowLayout(string layoutPath)
         {
-            public string assetPath;
-            public bool wasLoaded;
+            try
+            {
+                var destinationPath = GetWorkingCopyWindowLayoutPath(layoutPath);
+                File.Copy(layoutPath, destinationPath, overwrite: true);
+
+                const string lastProjectPathProp = "m_LastProjectPath: ";
+                const string readmeProp = "m_Readme: ";
+                const string nullObject = "{fileID: 0}";
+                string userProjectPath = Directory.GetCurrentDirectory();
+
+                var fileContents = new List<string>();
+                using (var reader = new StreamReader(destinationPath))
+                {
+                    string line;
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        line = ReplaceAfter(lastProjectPathProp, userProjectPath, line);
+                        line = ReplaceAfter(readmeProp, nullObject, line);
+                        fileContents.Add(line);
+                    }
+                }
+
+                using (var writer = new StreamWriter(destinationPath, append: false))
+                {
+                    fileContents.ForEach(writer.WriteLine);
+                }
+                return destinationPath;
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                return string.Empty;
+            }
         }
 
-        string m_OriginalActiveSceneAssetPath;
-        SceneInfo[] m_OriginalScenes;
-
-        // Saves current state of open/loaded scenes so we can restore later
+        /// <summary>
+        /// Saves current state of open/loaded scenes so we can restore later 
+        /// </summary>
         void SaveOriginalScenes()
         {
             m_OriginalActiveSceneAssetPath = SceneManager.GetActiveScene().path;
@@ -239,8 +326,8 @@ namespace Unity.InteractiveTutorials
                 var scene = SceneManager.GetSceneAt(sceneIndex);
                 m_OriginalScenes[sceneIndex] = new SceneInfo
                 {
-                    assetPath = scene.path,
-                    wasLoaded = scene.isLoaded,
+                    AssetPath = scene.path,
+                    WasLoaded = scene.isLoaded,
                 };
             }
         }
@@ -253,19 +340,23 @@ namespace Unity.InteractiveTutorials
             // Exit play mode so we can open scenes (without necessarily loading them)
             EditorApplication.isPlaying = false;
 
-            yield return new WaitForEndOfFrame(); //going out of play mode requires a frame
+            int currentFrameCount = Time.frameCount;
+            while (currentFrameCount == Time.frameCount)
+            {
+                yield return null; //going out of play mode requires a frame
+            }
 
             foreach (var sceneInfo in m_OriginalScenes)
             {
                 // Don't open scene if path is empty (this is the case for a new unsaved unmodified scene)
-                if (sceneInfo.assetPath == string.Empty) { continue; }
+                if (sceneInfo.AssetPath == string.Empty) { continue; }
 
-                var openSceneMode = sceneInfo.wasLoaded ? OpenSceneMode.Additive : OpenSceneMode.AdditiveWithoutLoading;
+                var openSceneMode = sceneInfo.WasLoaded ? OpenSceneMode.Additive : OpenSceneMode.AdditiveWithoutLoading;
 
-                EditorSceneManager.OpenScene(sceneInfo.assetPath, openSceneMode);
+                EditorSceneManager.OpenScene(sceneInfo.AssetPath, openSceneMode);
             }
 
-            var originalScenePaths = m_OriginalScenes.Select(sceneInfo => sceneInfo.assetPath).ToArray();
+            var originalScenePaths = m_OriginalScenes.Select(sceneInfo => sceneInfo.AssetPath).ToArray();
             for (var sceneIndex = 0; sceneIndex < SceneManager.sceneCount; sceneIndex++)
             {
                 var scene = SceneManager.GetSceneAt(sceneIndex);
@@ -325,23 +416,14 @@ namespace Unity.InteractiveTutorials
 
         internal static void DirectoryCopy(string sourceDirectory, string destinationDirectory, HashSet<string> dirtyMetaFiles = default)
         {
-            // Get the subdirectories for the specified directory.
-            DirectoryInfo dir = new DirectoryInfo(sourceDirectory);
-
-            // Abort if source directory doesn't exist
-            if (!dir.Exists)
+            var sourceDir = new DirectoryInfo(sourceDirectory);
+            if (!sourceDir.Exists)
                 return;
 
-            DirectoryInfo[] dirs = dir.GetDirectories();
-            // If the destination directory doesn't exist, create it.
             if (!Directory.Exists(destinationDirectory))
-            {
                 Directory.CreateDirectory(destinationDirectory);
-            }
 
-            // Get the files in the directory and copy them to the new location.
-            FileInfo[] files = dir.GetFiles();
-            foreach (FileInfo file in files)
+            foreach (var file in sourceDir.GetFiles())
             {
                 string tempPath = Path.Combine(destinationDirectory, file.Name);
                 if (dirtyMetaFiles != null && string.Equals(Path.GetExtension(tempPath), ".meta", StringComparison.OrdinalIgnoreCase))
@@ -352,12 +434,22 @@ namespace Unity.InteractiveTutorials
                 file.CopyTo(tempPath, true);
             }
 
-            // copy sub directories and their contents to new location.
-            foreach (DirectoryInfo subdir in dirs)
+            foreach (var subdir in sourceDir.GetDirectories())
             {
                 string tempPath = Path.Combine(destinationDirectory, subdir.Name);
                 DirectoryCopy(subdir.FullName, tempPath, dirtyMetaFiles);
             }
+        }
+
+        static string ReplaceAfter(string before, string replaceWithThis, string lineToRead)
+        {
+            int index = -1;
+            index = lineToRead.IndexOf(before, StringComparison.Ordinal);
+            if (index > -1)
+            {
+                lineToRead = lineToRead.Substring(0, index + before.Length) + replaceWithThis;
+            }
+            return lineToRead;
         }
     }
 }

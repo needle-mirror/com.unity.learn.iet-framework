@@ -1,28 +1,75 @@
-using System.Collections.Generic;
+using System;
+using UnityEditor;
+using UnityEditor.Events;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace Unity.InteractiveTutorials
 {
     public class TutorialWelcomePage : ScriptableObject
     {
-        public Texture icon { get { return m_Icon; } }
-        [SerializeField]
-        private Texture m_Icon = null;
+        [Serializable]
+        public class ButtonData
+        {
+            public LocalizableString Text;
+            public LocalizableString Tooltip;
+            public UnityEvent OnClick;
+        }
 
-        public string title { get { return m_Title; } }
-        [SerializeField]
-        private string m_Title = null;
+        public event Action Modified;
 
-        public IEnumerable<TutorialParagraph> paragraphs { get { return m_Paragraphs; } }
+        public Texture2D Image => m_Image;
         [SerializeField]
-        private TutorialParagraphCollection m_Paragraphs = new TutorialParagraphCollection();
+        Texture2D m_Image = default;
 
-        public string startButtonLabel { get { return m_StartButtonLabel; } }
+        public LocalizableString WindowTitle => m_WindowTitle;
         [SerializeField]
-        public string m_StartButtonLabel = "Start";
+        internal LocalizableString m_WindowTitle = default;
 
-        public string finishButtonLabel { get { return m_FinishButtonLabel; } }
+        public LocalizableString Title => m_Title;
         [SerializeField]
-        public string m_FinishButtonLabel = "Go to the next tutorial";
+        internal LocalizableString m_Title = default;
+
+        public LocalizableString Description => m_Description;
+        [SerializeField, LocalizableTextArea(1, 10)]
+        internal LocalizableString m_Description;
+
+        public ButtonData[] Buttons => m_Buttons;
+        [SerializeField]
+        internal ButtonData[] m_Buttons = default;
+
+        internal void RaiseModifiedEvent()
+        {
+            Modified?.Invoke();
+        }
+
+        public static ButtonData CreateCloseButton(TutorialWelcomePage page)
+        {
+            var data = new ButtonData{ Text = "Close", OnClick = new UnityEvent() };
+            UnityEventTools.AddVoidPersistentListener(data.OnClick, page.CloseCurrentModalDialog);
+            data.OnClick.SetPersistentListenerState(0, UnityEventCallState.EditorAndRuntime);
+            return data;
+        }
+
+        // Providing functionality for three default behaviours of the welcome dialog.
+
+        public void CloseCurrentModalDialog()
+        {
+            var wnd = EditorWindowUtils.FindOpenInstance<TutorialModalWindow>();
+            if (wnd)
+                wnd.Close();
+        }
+
+        public void ExitEditor()
+        {
+            EditorApplication.Exit(0);
+        }
+
+        public void StartTutorial()
+        {
+            var projectSettings = TutorialProjectSettings.instance;
+            if (projectSettings.startupTutorial)
+                TutorialManager.instance.StartTutorial(projectSettings.startupTutorial);
+        }
     }
 }

@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using UnityEditor;
 using UnityEngine;
 
@@ -25,13 +24,12 @@ namespace Unity.InteractiveTutorials
         public string ProjectLayoutPath =>
             ProjectLayout != null ? AssetDatabase.GetAssetPath(ProjectLayout) : k_DefaultLayoutPath;
 
-        // The default layout used when a NUO project is started for the first time.
+        // The default layout used when a project is started for the first time.
         // TODO IET unit test the the file exist.
         // TODO IET unit test the the layout contains TutorialWindow.
+        // TODO Should be in TutorialProjectSettings and/or UserStartupCode instead.
         const string k_DefaultLayoutPath =
-            "Packages/com.unity.learn.iet-framework/Framework/Interactive Tutorials/TutorialInfo/Layout.wlt";
-        // The original layout is copied into this.
-        const string k_UserLayoutPath = "Temp/UserLayout.wlt";
+            "Packages/com.unity.learn.iet-framework/Framework/Interactive Tutorials/Layouts/DefaultLayout.wlt";
 
         [Serializable]
         public class Section
@@ -121,8 +119,7 @@ namespace Unity.InteractiveTutorials
 
         public void LoadTutorialProjectLayout()
         {
-            File.Copy(ProjectLayoutPath, k_UserLayoutPath, overwrite: true);
-            TutorialManager.LoadWindowLayout(k_UserLayoutPath);
+            TutorialManager.LoadWindowLayoutWorkingCopy(ProjectLayoutPath);
         }
 
         public void RaiseModifiedEvent()

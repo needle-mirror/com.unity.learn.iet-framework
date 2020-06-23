@@ -171,7 +171,7 @@ namespace Unity.InteractiveTutorials
 
         public bool TryGoToNextPage()
         {
-            if (!currentPage.allCriteriaAreSatisfied && !currentPage.hasMovedToNextPage)
+            if (!currentPage || !currentPage.allCriteriaAreSatisfied && !currentPage.hasMovedToNextPage)
                 return false;
             if (m_Pages.count == m_CurrentPageIndex + 1)
             {
@@ -225,7 +225,7 @@ namespace Unity.InteractiveTutorials
                 return;
 
             var layoutPath = AssetDatabase.GetAssetPath(m_WindowLayout);
-            TutorialManager.LoadWindowLayout(layoutPath);
+            TutorialManager.LoadWindowLayoutWorkingCopy(layoutPath);
         }
 
         internal void ResetProgress()
