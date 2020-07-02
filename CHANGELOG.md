@@ -4,6 +4,16 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.1] - 2020-07-02
+### Added
+- `ArbitraryCriterion`: allows tutorial author to specify arbitrary completion criterion.
+- "Force default Inspector" checkmark state in `TutorialPageEditor` is now remembered when you click on another asset.
+- `TutorialPage` has now `OnBeforePageShown` and `OnAfterPageShown` events to which tutorial author can subscribe to in order perform custom code.
+
+### Fixed
+- `BuildStartedCriterion` is evaluated properly also in cases where a build is not started from default Build Settings window.
+- Null reference expcetion when trying to view `TutorialPage` without paragraphs in the Inspector.
+
 ## [0.5.0] - 2020-06-23
 ### Added
 - `TutorialWelcomePage`/`TutorialModalWindow`:

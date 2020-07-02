@@ -1,4 +1,6 @@
 using System;
+using System.IO;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
@@ -8,6 +10,9 @@ namespace Unity.InteractiveTutorials
     [CustomEditor(typeof(TutorialPage))]
     class TutorialPageEditor : Editor
     {
+        static readonly bool k_IsAuthoringMode = ProjectMode.IsAuthoringMode();
+        const string k_OnBeforeShownEventPropertyPath = "m_OnBeforePageShown";
+        const string k_OnAfterShownEventPropertyPath = "m_OnAfterPageShown";
         const string k_ParagraphPropertyPath = "m_Paragraphs.m_Items";
         const string k_ParagraphMaskingSettingsRelativeProperty = "m_MaskingSettings";
         const string k_ParagraphVideoRelativeProperty = "m_Video";
@@ -19,13 +24,11 @@ namespace Unity.InteractiveTutorials
         const string k_ParagraphTitleProperty = "m_InstructionBoxTitle";
         const string k_ParagraphDescriptionProperty = "m_InstructionText";
 
-
         const string k_ParagraphCriteriaTypePropertyPath = "m_CriteriaCompletion";
         const string k_ParagraphCriteriaPropertyPath = "m_Criteria";
 
         const string k_ParagraphNextTutorialPropertyPath = "m_Tutorial";
         const string k_ParagraphNextTutorialButtonTextPropertyPath = "m_TutorialButtonText";
-
 
         static readonly Regex s_MatchMaskingSettingsPropertyPath =
             new Regex(
@@ -35,17 +38,31 @@ namespace Unity.InteractiveTutorials
                 )
             );
 
+        static GUIContent s_EventsSectionTitle;
+        static GUIContent s_OnBeforeEventsTitle;
+        static GUIContent s_OnAfterEventsTitle;
+        // Enable to display the old, not simplified, inspector
+        static bool s_ForceOldInspector;
+        static bool s_ShowEvents;
+        // True if we have created a callback script and waiting for a scriptable object instance to be created for it.
+        static bool IsCreatingScriptableObject
+        {
+            get { return SessionState.GetBool("iet_creating_SO", false); }
+            set { SessionState.SetBool("iet_creating_SO", value); }
+        }
+
         TutorialPage tutorialPage { get { return (TutorialPage)target; } }
 
         [NonSerialized]
         string m_WarningMessage;
 
-        /// <summary>
-        /// Enable to display the old, not simplified, inspector
-        /// </summary>
-        bool m_ForceOldInspector = false;
-
-        string[] propertiesToIgnoreInBaseClass = new string[] { "m_SectionTitle", "m_Paragraphs", "m_Script" };
+        readonly string[] k_PropertiesToHide =
+        {
+            "m_SectionTitle", "m_Paragraphs", "m_Script",
+            k_OnBeforeShownEventPropertyPath, k_OnAfterShownEventPropertyPath
+        };
+        SerializedProperty m_OnBeforePageShown;
+        SerializedProperty m_OnAfterPageShown;
         SerializedProperty m_MaskingSettings;
         SerializedProperty m_Type;
         SerializedProperty m_Video;
@@ -72,10 +89,25 @@ namespace Unity.InteractiveTutorials
 
         protected virtual void OnEnable()
         {
+            InitializeTooltips();
             InitializeSerializedProperties();
 
             Undo.postprocessModifications += OnPostprocessModifications;
             Undo.undoRedoPerformed += OnUndoRedoPerformed;
+        }
+
+        void InitializeTooltips()
+        {
+            Texture helpIcon = EditorGUIUtility.IconContent("console.infoicon.sml").image;
+            string tooltip = Localization.Tr("You can only assign public, non-static methods here. It is recommended that you define a ScriptableObject class " +
+                "that exposes all the methods you'd like to call, " +
+                "create an instance of that and assign it to these events in order to access the callbacks.");
+            s_EventsSectionTitle = new GUIContent(Localization.Tr("Custom Callbacks"), helpIcon, tooltip);
+
+            tooltip = "These methods will be called right before the page is displayed (even when going back)";
+            s_OnBeforeEventsTitle = new GUIContent("OnBeforePageShown", helpIcon, tooltip);
+            tooltip = "These methods will be called right after the page is displayed (even when going back)";
+            s_OnAfterEventsTitle = new GUIContent("OnAfterPageShown", helpIcon, tooltip);
         }
 
         protected virtual void OnDisable()
@@ -86,7 +118,7 @@ namespace Unity.InteractiveTutorials
 
         void OnUndoRedoPerformed()
         {
-            if (tutorialPage == null) { return; }
+            if (tutorialPage == null) { return; } 
             tutorialPage.RaiseTutorialPageMaskingSettingsChangedEvent();
         }
 
@@ -123,6 +155,14 @@ namespace Unity.InteractiveTutorials
 
         void InitializeSerializedProperties()
         {
+            m_OnBeforePageShown = serializedObject.FindProperty(k_OnBeforeShownEventPropertyPath);
+            /* [NOTE] this would force the callbacks to be "editor + runtime" every time the tutorial page is selected
+             * (but not when the callback is added for the first time),
+             * but this might go against the will of the user */
+            //ForceCallbacksListenerState(m_OnBeforePageShown, UnityEngine.Events.UnityEventCallState.EditorAndRuntime);
+
+            m_OnAfterPageShown = serializedObject.FindProperty(k_OnAfterShownEventPropertyPath);
+
             SerializedProperty paragraphs = serializedObject.FindProperty(k_ParagraphPropertyPath);
             if (paragraphs == null)
             {
@@ -198,14 +238,12 @@ namespace Unity.InteractiveTutorials
                 m_InstructionDescription = instructionParagraph.FindPropertyRelative(k_ParagraphDescriptionProperty);
                 m_CriteriaCompletion = instructionParagraph.FindPropertyRelative(k_ParagraphCriteriaTypePropertyPath);
                 m_Criteria = instructionParagraph.FindPropertyRelative(k_ParagraphCriteriaPropertyPath);
+                return;
             }
-            else
-            {
-                m_InstructionTitle = null;
-                m_InstructionDescription = null;
-                m_CriteriaCompletion = null;
-                m_Criteria = null;
-            }
+            m_InstructionTitle = null;
+            m_InstructionDescription = null;
+            m_CriteriaCompletion = null;
+            m_Criteria = null;
         }
 
         void SetupSwitchTutorialPage(SerializedProperty paragraphs)
@@ -233,9 +271,9 @@ namespace Unity.InteractiveTutorials
 
             EditorGUI.BeginChangeCheck();
 
-            m_ForceOldInspector = EditorGUILayout.Toggle("Force default inspector", m_ForceOldInspector);
+            s_ForceOldInspector = EditorGUILayout.Toggle(Localization.Tr("Force default inspector"), s_ForceOldInspector);
             EditorGUILayout.Space(10);
-            if (m_ForceOldInspector)
+            if (s_ForceOldInspector)
             {
                 base.OnInspectorGUI();
             }
@@ -254,34 +292,37 @@ namespace Unity.InteractiveTutorials
         {
             EditorGUILayout.BeginVertical();
 
-            EditorGUILayout.LabelField("Header Media Type");
-            m_HeaderMediaType = (HeaderMediaType)EditorGUILayout.EnumPopup(GUIContent.none, m_HeaderMediaType);
-            m_Type.intValue = (int)m_HeaderMediaType;
+            if (m_Type != null)
+            {
+                EditorGUILayout.LabelField(Localization.Tr("Header Media Type"));
+                m_HeaderMediaType = (HeaderMediaType)EditorGUILayout.EnumPopup(GUIContent.none, m_HeaderMediaType);
+                m_Type.intValue = (int)m_HeaderMediaType;
+
+                EditorGUILayout.Space(10);
+            }
+
+            RenderProperty(Localization.Tr("Media"), m_HeaderMediaType == HeaderMediaType.Image ? m_Image : m_Video);
 
             EditorGUILayout.Space(10);
 
-            RenderProperty("Media", m_HeaderMediaType == HeaderMediaType.Image ? m_Image : m_Video);
+            RenderProperty(Localization.Tr("Narrative Title"), m_NarrativeTitle);
 
             EditorGUILayout.Space(10);
 
-            RenderProperty("Narrative Title", m_NarrativeTitle);
+            RenderProperty(Localization.Tr("Narrative Description"), m_NarrativeDescription);
 
             EditorGUILayout.Space(10);
 
-            RenderProperty("Narrative Description", m_NarrativeDescription);
+            RenderProperty(Localization.Tr("Instruction Title"), m_InstructionTitle);
 
             EditorGUILayout.Space(10);
 
-            RenderProperty("Instruction Title", m_InstructionTitle);
-
-            EditorGUILayout.Space(10);
-
-            RenderProperty("Instruction Description", m_InstructionDescription);
+            RenderProperty(Localization.Tr("Instruction Description"), m_InstructionDescription);
 
             if (m_CriteriaCompletion != null)
             {
                 EditorGUILayout.Space(10);
-                EditorGUILayout.LabelField("Completion Criteria");
+                EditorGUILayout.LabelField(Localization.Tr("Completion Criteria"));
                 EditorGUILayout.PropertyField(m_CriteriaCompletion, GUIContent.none);
                 EditorGUILayout.PropertyField(m_Criteria, GUIContent.none);
             }
@@ -289,15 +330,50 @@ namespace Unity.InteractiveTutorials
             if (m_NextTutorial != null)
             {
                 EditorGUILayout.Space(10);
-                RenderProperty("Next Tutorial", m_NextTutorial);
-                RenderProperty("Next Tutorial button text", m_TutorialButtonText);
+                RenderProperty(Localization.Tr("Next Tutorial"), m_NextTutorial);
+                RenderProperty(Localization.Tr("Next Tutorial button text"), m_TutorialButtonText);
             }
 
-            RenderProperty("Enable Masking", m_MaskingSettings);
+            EditorStyles.label.wordWrap = true;
+
+            //DrawLabelWithImage(Localization.Tr("Custom Callbacks");
+            EditorGUILayout.BeginHorizontal();
+
+            s_ShowEvents = EditorGUILayout.Foldout(s_ShowEvents, s_EventsSectionTitle);
+            if (k_IsAuthoringMode && GUILayout.Button(Localization.Tr("Create Callback Handler")))
+            {
+                CreateCallbackHandlerScript("TutorialCallbacks.cs");
+                InitializeEventWithDefaultData(m_OnBeforePageShown);
+                InitializeEventWithDefaultData(m_OnAfterPageShown);
+                GUIUtility.ExitGUI();
+            }
+            EditorGUILayout.EndHorizontal();
+
+
+            EditorGUILayout.Space(10);
+            if (s_ShowEvents)
+            {
+                if (TutorialEditorUtils.EventIsNotInState(m_OnBeforePageShown, UnityEngine.Events.UnityEventCallState.EditorAndRuntime))
+                {
+                    TutorialEditorUtils.RenderEventStateWarning();
+                    EditorGUILayout.Space(8);
+                }
+                RenderEventProperty(s_OnBeforeEventsTitle, m_OnBeforePageShown);
+                EditorGUILayout.Space(5);
+                if (TutorialEditorUtils.EventIsNotInState(m_OnAfterPageShown, UnityEngine.Events.UnityEventCallState.EditorAndRuntime))
+                {
+                    TutorialEditorUtils.RenderEventStateWarning();
+                    EditorGUILayout.Space(8);
+                }
+                RenderEventProperty(s_OnAfterEventsTitle, m_OnAfterPageShown);
+                EditorGUILayout.Space(10);
+            }
+
+            RenderProperty(Localization.Tr("Enable Masking"), m_MaskingSettings);
 
             EditorGUILayout.EndVertical();
 
-            DrawPropertiesExcluding(serializedObject, propertiesToIgnoreInBaseClass);
+            DrawPropertiesExcluding(serializedObject, k_PropertiesToHide);
 
             serializedObject.ApplyModifiedProperties();
         }
@@ -307,6 +383,116 @@ namespace Unity.InteractiveTutorials
             if (property == null) { return; }
             EditorGUILayout.LabelField(name);
             EditorGUILayout.PropertyField(property, GUIContent.none);
+        }
+
+        void RenderEventProperty(GUIContent nameAndTooltip, SerializedProperty property)
+        {
+            if (property == null) { return; }
+            EditorGUILayout.LabelField(nameAndTooltip);
+            EditorGUILayout.Space(5);
+            EditorGUILayout.PropertyField(property);
+        }
+
+        void InitializeEventWithDefaultData(SerializedProperty eventProperty)
+        {
+            var so = AssetDatabase.LoadAssetAtPath<ScriptableObject>("Assets/IET/TutorialCallbacks.asset");
+            //[TODO] Add listeners here if they are empty (?)
+            ForceCallbacksListenerTarget(eventProperty, so);
+            ForceCallbacksListenerState(eventProperty, UnityEngine.Events.UnityEventCallState.EditorAndRuntime);
+        }
+
+        /// <summary>
+        /// Forces all callbacks of a UnityEvent (or derived class) to use a specific state
+        /// </summary>
+        /// <param name="eventProperty">A UnityEvent (or derived class) property</param>
+        /// <param name="state"></param>
+        void ForceCallbacksListenerState(SerializedProperty eventProperty, UnityEngine.Events.UnityEventCallState state)
+        {
+            SerializedProperty persistentCalls = eventProperty.FindPropertyRelative("m_PersistentCalls.m_Calls");
+            for (int i = 0; i < persistentCalls.arraySize; i++)
+            {
+                persistentCalls.GetArrayElementAtIndex(i).FindPropertyRelative("m_CallState").intValue = (int)state;
+                serializedObject.ApplyModifiedProperties();
+            }
+        }
+
+        void ForceCallbacksListenerTarget(SerializedProperty eventProperty, UnityEngine.Object target)
+        {
+            SerializedProperty persistentCalls = eventProperty.FindPropertyRelative("m_PersistentCalls.m_Calls");
+            for (int i = 0; i < persistentCalls.arraySize; i++)
+            {
+                persistentCalls.GetArrayElementAtIndex(i).FindPropertyRelative("m_Target").objectReferenceValue = target;
+                serializedObject.ApplyModifiedProperties();
+            }
+        }
+
+        /// <summary>
+        /// Creates an example callback handler script from a template script.
+        /// </summary>
+        /// <param name="templateFile">
+        /// Template file name, must exist in "Packages/com.unity.learn.iet-framework.authoring/.TemplateAssets" folder.
+        /// </param>
+        /// <param name="targetDir">Use null to open a dialog for choosing the destination.</param>
+        internal static void CreateCallbackHandlerScript(string templateFile, string targetDir = null)
+        {
+            // TODO preferably these template assets should reside in the authoring package
+            var templatePath = $"Packages/com.unity.learn.iet-framework/.TemplateAssets/{templateFile}";
+            if (!File.Exists(templatePath))
+            {
+                Debug.LogError($"Template file '{templateFile}' does not exist.");
+                return;
+            }
+
+            targetDir = targetDir ??
+                EditorUtility.OpenFolderPanel(
+                    Localization.Tr("Choose Folder for the Callback Handler Files"),
+                    Application.dataPath,
+                    string.Empty
+                );
+
+            try
+            {
+                if (!Directory.Exists(targetDir))
+                    Directory.CreateDirectory(targetDir);
+
+                IsCreatingScriptableObject = true;
+
+                // TODO preferably use the following which would allow renaming the file immediately to user's liking
+                // and utilising template script features.
+                //ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, templateFile);
+                File.Copy(templatePath, Path.Combine(targetDir, templateFile));
+                AssetDatabase.Refresh();
+            }
+            catch(Exception e)
+            {
+                Debug.LogException(e);
+                IsCreatingScriptableObject = false;
+            }
+        }
+
+        [UnityEditor.Callbacks.DidReloadScripts]
+        static void OnScriptsReloaded()
+        {
+            if (!IsCreatingScriptableObject)
+                return;
+
+            IsCreatingScriptableObject = false;
+            const string className = "TutorialCallbacks";
+            const string methodName = "CreateInstance";
+            var type = Assembly.Load("Assembly-CSharp").GetType(className);
+            if (type == null)
+            {
+                Debug.LogError($"{className} not found from Assembly-CSharp.");
+                return;
+            }
+            var method = type.GetMethod("CreateInstance");
+            if (method == null)
+            {
+                Debug.LogError($"{methodName} not found from {className}.");
+                return;
+            }
+
+            method.Invoke(null, null);
         }
     }
 }

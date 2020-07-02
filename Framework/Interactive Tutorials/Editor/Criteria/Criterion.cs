@@ -11,7 +11,6 @@ namespace Unity.InteractiveTutorials
         public static event Action<Criterion> criterionCompleted;
         public static event Action<Criterion> criterionInvalidated;
 
-        readonly bool m_EvaluateCompletionOnAccess;
         bool m_Completed;
 
         public bool completed
@@ -24,15 +23,9 @@ namespace Unity.InteractiveTutorials
 
                 m_Completed = value;
                 if (m_Completed)
-                {
-                    if (criterionCompleted != null)
-                        criterionCompleted(this);
-                }
+                    criterionCompleted?.Invoke(this);
                 else
-                {
-                    if (criterionInvalidated != null)
-                        criterionInvalidated(this);
-                }
+                    criterionInvalidated?.Invoke(this);
             }
         }
 
@@ -56,7 +49,7 @@ namespace Unity.InteractiveTutorials
 
         protected virtual bool EvaluateCompletion()
         {
-            throw new NotImplementedException((String.Format("Missing implementation of EvaluateCompletion in: {0}", GetType())));
+            throw new NotImplementedException($"Missing implementation of EvaluateCompletion in: {GetType()}");
         }
 
         protected virtual IEnumerable<FutureObjectReference> GetFutureObjectReferences()
@@ -79,7 +72,9 @@ namespace Unity.InteractiveTutorials
                 if (asset is FutureObjectReference
                     && ((FutureObjectReference)asset).criterion == this
                     && !referencedFutureReferenceInstanceIDs.Contains(asset.GetInstanceID()))
+                {
                     DestroyImmediate(asset, true);
+                }
             }
         }
 

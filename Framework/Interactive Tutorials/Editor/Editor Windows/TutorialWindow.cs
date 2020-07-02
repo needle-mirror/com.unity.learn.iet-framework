@@ -947,12 +947,27 @@ namespace Unity.InteractiveTutorials
         {
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar, GUILayout.ExpandWidth(true));
 
-            Func<string, bool> Button = (string text) =>
-                GUILayout.Button(text, EditorStyles.toolbarButton, GUILayout.MaxWidth(s_AuthoringModeToolbarButtonWidth));
+            bool Button(string text)
+            {
+                return GUILayout.Button(text, EditorStyles.toolbarButton, GUILayout.MaxWidth(s_AuthoringModeToolbarButtonWidth));
+            }
 
             using (new EditorGUI.DisabledScope(currentTutorial == null))
             {
-                if (Button("Skip To Last Page"))
+                if (Button("Select Tutorial"))
+                {
+                    Selection.activeObject = currentTutorial;
+                }
+
+                using (new EditorGUI.DisabledScope(currentTutorial?.currentPage == null))
+                {
+                    if (Button("Select Page"))
+                    {
+                        Selection.activeObject = currentTutorial.currentPage;
+                    }
+                }
+
+                if (Button("Skip To End"))
                 {
                     currentTutorial.SkipToLastPage();
                 }
@@ -1009,6 +1024,7 @@ namespace Unity.InteractiveTutorials
 
         void OnShowPage(TutorialPage page, int index)
         {
+            page.RaiseOnBeforePageShownEvent();
             m_FarthestPageCompleted = Mathf.Max(m_FarthestPageCompleted, index - 1);
             ApplyMaskingSettings(true);
 
@@ -1016,6 +1032,7 @@ namespace Unity.InteractiveTutorials
             PrepareNewPage();
 
             videoPlaybackManager.ClearCache();
+            page.RaiseOnAfterPageShownEvent();
         }
 
         void OnGUIViewPositionChanged(UnityObject sender)

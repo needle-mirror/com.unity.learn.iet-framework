@@ -9,9 +9,14 @@ namespace Unity.InteractiveTutorials
         static readonly bool k_IsAuthoringMode = ProjectMode.IsAuthoringMode();
         readonly string[] k_PropsToIgnore = { "m_Script" };
         TutorialWelcomePage Target => (TutorialWelcomePage)target;
+        SerializedProperty m_Buttons;
+        SerializedProperty m_CurrentEvent;
+        const string k_Buttons = "m_Buttons";
+        const string k_OnClickEventPropertyPath = "OnClick";
 
         void OnEnable()
         {
+            InitializeSerializedProperties();
             Undo.postprocessModifications += OnPostprocessModifications;
             Undo.undoRedoPerformed += OnUndoRedoPerformed;
         }
@@ -33,6 +38,11 @@ namespace Unity.InteractiveTutorials
             return modifications;
         }
 
+        void InitializeSerializedProperties()
+        {
+            m_Buttons = serializedObject.FindProperty(k_Buttons);
+        }
+
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
@@ -47,6 +57,19 @@ namespace Unity.InteractiveTutorials
                 DrawPropertiesExcluding(serializedObject, k_PropsToIgnore);
             }
 
+            bool eventOffOrRuntimeOnlyExists = false;
+            for (int i = 0; i < m_Buttons.arraySize; i++)
+            {
+                m_CurrentEvent = m_Buttons.GetArrayElementAtIndex(i).FindPropertyRelative(k_OnClickEventPropertyPath);
+                if (!TutorialEditorUtils.EventIsNotInState(m_CurrentEvent, UnityEngine.Events.UnityEventCallState.EditorAndRuntime)) { continue; }
+
+                eventOffOrRuntimeOnlyExists = true;
+                break;
+            }
+            if (eventOffOrRuntimeOnlyExists)
+            {
+                TutorialEditorUtils.RenderEventStateWarning();
+            }
             serializedObject.ApplyModifiedProperties();
         }
     }

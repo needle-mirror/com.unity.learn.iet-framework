@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace Unity.InteractiveTutorials
 {
@@ -97,6 +98,11 @@ namespace Unity.InteractiveTutorials
         [Header("Auto advance on complete?")]
         [SerializeField]
         bool m_autoAdvance;
+
+        [SerializeField]
+        UnityEvent m_OnBeforePageShown = default;
+        [SerializeField]
+        UnityEvent m_OnAfterPageShown = default;
 
         public void RaiseTutorialPageMaskingSettingsChangedEvent()
         {
@@ -216,7 +222,9 @@ namespace Unity.InteractiveTutorials
         {
             SetupCompletionRequirements();
             if (m_CameraSettings != null && m_CameraSettings.enabled)
+            {
                 m_CameraSettings.Apply();
+            }
         }
 
         public void ResetUserProgress()
@@ -346,6 +354,22 @@ namespace Unity.InteractiveTutorials
         {
             RemoveCompletionRequirements();
             hasMovedToNextPage = true;
+        }
+
+        /// <summary>
+        /// Called when the frontend of the page has not been displayed yet to the user
+        /// </summary>
+        public void RaiseOnBeforePageShownEvent()
+        {
+            m_OnBeforePageShown?.Invoke();
+        }
+
+        /// <summary>
+        /// Called right after the frontend of the page is displayed to the user
+        /// </summary>
+        public void RaiseOnAfterPageShownEvent()
+        {
+            m_OnAfterPageShown?.Invoke();
         }
     }
 }

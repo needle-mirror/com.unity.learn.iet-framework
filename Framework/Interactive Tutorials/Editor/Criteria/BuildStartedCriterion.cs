@@ -1,25 +1,37 @@
-using System;
 using UnityEditor;
+using UnityEditor.Build;
+using UnityEditor.Build.Reporting;
 using UnityEngine;
 
 namespace Unity.InteractiveTutorials
 {
-    public class BuildStartedCriterion : Criterion
+    public abstract class PreprocessBuildCriterion : Criterion, IPreprocessBuildWithReport
     {
-        bool m_BuildStarted;
+        public int callbackOrder => 0;
+        public abstract void OnPreprocessBuild(BuildReport report);
+    }
+
+    // TODO revisit this code, BuildPlayerWindow.RegisterBuildPlayerHandler works only when
+    // building from the default build dialog, hence IPreprocessBuildWithReport + SessionState used also.
+    public class BuildStartedCriterion : PreprocessBuildCriterion
+    {
+        bool BuildStarted
+        {
+            get => SessionState.GetBool("BuildStartedCriterion.BuildStarted", false);
+            set => SessionState.SetBool("BuildStartedCriterion.BuildStarted", value);
+        }
 
         public void BuildPlayerCustomHandler(BuildPlayerOptions options)
         {
-            m_BuildStarted = true;
+            BuildStarted = true;
             BuildPipeline.BuildPlayer(options);
         }
 
         public override void StartTesting()
         {
-            Action<BuildPlayerOptions> customHandler = BuildPlayerCustomHandler;
-            m_BuildStarted = false;
+            BuildStarted = false;
             UpdateCompletion();
-            BuildPlayerWindow.RegisterBuildPlayerHandler(customHandler);
+            BuildPlayerWindow.RegisterBuildPlayerHandler(BuildPlayerCustomHandler);
             EditorApplication.update += UpdateCompletion;
         }
 
@@ -31,12 +43,17 @@ namespace Unity.InteractiveTutorials
 
         protected override bool EvaluateCompletion()
         {
-            return m_BuildStarted;
+            return BuildStarted;
         }
 
         public override bool AutoComplete()
         {
             return true;
+        }
+
+        public override void OnPreprocessBuild(BuildReport report)
+        {
+            BuildStarted = true;
         }
     }
 }
