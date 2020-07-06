@@ -52,12 +52,12 @@ namespace Unity.InteractiveTutorials
         /// </summary>
         public static void RenderEventStateWarning()
         {
-            EditorGUILayout.HelpBox
-            (
-                Localization.Tr("One or more callbacks of this event are not using 'Editor and Runtime' mode." +
-                "If you want to be able to execute them in edit mode aswell (I.E: when running tutorials out of Play Mode), " +
-                "be sure to choose 'Editor and Runtime' mode. ")
-                , MessageType.Warning
+            EditorGUILayout.HelpBox(
+                Localization.Tr(
+                    "One or more callbacks of this event are not using 'Editor and Runtime' mode." +
+                    "If you want to be able to execute them in Edit mode as well (that is, when running tutorials out of Play mode), " +
+                    "be sure to choose 'Editor and Runtime' mode. "),
+                 MessageType.Warning
             );
         }
     }

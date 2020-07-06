@@ -1,8 +1,6 @@
-# In Editor Interactive Tutorials 
+# Tutorial Framework
 ---------
-This package is needed to have In Editor Tutorials working.
-
-**This package relies on Unity internals and is not available on production**
+This package is needed to have In-Editor Tutorials working.
 
 ## Setup
 Follow those steps to add support to in Editor tutorials to your project/template:

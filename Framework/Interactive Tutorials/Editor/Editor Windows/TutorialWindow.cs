@@ -326,7 +326,6 @@ namespace Unity.InteractiveTutorials
             };
         }
 
-
         // Sets the "next" button enabled state depending on criterion completion
         void HandleNextWithoutCriterion()
         {

@@ -8,5 +8,5 @@ namespace Unity.InteractiveTutorials
         {
             WindowLayout.SaveWindowLayout(path);
         }
-   }
+    }
 }

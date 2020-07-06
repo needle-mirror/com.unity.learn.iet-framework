@@ -7,7 +7,7 @@ namespace Unity.InteractiveTutorials
     public class ScriptableObjectUtils
     {
         /// <summary>
-        ///	This makes it easy to create, name and place unique new ScriptableObject asset files.
+        /// This makes it easy to create, name and place unique new ScriptableObject asset files.
         /// </summary>
         public static T CreateAsset<T>(string fileName, string path = "") where T : ScriptableObject
         {

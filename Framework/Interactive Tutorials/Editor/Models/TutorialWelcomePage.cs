@@ -45,7 +45,7 @@ namespace Unity.InteractiveTutorials
 
         public static ButtonData CreateCloseButton(TutorialWelcomePage page)
         {
-            var data = new ButtonData{ Text = "Close", OnClick = new UnityEvent() };
+            var data = new ButtonData { Text = "Close", OnClick = new UnityEvent() };
             UnityEventTools.AddVoidPersistentListener(data.OnClick, page.CloseCurrentModalDialog);
             data.OnClick.SetPersistentListenerState(0, UnityEventCallState.EditorAndRuntime);
             return data;

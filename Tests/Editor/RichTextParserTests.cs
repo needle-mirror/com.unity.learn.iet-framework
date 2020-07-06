@@ -174,6 +174,5 @@ namespace Unity.InteractiveTutorials.Tests
             }
             return richText;
         }
-
     }
 }

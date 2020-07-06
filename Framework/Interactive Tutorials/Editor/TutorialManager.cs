@@ -233,6 +233,7 @@ namespace Unity.InteractiveTutorials
                 File.Delete(k_OriginalLayoutPath);
             }
         }
+
         void SaveSceneViewState()
         {
             var sv = EditorWindow.GetWindow<SceneView>();
@@ -315,7 +316,7 @@ namespace Unity.InteractiveTutorials
         }
 
         /// <summary>
-        /// Saves current state of open/loaded scenes so we can restore later 
+        /// Saves current state of open/loaded scenes so we can restore later
         /// </summary>
         void SaveOriginalScenes()
         {

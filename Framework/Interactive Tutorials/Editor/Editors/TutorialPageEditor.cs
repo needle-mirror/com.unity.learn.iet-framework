@@ -118,7 +118,7 @@ namespace Unity.InteractiveTutorials
 
         void OnUndoRedoPerformed()
         {
-            if (tutorialPage == null) { return; } 
+            if (tutorialPage == null) { return; }
             tutorialPage.RaiseTutorialPageMaskingSettingsChangedEvent();
         }
 
@@ -445,9 +445,9 @@ namespace Unity.InteractiveTutorials
 
             targetDir = targetDir ??
                 EditorUtility.OpenFolderPanel(
-                    Localization.Tr("Choose Folder for the Callback Handler Files"),
-                    Application.dataPath,
-                    string.Empty
+                Localization.Tr("Choose Folder for the Callback Handler Files"),
+                Application.dataPath,
+                string.Empty
                 );
 
             try
@@ -463,7 +463,7 @@ namespace Unity.InteractiveTutorials
                 File.Copy(templatePath, Path.Combine(targetDir, templateFile));
                 AssetDatabase.Refresh();
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Debug.LogException(e);
                 IsCreatingScriptableObject = false;

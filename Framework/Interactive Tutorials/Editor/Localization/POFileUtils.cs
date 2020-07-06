@@ -25,7 +25,7 @@ namespace Unity.InteractiveTutorials
         // NOTE We don't have POTs so for POT-Creation-Date I just picked something.
         // TODO Value of Plural-Forms not probably true for all languages we support?
         public static string CreateHeader(string langCode, string name, string version) =>
-$@"
+            $@"
 msgid """"
 msgstr """"
 ""Project-Id-Version: {name}@{version} \n""

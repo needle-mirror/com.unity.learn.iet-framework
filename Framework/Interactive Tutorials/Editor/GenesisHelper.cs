@@ -119,7 +119,7 @@ namespace Unity.InteractiveTutorials
         {
 #if UNITY_2020_1_OR_NEWER
             if ((unityWebRequest.result == UnityWebRequest.Result.ConnectionError)
-            || (unityWebRequest.result == UnityWebRequest.Result.ProtocolError))
+                || (unityWebRequest.result == UnityWebRequest.Result.ProtocolError))
 #else
             if (unityWebRequest.isNetworkError || unityWebRequest.isHttpError)
 #endif

@@ -215,7 +215,7 @@ namespace Unity.InteractiveTutorials
     {
         public static GUIStyle FindStyle(GUIStyle style, string name)
         {
-            if(style == null)
+            if (style == null)
             {
                 style = GUI.skin.FindStyle(name);
             }
