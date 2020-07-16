@@ -287,7 +287,15 @@ namespace Unity.InteractiveTutorials
                 {
                     // populate instruction box
                     ShowElement("InstructionContainer");
-                    rootVisualElement.Q<Label>("InstructionTitle").text = Localization.Tr(paragraph.InstructionTitle);
+                    if (string.IsNullOrEmpty(paragraph.InstructionTitle))
+                    {
+                        HideElement("InstructionTitle");
+                    }
+                    else
+                    {
+                        ShowElement("InstructionTitle");
+                        rootVisualElement.Q<Label>("InstructionTitle").text = Localization.Tr(paragraph.InstructionTitle);
+                    }
                     RichTextToVisualElements(paragraph.InstructionText, rootVisualElement.Q("InstructionDescription"));
                 }
             }
@@ -573,7 +581,9 @@ namespace Unity.InteractiveTutorials
 
             ApplyMaskingSettings(false);
 
-            if (showTabClosedDialog && !TutorialManager.IsLoadingLayout)
+            // Play mode might trigger layout change (maximize on play) and closing of this window also.
+
+            if (showTabClosedDialog && !TutorialManager.IsLoadingLayout && !m_PlayModeChanging)
             {
                 // Without delayed call the Inspector appears completely black
                 EditorApplication.delayCall += delegate
@@ -677,7 +687,7 @@ namespace Unity.InteractiveTutorials
                     // New behaviour: exiting resets and nullifies the current tutorial and shows the project's tutorials.
                     if (completed)
                     {
-                        SetTutorial(null);
+                        SetTutorial(null, false);
                         ResetTutorial();
                         TutorialManager.instance.RestoreOriginalState();
                     }
@@ -686,7 +696,7 @@ namespace Unity.InteractiveTutorials
                     //    if (!IsInProgress()
                     //    || EditorUtility.DisplayDialog(k_ExitPromptTitle.text, k_ExitPromptText.text, k_PromptYes.text, k_PromptNo.text))
                     {
-                        SetTutorial(null);
+                        SetTutorial(null, false);
                         ResetTutorial();
                         TutorialManager.instance.RestoreOriginalState();
                     }
@@ -841,7 +851,7 @@ namespace Unity.InteractiveTutorials
             currentTutorial.StopTutorial();
         }
 
-        internal void SetTutorial(Tutorial tutorial, bool reload = true)
+        internal void SetTutorial(Tutorial tutorial, bool reload)
         {
             ClearTutorialListener();
 
@@ -938,7 +948,7 @@ namespace Unity.InteractiveTutorials
         internal void Reset()
         {
             m_AllParagraphs.Clear();
-            SetTutorial(null);
+            SetTutorial(null, true);
             readme = null;
         }
 

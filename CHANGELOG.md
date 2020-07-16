@@ -4,6 +4,15 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2020-07-16
+### Fixed
+* Scene view camera's state is restored properly when exiting a tutorial after an assembly reload.
+* If clicking a Switch Tutorial button while having unmodified changes in the scene, and choosing to cancel, do not return to the tutorial selection page, instead keep the current tutorial page.
+* Prevent showing of Close Tutorials dialog when Play Mode is changing
+* Fix tutorial window layouts not functioning after a tutorial project is restarted.
+* Hide the instruction title element when it has no content.
+* Fixed loading the tutorial scene twice when starting a tutorial, improving the tutorial start-up time.
+
 ## [0.5.1] - 2020-07-06
 ### Added
 - `ArbitraryCriterion`: allows tutorial author to specify arbitrary completion criterion.

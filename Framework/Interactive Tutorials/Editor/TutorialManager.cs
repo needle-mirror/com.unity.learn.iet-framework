@@ -12,6 +12,7 @@ namespace Unity.InteractiveTutorials
 {
     class TutorialManager : ScriptableObject
     {
+        [Serializable]
         struct SceneViewState
         {
             public bool In2DMode;
@@ -21,14 +22,18 @@ namespace Unity.InteractiveTutorials
             public Quaternion Direction;
         }
 
-        [System.Serializable]
+        [Serializable]
         struct SceneInfo
         {
             public string AssetPath;
             public bool WasLoaded;
         }
 
+
+        [SerializeField]
         SceneViewState m_OriginalSceneView;
+
+        //TODO [SerializeField] wanted here?
         string m_OriginalActiveSceneAssetPath;
 
         [SerializeField]
@@ -78,6 +83,13 @@ namespace Unity.InteractiveTutorials
                 return;
             }
 
+            // Early-out if user decides to cancel. Otherwise the user can get reset to the
+            // main tutorial selection screen in cases where the user was about to swtich to
+            // another tutorial while finishing up another (typical use case would be having a
+            // "start next tutorial" button at the last page of a tutorial).
+            if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+                return;
+
             // NOTE maximizeOnPlay=true was causing problems at some point
             // (tutorial was closed for some reason) but that problem seems to be gone.
             // Keeping this here in case the problem returns.
@@ -114,13 +126,10 @@ namespace Unity.InteractiveTutorials
 
         void StartTutorialImmediateEditMode()
         {
-            // TODO HACK double delay to resolve various issue (e.g. black screen during save modifications dialog
-            // Revisit and fix properly.
-
             if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
                 return;
 
-            // TODO document why this is done
+            // Prevent Game view flashing briefly when starting tutorial.
             EditorWindow.GetWindow<SceneView>().Focus();
 
             SaveOriginalScenes();
@@ -131,7 +140,7 @@ namespace Unity.InteractiveTutorials
 
             // Ensure TutorialWindow is open and set the current tutorial
             var tutorialWindow = EditorWindow.GetWindow<TutorialWindow>();
-            tutorialWindow.SetTutorial(m_Tutorial);
+            tutorialWindow.SetTutorial(m_Tutorial, false);
 
             m_Tutorial.ResetProgress();
 
@@ -140,6 +149,8 @@ namespace Unity.InteractiveTutorials
                 LoadTutorialDefaultsIntoAssetsFolder();
         }
 
+        // TODO unused code, is this still required for pointers for some refactoring?
+        /*
         void StartTutorialInEditMode()
         {
             // TODO HACK double delay to resolve various issue (e.g. black screen during save modifications dialog
@@ -151,7 +162,7 @@ namespace Unity.InteractiveTutorials
                     if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
                         return;
 
-                    // TODO document why this is done
+                    // Prevent Game view flashing briefly when starting tutorial.
                     EditorWindow.GetWindow<SceneView>().Focus();
 
                     SaveOriginalScenes();
@@ -162,7 +173,7 @@ namespace Unity.InteractiveTutorials
 
                     // Ensure TutorialWindow is open and set the current tutorial
                     var tutorialWindow = EditorWindow.GetWindow<TutorialWindow>();
-                    tutorialWindow.SetTutorial(m_Tutorial);
+                    tutorialWindow.SetTutorial(m_Tutorial, false);
 
                     m_Tutorial.ResetProgress();
 
@@ -172,6 +183,7 @@ namespace Unity.InteractiveTutorials
                 };
             };
         }
+        */
 
         public void RestoreOriginalState()
         {

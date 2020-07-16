@@ -21,28 +21,7 @@ namespace Unity.InteractiveTutorials
             EditorPrefs.SetString("ComponentSearchString", string.Empty);
             Tools.current = Tool.Move;
 
-
-            // Replace LastProjectPaths in window layouts used in tutorials so that e.g.
-            // pre-saved Project window states work correctly.
             var readme = TutorialWindow.FindReadme();
-            if (readme)
-            {
-                TutorialManager.PrepareWindowLayout(readme.ProjectLayoutPath);
-            }
-
-            AssetDatabase.FindAssets($"t:{typeof(Tutorial).FullName}")
-                .Select(guid =>
-                    AssetDatabase.LoadAssetAtPath<Tutorial>(AssetDatabase.GUIDToAssetPath(guid)).windowLayoutPath
-                )
-                .Where(StringExt.IsNotNullOrEmpty)
-                .Distinct()
-                .ToList()
-                .ForEach(layoutPath =>
-                {
-                    TutorialManager.PrepareWindowLayout(layoutPath);
-                });
-
-
             if (readme)
                 readme.LoadTutorialProjectLayout();
 
@@ -79,6 +58,13 @@ namespace Unity.InteractiveTutorials
 
             if (IsDontRunInitCodeMarkerSet())
                 return;
+
+
+            // As Temp folder is cleaned up every time the project is closed,
+            // we need to initialize the window layouts each time.
+
+            PrepareWindowLayouts();
+
             if (IsInitialized())
                 return;
 
@@ -107,15 +93,33 @@ namespace Unity.InteractiveTutorials
             File.CreateText(initFileMarkerPath).Close();
         }
 
+        // Replaces LastProjectPaths in window layouts used in tutorials so that e.g.
+        // pre-saved Project window states work correctly.
+        static void PrepareWindowLayouts()
+        {
+            AssetDatabase.FindAssets($"t:{typeof(TutorialContainer).FullName}")
+                .Select(guid =>
+                    AssetDatabase.LoadAssetAtPath<TutorialContainer>(AssetDatabase.GUIDToAssetPath(guid)).ProjectLayoutPath
+                )
+                .Concat(
+                    AssetDatabase.FindAssets($"t:{typeof(Tutorial).FullName}")
+                        .Select(guid =>
+                            AssetDatabase.LoadAssetAtPath<Tutorial>(AssetDatabase.GUIDToAssetPath(guid)).windowLayoutPath
+                        )
+                )
+                .Where(StringExt.IsNotNullOrEmpty)
+                .Distinct()
+                .ToList()
+                .ForEach(layoutPath => TutorialManager.PrepareWindowLayout(layoutPath));
+        }
+
         static SystemLanguage LoadPreviousEditorLanguage() =>
             (SystemLanguage)EditorPrefs.GetInt("EditorLanguage", (int)SystemLanguage.English);
 
         static void SaveCurrentEditorLanguage() =>
             EditorPrefs.SetInt("EditorLanguage", (int)LocalizationDatabaseProxy.currentEditorLanguage);
 
-        // TODO as a menu item temporarily for dev/testing purposes, will be removed
-        [MenuItem(TutorialWindowMenuItem.MenuPath + "Restart Editor")]
-        static void RestartEditor()
+        public static void RestartEditor()
         {
             // In older versions, calling EditorApplication.OpenProject() while having unsaved modifications
             // can cause us to get stuck in a dialog loop. This seems to be fixed in 2020.1 (and newer?).
@@ -126,7 +130,7 @@ namespace Unity.InteractiveTutorials
             if (EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
 #endif
             {
-                EditorApplication.OpenProject(Application.dataPath + "/..");
+                EditorApplication.OpenProject(".");
             }
         }
     }
