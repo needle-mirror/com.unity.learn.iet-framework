@@ -4,6 +4,11 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2020-07-24
+### Fixed
+- Rich text hyperlinks: supporting only hyperlinks to Unity's websites. The user needs to be logged in in order for the hyperlinks to work.
+- Next button was not disabled on a new tutorial page when the previous page was auto-completed.
+
 ## [1.0.0] - 2020-07-16
 ### Fixed
 * Scene view camera's state is restored properly when exiting a tutorial after an assembly reload.

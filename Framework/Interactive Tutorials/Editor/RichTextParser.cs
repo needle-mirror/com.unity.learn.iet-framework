@@ -75,6 +75,7 @@ namespace Unity.InteractiveTutorials
                         strippedWord = strippedWord.Replace("href=", "");
                         int linkFrom = strippedWord.IndexOf("\"", StringComparison.Ordinal) + 1;
                         int linkTo = strippedWord.LastIndexOf("\"", StringComparison.Ordinal);
+                        // TODO handle invalid values
                         linkURL = strippedWord.Substring(linkFrom, linkTo - linkFrom);
                         strippedWord = strippedWord.Substring(linkTo + 2, (strippedWord.Length - 2) - linkTo);
                         strippedWord.Replace("\">", "");
@@ -126,7 +127,16 @@ namespace Unity.InteractiveTutorials
                         newLabel.style.borderBottomWidth = 1f;
                         newLabel.style.borderBottomColor = Color.blue;
                         newLabel.tooltip = linkURL;
-                        newLabel.RegisterCallback<MouseUpEvent>((evt) => Application.OpenURL(linkURL));
+                        newLabel.RegisterCallback<MouseUpEvent, string>(
+                            (evt, linkurl) =>
+                            {
+                                // Supporting only hyperlinks to Unity's websites.
+                                // The user needs be be logged in in order the hyperlink to work.
+                                UnityConnectProxy.OpenAuthorizedURLInWebBrowser(linkurl);
+                            },
+                            linkURL
+                        );
+
                         targetContainer.Add(newLabel);
                     }
                     else

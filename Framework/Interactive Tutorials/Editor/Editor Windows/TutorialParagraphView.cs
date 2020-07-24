@@ -24,9 +24,9 @@ namespace Unity.InteractiveTutorials
 
         public void ResetState()
         {
-            m_ShouldShowText = false;
-            hasChangedOnActive = false;
-            hasChangedOnCompletion = false;
+            //m_ShouldShowText = false;
+            //hasChangedOnActive = false;
+            //hasChangedOnCompletion = false;
         }
 
         public void SetWindow(TutorialWindow window)
@@ -42,9 +42,10 @@ namespace Unity.InteractiveTutorials
 
         private AnimBool m_FadeGroupAnim = new AnimBool(false);
 
-        private bool m_ShouldShowText;
-        private bool hasChangedOnCompletion = false;
-        private bool hasChangedOnActive = false;
+        // TODO proper clean-up for unused code
+        //private bool m_ShouldShowText;
+        //private bool hasChangedOnCompletion = false;
+        //private bool hasChangedOnActive = false;
 
         private string orderedListDelimiter, unorderedListBullet;
 
@@ -62,11 +63,13 @@ namespace Unity.InteractiveTutorials
         Texture videoTextureCache;
 
         bool repainting = false;
-
+        
         public void Draw(ref bool previousTaskState, bool pageCompleted)
         {
             switch (paragraph.type)
             {
+                // TODO proper clean-up for unused code
+                /*
                 case ParagraphType.Icons:
                     using (var horizontal = new GUILayout.HorizontalScope())
                     {
@@ -91,6 +94,7 @@ namespace Unity.InteractiveTutorials
                             completed = false;
                     }
                     bool isActiveCriterion = !completed && previousTaskState;
+                    
                     using (var verticalGroup = new EditorGUILayout.VerticalScope())
                     {
                         GUIStyle bgStyle;
@@ -178,6 +182,7 @@ namespace Unity.InteractiveTutorials
                     }
                     EditorGUILayout.EndVertical();
                     break;
+                    */
                 case ParagraphType.Image:
                     if (!repainting)
                     {

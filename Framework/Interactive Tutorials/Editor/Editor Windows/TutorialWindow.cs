@@ -15,6 +15,10 @@ namespace Unity.InteractiveTutorials
 {
     public sealed class TutorialWindow : EditorWindowProxy
     {
+        // IMPORTANT this can be removed only in 2.0.
+        // PVS will fail on API check if we remove this without a major version bump.
+        public AllStylesHACK allTutorialStyles;
+
         const int k_MinWidth = 300;
         const int k_MinHeight = 300;
         const string UIAssetPath = "Packages/com.unity.learn.iet-framework/Framework/UIElementsViews";
@@ -334,22 +338,13 @@ namespace Unity.InteractiveTutorials
             };
         }
 
-        // Sets the "next" button enabled state depending on criterion completion
-        void HandleNextWithoutCriterion()
+        void UpdateNextButton() => SetNextButtonEnabled(canMoveToNextPage);
+        void UpdateNextButton(Criterion completedCriterion) => SetNextButtonEnabled(true);
+
+        void SetNextButtonEnabled(bool enable)
         {
             FixHighlight();
-            EditorApplication.delayCall += () =>
-            {
-                Button nextbutton = rootVisualElement.Q<Button>("NextButton");
-                nextbutton.SetEnabled(canMoveToNextPage);
-            };
-        }
-
-        // Sets the "next" button enabled state depending on criterion completion
-        // TODO: Why is the criterion passed here? What can these be used in when passing as a function parameter?
-        void HandleNextButton(Criterion completedCriterion)
-        {
-            HandleNextWithoutCriterion();
+            EditorApplication.delayCall += () => rootVisualElement.Q("NextButton").SetEnabled(enable);
         }
 
         void CreateTutorialMenuCards(VisualTreeAsset vistree, string cardElementName, string linkCardElementName, VisualElement cardContainer)
@@ -373,7 +368,7 @@ namespace Unity.InteractiveTutorials
                     cardElement.RegisterCallback((MouseUpEvent evt) =>
                     {
                         card.StartTutorial();
-                        ShowCurrentTutorialContent();
+                        //ShowCurrentTutorialContent();
                     });
                 }
                 if (!string.IsNullOrEmpty(card.Url))
@@ -439,7 +434,9 @@ namespace Unity.InteractiveTutorials
             rootVisualElement.Clear();
             currentEditorLanguage = EditorPrefs.GetInt("EditorLanguage");
             instance = this;
-            Criterion.criterionCompleted += HandleNextButton;
+
+            Criterion.criterionCompleted += UpdateNextButton;
+
             IMGUIContainer imguiToolBar = new IMGUIContainer(OnGuiToolbar);
             IMGUIContainer videoBox = new IMGUIContainer(RenderVideoIfPossible);
             videoBox.style.alignSelf = new StyleEnum<Align>(Align.Center);
@@ -483,10 +480,10 @@ namespace Unity.InteractiveTutorials
             tutorialContainer.Add(linkButton);
             root.Add(tutorialContainer);
 
-            footerBar.Q<Button>("PreviousButton").clicked += PreviousButtonPressed;
-            Button nextbutton = footerBar.Q<Button>("NextButton");
-            nextbutton.clicked += NextButtonPressed;
+            footerBar.Q<Button>("PreviousButton").clicked += OnPreviousButtonClicked;
+            footerBar.Q<Button>("NextButton").clicked += OnNextButtonClicked;
 
+            // Set here in addition to CreateWindow() so that title of old saved layouts is overwritten.
             instance.titleContent = k_WindowTitleContent;
 
             videoPlaybackManager.OnEnable();
@@ -566,7 +563,7 @@ namespace Unity.InteractiveTutorials
                 AnalyticsHelper.TutorialEnded(TutorialConclusion.Quit);
             }
 
-            Criterion.criterionCompleted -= HandleNextButton;
+            Criterion.criterionCompleted -= UpdateNextButton;
 
             ClearTutorialListener();
 
@@ -631,15 +628,16 @@ namespace Unity.InteractiveTutorials
 
             if (sender.allCriteriaAreSatisfied && sender.autoAdvanceOnComplete && !sender.hasMovedToNextPage)
             {
-                EditorCoroutineUtility.StartCoroutineOwnerless(NextPageAfterDelay());
+                EditorCoroutineUtility.StartCoroutineOwnerless(GoToNextPageAfterDelay());
                 return;
             }
 
             ApplyMaskingSettings(true);
         }
 
-        IEnumerator NextPageAfterDelay()
+        IEnumerator GoToNextPageAfterDelay()
         {
+            //TODO WaitForSecondsRealtime();
             float seconds = 0.5f;
             while (seconds > 0f)
             {
@@ -648,7 +646,7 @@ namespace Unity.InteractiveTutorials
             }
             if (currentTutorial.TryGoToNextPage())
             {
-                FixHighlight();
+                UpdateNextButton();
                 yield break;
             }
             ApplyMaskingSettings(true);
@@ -903,13 +901,21 @@ namespace Unity.InteractiveTutorials
 
         IEnumerator DelayedOnEnable()
         {
-            yield return new WaitUntil(() => allTutorialStyles != null);
-            // set here instead of CreateWindow() so that title of old saved layouts is overwritten
-            instance.titleContent = k_WindowTitleContent;
-            videoBoxElement = rootVisualElement.Q("TutorialMediaContainer");
+            yield return null;
+    
+            do
+            {
+                yield return null;
+                videoBoxElement = rootVisualElement.Q("TutorialMediaContainer");
+            } while (videoBoxElement == null);
+
+
             if (currentTutorial == null)
             {
-                UIElementsUtils.Hide(videoBoxElement);
+                if (videoBoxElement != null )
+                {
+                    UIElementsUtils.Hide(videoBoxElement);
+                }
             }
             videoPlaybackManager.OnEnable();
         }
@@ -921,26 +927,25 @@ namespace Unity.InteractiveTutorials
                 ToolbarGUI();
         }
 
-        void PreviousButtonPressed()
+        void OnPreviousButtonClicked()
         {
             if (IsFirstPage())
+            {
                 SkipTutorial();
+            }
             else
             {
                 currentTutorial.GoToPreviousPage();
-                HandleNextWithoutCriterion();
+                UpdateNextButton();
             }
         }
 
-        void NextButtonPressed()
+        void OnNextButtonClicked()
         {
-            bool GotToNextPage = false;
-            if (currentTutorial != null)
-                GotToNextPage = currentTutorial.TryGoToNextPage();
-            // exit GUI to prevent InvalidOperationException when disposing DisabledScope
-            // some other GUIView might clear the disabled stack when repainting immediately to be unmasked
-            Repaint();
-            HandleNextWithoutCriterion();
+            if (currentTutorial)
+                currentTutorial.TryGoToNextPage();
+
+            UpdateNextButton();
             ShowCurrentTutorialContent();
         }
 
@@ -1006,8 +1011,6 @@ namespace Unity.InteractiveTutorials
 
             EditorGUILayout.EndHorizontal();
         }
-
-        public AllStylesHACK allTutorialStyles;
 
         void OnTutorialPagesModified(Tutorial sender)
         {
