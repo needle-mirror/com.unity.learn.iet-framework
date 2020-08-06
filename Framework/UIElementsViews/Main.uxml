@@ -44,8 +44,14 @@
 
         <!-- Tutorial step actions -->
         <ui:VisualElement name="TutorialActions" class="container--tutorial-actions">
-            <ui:Button text="Previous" name="PreviousButton" class="button--tutorial-action" />
-            <ui:Button text="Next" name="NextButton" class="button--tutorial-action" />
+                <ui:Button text="Previous" name="PreviousButton" class="button--tutorial-action">
+                    <ui:VisualElement name="PreviousButtonBase" class="button-background--tutorial-action">
+                    </ui:VisualElement>
+                </ui:Button>
+                <ui:Button text="Next" name="NextButton" class="button--tutorial-action">
+                    <ui:VisualElement name="NextButtonBase" class="button-background--tutorial-action">
+                    </ui:VisualElement>    
+                </ui:Button>
         </ui:VisualElement>
 
         <!-- Tutorial header -->

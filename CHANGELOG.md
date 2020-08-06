@@ -4,6 +4,23 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] - 2020-08-06
+### Added
+- Blink the Start tutorial -button on the first page.
+
+### Fixed
+- Fixed highlighting of views not working if an Instructive paragraph was present in the current TutorialPage
+- Header image stretching disabled
+
+### Changed
+- Step completion checkmark (green color) only shown on steps with criteria.
+- Lightened the tutorial background for better contrast
+- Ensured long title texts wrap, and not overflow out of the screen
+- Made instruction boxes look less like a button
+- Ensured tutorial videos are not stretched
+- Bold button labels
+- Reduced margin between cards
+
 ## [1.0.1] - 2020-07-24
 ### Fixed
 - Rich text hyperlinks: supporting only hyperlinks to Unity's websites. The user needs to be logged in in order for the hyperlinks to work.

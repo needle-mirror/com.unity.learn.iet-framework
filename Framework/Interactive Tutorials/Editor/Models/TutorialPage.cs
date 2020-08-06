@@ -30,6 +30,19 @@ namespace Unity.InteractiveTutorials
         [SerializeField]
         internal TutorialParagraphCollection m_Paragraphs = new TutorialParagraphCollection();
 
+        public bool HasCriteria ()
+        {
+            foreach(TutorialParagraph para in paragraphs )
+            {
+                foreach(TypedCriterion crit in para.criteria)
+                {
+                    if (crit.criterion != null) return true;
+                }
+            }
+
+            return false;
+        }
+
         public MaskingSettings currentMaskingSettings
         {
             get

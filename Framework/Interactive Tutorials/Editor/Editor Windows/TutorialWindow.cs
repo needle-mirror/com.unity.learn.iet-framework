@@ -312,12 +312,21 @@ namespace Unity.InteractiveTutorials
             {
                 RichTextToVisualElements(narrativeParagraph.Description, rootVisualElement.Q("TutorialStepBox1"));
             }
+            if (IsFirstPage())
+            {
+                ShowElement("NextButtonBase");
+            }
+            else
+            {
+                HideElement("NextButtonBase");
+            }
+
         }
 
         // Sets the instruction highlight to green or blue and toggles between arrow and checkmark
         void FixHighlight(bool again = false)
         {
-            if (canMoveToNextPage)
+            if (canMoveToNextPage && currentTutorial.currentPage.HasCriteria())
             {
                 ShowElement("InstructionHighlightGreen");
                 HideElement("InstructionHighlightBlue");
@@ -500,10 +509,11 @@ namespace Unity.InteractiveTutorials
             EditorApplication.playModeStateChanged -= TrackPlayModeChanging;
             EditorApplication.playModeStateChanged += TrackPlayModeChanging;
 
+            root.Add(footerBar);
             SetUpTutorial();
 
             maskingEnabled = true;
-            root.Add(footerBar);
+            
             readme = FindReadme();
             EditorCoroutineUtility.StartCoroutineOwnerless(DelayedOnEnable());
         }
@@ -902,7 +912,7 @@ namespace Unity.InteractiveTutorials
         IEnumerator DelayedOnEnable()
         {
             yield return null;
-    
+
             do
             {
                 yield return null;
@@ -912,7 +922,7 @@ namespace Unity.InteractiveTutorials
 
             if (currentTutorial == null)
             {
-                if (videoBoxElement != null )
+                if (videoBoxElement != null)
                 {
                     UIElementsUtils.Hide(videoBoxElement);
                 }
@@ -1066,7 +1076,6 @@ namespace Unity.InteractiveTutorials
             }
 
             MaskingSettings maskingSettings = currentTutorial.currentPage.currentMaskingSettings;
-
             try
             {
                 if (maskingSettings == null || !maskingSettings.enabled)
@@ -1090,8 +1099,7 @@ namespace Unity.InteractiveTutorials
 
                     UnmaskedView.MaskData highlightedViews;
 
-                    // if the current page contains no instructions, assume unmasked views should be highlighted because they are called out in narrative text
-                    if (unmaskedViews.Count > 0 && !currentTutorial.currentPage.paragraphs.Any(p => p.type == ParagraphType.Instruction))
+                    if (unmaskedViews.Count > 0) //Unmasked views should be highlighted
                     {
                         highlightedViews = (UnmaskedView.MaskData)unmaskedViews.Clone();
                     }
@@ -1180,10 +1188,47 @@ namespace Unity.InteractiveTutorials
         }
 
         float checkLanguageTick = 0f;
+        float blinkTick = 0f;
+        bool blinkOn = true;
+
+        float editorDeltaTime = 0f;
+        float lastTimeSinceStartup = 0f;
+
+
+        private void SetEditorDeltaTime()
+        {
+            if (lastTimeSinceStartup == 0f)
+            {
+                lastTimeSinceStartup = (float)EditorApplication.timeSinceStartup;
+            }
+            editorDeltaTime = (float)EditorApplication.timeSinceStartup - lastTimeSinceStartup;
+            lastTimeSinceStartup = (float)EditorApplication.timeSinceStartup;
+        }
 
         void Update()
         {
-            checkLanguageTick += Time.deltaTime;
+            SetEditorDeltaTime();
+
+            blinkTick += editorDeltaTime;
+            checkLanguageTick += editorDeltaTime;
+
+            if (blinkTick > 1f)
+            {
+                blinkTick -= 1f;
+                if (IsFirstPage())
+                {
+                    if (blinkOn)
+                    {
+                        ShowElement("NextButtonBase");
+                    }
+                    else
+                    {
+                        HideElement("NextButtonBase");
+                    }
+                    blinkOn = !blinkOn;
+                }
+            }
+
             if (checkLanguageTick >= 1f)
             {
                 checkLanguageTick = 0f;
