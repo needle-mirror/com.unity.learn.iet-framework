@@ -1,7 +1,7 @@
 {
   "name": "com.unity.learn.iet-framework",
   "displayName": "Tutorial Framework",
-  "version": "1.0.3-preview.1",
+  "version": "1.0.3-preview.2",
   "unity": "2019.3",
   "description": "This package is used to display interactive in-Editor tutorials in tutorial projects and project templates. This package is meant to be used only by Unity internally.",
   "keywords": [
@@ -11,11 +11,11 @@
     "com.unity.editorcoroutines": "1.0.0"
   },
   "upmCi": {
-    "footprint": "964bda8d9436e0573f80655113478291b83a13d5"
+    "footprint": "0dbb83e90947692ead1196f89dc78f85c63787e5"
   },
   "repository": {
     "url": "https://github.cds.internal.unity3d.com/unity/iet-package.git",
     "type": "git",
-    "revision": "53e2c4fbffee3fb66c02594a78e422000d73818f"
+    "revision": "a612f9168fb530288d66d5eeaaafb7a503db9733"
   }
 }

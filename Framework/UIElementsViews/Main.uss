@@ -365,6 +365,10 @@
     color: #fff;
 }
 
+.button--next-tutorial:hover {
+    background-color: #269FF4;
+}
+
 /****************************
 *  WELCOME DIALOG
 ****************************/
