@@ -41,7 +41,7 @@ namespace Unity.InteractiveTutorials
         // The original layout files are copied into this folder for modifications.
         const string k_UserLayoutDirectory = "Temp";
         // The original/previous layout is stored into this when loading new layouts.
-        internal const string k_OriginalLayoutPath = "Temp/OriginalLayout.dwlt";
+        internal static readonly string k_OriginalLayoutPath = $"{k_UserLayoutDirectory}/OriginalLayout.dwlt";
         const string k_DefaultsFolder = "Tutorial Defaults";
 
         static TutorialManager s_TutorialManager;
@@ -273,9 +273,7 @@ namespace Unity.InteractiveTutorials
         {
             IsLoadingLayout = true;
             aboutToLoadLayout?.Invoke();
-            var successful = EditorUtility.LoadWindowLayout(path);
-            if (!successful)
-                Debug.LogError($"Failed to load layout from \"{path}\".");
+            bool successful = EditorUtility.LoadWindowLayout(path); // will log an error if fails
             layoutLoaded?.Invoke(successful);
             IsLoadingLayout = false;
             return successful;
@@ -294,6 +292,9 @@ namespace Unity.InteractiveTutorials
         {
             try
             {
+                if (!Directory.Exists(k_UserLayoutDirectory))
+                    Directory.CreateDirectory(k_UserLayoutDirectory);
+
                 var destinationPath = GetWorkingCopyWindowLayoutPath(layoutPath);
                 File.Copy(layoutPath, destinationPath, overwrite: true);
 

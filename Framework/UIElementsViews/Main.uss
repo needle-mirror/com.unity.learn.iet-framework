@@ -45,7 +45,7 @@
     padding-top: 40px;
     padding-left: 15px;
     padding-right: 15px;
-    -unity-background-scale-mode: stretch-to-fill;
+    -unity-background-scale-mode: scale-and-crop;
     border-bottom-width: 1px;
     border-color: rgba(0,0,0,0.2);
 }
@@ -357,8 +357,12 @@
 
 .button--next-tutorial {
     margin: 15px;
+    margin-top: 0px;
     min-height: 28px;
     -unity-font-style: bold;
+    background-color: #0789E4;
+    border-color: #005793;
+    color: #fff;
 }
 
 /****************************

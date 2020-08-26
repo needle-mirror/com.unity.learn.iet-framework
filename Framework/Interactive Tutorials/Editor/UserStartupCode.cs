@@ -59,22 +59,21 @@ namespace Unity.InteractiveTutorials
             if (IsDontRunInitCodeMarkerSet())
                 return;
 
-
-            // As Temp folder is cleaned up every time the project is closed,
-            // we need to initialize the window layouts each time.
-
-            PrepareWindowLayouts();
-
-            if (IsInitialized())
-                return;
-
             EditorApplication.update += InitRunStartupCode;
         }
 
         static void InitRunStartupCode()
         {
-            SetInitialized();
+            // Prepare the layout always. Use might have moved the project around, for example,
+            //  so we need to adjust the file paths in the layouts.
+            PrepareWindowLayouts();
+
             EditorApplication.update -= InitRunStartupCode;
+
+            if (IsInitialized())
+                return;
+
+            SetInitialized();
             RunStartupCode();
         }
 
