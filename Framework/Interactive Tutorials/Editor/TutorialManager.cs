@@ -232,12 +232,12 @@ namespace Unity.InteractiveTutorials
                 LoadTutorialDefaultsIntoAssetsFolder();
         }
 
-        static void SaveOriginalWindowLayout()
+        internal static void SaveOriginalWindowLayout()
         {
             WindowLayoutProxy.SaveWindowLayout(k_OriginalLayoutPath);
         }
 
-        internal void RestoreOriginalWindowLayout()
+        internal static void RestoreOriginalWindowLayout()
         {
             if (File.Exists(k_OriginalLayoutPath))
             {

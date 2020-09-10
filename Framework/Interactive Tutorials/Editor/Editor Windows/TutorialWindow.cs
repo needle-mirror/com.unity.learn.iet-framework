@@ -21,7 +21,11 @@ namespace Unity.InteractiveTutorials
 
         const int k_MinWidth = 300;
         const int k_MinHeight = 300;
-        const string UIAssetPath = "Packages/com.unity.learn.iet-framework/Framework/UIElementsViews";
+        internal static readonly string k_UIAssetPath = "Packages/com.unity.learn.iet-framework/Framework/UIElementsViews";
+
+        // Loads an asset from a common UI resource folder.
+        internal static T LoadUIAsset<T>(string filename) where T : UnityObject =>
+            AssetDatabase.LoadAssetAtPath<T>($"{k_UIAssetPath}/{filename}");
 
         int currentEditorLanguage = 0;
 
@@ -260,14 +264,30 @@ namespace Unity.InteractiveTutorials
                 }
                 if (para.type == ParagraphType.Image)
                 {
-                    rootVisualElement.Q("TutorialMedia").style.backgroundImage = para.image;
+                    if (para.image != null)
+                    {
+                        ShowElement("TutorialMediaContainer");
+                        rootVisualElement.Q("TutorialMedia").style.backgroundImage = para.image;
+                    }
+                    else
+                    {
+                        HideElement("TutorialMediaContainer");
+                    }
                 }
                 if (para.type == ParagraphType.Video)
                 {
-                    rootVisualElement.Q("TutorialMedia").style.backgroundImage = videoPlaybackManager.GetTextureForVideoClip(para.video);
+                    if (para.video != null)
+                    {
+                        ShowElement("TutorialMediaContainer");
+                        rootVisualElement.Q("TutorialMedia").style.backgroundImage = videoPlaybackManager.GetTextureForVideoClip(para.video);
+                    }
+                    else
+                    {
+                        HideElement("TutorialMediaContainer");   
+                    }
                 }
             }
-
+        
             Button linkButton = rootVisualElement.Q<Button>("LinkButton");
             if (endLink != null)
             {
@@ -324,7 +344,7 @@ namespace Unity.InteractiveTutorials
         }
 
         // Sets the instruction highlight to green or blue and toggles between arrow and checkmark
-        void FixHighlight(bool again = false)
+        void UpdateInstructionBox()
         {
             if (canMoveToNextPage && currentTutorial.currentPage.HasCriteria())
             {
@@ -340,20 +360,28 @@ namespace Unity.InteractiveTutorials
                 HideElement("InstructionCheckmark");
                 ShowElement("InstructionArrow");
             }
-            if (again) return;
+        }
+
+        void UpdatePageState()
+        {
+            // TODO delayCall needed for now as some criteria don't have up-to-date state when at the moment
+            // we call this function, causing canMoveToNextPage to return false even though the criteria
+            // are completed.
             EditorApplication.delayCall += () =>
             {
-                FixHighlight(true);
+                UpdateInstructionBox();
+                SetNextButtonEnabled(canMoveToNextPage);
             };
         }
 
-        void UpdateNextButton() => SetNextButtonEnabled(canMoveToNextPage);
-        void UpdateNextButton(Criterion completedCriterion) => SetNextButtonEnabled(true);
+        void OnCriterionCompleted(Criterion completedCriterion)
+        {
+            UpdatePageState();
+        }
 
         void SetNextButtonEnabled(bool enable)
         {
-            FixHighlight();
-            EditorApplication.delayCall += () => rootVisualElement.Q("NextButton").SetEnabled(enable);
+            rootVisualElement.Q("NextButton").SetEnabled(enable);
         }
 
         void CreateTutorialMenuCards(VisualTreeAsset vistree, string cardElementName, string linkCardElementName, VisualElement cardContainer)
@@ -417,7 +445,7 @@ namespace Unity.InteractiveTutorials
 
         IEnumerator EnforceCheckmark(TutorialContainer.Section section, VisualElement element)
         {
-            float seconds = 4f;
+            float seconds = 20f;
             while (seconds > 0f && !DoneFetchingTutorialStates)
             {
                 yield return null;
@@ -444,7 +472,7 @@ namespace Unity.InteractiveTutorials
             currentEditorLanguage = EditorPrefs.GetInt("EditorLanguage");
             instance = this;
 
-            Criterion.criterionCompleted += UpdateNextButton;
+            Criterion.criterionCompleted += OnCriterionCompleted;
 
             IMGUIContainer imguiToolBar = new IMGUIContainer(OnGuiToolbar);
             IMGUIContainer videoBox = new IMGUIContainer(RenderVideoIfPossible);
@@ -452,8 +480,8 @@ namespace Unity.InteractiveTutorials
             videoBox.name = "VideoBox";
 
             var root = rootVisualElement;
-            var topBarAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>($"{UIAssetPath}/Main.uxml");
-            var tutorialContentAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>($"{UIAssetPath}/TutorialContents.uxml");
+            var topBarAsset = LoadUIAsset<VisualTreeAsset>("Main.uxml");
+            var tutorialContentAsset = LoadUIAsset<VisualTreeAsset>("TutorialContents.uxml");
             VisualElement tutorialImage = topBarAsset.CloneTree().Q("TutorialImage");
             VisualElement tutorialMenuCard = topBarAsset.CloneTree().Q("CardContainer");
 
@@ -482,8 +510,7 @@ namespace Unity.InteractiveTutorials
             root.Add(topBarVisElement);
             root.Add(tutorialContents);
 
-            StyleSheet rootstyle = AssetDatabase.LoadAssetAtPath<StyleSheet>($"{UIAssetPath}/Main.uss");
-            root.styleSheets.Add(rootstyle);
+            styles.ApplyThemeStyleSheetTo(root);
 
             VisualElement tutorialContainer = TutorialContentPage.Q("TutorialContainer");
             tutorialContainer.Add(linkButton);
@@ -573,7 +600,7 @@ namespace Unity.InteractiveTutorials
                 AnalyticsHelper.TutorialEnded(TutorialConclusion.Quit);
             }
 
-            Criterion.criterionCompleted -= UpdateNextButton;
+            Criterion.criterionCompleted -= OnCriterionCompleted;
 
             ClearTutorialListener();
 
@@ -656,7 +683,7 @@ namespace Unity.InteractiveTutorials
             }
             if (currentTutorial.TryGoToNextPage())
             {
-                UpdateNextButton();
+                UpdatePageState();
                 yield break;
             }
             ApplyMaskingSettings(true);
@@ -946,7 +973,9 @@ namespace Unity.InteractiveTutorials
             else
             {
                 currentTutorial.GoToPreviousPage();
-                UpdateNextButton();
+                UpdatePageState();
+                // TODO OnNextButtonClicked has ShowCurrentTutorialContent() but this doesn't --
+                // is this on purpose?
             }
         }
 
@@ -955,7 +984,7 @@ namespace Unity.InteractiveTutorials
             if (currentTutorial)
                 currentTutorial.TryGoToNextPage();
 
-            UpdateNextButton();
+            UpdatePageState();
             ShowCurrentTutorialContent();
         }
 
@@ -999,11 +1028,6 @@ namespace Unity.InteractiveTutorials
 
             GUILayout.FlexibleSpace();
 
-            if (Button("Run Startup Code"))
-            {
-                UserStartupCode.RunStartupCode();
-            }
-
             using (new EditorGUI.DisabledScope(currentTutorial == null))
             {
                 EditorGUI.BeginChangeCheck();
@@ -1017,6 +1041,11 @@ namespace Unity.InteractiveTutorials
                     GUIUtility.ExitGUI();
                     return;
                 }
+            }
+
+            if (Button("Run Startup Code"))
+            {
+                UserStartupCode.RunStartupCode();
             }
 
             EditorGUILayout.EndHorizontal();

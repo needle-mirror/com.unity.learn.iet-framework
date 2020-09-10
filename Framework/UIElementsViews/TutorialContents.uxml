@@ -1,6 +1,6 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
     <ui:VisualElement>
-        <Style src="Main.uss" />
+        <Style src="Main_Light.uss" />
 
         <ui:VisualElement name="TutorialPageContainer" class="container">
 

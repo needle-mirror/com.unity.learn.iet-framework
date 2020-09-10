@@ -11,7 +11,6 @@ namespace Unity.InteractiveTutorials
     // A modal/utility window. Utilizes masking for the modality.
     class TutorialModalWindow : EditorWindow
     {
-        const string k_UIAssetPath = "Packages/com.unity.learn.iet-framework/Framework/UIElementsViews";
         const int k_Width = 700;
         const int k_Height = 500;
 
@@ -68,10 +67,9 @@ namespace Unity.InteractiveTutorials
 
         void Initialize()
         {
-            var windowAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>($"{k_UIAssetPath}/WelcomeDialog.uxml");
-            var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>($"{k_UIAssetPath}/Main.uss");
+            var windowAsset = TutorialWindow.LoadUIAsset<VisualTreeAsset>("WelcomeDialog.uxml");
             var mainContainer = windowAsset.CloneTree().Q("MainContainer");
-            mainContainer.styleSheets.Add(styleSheet);
+
             // TODO OnGuiToolbar is functional, uncomment if/when we reintroduce masking for welcome dialog.
             //var imguiToolBar = new IMGUIContainer(OnGuiToolbar);
             //rootVisualElement.Add(imguiToolBar);
@@ -81,7 +79,10 @@ namespace Unity.InteractiveTutorials
         void OnEnable()
         {
             if (!IsInitialized)
+            {
                 Initialize();
+            }
+            Styles.ApplyThemeStyleSheetTo(rootVisualElement);
         }
 
         void OnBecameVisible()

@@ -242,6 +242,24 @@ namespace Unity.InteractiveTutorials
                                 foundAncestorProperty = regionFound;
                             }
                             break;
+                        case GUIControlSelector.Mode.ObjectReference:
+                            if (controlSelector.ObjectReference == null)
+                                continue;
+
+                            var referencedObject = controlSelector.ObjectReference.sceneObjectReference.ReferencedObject;
+                            if (referencedObject == null)
+                                continue;
+
+                            foreach (var instruction in drawInstructions)
+                            {
+                                if (instruction.usedGUIContent.text != referencedObject.name)
+                                    continue;
+
+                                regionFound = true;
+                                regionRect = instruction.rect;
+                                break;
+                            }
+                            break;
                         default:
                             Debug.LogErrorFormat(
                                 "No method currently implemented for selecting using specified mode: {0}",

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
@@ -41,7 +40,11 @@ namespace Unity.InteractiveTutorials
         [SerializeField]
         [Tooltip("If set, this page is shown in the welcome dialog when the project is started for the first time.")]
         TutorialWelcomePage m_WelcomePage = default;
-        public TutorialWelcomePage WelcomePage => m_WelcomePage;
+
+        /// <summary>
+        /// The page shown in the welcome dialog when the project is started for the first time.
+        /// </summary>
+        public TutorialWelcomePage WelcomePage { get { return m_WelcomePage; } set { m_WelcomePage = value; } }
 
         [SerializeField]
         [Tooltip("Initial scene that is loaded when the project is started for the first time.")]
@@ -54,6 +57,7 @@ namespace Unity.InteractiveTutorials
 
         [Header("Start-Up Settings")]
         [SerializeField]
+        [Tooltip("If enabled, the original assets of the project are restored when a tutorial starts.")]
         bool m_RestoreDefaultAssetsOnTutorialReload = true;
         public bool restoreDefaultAssetsOnTutorialReload => m_RestoreDefaultAssetsOnTutorialReload;
 
@@ -65,6 +69,9 @@ namespace Unity.InteractiveTutorials
         [Tooltip("If set, this is the tutorial that can be started from the welcome dialog.")]
         Tutorial m_StartupTutorial = default;
 
+        /// <summary>
+        /// The tutorial to run at startup, from the Welcome page
+        /// </summary>
         public Tutorial startupTutorial
         {
             get
@@ -83,9 +90,11 @@ namespace Unity.InteractiveTutorials
 
                 return m_StartupTutorial;
             }
+            set { m_StartupTutorial = value; }
         }
 
         [SerializeField]
+        [Tooltip("Style settings for this project.")]
         TutorialStyles m_TutorialStyle;
         public TutorialStyles TutorialStyle
         {
@@ -93,13 +102,13 @@ namespace Unity.InteractiveTutorials
             {
                 if (!m_TutorialStyle)
                 {
-                    // TODO IET unit test the the file exist.
-                    m_TutorialStyle = AssetDatabase.LoadAssetAtPath<TutorialStyles>(
-                        "Packages/com.unity.learn.iet-framework/Framework/Interactive Tutorials/GUI/Tutorial Styles.asset"
-                    );
+                    m_TutorialStyle = AssetDatabase.LoadAssetAtPath<TutorialStyles>(k_DefaultStyleAsset);
                 }
                 return m_TutorialStyle;
             }
         }
+
+        internal static readonly string k_DefaultStyleAsset =
+            "Packages/com.unity.learn.iet-framework/Framework/Interactive Tutorials/GUI/Tutorial Styles.asset";
     }
 }

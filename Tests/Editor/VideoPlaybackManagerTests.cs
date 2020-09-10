@@ -1,17 +1,13 @@
-using System.Collections;
 using System.Linq;
 using NUnit.Framework;
 using UnityEditor;
-using UnityEditor.Experimental;
 using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.SceneManagement;
-using UnityEngine.TestTools;
 using UnityEngine.Video;
 
 namespace Unity.InteractiveTutorials.Tests
 {
-    // These tests seem problematic: they pass on macOS & 2018.3 but not on other configurations.
+    // TODO These tests seem problematic, they pass locally but fail on Yamato.
     public class VideoPlaybackManagerTests : TestBase
     {
         VideoPlaybackManager m_VideoPlaybackManager;
@@ -21,7 +17,8 @@ namespace Unity.InteractiveTutorials.Tests
         [SetUp]
         public void SetUp()
         {
-            EditorSceneManager.OpenScene(GetTestAssetPath("EmptyTestScene.unity"));
+            // NOTE If opening a new scene, temporary render textures won't get disposed properly.
+            //EditorSceneManager.OpenScene(GetTestAssetPath("EmptyTestScene.unity"));
 
             m_VideoPlaybackManager = new VideoPlaybackManager();
             m_VideoClip1 = AssetDatabase.LoadAssetAtPath<VideoClip>(GetTestAssetPath("TestVideoClip1.mov"));

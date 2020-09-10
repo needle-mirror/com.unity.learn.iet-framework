@@ -4,6 +4,24 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## [1.1.0] - 2020-09-10
+### Added
+- Support for both Personal/Light & Professional/Dark style sheets. The styles can be customised on a per-project basis using `TutorialStyles`.
+- Rich text parser: validate input, create a clickable error label for invalid input.
+- It is now possible to highlight/unmask Unity Object specific UI element by referencing the object properly instead of relying solely to a name matching logic.
+
+### Changed
+- Raised the required Unity version to 2019.4.
+- Hide the tutorial media header if the page has no media set.
+
+### Fixed
+- Fixed masking and highlighting for Unity 2020.1 and newer.
+- Fixed overwhelming memory usage of `VideoPlaybackManager`.
+- Fixed all UI textures use the correct (GUI) texture type for better visual quality.
+- `TutorialPage`: fixed null reference exception if selecting _None_ as _Media_ while having _Video_ as _Media Type_.
+- Cleaned up PO files from dummy test translations.
+
 ## [1.0.3] - 2020-08-26
 ### Fixed
 - Fixed potential problems with copying of the layouts during the initial import of a project.

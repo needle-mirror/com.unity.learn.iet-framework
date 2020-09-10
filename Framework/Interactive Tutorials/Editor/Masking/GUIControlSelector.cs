@@ -1,5 +1,4 @@
 using System;
-using UnityEditor;
 using UnityEngine;
 using UnityObject = UnityEngine.Object;
 
@@ -14,6 +13,7 @@ namespace Unity.InteractiveTutorials
             NamedControl,
             Property,
             GUIStyleName,
+            ObjectReference,
         }
 
         public Mode selectorMode { get { return m_SelectorMode; } set { m_SelectorMode = value; } }
@@ -39,5 +39,16 @@ namespace Unity.InteractiveTutorials
         public string guiStyleName { get { return m_GUIStyleName; } set { m_GUIStyleName = value; } }
         [SerializeField]
         private string m_GUIStyleName;
+
+        /// <summary>
+        /// A reference to a Unity Object of which name will be matched against the text in UI elements.
+        /// </summary>
+        /// <remarks>
+        /// In order for this to work for assets, the asset must have a short name, i.e.,
+        /// the name cannot be visible in the UI in shortened form, e.g. "A longer...".
+        /// </remarks>
+        public ObjectReference ObjectReference { get => m_ObjectReference; set => m_ObjectReference = value; }
+        [SerializeField]
+        ObjectReference m_ObjectReference;
     }
 }

@@ -40,12 +40,14 @@ namespace Unity.InteractiveTutorials
             if (s_ParentProperty == null)
                 Debug.LogError("Cannot find property VisualElement.parent");
 
-#if !UNITY_2020_1_OR_NEWER
             s_VisualTreeProperty = GetProperty<GUIView>("visualTree", typeof(VisualElement))
-                ?? GetProperty<GUIView>("visualTree", typeof(VisualContainer));
-            if (s_VisualTreeProperty == null)
-                Debug.LogError("Cannot find property GUIView.visualTree");
+                ?? GetProperty<GUIView>("visualTree", typeof(VisualContainer))
+#if UNITY_2020_1_OR_NEWER
+                ?? GetProperty<IWindowBackend>("visualTree", typeof(object))
 #endif
+                ;
+            if (s_VisualTreeProperty == null)
+                Debug.LogError("Cannot find property GUIView/IWindowBackend.visualTree");
         }
 
         static MethodInfo GetMethod<T>(string name, params Type[] parameterTypes)
@@ -61,8 +63,9 @@ namespace Unity.InteractiveTutorials
 
         static PropertyInfo GetProperty<T>(string name, Type returnType)
         {
-            return typeof(T).GetProperty(name,
-                BindingFlags.Public | BindingFlags.Instance,
+            return typeof(T).GetProperty(
+                name,
+                BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance,
                 null,
                 returnType,
                 new Type[0],
@@ -102,11 +105,14 @@ namespace Unity.InteractiveTutorials
 
         public static VisualElement GetVisualTree(GUIViewProxy guiViewProxy)
         {
+            return (VisualElement)s_VisualTreeProperty.GetValue(
 #if UNITY_2020_1_OR_NEWER
-            return EditorWindowBackendManager.GetBackend(guiViewProxy.guiView).visualTree as VisualElement;
+                guiViewProxy.guiView.windowBackend,
 #else
-            return (VisualElement)s_VisualTreeProperty.GetValue(guiViewProxy.guiView, new object[0]);
+                guiViewProxy.guiView,
 #endif
+                new object[0]
+            );
         }
 
         public static void SetLayout(this VisualElement element, Rect rect)

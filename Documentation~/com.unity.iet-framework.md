@@ -15,7 +15,4 @@ To actually develop any tutorials, the Tutorial Authoring Tools package is neede
 
 This version of Tutorial Framework is compatible with the following versions of the Unity Editor:
 
-* 2019.3 and newer
-
-## Known limitations
-On 2020.1 and newer the masking and highlighting features do not function fully.
+* 2019.4 and newer

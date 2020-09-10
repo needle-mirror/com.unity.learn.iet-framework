@@ -1,11 +1,40 @@
 using System;
 using UnityEngine;
 using UnityEngine.UIElements;
+using System.Xml.Linq;
 
 namespace Unity.InteractiveTutorials
 {
     public static class RichTextParser
     {
+        // Tries to parse text to XDocument word by word - outputs the longest successful string before failing
+        static string ShowContentWithError(string errorContent)
+        {
+            string longestString = "";
+            string previousLongestString = "";
+            string[] lines = errorContent.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+
+            foreach (string line in lines)
+            {
+                string[] words = line.Split(new[] { " " }, StringSplitOptions.None);
+                foreach (string word in words)
+                {
+                    longestString += word + " ";
+                    try
+                    {
+                        XDocument.Parse("<content>" + longestString + "</content>");
+                    }
+                    catch
+                    {
+                        continue;
+                    }
+                    previousLongestString = longestString;
+                }
+                longestString += "\r\n";
+            }
+            return previousLongestString;
+        }
+
         /// <summary>
         /// Transforms HTML tags to word element labels with different styles to enable rich text.
         /// </summary>
@@ -17,9 +46,23 @@ namespace Unity.InteractiveTutorials
         /// </param>
         public static void RichTextToVisualElements(string htmlText, VisualElement targetContainer)
         {
-            // TODO should translation be a responsibility of the caller of this function instead
+            bool addError = false;
+            string errorText = "";
+            try
+            {
+                XDocument.Parse("<content>" + htmlText + "</content>");
+            }
+            catch(Exception e)
+            {
+                targetContainer.Clear();
+                errorText = e.Message;
+                htmlText = ShowContentWithError(htmlText);
+                addError = true;
+            }
+
+            // TODO should translation be a responsibility of the caller of this function instead?
             htmlText = Localization.Tr(htmlText);
-            VisualElementStyleSheetSet style = targetContainer.styleSheets;
+
             targetContainer.Clear();
             bool boldOn = false; // <b> sets this on </b> sets off
             bool italicOn = false; // <i> </i>
@@ -75,7 +118,6 @@ namespace Unity.InteractiveTutorials
                         strippedWord = strippedWord.Replace("href=", "");
                         int linkFrom = strippedWord.IndexOf("\"", StringComparison.Ordinal) + 1;
                         int linkTo = strippedWord.LastIndexOf("\"", StringComparison.Ordinal);
-                        // TODO handle invalid values
                         linkURL = strippedWord.Substring(linkFrom, linkTo - linkFrom);
                         strippedWord = strippedWord.Substring(linkTo + 2, (strippedWord.Length - 2) - linkTo);
                         strippedWord.Replace("\">", "");
@@ -104,14 +146,12 @@ namespace Unity.InteractiveTutorials
                     if (boldOn)
                     {
                         Label wordLabel = new Label(strippedWord);
-                        wordLabel.style.color = Color.black;
                         wordLabel.style.unityFontStyleAndWeight = new StyleEnum<FontStyle>(FontStyle.Bold);
                         targetContainer.Add(wordLabel);
                     }
                     else if (italicOn)
                     {
                         Label wordLabel = new Label(strippedWord);
-                        wordLabel.style.color = Color.black;
                         wordLabel.style.unityFontStyleAndWeight = new StyleEnum<FontStyle>(FontStyle.Italic);
                         targetContainer.Add(wordLabel);
                     }
@@ -121,13 +161,12 @@ namespace Unity.InteractiveTutorials
                     }
                     else if (linkOn && !string.IsNullOrEmpty(linkURL))
                     {
-                        Label newLabel = new Label(strippedWord);
-
-                        newLabel.style.color = Color.blue;
-                        newLabel.style.borderBottomWidth = 1f;
-                        newLabel.style.borderBottomColor = Color.blue;
-                        newLabel.tooltip = linkURL;
-                        newLabel.RegisterCallback<MouseUpEvent, string>(
+                        var label = new HyperlinkLabel
+                        {
+                            text = strippedWord,
+                            tooltip = linkURL
+                        };
+                        label.RegisterCallback<MouseUpEvent, string>(
                             (evt, linkurl) =>
                             {
                                 // Supporting only hyperlinks to Unity's websites.
@@ -137,12 +176,11 @@ namespace Unity.InteractiveTutorials
                             linkURL
                         );
 
-                        targetContainer.Add(newLabel);
+                        targetContainer.Add(label);
                     }
                     else
                     {
                         Label newlabel = new Label(strippedWord);
-                        newlabel.style.color = Color.black;
                         targetContainer.Add(newlabel);
                     }
                     if (removeBold) boldOn = false;
@@ -155,12 +193,22 @@ namespace Unity.InteractiveTutorials
                 }
                 firstLine = false;
             }
+
+            if (addError)
+            {
+                var label = new ParseErrorLabel()
+                {
+                    text = Localization.Tr("PARSE ERROR"),
+                    tooltip = Localization.Tr("Click here to see more information in the console.")
+                };
+                label.RegisterCallback<MouseUpEvent>((e) => Debug.LogError(errorText));
+                targetContainer.Add(label);
+            }
         }
 
         static void AddLinebreakToElement(VisualElement elementTo)
         {
             Label wordLabel = new Label(" ");
-            wordLabel.style.color = Color.black;
             wordLabel.style.flexDirection = FlexDirection.Row;
             wordLabel.style.flexGrow = 1f;
             wordLabel.style.width = 3000f;
@@ -171,11 +219,14 @@ namespace Unity.InteractiveTutorials
         static void AddParagraphToElement(VisualElement elementTo)
         {
             Label wordLabel = new Label(" ");
-            wordLabel.style.color = Color.black;
             wordLabel.style.flexDirection = FlexDirection.Row;
             wordLabel.style.flexGrow = 1f;
             wordLabel.style.width = 3000f;
             elementTo.Add(wordLabel);
         }
+
+        // Dummy classes so that we can customize the styles from a USS file.
+        class ParseErrorLabel : Label {}
+        class HyperlinkLabel : Label {}
     }
 }

@@ -58,5 +58,14 @@ namespace Unity.InteractiveTutorials
             m_Items.Clear();
             m_Items.AddRange(items);
         }
+
+        /// <summary>
+        /// Adds an item to the collection
+        /// </summary>
+        /// <param name="item"></param>
+        public void AddItem(T item)
+        {
+            m_Items.Add(item);
+        }
     }
 }

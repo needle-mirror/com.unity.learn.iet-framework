@@ -3,14 +3,12 @@
 ****************************/
 
 .container {
-    background-color: #DEDDDE;
     flex-grow: 1;
     flex-basis: 1px;
 }
 
 .container--header {
     background-color: #252625;
-    min-height: 216px;
 }
 
 .container--header-labels {
@@ -47,7 +45,6 @@
     padding-right: 15px;
     -unity-background-scale-mode: scale-and-crop;
     border-bottom-width: 1px;
-    border-color: rgba(0,0,0,0.2);
 }
 
 .label--header {
@@ -103,6 +100,10 @@
     margin-top: 9px;
 }
 
+/****************************
+*  CARD
+****************************/
+
 .container--card {
     flex-grow: 1;
     margin-top: 10px;
@@ -111,22 +112,16 @@
 }
 
 .card {
-    background-color: rgb(255, 255, 255);
     flex-direction: row;
     border-top-left-radius: 3px;
     border-top-right-radius: 3px;
     border-bottom-right-radius: 3px;
     border-bottom-left-radius: 3px;
     border-width: 1px;
-    border-color: rgba(0,0,0,0.2);
 }
 
 .card--tutorial-group {
     flex-direction: column;
-}
-
-.card:hover {
-    background-color: rgb(245, 245, 245);
 }
 
 .container--tutorial-icon {
@@ -134,7 +129,7 @@
     max-width: 80px;
     min-width: 80px;
     min-height: 80px;
-    border-width: 1px;
+    border-right-width: 1px;
     border-color: #212421;
     border-top-left-radius: 3px;
     border-bottom-left-radius: 3px;
@@ -143,10 +138,8 @@
 }
 
 .card--link .container--tutorial-icon {
-    background-color: rgb(255, 255, 255);
     border-width: 0;
     border-right-width: 1px;
-    border-color: rgba(0,0,0,0.1);
 }
 
 .image--tutorial-icon {
@@ -179,34 +172,28 @@
 
 .label--tutorial-name {
     font-size: 12px;
-    color: #000;
     -unity-font-style: bold;
 }
 
 .label--tutorial-description {
     white-space: normal;
-    color: #454545;
     margin-top: 2px;
 }
 
 .label--completed {
     -unity-font-style: bold;
     font-size: 11px;
-    color: #A0A0A0;
     margin-top: 4px;
+    opacity: 0.5;
 }
 
-.image--tutorial {
-    min-height: 150px;
-    flex-grow: 1;
-    background-color: rgb(101, 180, 191);
-}
+/****************************
+*  TUTORIAL STEP
+****************************/
 
 .container--tutorial {
     flex-grow: 1;
     border-top-width: 1px;
-    border-top-color: rgba(0, 0, 0, 0.05);
-    background-color: rgb(225, 225, 225);
 }
 
 .scrollview--tutorial .unity-scroll-view__content-container {
@@ -219,7 +206,6 @@
 }
 
 .label--tutorial-title {
-    color: #000;
     font-size: 16px;
     margin-bottom: 15px;
     -unity-font-style: bold;
@@ -234,19 +220,16 @@
     flex-direction: row;
 }
 
+/****************************
+*  INSTRUCTION BOX
+****************************/
+
 .container--instruction {
-    background-color: rgb(255, 255, 255);
     margin-top: 5px;
     margin-bottom: 15px;
     padding: 15px;
     flex-direction: row;
-    border-bottom-color: rgba(0, 0, 0, 0.15);
     border-bottom-width: 1px;
-}
-
-.container--instruction-inactive {
-    background-color: rgb(230, 230, 230);
-    opacity: 0.5;
 }
 
 .container--instruction-text {
@@ -258,7 +241,6 @@
     margin-bottom: 5px;
     -unity-font-style: bold;
     white-space: normal;
-    color: #000;
 }
 
 .label--instruction-description {
@@ -321,6 +303,9 @@
     left: 0;
 }
 
+/****************************
+*  ACTIONS FOOTER
+****************************/
 
 .container--tutorial-actions {
     display: flex;
@@ -331,7 +316,6 @@
     min-height: 50px;
     flex-direction: row;
     border-top-width: 1px;
-    border-color: rgba(0,0,0,0.1);
 }
 
 .button--tutorial-action {
@@ -348,10 +332,12 @@
     border-top-right-radius: 3px;
     border-bottom-right-radius: 3px;
     border-bottom-left-radius: 3px;
-    margin-left: -5px;
-    margin-right: -5px;
+    margin-left: -6px;
+    margin-right: -6px;
+    margin-top: -1px;
+    margin-bottom: -1px;
     border-width: 3px;
-    border-color: rgba(255,255,255,1);
+    border-color: #5ABAFA;
     display: none;
 }
 
@@ -369,6 +355,18 @@
     background-color: #269FF4;
 }
 
+HyperlinkLabel {
+    color: #3271AE;
+    border-bottom-color: #3271AE;
+    border-bottom-width: 1px;
+}
+
+ParseErrorLabel {
+    color: red;
+    border-bottom-color: red;
+    border-bottom-width: 1px;
+}
+
 /****************************
 *  WELCOME DIALOG
 ****************************/
@@ -379,7 +377,6 @@
 
 .container--welcome-dialog-content {
     flex-grow: 1;
-    background-color: rgb(221, 221, 221);
 }
 
 .container--welcome-dialog-media {
@@ -397,7 +394,6 @@
 .label--welcome-dialog-title {
     font-size: 20px;
     -unity-font-style: bold;
-    color: rgb(0, 0, 0);
     margin: 15px;
     margin-bottom: 10px;
 }
@@ -408,7 +404,6 @@
     margin-left: 15px;
     margin-right: 15px;
     margin-bottom: 15px;
-    color: rgb(0, 0, 0);
     flex-direction: row;
     flex-wrap: wrap;
 }
@@ -420,7 +415,6 @@
 .container--welcome-dialog-actions {
     flex-direction: row;
     border-top-width: 1px;
-    border-color: rgba(0,0,0,0.1);
     padding: 12px;
     min-height: 56px;
     align-items: center;
@@ -435,4 +429,52 @@
     font-size: 14px;
     margin-left: 6px;
     margin-right: 6px;
+}
+
+/****************************
+*  THEME SPECIFIC COLORS
+****************************/
+
+.container {
+    background-color: #DEDDDE;
+}
+
+.container--header-large {
+    border-color: rgba(0,0,0,0.2);
+}
+
+.card {
+    background-color: rgba(255, 255, 255, 0.8);
+    border-color: rgba(0,0,0,0.15);
+}
+
+.card:hover {
+    background-color: rgba(255, 255, 255, 1);
+}
+
+.card--link .container--tutorial-icon {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: rgba(0,0,0,0.1);
+}
+
+.container--tutorial {
+    border-top-color: rgba(0, 0, 0, 0.05);
+    background-color: rgb(225, 225, 225);
+}
+
+.container--instruction {
+    background-color: rgb(255, 255, 255);
+    border-bottom-color: rgba(0, 0, 0, 0.15);
+}
+
+.container--tutorial-actions {
+    border-color: rgba(0,0,0,0.1);
+}
+
+.container--welcome-dialog-content {
+    background-color: rgb(221, 221, 221);
+}
+
+.container--welcome-dialog-actions {
+    border-color: rgba(0,0,0,0.1);
 }

@@ -395,7 +395,7 @@ namespace Unity.InteractiveTutorials
 
         void InitializeEventWithDefaultData(SerializedProperty eventProperty)
         {
-            var so = AssetDatabase.LoadAssetAtPath<ScriptableObject>("Assets/IET/TutorialCallbacks.asset");
+            var so = AssetDatabase.LoadAssetAtPath<ScriptableObject>("Assets/IET/TutorialCallbacks.asset"); // TODO check this
             //[TODO] Add listeners here if they are empty (?)
             ForceCallbacksListenerTarget(eventProperty, so);
             ForceCallbacksListenerState(eventProperty, UnityEngine.Events.UnityEventCallState.EditorAndRuntime);

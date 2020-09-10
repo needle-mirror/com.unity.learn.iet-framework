@@ -8,6 +8,3 @@ msgstr ""
 "X-Generator: po-conv\n"
 "Language: zh-hans\n"
 "Project-Id-Version: com.unity.learn.iet-framework@0.4.0-preview\n"
-
-msgid "Show Tutorials"
-msgstr "ほげえええ zn-CH"

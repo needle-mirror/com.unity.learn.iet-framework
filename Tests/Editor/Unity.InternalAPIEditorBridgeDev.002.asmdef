@@ -1,5 +1,5 @@
 {
-    "name": "Assembly-CSharp-Editor-firstpass-testable",
+    "name": "Unity.InternalAPIEditorBridgeDev.002",
     "references": [
         "Unity.InteractiveTutorials.Core",
         "UnityEditor.InteractiveTutorialsFramework",

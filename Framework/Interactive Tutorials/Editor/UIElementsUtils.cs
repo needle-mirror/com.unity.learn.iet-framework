@@ -1,4 +1,5 @@
 using System;
+using UnityEditor;
 using UnityEngine.UIElements;
 
 namespace Unity.InteractiveTutorials
@@ -32,5 +33,12 @@ namespace Unity.InteractiveTutorials
         public static void Hide(VisualElement element) { element.style.display = DisplayStyle.None; }
         public static void Show(VisualElement element) { element.style.display = DisplayStyle.Flex; }
         public static bool IsVisible(VisualElement element) { return (element == null) ? false : element.style.display != DisplayStyle.None; }
+
+        public static void RemoveStyleSheet(StyleSheet styleSheet, VisualElement target)
+        {
+            if (!styleSheet) { return; }
+            if (!target.styleSheets.Contains(styleSheet)) { return; }
+            target.styleSheets.Remove(styleSheet);
+        }
     }
 }

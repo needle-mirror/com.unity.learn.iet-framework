@@ -1,6 +1,6 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
     <ui:VisualElement>
-        <Style src="Main.uss" />
+        <Style src="Main_Light.uss" />
 
         <!-- This is used as container to cards -->
         <ui:ScrollView name="TutorialListScrollView" class="scrollview--tutorial-list"></ui:ScrollView>

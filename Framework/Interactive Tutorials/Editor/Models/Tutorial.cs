@@ -9,90 +9,182 @@ using UnityObject = UnityEngine.Object;
 
 namespace Unity.InteractiveTutorials
 {
+    /// <summary>
+    /// A container for tutorial pages which implement the tutorial's functionality.
+    /// </summary>
     public class Tutorial : ScriptableObject
     {
+        /// <summary>
+        /// A wrapper class for serialization purposes.
+        /// </summary>
         [Serializable]
         public class TutorialPageCollection : CollectionWrapper<TutorialPage>
         {
-            public TutorialPageCollection() : base()
-            {
-            }
-
-            public TutorialPageCollection(IList<TutorialPage> items) : base(items)
-            {
-            }
+            /// <summary> Creates and empty collection. </summary>
+            public TutorialPageCollection() : base() {}
+            /// <summary> Creates a new collection from existing items. </summary>
+            /// <param name="items"></param>
+            public TutorialPageCollection(IList<TutorialPage> items) : base(items) {}
         }
 
+        /// <summary>
+        /// Raised when any page of any tutorial tutorial is modified.
+        /// </summary>
         public static event Action<Tutorial> tutorialPagesModified;
 
-        public string tutorialTitle { get { return m_TutorialTitle; } }
+        /// <summary>
+        /// The title shown in the window.
+        /// </summary>
+        public string tutorialTitle { get => m_TutorialTitle; set => m_TutorialTitle = value; }
         [Header("Content")]
         [SerializeField]
         string m_TutorialTitle = "";
 
-        public string lessonId { get { return m_LessonId; } }
+        /// <summary>
+        /// Lessond ID, arbitrary string, typically integers are used.
+        /// </summary>
+        public string lessonId { get => m_LessonId; set => m_LessonId = value; }
         [SerializeField]
         string m_LessonId = "";
 
-        public string version { get { return m_Version; } }
+        /// <summary>
+        /// Tutorial version, arbitrary string, typically integers are used.
+        /// </summary>
+        public string version { get => m_Version; set => m_Version = value; }
         [SerializeField]
         string m_Version = "0";
 
         [Header("Scene Data")]
         [SerializeField]
-        SceneAsset m_Scene = null;
-        [SerializeField]
-        SceneViewCameraSettings m_DefaultSceneCameraSettings = null;
+        SceneAsset m_Scene = default;
 
+        [SerializeField]
+        SceneViewCameraSettings m_DefaultSceneCameraSettings = default;
+
+        /// <summary>
+        /// The supported exit behavior types.
+        /// </summary>
         public enum ExitBehavior
         {
+            /// <summary>
+            /// Show "home window", i.e. Unity Hub.
+            /// </summary>
             ShowHomeWindow,
+            /// <summary>
+            /// Exit the tutorial, despite its name, this does not close the window.
+            /// </summary>
             CloseWindow,
         }
 
-        public ExitBehavior exitBehavior { get { return m_ExitBehavior; } }
+        /// <summary>
+        /// How should the tutorial behave upon exiting.
+        /// </summary>
+        public ExitBehavior exitBehavior { get => m_ExitBehavior; set => m_ExitBehavior = value; }
         [Header("Exit Behavior")]
         [SerializeField]
         ExitBehavior m_ExitBehavior = ExitBehavior.ShowHomeWindow;
 
+        /// <summary>
+        /// The supported skip behavior types.
+        /// </summary>
         public enum SkipTutorialBehavior
         {
+            /// <summary>
+            /// Same as exit behaviour.
+            /// </summary>
             SameAsExitBehavior,
+            /// <summary>
+            /// Skip to the last page of the tutorial.
+            /// </summary>
             SkipToLastPage,
         }
 
-        public SkipTutorialBehavior skipTutorialBehavior { get { return m_SkipTutorialBehavior; } }
+        /// <summary>
+        /// How should the tutorial behave upon skipping.
+        /// </summary>
+        public SkipTutorialBehavior skipTutorialBehavior { get => m_SkipTutorialBehavior; set => m_SkipTutorialBehavior = value; }
         [SerializeField]
         SkipTutorialBehavior m_SkipTutorialBehavior = SkipTutorialBehavior.SameAsExitBehavior;
 
-        public UnityObject assetSelectedOnExit { get { return m_AssetSelectedOnExit; } }
+        /// <summary>
+        /// Obsolete.
+        /// </summary>
+        [Obsolete]
+        public UnityObject assetSelectedOnExit { get => m_AssetSelectedOnExit; set => m_AssetSelectedOnExit = value; }
         [SerializeField]
-        UnityObject m_AssetSelectedOnExit = null;
+        UnityObject m_AssetSelectedOnExit = default;
 
-        public TutorialWelcomePage welcomePage { get { return m_WelcomePage; } }
+        /// <summary>
+        /// Obsolete.
+        /// </summary>
+        [Obsolete]
+        public TutorialWelcomePage welcomePage => m_WelcomePage;
         [Header("Pages"), SerializeField]
-        private TutorialWelcomePage m_WelcomePage = null;
-        [SerializeField]
-        public TutorialWelcomePage completedPage { get { return m_CompletedPage; } }
-        [SerializeField]
-        private TutorialWelcomePage m_CompletedPage = null;
+        TutorialWelcomePage m_WelcomePage = default;
 
-        // TODO Handle these states in a better fashion instead of boolean farming
-        // e.g. typeof(currentPage) == WelcomePage
+        /// <summary>
+        /// Obsolete.
+        /// </summary>
+        [Obsolete]
+        public TutorialWelcomePage completedPage => m_CompletedPage;
         [SerializeField]
-        internal bool IsWelcomingPageShowing = true;
-        [SerializeField]
-        internal bool IsCompletedPageShowing = false;
+        TutorialWelcomePage m_CompletedPage = default;
+
+        /// <summary>
+        /// The layout used by the tutorial
+        /// </summary>
+        public UnityObject WindowLayout { get => m_WindowLayout; set => m_WindowLayout = value; }
+
+        [SerializeField, Tooltip("Saved layouts can be found in the following directories:\n" +
+            "Windows: %APPDATA%/Unity/<version>/Preferences/Layouts\n" +
+            "macOS: ~/Library/Preferences/Unity/<version>/Layouts\n" +
+            "Linux: ~/.config/Preferences/Unity/<version>/Layouts")]
+        UnityObject m_WindowLayout;
+
+        internal string windowLayoutPath => AssetDatabase.GetAssetPath(m_WindowLayout);
+
+        /// <summary>
+        /// All the pages of this tutorial.
+        /// </summary>
+        public IEnumerable<TutorialPage> pages => m_Pages;
+        [SerializeField, FormerlySerializedAs("m_Steps")]
+        internal TutorialPageCollection m_Pages = new TutorialPageCollection();
 
         AutoCompletion m_AutoCompletion;
 
-        public bool skipped { get { return m_Skipped; } }
-        bool m_Skipped;
+        /// <summary>
+        /// Is this being skipped currently.
+        /// </summary>
+        public bool skipped { get; private set; }
 
+        /// <summary>
+        /// Raised when this tutorial is being initiated.
+        /// </summary>
         public event Action tutorialInitiated;
+        /// <summary>
+        /// Raised when a page of this tutorial is being initiated.
+        /// </summary>
         public event Action<TutorialPage, int> pageInitiated;
+        /// <summary>
+        /// Raised when we are going back to the previous page.
+        /// </summary>
         public event Action<TutorialPage> goingBack;
+        /// <summary>
+        /// Raised when this tutorial is completed.
+        /// </summary>
         public event Action<bool> tutorialCompleted;
+
+        public int currentPageIndex { get; private set; }
+
+        public TutorialPage currentPage => m_Pages.count == 0
+                    ? null
+                    : m_Pages[currentPageIndex = Mathf.Min(currentPageIndex, m_Pages.count - 1)];
+
+        public int pageCount => m_Pages.count;
+
+        public bool completed => pageCount == 0 || (currentPageIndex >= pageCount - 2 && currentPage != null && currentPage.allCriteriaAreSatisfied);
+
+        public bool isAutoCompleting => m_AutoCompletion.running;
 
         public Tutorial()
         {
@@ -108,38 +200,6 @@ namespace Unity.InteractiveTutorials
         {
             m_AutoCompletion.OnDisable();
         }
-
-        [SerializeField, FormerlySerializedAs("m_Steps")]
-        internal TutorialPageCollection m_Pages = new TutorialPageCollection();
-
-        public IEnumerable<TutorialPage> pages { get { return m_Pages; } }
-
-        public int currentPageIndex { get { return m_CurrentPageIndex; } }
-        int m_CurrentPageIndex = 0;
-
-        public TutorialPage currentPage
-        {
-            get
-            {
-                return m_Pages.count == 0
-                    ? null
-                    : m_Pages[m_CurrentPageIndex = Mathf.Min(m_CurrentPageIndex, m_Pages.count - 1)];
-            }
-        }
-
-        public int pageCount { get { return m_Pages.count; } }
-
-        public bool completed { get { return pageCount == 0 || (currentPageIndex >= pageCount - 2 && currentPage != null && currentPage.allCriteriaAreSatisfied); } }
-
-        [SerializeField, Tooltip("Saved layouts can be found in the following directories:\n" +
-            "Windows: %APPDATA%/Unity/<version>/Preferences/Layouts\n" +
-            "macOS: ~/Library/Preferences/Unity/<version>/Layouts\n" +
-            "Linux: ~/.config/Preferences/Unity/<version>/Layouts")]
-        UnityObject m_WindowLayout = null;
-
-        internal string windowLayoutPath => AssetDatabase.GetAssetPath(m_WindowLayout);
-
-        public bool isAutoCompleting { get { return m_AutoCompletion.running; } }
 
         public void StartAutoCompletion()
         {
@@ -159,39 +219,35 @@ namespace Unity.InteractiveTutorials
 
         public void GoToPreviousPage()
         {
-            if (m_CurrentPageIndex == 0 && !IsWelcomingPageShowing)
-            {
-                IsWelcomingPageShowing = true;
+            if (currentPageIndex == 0)
                 return;
-            }
+
             OnGoingBack(currentPage);
-            m_CurrentPageIndex = Mathf.Max(0, m_CurrentPageIndex - 1);
-            OnPageInitiated(currentPage, m_CurrentPageIndex);
+            currentPageIndex = Mathf.Max(0, currentPageIndex - 1);
+            OnPageInitiated(currentPage, currentPageIndex);
         }
 
         public bool TryGoToNextPage()
         {
             if (!currentPage || !currentPage.allCriteriaAreSatisfied && !currentPage.hasMovedToNextPage)
                 return false;
-            if (m_Pages.count == m_CurrentPageIndex + 1)
+            if (m_Pages.count == currentPageIndex + 1)
             {
                 OnTutorialCompleted(true);
-                IsCompletedPageShowing = true; //[TODO] is this needed?
                 return false;
             }
-            int newIndex = Mathf.Min(m_Pages.count - 1, m_CurrentPageIndex + 1);
-            if (newIndex != m_CurrentPageIndex)
+            int newIndex = Mathf.Min(m_Pages.count - 1, currentPageIndex + 1);
+            if (newIndex != currentPageIndex)
             {
                 if (currentPage != null)
                 {
                     currentPage.OnPageCompleted();
                 }
-                m_CurrentPageIndex = newIndex;
-                OnPageInitiated(currentPage, m_CurrentPageIndex);
-                if (m_Pages.count == m_CurrentPageIndex + 1)
+                currentPageIndex = newIndex;
+                OnPageInitiated(currentPage, currentPageIndex);
+                if (m_Pages.count == currentPageIndex + 1)
                 {
                     OnTutorialCompleted(false);
-                    IsCompletedPageShowing = true; //[TODO] is this needed?
                 }
                 return true;
             }
@@ -216,7 +272,7 @@ namespace Unity.InteractiveTutorials
                 m_DefaultSceneCameraSettings.Apply();
             OnTutorialInitiated();
             if (pageCount > 0)
-                OnPageInitiated(currentPage, m_CurrentPageIndex);
+                OnPageInitiated(currentPage, currentPageIndex);
         }
 
         internal void LoadWindowLayout()
@@ -234,10 +290,8 @@ namespace Unity.InteractiveTutorials
             {
                 page?.ResetUserProgress();
             }
-            m_CurrentPageIndex = 0;
-            IsWelcomingPageShowing = true;
-            IsCompletedPageShowing = false;
-            m_Skipped = false;
+            currentPageIndex = 0;
+            skipped = false;
             LoadScene();
         }
 
@@ -265,9 +319,18 @@ namespace Unity.InteractiveTutorials
 
         public void SkipToLastPage()
         {
-            m_Skipped = true;
-            m_CurrentPageIndex = pageCount - 1;
-            OnPageInitiated(currentPage, m_CurrentPageIndex);
+            skipped = true;
+            currentPageIndex = pageCount - 1;
+            OnPageInitiated(currentPage, currentPageIndex);
+        }
+
+        /// <summary>
+        /// Adds a page to the tutorial
+        /// </summary>
+        /// <param name="tutorialPage">The page to be added</param>
+        public void AddPage(TutorialPage tutorialPage)
+        {
+            m_Pages.AddItem(tutorialPage);
         }
     }
 }

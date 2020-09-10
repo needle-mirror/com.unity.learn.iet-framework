@@ -1,3 +1,3 @@
 using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("Assembly-CSharp-Editor-firstpass-testable")]
+[assembly: InternalsVisibleTo("Unity.InternalAPIEditorBridgeDev.002")]

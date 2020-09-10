@@ -8,6 +8,7 @@ namespace Unity.InteractiveTutorials
     {
         struct CacheEntry
         {
+            public Texture2D texture2D;
             public VideoPlayer videoPlayer;
             public RenderTexture renderTexture;
         }
@@ -47,12 +48,17 @@ namespace Unity.InteractiveTutorials
                 m_Cache.Add(videoClip, cacheEntry);
             }
 
-            return TextureToTexture2D(cacheEntry.renderTexture);
+            if (cacheEntry.texture2D == null)
+                cacheEntry.texture2D = new Texture2D(cacheEntry.renderTexture.width, cacheEntry.renderTexture.height, TextureFormat.RGBA32, false);
+
+            TextureToTexture2D(cacheEntry.renderTexture, ref cacheEntry.texture2D);
+            m_Cache[videoClip] = cacheEntry;
+
+            return cacheEntry.texture2D;
         }
 
-        private Texture2D TextureToTexture2D(Texture texture)
+        static void TextureToTexture2D(Texture texture, ref Texture2D texture2D)
         {
-            Texture2D texture2D = new Texture2D(texture.width, texture.height, TextureFormat.RGBA32, false);
             RenderTexture currentRT = RenderTexture.active;
             RenderTexture renderTexture = RenderTexture.GetTemporary(texture.width, texture.height, 32);
             Graphics.Blit(texture, renderTexture);
@@ -63,13 +69,13 @@ namespace Unity.InteractiveTutorials
 
             RenderTexture.active = currentRT;
             RenderTexture.ReleaseTemporary(renderTexture);
-            return texture2D;
         }
 
         public void ClearCache()
         {
             foreach (var cacheEntry in m_Cache.Values)
             {
+                Object.DestroyImmediate(cacheEntry.texture2D);
                 Object.DestroyImmediate(cacheEntry.videoPlayer);
                 Object.DestroyImmediate(cacheEntry.renderTexture);
             }

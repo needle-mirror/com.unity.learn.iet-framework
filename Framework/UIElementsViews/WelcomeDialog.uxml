@@ -1,7 +1,6 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements">
     <ui:VisualElement name="MainContainer" class="container--welcome-dialog">
         <ui:VisualElement name="ContentContainer" class="container--welcome-dialog-content">
-            <Style src="Main.uss" />
             <ui:VisualElement name="HeaderContainer" class="container--welcome-dialog-media">
                 <ui:VisualElement name="HeaderMedia" class="image--welcome-dialog" />
             </ui:VisualElement>

@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Unity.InteractiveTutorials
 {
+    /// <summary>
+    /// An index for the tutorials in the project.
+    /// </summary>
     public class TutorialContainer : ScriptableObject
     {
         public event Action Modified;
@@ -25,10 +28,7 @@ namespace Unity.InteractiveTutorials
             ProjectLayout != null ? AssetDatabase.GetAssetPath(ProjectLayout) : k_DefaultLayoutPath;
 
         // The default layout used when a project is started for the first time.
-        // TODO IET unit test the the file exist.
-        // TODO IET unit test the the layout contains TutorialWindow.
-        // TODO Should be in TutorialProjectSettings and/or UserStartupCode instead.
-        const string k_DefaultLayoutPath =
+        internal static readonly string k_DefaultLayoutPath =
             "Packages/com.unity.learn.iet-framework/Framework/Interactive Tutorials/Layouts/DefaultLayout.wlt";
 
         [Serializable]
@@ -41,33 +41,60 @@ namespace Unity.InteractiveTutorials
             public LocalizableString Text;
 
             // TODO Rename
+            /// <summary>
+            /// Used as content type metadata for external references/URLs
+            /// </summary>
             [Tooltip("Used as content type metadata for external references/URLs")]
             public string LinkText;
 
+            /// <summary>
+            /// The URL of this section.
+            /// Setting the URL will take precedence and make the card act as a link card instead of a tutorial card
+            /// </summary>
             [Tooltip("Setting the URL will take precedence and make the card act as a link card instead of a tutorial card")]
             public string Url;
 
+            /// <summary>
+            /// Use for Unity Connect auto-login, shortened URLs do not work
+            /// </summary>
             [Tooltip("Use for Unity Connect auto-login, shortened URLs do not work")]
             public bool AuthorizedUrl;
 
             public Texture2D Image;
 
-            [SerializeField]
-            Tutorial Tutorial = null;
+            /// <summary>
+            /// The tutorial this container contains
+            /// </summary>
+            public Tutorial Tutorial = null;
 
+            /// <summary>
+            /// Has the tutorial been already completed?
+            /// </summary>
             public bool TutorialCompleted { get; set; }
 
+            /// <summary>
+            /// Does this represent a tutorial?
+            /// </summary>
             public bool IsTutorial => Url.IsNullOrEmpty();
 
+            /// <summary>
+            /// The ID of the represented tutorial, if any
+            /// </summary>
             public string TutorialId => Tutorial?.lessonId.AsEmptyIfNull();
 
             public string SessionStateKey => $"Unity.InteractiveTutorials.lesson{TutorialId}";
 
+            /// <summary>
+            /// Starts the tutorial of the section
+            /// </summary>
             public void StartTutorial()
             {
                 TutorialManager.instance.StartTutorial(Tutorial);
             }
 
+            /// <summary>
+            /// Opens the URL Of the section, if any
+            /// </summary>
             public void OpenUrl()
             {
                 if (string.IsNullOrEmpty(Url))
@@ -81,7 +108,10 @@ namespace Unity.InteractiveTutorials
                 AnalyticsHelper.SendExternalReferenceEvent(Url, Heading.Untranslated, LinkText, Tutorial?.lessonId);
             }
 
-            // returns true if the state was found from EditorPrefs
+            /// <summary>
+            /// Loads the state of a section
+            /// </summary>
+            /// <returns>returns true if the state was found from EditorPrefs</returns>
             public bool LoadState()
             {
                 const string nonexisting = "NONEXISTING";
@@ -117,11 +147,17 @@ namespace Unity.InteractiveTutorials
             Array.Sort(Sections, (x, y) => x.OrderInView.CompareTo(y.OrderInView));
         }
 
+        /// <summary>
+        /// Loads the tutorial project layout
+        /// </summary>
         public void LoadTutorialProjectLayout()
         {
             TutorialManager.LoadWindowLayoutWorkingCopy(ProjectLayoutPath);
         }
 
+        /// <summary>
+        /// Raises theModified event
+        /// </summary>
         public void RaiseModifiedEvent()
         {
             Modified?.Invoke();
