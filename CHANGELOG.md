@@ -5,7 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## [1.1.0] - 2020-09-10
+## [1.1.0] - 2020-09-15
 ### Added
 - Support for both Personal/Light & Professional/Dark style sheets. The styles can be customised on a per-project basis using `TutorialStyles`.
 - Rich text parser: validate input, create a clickable error label for invalid input.
@@ -14,6 +14,7 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Raised the required Unity version to 2019.4.
 - Hide the tutorial media header if the page has no media set.
+- Unit tests are omitted from the package. Also renamed the unit test assembly in order to prevent name clashes with other internal Unity projects if the package is used as a local file package.
 
 ### Fixed
 - Fixed masking and highlighting for Unity 2020.1 and newer.
