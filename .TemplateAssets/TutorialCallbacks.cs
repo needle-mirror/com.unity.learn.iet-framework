@@ -20,12 +20,13 @@ public class TutorialCallbacks : ScriptableObject
         Debug.Log("ExampleMethod");
     }
 
-    // Example callbacks for AtrbitraryCriterion's BoolCallback
+    // Example callbacks for ArbitraryCriterion's BoolCallback
     public bool DoesFooExist()
     {
         return GameObject.Find("Foo") != null;
     }
 
+    // Implement the logic to automatically complete the criterion here, if wanted/needed.
     public bool AutoComplete()
     {
         var foo = GameObject.Find("Foo");

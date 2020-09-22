@@ -5,7 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## [1.1.0] - 2020-09-15
+## [1.1.0] - 2020-09-22
 ### Added
 - Support for both Personal/Light & Professional/Dark style sheets. The styles can be customised on a per-project basis using `TutorialStyles`.
 - Rich text parser: validate input, create a clickable error label for invalid input.
@@ -22,6 +22,7 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed all UI textures use the correct (GUI) texture type for better visual quality.
 - `TutorialPage`: fixed null reference exception if selecting _None_ as _Media_ while having _Video_ as _Media Type_.
 - Cleaned up PO files from dummy test translations.
+- Fixed null reference exception spam when rerunning a newly created tutorial.
 
 ## [1.0.3] - 2020-08-26
 ### Fixed
