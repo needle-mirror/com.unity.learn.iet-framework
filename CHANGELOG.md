@@ -5,9 +5,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [1.2.0] - 2020-11-10
+### Added
+- Localization: Finalize localization support for CJK languages. No translations provided yet.
+- Localization: Changes to IET project translations are applied automatically, _Translate Current Project_ menu item removed as unnecessary.
+- Localization: Made the UI strings of `Tutorial`, `TutorialPage` and `TutorialParagraph` localizable.
+- Tutorials window can be shown by anchoring and docking next to the Inspector (new default behavior) in addition of loading a window layout containing the window (old behavior).
+- Provide static `Modified` events for `TutorialWelcomePage`, `Tutorial` and `TutorialContainer`.
+- Tutorial authors can now define callbacks for `OnTutorialPageStay` (called each Editor update) and `OnBeforeTutorialQuit` (called right before a user force-quits a tutorial).
+- Added _Enable Masking and Highlighting_ Preference, can be found under _Preferences_ > _In-Editor Tutorials_.
+- Exposed `SceneViewCameraSettings` class and enums.
+- Documentation: Known Issues section added.
+
+### Changed
+- TutorialWindow no longer has hardcoded "TUTORIALS" text, instead `TutorialContainer.Subtitle` shown here.
+- Deprecated `TutorialContainer.Description`, renamed `Title` to `Subtitle`, `ProjectName` will be renamed most likely to `Title` in 2.0.
+- `TutorialProjectSettings.RestoreDefaultAssetsOnTutorialReload` made `false` by default.
+- deprecated `TutorialContainer.Section.AuthorizedUrl`; the Unity authentication need is detected automatically from the URL.
+- UI: Updated Link Card styling.
+- UI: Enable word wrapping for Tutorial Card title.
+- UI: Enable word wrapping for `TutorialContainer`'s header title and subtitle.
+
+### Fixed
+- Hyperlinks in tutorial pages support also to non-Unity URLs and work when the user was is not logged in.
+
 ## [1.1.0] - 2020-09-22
 ### Added
-- Support for both Personal/Light & Professional/Dark style sheets. The styles can be customised on a per-project basis using `TutorialStyles`.
+- Support for both Personal/Light & Professional/Dark style sheets. The styles can be customized on a per-project basis using `TutorialStyles`.
 - Rich text parser: validate input, create a clickable error label for invalid input.
 - It is now possible to highlight/unmask Unity Object specific UI element by referencing the object properly instead of relying solely to a name matching logic.
 
@@ -72,7 +96,7 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - `BuildStartedCriterion` is evaluated properly also in cases where a build is not started from default Build Settings window.
-- Null reference expcetion when trying to view `TutorialPage` without paragraphs in the Inspector.
+- Null reference exception when trying to view `TutorialPage` without paragraphs in the Inspector.
 
 ## [0.5.0] - 2020-06-23
 ### Added
@@ -91,7 +115,7 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - the welcome page for the project needs to be set explicitly,
   - `StartupTutorial` is not started automatically, and
   - `UseLegacyStartupBehavior` false by default.
-- Authoring: single linebreaks rendered as expected instead of new paragraphs.
+- Authoring: single line breaks rendered as expected instead of new paragraphs.
 - Refactored and combined all the styles, removed `WelcomeDialog.uss`.
 - Updated the style of the welcome dialog.
 - Improvement: `SceneViewCameraSettingsDrawer` shows rotation as Euler angles instead of raw Quaternion components.
@@ -99,7 +123,7 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dependencies: update Editor Coroutines to 1.0.0.
 
 ### Fixed
-- Single linebreaks now make a linebreak and two linebreaks make a paragraph.
+- Single line breaks now make a line break and two line breaks make a paragraph.
 - `TutorialModalWindow`: Fixed hiding of `HeaderContainer` if none/null image set.
 - Instead of modifying the original window layout files in the project, a working copy is created and modified.
 - Fixed null reference exceptions when starting a Tutorial which has no pages.
@@ -225,7 +249,7 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Integrated the readme asset with the Tutorials
 - Ability to have more than a single Tutorial in a project
-- Propper flow for users to go into and out of a tutorial
+- Proper flow for users to go into and out of a tutorial
 - Ability to add Images, Video to a tutorial
 - New Color type added to PropertyModificaitonCriterion
 - PropertyModificationCriterion has a new mode where it will complete if the user changes a property to a different value than initial

@@ -61,7 +61,7 @@ namespace Unity.InteractiveTutorials.Tests
         {
             Reset();
             m_Window = EditorWindow.GetWindow<TutorialWindow>();
-            m_Window.showTabClosedDialog = false;
+            TutorialWindow.ShowTutorialsClosedDialog.SetValue(false);
             m_Window.rootVisualElement.style.flexDirection = FlexDirection.Row;
             m_Window.rootVisualElement.style.flexWrap = Wrap.Wrap;
         }

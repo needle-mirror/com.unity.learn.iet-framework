@@ -1,6 +1,6 @@
 # Tutorial Framework
 ---------
-This package is needed to have In-Editor Tutorials working.
+This package is needed to have In-Editor Tutorials working. **This package relies heavily on Unity internals.**
 
 ## Setup
 Follow those steps to add support to in Editor tutorials to your project/template:

@@ -56,8 +56,8 @@ namespace Unity.InteractiveTutorials.Tests
             for (int i = 0; i < m_Tutorial.m_Pages.count; ++i)
             {
                 m_Tutorial.m_Pages[i].name = string.Format("{0}-PAGE-{1}", TestContext.CurrentContext.Test.FullName, i + 1);
-                m_Tutorial.m_Pages[i].doneButton = doneButtonText;
-                m_Tutorial.m_Pages[i].nextButton = nextButtonText;
+                m_Tutorial.m_Pages[i].DoneButton = doneButtonText;
+                m_Tutorial.m_Pages[i].NextButton = nextButtonText;
             }
 
             var paragraph = new TutorialParagraph
@@ -70,12 +70,12 @@ namespace Unity.InteractiveTutorials.Tests
                     }
                 )
             };
-            paragraph.summary = firstPageInstructionSummary;
-            paragraph.InstructionText = firstPageInstructionText;
+            paragraph.Title = firstPageInstructionSummary;
+            paragraph.Text = firstPageInstructionText;
             m_Tutorial.m_Pages[0].m_Paragraphs = new TutorialParagraphCollection(new[] { paragraph });
 
             m_Window = EditorWindow.GetWindow<TutorialWindow>();
-            m_Window.showTabClosedDialog = false;
+            TutorialWindow.ShowTutorialsClosedDialog.SetValue(false);
             m_Window.SetTutorial(m_Tutorial, reload: false);
         }
 
@@ -289,7 +289,7 @@ namespace Unity.InteractiveTutorials.Tests
             firstPage.m_Paragraphs[0].maskingSettings.SetUnmaskedViews(new[] { UnmaskedView.CreateInstanceForGUIView<Toolbar>() });
             firstPage.m_Paragraphs[0].maskingSettings.enabled = true;
             firstPage.RaiseTutorialPageMaskingSettingsChangedEvent();
-            m_Window.RepaintImmediately();
+            //m_Window.RepaintImmediately(); TODO disabled, was causing problems after adding localisation support
 
             List<GUIView> views = new List<GUIView>();
             GUIViewDebuggerHelper.GetViews(views);

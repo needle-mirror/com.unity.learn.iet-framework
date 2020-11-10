@@ -3,6 +3,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using NUnit.Framework;
 using UnityObject = UnityEngine.Object;
+using UnityEngine.TestTools;
 
 namespace Unity.InteractiveTutorials.Tests
 {
@@ -27,7 +28,7 @@ namespace Unity.InteractiveTutorials.Tests
         }
 
         TutorialPage m_Page;
-        MockCriterion m_Criterion;
+        MockCriterion m_Criterion; 
 
         [SetUp]
         public void SetUp()
@@ -40,9 +41,9 @@ namespace Unity.InteractiveTutorials.Tests
             m_Criterion = ScriptableObject.CreateInstance<MockCriterion>();
             var tc = new TypedCriterion(new SerializedType(typeof(MockCriterion)), m_Criterion);
 
-            instructionParagraph.m_Criteria = new TypedCriterionCollection(new[] {tc});
+            instructionParagraph.m_Criteria = new TypedCriterionCollection(new[] { tc });
 
-            m_Page.m_Paragraphs = new TutorialParagraphCollection(new[] {instructionParagraph});
+            m_Page.m_Paragraphs = new TutorialParagraphCollection(new[] { instructionParagraph });
 
             m_Page.Initiate();
         }
@@ -93,7 +94,7 @@ namespace Unity.InteractiveTutorials.Tests
         public void PagePlaysCompletionSound_WheneverActiveInstructionCriterionIsCompleted()
         {
             var playedSound = 0;
-            m_Page.playedCompletionSound += page => ++ playedSound;
+            m_Page.playedCompletionSound += page => ++playedSound;
 
             m_Criterion.Complete(true);
 
@@ -133,6 +134,24 @@ namespace Unity.InteractiveTutorials.Tests
                 if (secondCriterion != null)
                     UnityObject.DestroyImmediate(secondCriterion);
             }
+        }
+
+        [Test]
+        public void PageEvents_OnBeforeTutorialQuit_RunsWhenInvoked()
+        {
+            m_Page.m_OnBeforeTutorialQuit = new UnityEngine.Events.UnityEvent();
+            m_Page.m_OnBeforeTutorialQuit.AddListener(() => Assert.Pass());
+            m_Page.RaiseOnBeforeQuitTutorialEvent();
+            Assert.Fail();
+        }
+
+        [Test]
+        public void PageEvents_OnTutorialPageStay_RunsWhenInvoked()
+        {
+            m_Page.m_OnTutorialPageStay = new UnityEngine.Events.UnityEvent();
+            m_Page.m_OnTutorialPageStay.AddListener(() => Assert.Pass());
+            m_Page.RaiseOnTutorialPageStayEvent();
+            Assert.Fail();
         }
     }
 }
