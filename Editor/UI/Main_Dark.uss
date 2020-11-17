@@ -106,6 +106,10 @@
 *  CARD
 ****************************/
 
+.scrollview--tutorial-list .unity-scroll-view__content-viewport {
+    width: 100%;
+}
+
 .container--card {
     flex-grow: 1;
     margin-top: 10px;

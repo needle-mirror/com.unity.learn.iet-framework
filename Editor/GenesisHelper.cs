@@ -132,7 +132,7 @@ namespace Unity.InteractiveTutorials
 
         private static void GetTutorial(string lessonId, Action<List<TutorialProgressStatus>> action)
         {
-            var userId = UnityConnectProxy.GetUserId();
+            var userId = UnityConnectProxy.GetUserId(); // TODO return if userId null/empty
             var getLink = @"/v1/users/" + userId + @"/lessons";
             var address = HostAddress + getLink;
             var req = MakeGetLessonsRequest(address, lessonId);

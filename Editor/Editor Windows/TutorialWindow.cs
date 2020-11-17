@@ -457,6 +457,20 @@ namespace Unity.InteractiveTutorials
         void OnEnable()
         {
             InitializeUI();
+            AddCallbacksToEvents();
+        }
+
+        void AddCallbacksToEvents()
+        {
+            Criterion.criterionCompleted += OnCriterionCompleted;
+
+            // test for page completion state changes (rather than criteria completion/invalidation directly)
+            // so that page completion state will be up-to-date
+            TutorialPage.criteriaCompletionStateTested += OnTutorialPageCriteriaCompletionStateTested;
+            TutorialPage.tutorialPageMaskingSettingsChanged += OnTutorialPageMaskingSettingsChanged;
+            TutorialPage.tutorialPageNonMaskingSettingsChanged += OnTutorialPageNonMaskingSettingsChanged;
+            EditorApplication.playModeStateChanged -= TrackPlayModeChanging;
+            EditorApplication.playModeStateChanged += TrackPlayModeChanging;
         }
 
         void InitializeUI()
@@ -480,8 +494,6 @@ namespace Unity.InteractiveTutorials
             rootVisualElement.Clear();
 
             instance = this;
-
-            Criterion.criterionCompleted += OnCriterionCompleted;
 
             IMGUIContainer imguiToolBar = new IMGUIContainer(OnGuiToolbar);
             IMGUIContainer videoBox = new IMGUIContainer(RenderVideoIfPossible);
@@ -538,19 +550,11 @@ namespace Unity.InteractiveTutorials
             HostViewProxy.actualViewChanged += OnHostViewActualViewChanged;
             Tutorial.tutorialPagesModified += OnTutorialPagesModified;
 
-            // test for page completion state changes (rather than criteria completion/invalidation directly)
-            // so that page completion state will be up-to-date
-            TutorialPage.criteriaCompletionStateTested += OnTutorialPageCriteriaCompletionStateTested;
-            TutorialPage.tutorialPageMaskingSettingsChanged += OnTutorialPageMaskingSettingsChanged;
-            TutorialPage.tutorialPageNonMaskingSettingsChanged += OnTutorialPageNonMaskingSettingsChanged;
-            EditorApplication.playModeStateChanged -= TrackPlayModeChanging;
-            EditorApplication.playModeStateChanged += TrackPlayModeChanging;
-
             root.Add(footerBar);
             SetUpTutorial();
 
             maskingEnabled = true;
-            
+
             readme = FindReadme();
             EditorCoroutineUtility.StartCoroutineOwnerless(DelayedOnEnable());
         }
