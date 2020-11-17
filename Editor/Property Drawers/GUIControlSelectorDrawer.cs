@@ -1,10 +1,10 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
     [CustomPropertyDrawer(typeof(GUIControlSelector))]
-    public class GUIControlSelectorDrawer : PropertyDrawer
+    class GUIControlSelectorDrawer : PropertyDrawer
     {
         private const string k_SelectorModePath = "m_SelectorMode";
         private const string k_GUIContentPath = "m_GUIContent";
@@ -20,13 +20,13 @@ namespace Unity.InteractiveTutorials
             var height = EditorGUI.GetPropertyHeight(selectorMode);
             switch ((GUIControlSelector.Mode)selectorMode.intValue)
             {
-                case GUIControlSelector.Mode.GUIContent:
+                case GUIControlSelector.Mode.GuiContent:
                     height += EditorGUIUtility.standardVerticalSpacing + EditorGUI.GetPropertyHeight(property.FindPropertyRelative(k_GUIContentPath), true);
                     break;
                 case GUIControlSelector.Mode.NamedControl:
                     height += EditorGUIUtility.standardVerticalSpacing + EditorGUI.GetPropertyHeight(property.FindPropertyRelative(k_ControlNamePath), true);
                     break;
-                case GUIControlSelector.Mode.GUIStyleName:
+                case GUIControlSelector.Mode.GuiStyleName:
                     height += EditorGUIUtility.standardVerticalSpacing + EditorGUI.GetPropertyHeight(property.FindPropertyRelative(k_GUIStyleNamePath), true);
                     break;
                 case GUIControlSelector.Mode.Property:
@@ -55,7 +55,7 @@ namespace Unity.InteractiveTutorials
             SerializedProperty selectorData = null;
             switch ((GUIControlSelector.Mode)selectorMode.intValue)
             {
-                case GUIControlSelector.Mode.GUIContent:
+                case GUIControlSelector.Mode.GuiContent:
                     selectorData = property.FindPropertyRelative(k_GUIContentPath);
                     break;
                 case GUIControlSelector.Mode.NamedControl:
@@ -69,7 +69,7 @@ namespace Unity.InteractiveTutorials
 
                     selectorData = property.FindPropertyRelative(k_PropertyPathPath);
                     break;
-                case GUIControlSelector.Mode.GUIStyleName:
+                case GUIControlSelector.Mode.GuiStyleName:
                     selectorData = property.FindPropertyRelative(k_GUIStyleNamePath);
                     break;
                 case GUIControlSelector.Mode.ObjectReference:

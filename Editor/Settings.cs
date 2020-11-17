@@ -1,7 +1,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
     /// <summary>
     /// Wrapper for defining IET Preferences (User Settings) conveniently.
@@ -48,6 +48,7 @@ namespace Unity.InteractiveTutorials
     /// <summary>
     /// Base class for implementing Tutorial Framework settings.
     /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class BaseSetting<T> : UnityEditor.SettingsManagement.UserSetting<T>
     {
         /// <summary>
@@ -59,7 +60,7 @@ namespace Unity.InteractiveTutorials
         /// <param name="scope"></param>
         /// <param name="tooltip">Use Tr() in order to have localization support.</param>
         public BaseSetting(string key, string name, T value, SettingsScope scope, string tooltip = null)
-             : base(FrameworkSettings.Instance, key, value, scope)
+            : base(FrameworkSettings.Instance, key, value, scope)
         {
             Name = name;
             Tooltip = tooltip;

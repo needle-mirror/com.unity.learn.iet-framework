@@ -5,9 +5,9 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Analytics;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
-    public enum TutorialConclusion
+    enum TutorialConclusion
     {
         Completed,
         Quit,
@@ -30,7 +30,7 @@ namespace Unity.InteractiveTutorials
         }
     }
 
-    public enum TutorialPageConclusion
+    enum TutorialPageConclusion
     {
         Completed,
         Reviewed
@@ -52,7 +52,7 @@ namespace Unity.InteractiveTutorials
         }
     }
 
-    public enum TutorialParagraphConclusion
+    enum TutorialParagraphConclusion
     {
         Completed,
         Regressed
@@ -201,8 +201,8 @@ namespace Unity.InteractiveTutorials
 
             SendTutorialEvent
             (
-                Instance.currentTutorial.name, Instance.currentTutorial.version, conclusion,
-                Instance.currentTutorial.lessonId, Instance.currentTutorialStartTime,
+                Instance.currentTutorial.name, Instance.currentTutorial.Version, conclusion,
+                Instance.currentTutorial.LessonId, Instance.currentTutorialStartTime,
                 DateTime.UtcNow - Instance.currentTutorialStartTime, false
             );
 
@@ -223,7 +223,7 @@ namespace Unity.InteractiveTutorials
                 {
                     SendTutorialPageEvent
                     (
-                        Instance.currentTutorial.name, Instance.currentPageIndex, Instance.currentPage.guid,
+                        Instance.currentTutorial.name, Instance.currentPageIndex, Instance.currentPage.Guid,
                         TutorialPageConclusion.Reviewed, Instance.currentPageStartTime,
                         DateTime.UtcNow - Instance.currentPageStartTime, false
                     );
@@ -234,7 +234,7 @@ namespace Unity.InteractiveTutorials
                 {
                     SendTutorialPageEvent
                     (
-                        Instance.currentTutorial.name, Instance.lastPageIndex, Instance.lastPage.guid,
+                        Instance.currentTutorial.name, Instance.lastPageIndex, Instance.lastPage.Guid,
                         TutorialPageConclusion.Completed, Instance.lastPageStartTime,
                         DateTime.UtcNow - Instance.lastPageStartTime, false
                     );

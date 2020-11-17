@@ -1,9 +1,9 @@
 using System;
 using UnityEditor;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
-    public static class HostViewProxy
+    internal static class HostViewProxy
     {
         public static event Action actualViewChanged;
 
@@ -14,8 +14,7 @@ namespace Unity.InteractiveTutorials
 
         static void OnActualViewChanged(HostView hostView)
         {
-            if (actualViewChanged != null)
-                actualViewChanged();
+            actualViewChanged?.Invoke();
         }
     }
 }

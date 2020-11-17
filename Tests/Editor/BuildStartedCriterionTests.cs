@@ -1,13 +1,13 @@
 using System.Collections;
 using NUnit.Framework;
-using Unity.InteractiveTutorials;
-using Unity.InteractiveTutorials.Tests;
+using Unity.Tutorials.Core.Editor;
+using Unity.Tutorials.Core.Editor.Tests;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.Windows;
 
-namespace Unity.InteractiveTutorials.Tests
+namespace Unity.Tutorials.Core.Editor.Tests
 {
     public class BuildStartedCriterionTests : CriterionTestBase<BuildStartedCriterion>
     {
@@ -33,7 +33,7 @@ namespace Unity.InteractiveTutorials.Tests
             });
             yield return null;
 
-            Assert.IsTrue(m_Criterion.completed);
+            Assert.IsTrue(m_Criterion.Completed);
 
             // Cleanup
             if (Directory.Exists("Test"))

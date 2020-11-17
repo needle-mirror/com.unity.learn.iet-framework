@@ -1,10 +1,10 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
     [CustomEditor(typeof(TutorialWelcomePage))]
-    public class TutorialWelcomePageEditor : Editor
+    class TutorialWelcomePageEditor : UnityEditor.Editor
     {
         static readonly bool k_IsAuthoringMode = ProjectMode.IsAuthoringMode();
         readonly string[] k_PropsToIgnore = { "m_Script" };

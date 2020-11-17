@@ -4,7 +4,7 @@
 [assembly: UnityEditor.Localization.Editor.Localization]
 #endif
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
     /// <summary>
     /// A helper class for Localization.

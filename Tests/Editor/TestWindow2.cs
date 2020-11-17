@@ -1,6 +1,6 @@
 using UnityEditor;
 
-namespace Unity.InteractiveTutorials.Tests
+namespace Unity.Tutorials.Core.Editor.Tests
 {
     public class TestWindow2 : EditorWindow
     {

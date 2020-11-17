@@ -1,8 +1,11 @@
 using System;
 using UnityEngine;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
+    /// <summary>
+    /// Used to refer Unity Objects in different Criterion implementations.
+    /// </summary>
     [Serializable]
     public class ObjectReference
     {
@@ -10,21 +13,27 @@ namespace Unity.InteractiveTutorials
         SceneObjectReference m_SceneObjectReference;
 
         [SerializeField]
-        FutureObjectReference m_FutureObjectReference = null;
+        FutureObjectReference m_FutureObjectReference = default;
 
-        public bool future { get { return m_FutureObjectReference != null; } }
+        /// <summary>
+        /// Is this ObjectReference a FutureObjectReference instead of a SceneObjectReference;.
+        /// </summary>
+        public bool IsFutureReference => m_FutureObjectReference != null;
 
-        public SceneObjectReference sceneObjectReference
+        /// <summary>
+        /// The SceneObjectReference.
+        /// </summary>
+        public SceneObjectReference SceneObjectReference
         {
             get
             {
-                if (future)
-                    return m_FutureObjectReference.sceneObjectReference;
+                if (IsFutureReference)
+                    return m_FutureObjectReference.SceneObjectReference;
                 return m_SceneObjectReference ?? (m_SceneObjectReference = new SceneObjectReference());
             }
             set
             {
-                if (!future)
+                if (!IsFutureReference)
                     m_SceneObjectReference = value;
             }
         }

@@ -1,27 +1,21 @@
 using System;
-using System.Transactions;
 using UnityEditor;
 using UnityEngine;
 
 using UnityObject = UnityEngine.Object;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
+    /// <summary>
+    /// Criterion for checking a Material's property modification.
+    /// </summary>
     public class MaterialPropertyModifiedCriterion : Criterion
     {
-        internal SceneObjectReference target
-        {
-            get { return m_Target.sceneObjectReference; }
-            set { m_Target.sceneObjectReference = value; }
-        }
+        internal SceneObjectReference Target { get => m_Target.SceneObjectReference; set => m_Target.SceneObjectReference = value; }
         [SerializeField]
         ObjectReference m_Target = new ObjectReference();
 
-        internal string materialPropertyPath
-        {
-            get { return m_MaterialPropertyPath; }
-            set { m_MaterialPropertyPath = value; }
-        }
+        internal string MaterialPropertyPath { get => m_MaterialPropertyPath; set => m_MaterialPropertyPath = value; }
         [SerializeField]
         string m_MaterialPropertyPath = "";
 
@@ -52,6 +46,9 @@ namespace Unity.InteractiveTutorials
             }
         }
 
+        /// <summary>
+        /// Starts testing of the criterion.
+        /// </summary>
         public override void StartTesting()
         {
             InitializeRequiredStateIfNeeded();
@@ -64,20 +61,27 @@ namespace Unity.InteractiveTutorials
             if (m_InitialValue != null)
                 return;
 
-            if (string.IsNullOrEmpty(m_MaterialPropertyPath) || target.ReferencedObject == null)
+            if (string.IsNullOrEmpty(m_MaterialPropertyPath) || Target.ReferencedObject == null)
                 return;
 
-            var property = FindProperty(m_MaterialPropertyPath, (Material)target.ReferencedObject);
+            var property = FindProperty(m_MaterialPropertyPath, (Material)Target.ReferencedObject);
 
             m_InitialValue = GetPropertyValueToString(property);
         }
 
+        /// <summary>
+        /// Stops testing of the criterion.
+        /// </summary>
         public override void StopTesting()
         {
             m_InitialValue = null;
             EditorApplication.update -= UpdateCompletion;
         }
 
+        /// <summary>
+        /// Evaluates if the criterion is completed.
+        /// </summary>
+        /// <returns></returns>
         protected override bool EvaluateCompletion()
         {
             InitializeRequiredStateIfNeeded();
@@ -85,10 +89,10 @@ namespace Unity.InteractiveTutorials
             if (m_InitialValue == null)
                 return false;
 
-            if (m_MaterialPropertyPath == null || target.ReferencedObject == null)
+            if (m_MaterialPropertyPath == null || Target.ReferencedObject == null)
                 return false;
 
-            var property = FindProperty(m_MaterialPropertyPath, (Material)target.ReferencedObject);
+            var property = FindProperty(m_MaterialPropertyPath, (Material)Target.ReferencedObject);
 
             if (property == null)
                 return false;
@@ -101,6 +105,10 @@ namespace Unity.InteractiveTutorials
             return false;
         }
 
+        /// <summary>
+        /// Auto-completes the criterion.
+        /// </summary>
+        /// <returns>True if the auto-completion succeeded.</returns>
         public override bool AutoComplete()
         {
             throw new NotImplementedException();

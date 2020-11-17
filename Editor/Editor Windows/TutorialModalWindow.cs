@@ -4,9 +4,9 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-using static Unity.InteractiveTutorials.RichTextParser;
+using static Unity.Tutorials.Core.Editor.RichTextParser;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
     // A modal/utility window. Utilizes masking for the modality.
     class TutorialModalWindow : EditorWindow
@@ -14,7 +14,7 @@ namespace Unity.InteractiveTutorials
         const int k_Width = 700;
         const int k_Height = 500;
 
-        static TutorialStyles Styles => TutorialProjectSettings.instance.TutorialStyle;
+        static TutorialStyles Styles => TutorialProjectSettings.Instance.TutorialStyle;
 
         public TutorialWelcomePage WelcomePage
         {

@@ -1,8 +1,8 @@
 using UnityEditor;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
-    public static class InspectorWindowProxy
+    internal static class InspectorWindowProxy
     {
         public static void DirtyAllEditors(EditorWindow window)
         {

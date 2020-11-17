@@ -2,7 +2,7 @@ using System;
 using UnityEditor;
 using UnityEngine;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
     /// <summary>
     /// An index for the tutorials in the project.
@@ -134,12 +134,12 @@ namespace Unity.InteractiveTutorials
             /// <summary>
             /// The ID of the represented tutorial, if any
             /// </summary>
-            public string TutorialId => Tutorial?.lessonId.AsEmptyIfNull();
+            public string TutorialId => Tutorial?.LessonId.AsEmptyIfNull();
 
             /// <summary>
             /// TODO 2.0 make internal.
             /// </summary>
-            public string SessionStateKey => $"Unity.InteractiveTutorials.lesson{TutorialId}";
+            public string SessionStateKey => $"Unity.Tutorials.Core.Editor.lesson{TutorialId}";
 
             /// <summary>
             /// Starts the tutorial of the section
@@ -155,7 +155,7 @@ namespace Unity.InteractiveTutorials
             public void OpenUrl()
             {
                 TutorialEditorUtils.OpenUrl(Url);
-                AnalyticsHelper.SendExternalReferenceEvent(Url, Heading.Untranslated, LinkText, Tutorial?.lessonId);
+                AnalyticsHelper.SendExternalReferenceEvent(Url, Heading.Untranslated, LinkText, Tutorial?.LessonId);
             }
 
             /// <summary>

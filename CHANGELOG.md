@@ -5,6 +5,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [2.0.0] - 2020-11-17
+
+### Changed
+- Breaking change: all public APIs reviewed; many APIs made internal and some new public APIs added.
+- Breaking change: `Unity.InteractiveTutorials` namespace rename to `Unity.Tutorials.Core(.Editor)`.
+- Breaking change: `Unity.InteractiveTutorials.Core` assembly renamed to to `Unity.Tutorials.Core.Editor`.
+- Breaking change: `Unity.InteractiveTutorials.Core.Scripts` assembly renamed to to `Unity.Tutorials.Core`.
+
+## Added
+- All public APIs documented.
+
 ## [1.2.0] - 2020-11-10
 ### Added
 - Localization: Finalize localization support for CJK languages. No translations provided yet.

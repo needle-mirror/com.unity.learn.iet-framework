@@ -2,13 +2,21 @@ using System.IO;
 using UnityEditor;
 using UnityEngine;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
+    /// <summary>
+    /// Utility function for creating ScriptableObjects.
+    /// </summary>
+    // TODO 2.0: unused, remove?
     public class ScriptableObjectUtils
     {
         /// <summary>
         /// This makes it easy to create, name and place unique new ScriptableObject asset files.
         /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="fileName"></param>
+        /// <param name="path"></param>
+        /// <returns></returns>
         public static T CreateAsset<T>(string fileName, string path = "") where T : ScriptableObject
         {
             T asset = ScriptableObject.CreateInstance<T>();
@@ -16,6 +24,14 @@ namespace Unity.InteractiveTutorials
             return asset;
         }
 
+        /// <summary>
+        /// Creates and saves an asset.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="asset"></param>
+        /// <param name="fileName"></param>
+        /// <param name="path"></param>
+        /// <returns></returns>
         public static string SaveAsset<T>(T asset, string fileName, string path) where T : ScriptableObject
         {
             if (path == "")

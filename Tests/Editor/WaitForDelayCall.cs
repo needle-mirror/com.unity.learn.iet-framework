@@ -2,7 +2,7 @@ using System.Collections;
 using UnityEditor;
 using UnityEngine.TestTools;
 
-namespace Unity.InteractiveTutorials.Tests
+namespace Unity.Tutorials.Core.Editor.Tests
 {
     class WaitForDelayCall : IEditModeTestYieldInstruction
     {

@@ -1,14 +1,17 @@
 using UnityEditor;
 using UnityEngine;
 
-public static class HandleUtilityProxy
+namespace Unity.Tutorials.Core.Editor
 {
-    public static GameObject FindSelectionBase(GameObject gameObject)
+    internal static class HandleUtilityProxy
     {
+        internal static GameObject FindSelectionBase(GameObject gameObject)
+        {
 #if UNITY_2020_2_OR_NEWER
-        return HandleUtility.FindSelectionBaseForPicking(gameObject);
+            return HandleUtility.FindSelectionBaseForPicking(gameObject);
 #else
-        return HandleUtility.FindSelectionBase(gameObject);
+            return HandleUtility.FindSelectionBase(gameObject);
 #endif
+        }
     }
 }

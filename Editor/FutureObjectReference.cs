@@ -1,7 +1,10 @@
 using UnityEngine;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
+    /// <summary>
+    /// Future Object Reference is a reference to a Unity Object that might not exist yet (prefab instance).
+    /// </summary>
     public class FutureObjectReference : ScriptableObject
     {
         [SerializeField]
@@ -13,7 +16,11 @@ namespace Unity.InteractiveTutorials
         [SerializeField]
         string m_ReferenceName;
 
-        SceneObjectReferenceHolder referenceHolder
+        /// <summary>
+        /// Returns the SceneObjectReferenceHolder for this FutureObjectReference.
+        /// Creates the SceneObjectReferenceHolder instance if it does not exist.
+        /// </summary>
+        SceneObjectReferenceHolder ReferenceHolder
         {
             get
             {
@@ -27,24 +34,33 @@ namespace Unity.InteractiveTutorials
             }
         }
 
-        public SceneObjectReference sceneObjectReference
+        /// <summary>
+        /// The SceneObjectReference of this FutureObjectReference.
+        /// </summary>
+        public SceneObjectReference SceneObjectReference
         {
             get
             {
-                if (referenceHolder.sceneObjectReference == null)
-                    referenceHolder.sceneObjectReference = new SceneObjectReference();
+                if (ReferenceHolder.SceneObjectReference == null)
+                    ReferenceHolder.SceneObjectReference = new SceneObjectReference();
 
-                return referenceHolder.sceneObjectReference;
+                return ReferenceHolder.SceneObjectReference;
             }
             set
             {
-                referenceHolder.sceneObjectReference = value;
+                ReferenceHolder.SceneObjectReference = value;
             }
         }
 
-        public Criterion criterion { get { return m_Criterion; } set { m_Criterion = value; } }
+        /// <summary>
+        /// The Criterion this FutureObjectReference belongs to.
+        /// </summary>
+        public Criterion Criterion { get => m_Criterion; set => m_Criterion = value; }
 
-        public string referenceName { get { return m_ReferenceName; } set { m_ReferenceName = value; } }
+        /// <summary>
+        /// The name used to refer the Unity Object.
+        /// </summary>
+        public string ReferenceName { get => m_ReferenceName; set => m_ReferenceName = value; }
 
         void OnDestroy()
         {
@@ -53,15 +69,16 @@ namespace Unity.InteractiveTutorials
         }
     }
 
+    /// <summary>
+    /// SceneObjectReference holder.
+    /// </summary>
     public class SceneObjectReferenceHolder : ScriptableObject
     {
+        /// <summary>
+        /// The ScenObjectReference.
+        /// </summary>
+        public SceneObjectReference SceneObjectReference { get => m_SceneObjectReference; set => m_SceneObjectReference = value; }
         [SerializeField]
         SceneObjectReference m_SceneObjectReference;
-
-        public SceneObjectReference sceneObjectReference
-        {
-            get { return m_SceneObjectReference; }
-            set { m_SceneObjectReference = value; }
-        }
     }
 }

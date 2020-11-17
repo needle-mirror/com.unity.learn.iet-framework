@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
-    public class FlushChildrenDrawer : PropertyDrawer
+    class FlushChildrenDrawer : PropertyDrawer
     {
         private static GUIContent s_Label = new GUIContent();
 

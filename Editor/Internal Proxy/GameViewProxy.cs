@@ -1,8 +1,8 @@
 using UnityEditor;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
-    public class GameViewProxy : EditorWindow
+    internal class GameViewProxy : EditorWindow
     {
         public static bool maximizeOnPlay
         {

@@ -3,9 +3,9 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
-    public static class GUIViewDebuggerHelperProxy
+    internal static class GUIViewDebuggerHelperProxy
     {
         public static void GetViews(List<GUIViewProxy> views)
         {
@@ -16,7 +16,7 @@ namespace Unity.InteractiveTutorials
 
         public static void DebugWindow(GUIViewProxy guiViewProxy)
         {
-            GUIViewDebuggerHelper.DebugWindow(guiViewProxy.guiView);
+            GUIViewDebuggerHelper.DebugWindow(guiViewProxy.GuiView);
         }
 
         public static void GetDrawInstructions(List<IMGUIDrawInstructionProxy> drawInstructions)
@@ -53,7 +53,7 @@ namespace Unity.InteractiveTutorials
         }
     }
 
-    public class IMGUIDrawInstructionProxy
+    internal class IMGUIDrawInstructionProxy
     {
         IMGUIDrawInstruction m_IMGUIDrawInstruction;
 
@@ -62,12 +62,12 @@ namespace Unity.InteractiveTutorials
             m_IMGUIDrawInstruction = imguiDrawInstruction;
         }
 
-        public GUIContent usedGUIContent { get { return m_IMGUIDrawInstruction.usedGUIContent; } }
-        public Rect rect { get { return m_IMGUIDrawInstruction.rect; } }
-        public string usedGUIStyleName { get { return m_IMGUIDrawInstruction.usedGUIStyle.name; } }
+        public GUIContent usedGUIContent => m_IMGUIDrawInstruction.usedGUIContent;
+        public Rect rect => m_IMGUIDrawInstruction.rect;
+        public string usedGUIStyleName => m_IMGUIDrawInstruction.usedGUIStyle.name;
     }
 
-    public class IMGUINamedControlInstructionProxy
+    internal class IMGUINamedControlInstructionProxy
     {
         IMGUINamedControlInstruction m_IMGUINamedControlInstructionProxy;
 
@@ -76,11 +76,11 @@ namespace Unity.InteractiveTutorials
             m_IMGUINamedControlInstructionProxy = imguiNamedControlInstruction;
         }
 
-        public string name { get { return m_IMGUINamedControlInstructionProxy.name; } }
-        public Rect rect { get { return m_IMGUINamedControlInstructionProxy.rect; } }
+        public string name => m_IMGUINamedControlInstructionProxy.name;
+        public Rect rect => m_IMGUINamedControlInstructionProxy.rect;
     }
 
-    public class IMGUIPropertyInstructionProxy
+    internal class IMGUIPropertyInstructionProxy
     {
         IMGUIPropertyInstruction m_IMGUIPropertyInstruction;
 
@@ -89,12 +89,12 @@ namespace Unity.InteractiveTutorials
             m_IMGUIPropertyInstruction = imguiPropertyInstruction;
         }
 
-        public string targetTypeName { get { return m_IMGUIPropertyInstruction.targetTypeName; } }
-        public string path { get { return m_IMGUIPropertyInstruction.path; } }
-        public Rect rect { get { return m_IMGUIPropertyInstruction.rect; } }
+        public string targetTypeName => m_IMGUIPropertyInstruction.targetTypeName;
+        public string path => m_IMGUIPropertyInstruction.path;
+        public Rect rect => m_IMGUIPropertyInstruction.rect;
     }
 
-    public enum InstructionTypeProxy
+    internal enum InstructionTypeProxy
     {
         StyleDraw = 1,
         ClipPush = 2,
@@ -107,7 +107,7 @@ namespace Unity.InteractiveTutorials
         LayoutNamedControl = 9,
     }
 
-    public class IMGUIInstructionProxy
+    internal class IMGUIInstructionProxy
     {
         IMGUIInstruction m_IMGUIInstruction;
 
@@ -116,8 +116,8 @@ namespace Unity.InteractiveTutorials
             m_IMGUIInstruction = imguiInstruction;
         }
 
-        public InstructionTypeProxy type { get { return (InstructionTypeProxy)m_IMGUIInstruction.type; } }
-        public int level { get { return m_IMGUIInstruction.level; } }
-        public int typeInstructionIndex { get { return m_IMGUIInstruction.typeInstructionIndex; } }
+        public InstructionTypeProxy type => (InstructionTypeProxy)m_IMGUIInstruction.type;
+        public int level => m_IMGUIInstruction.level;
+        public int typeInstructionIndex => m_IMGUIInstruction.typeInstructionIndex;
     }
 }

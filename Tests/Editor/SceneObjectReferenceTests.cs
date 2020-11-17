@@ -5,7 +5,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.TestTools;
 
-namespace Unity.InteractiveTutorials.Tests
+namespace Unity.Tutorials.Core.Editor.Tests
 {
     public class SceneObjectReferenceTests
     {

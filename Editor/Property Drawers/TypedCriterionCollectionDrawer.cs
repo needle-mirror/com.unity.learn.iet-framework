@@ -2,13 +2,13 @@ using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
     [CustomPropertyDrawer(typeof(TypedCriterionCollection))]
     class TypedCriterionCollectionDrawer : CollectionWrapperDrawer
     {
-        const string k_TypeNamePath = "type.m_TypeName";
-        const string k_CriterionPropertyPath = "criterion";
+        const string k_TypeNamePath = "Type.m_TypeName";
+        const string k_CriterionPropertyPath = "Criterion";
 
         protected override void OnReorderableListCreated(ReorderableList list)
         {

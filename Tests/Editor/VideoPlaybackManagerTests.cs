@@ -5,7 +5,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Video;
 
-namespace Unity.InteractiveTutorials.Tests
+namespace Unity.Tutorials.Core.Editor.Tests
 {
     // TODO These tests seem problematic, they pass locally but fail on Yamato.
     public class VideoPlaybackManagerTests : TestBase

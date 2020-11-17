@@ -10,12 +10,12 @@ using VisualContainer = UnityEngine.UIElements.VisualElement;
 using UnityEngine.Experimental.UIElements;
 #endif
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
     // Handle difference in UIElements API between 2017.2 and above
     // Initialize on load to surface potential reflection issues immediately
     [InitializeOnLoad]
-    public static class UIElementsHelper
+    internal static class UIElementsHelper
     {
         static MethodInfo s_AddMethod;
         static MethodInfo s_RemoveMethod;
@@ -107,9 +107,9 @@ namespace Unity.InteractiveTutorials
         {
             return (VisualElement)s_VisualTreeProperty.GetValue(
 #if UNITY_2020_1_OR_NEWER
-                guiViewProxy.guiView.windowBackend,
+                guiViewProxy.GuiView.windowBackend,
 #else
-                guiViewProxy.guiView,
+                guiViewProxy.GuiView,
 #endif
                 new object[0]
             );

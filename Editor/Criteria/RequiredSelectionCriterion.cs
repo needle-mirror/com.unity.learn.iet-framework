@@ -4,10 +4,11 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
-using UnityObject = UnityEngine.Object;
-
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
+    /// <summary>
+    /// Criterion for checking that specific objects are selected.
+    /// </summary>
     public class RequiredSelectionCriterion : Criterion
     {
         [Serializable]
@@ -18,23 +19,37 @@ namespace Unity.InteractiveTutorials
         [SerializeField]
         ObjectReferenceCollection m_ObjectReferences = new ObjectReferenceCollection();
 
+        /// <summary>
+        /// Sets object references.
+        /// </summary>
+        /// <param name="objectReferences"></param>
         public void SetObjectReferences(IEnumerable<ObjectReference> objectReferences)
         {
             m_ObjectReferences.SetItems(objectReferences);
             UpdateCompletion();
         }
 
+        /// <summary>
+        /// Starts testing of the criterion.
+        /// </summary>
         public override void StartTesting()
         {
             UpdateCompletion();
             Selection.selectionChanged += UpdateCompletion;
         }
 
+        /// <summary>
+        /// Stops testing of the criterion.
+        /// </summary>
         public override void StopTesting()
         {
             Selection.selectionChanged -= UpdateCompletion;
         }
 
+        /// <summary>
+        /// Evaluates if the criterion is completed.
+        /// </summary>
+        /// <returns></returns>
         protected override bool EvaluateCompletion()
         {
             if (m_ObjectReferences.Count() != Selection.objects.Length)
@@ -42,7 +57,7 @@ namespace Unity.InteractiveTutorials
 
             foreach (var objectReference in m_ObjectReferences)
             {
-                var referencedObject = objectReference.sceneObjectReference.ReferencedObject;
+                var referencedObject = objectReference.SceneObjectReference.ReferencedObject;
                 if (referencedObject == null)
                     return false;
 
@@ -53,9 +68,13 @@ namespace Unity.InteractiveTutorials
             return true;
         }
 
+        /// <summary>
+        /// Auto-completes the criterion.
+        /// </summary>
+        /// <returns>True if the auto-completion succeeded.</returns>
         public override bool AutoComplete()
         {
-            var referencedObjects = m_ObjectReferences.Select(or => or.sceneObjectReference.ReferencedObject);
+            var referencedObjects = m_ObjectReferences.Select(or => or.SceneObjectReference.ReferencedObject);
             if (referencedObjects.Any(obj => obj == null))
             {
                 Debug.LogWarning("Cannot auto-complete RequiredSelectionCriterion with unresolved object references");

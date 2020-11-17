@@ -1,115 +1,150 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.Serialization;
 
-using UnityObject = UnityEngine.Object;
-
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
+    /// <summary>
+    /// Criterion for physics collision events.
+    /// </summary>
     public class TriggerTaskCriterion : Criterion
     {
-        public enum TriggerTaskTestMode { TriggerEnter, TriggerExit, CollisionEnter, CollisionExit }
+        /// <summary>
+        /// Different types of collision events.
+        /// </summary>
+        public enum TriggerTaskTestMode
+        {
+            /// <summary>
+            /// Test for OnTriggerEnter events.
+            /// </summary>
+            TriggerEnter,
+            /// <summary>
+            /// Test for OnTriggerExit events.
+            /// </summary>
+            TriggerExit,
+            /// <summary>
+            /// Test for OnCollisionEnter events.
+            /// </summary>
+            CollisionEnter,
+            /// <summary>
+            /// Test for OnCollisionExit events.
+            /// </summary>
+            CollisionExit
+        }
 
         [SerializeField]
         internal ObjectReference objectReference = new ObjectReference();
-        public TriggerTaskTestMode testMode = TriggerTaskTestMode.TriggerEnter;
 
-        bool m_Enabled;
+        /// <summary>
+        /// For which type of event should we test for.
+        /// </summary>
+        [FormerlySerializedAs("testMode")]
+        public TriggerTaskTestMode TestMode = TriggerTaskTestMode.TriggerEnter;
 
+        /// <summary>
+        /// Starts testing of the criterion.
+        /// </summary>
         public override void StartTesting()
         {
-            CollisionBroadcaster2D.playerEnteredCollision += OnPlayerEnteredCollision2D;
-            CollisionBroadcaster2D.playerEnteredTrigger += OnPlayerEnteredTrigger2D;
-            CollisionBroadcaster2D.playerExitedCollision += OnPlayerExitCollision2D;
-            CollisionBroadcaster2D.playerExitedTrigger += OnPlayerExitTrigger2D;
+            CollisionBroadcaster2D.PlayerEnteredCollision += OnPlayerEnteredCollision2D;
+            CollisionBroadcaster2D.PlayerEnteredTrigger += OnPlayerEnteredTrigger2D;
+            CollisionBroadcaster2D.PlayerExitedCollision += OnPlayerExitCollision2D;
+            CollisionBroadcaster2D.PlayerExitedTrigger += OnPlayerExitTrigger2D;
 
-            CollisionBroadcaster3D.playerEnteredCollision += OnPlayerEnteredCollision;
-            CollisionBroadcaster3D.playerEnteredTrigger += OnPlayerEnteredTrigger;
-            CollisionBroadcaster3D.playerExitedCollision += OnPlayerExitCollision;
-            CollisionBroadcaster3D.playerExitedTrigger += OnPlayerExitTrigger;
+            CollisionBroadcaster3D.PlayerEnteredCollision += OnPlayerEnteredCollision;
+            CollisionBroadcaster3D.PlayerEnteredTrigger += OnPlayerEnteredTrigger;
+            CollisionBroadcaster3D.PlayerExitedCollision += OnPlayerExitCollision;
+            CollisionBroadcaster3D.PlayerExitedTrigger += OnPlayerExitTrigger;
         }
 
+        /// <summary>
+        /// Stops testing of the criterion.
+        /// </summary>
         public override void StopTesting()
         {
             base.StopTesting();
-            CollisionBroadcaster2D.playerEnteredCollision -= OnPlayerEnteredCollision2D;
-            CollisionBroadcaster2D.playerEnteredTrigger -= OnPlayerEnteredTrigger2D;
-            CollisionBroadcaster2D.playerExitedCollision -= OnPlayerExitCollision2D;
-            CollisionBroadcaster2D.playerExitedTrigger -= OnPlayerExitTrigger2D;
+            CollisionBroadcaster2D.PlayerEnteredCollision -= OnPlayerEnteredCollision2D;
+            CollisionBroadcaster2D.PlayerEnteredTrigger -= OnPlayerEnteredTrigger2D;
+            CollisionBroadcaster2D.PlayerExitedCollision -= OnPlayerExitCollision2D;
+            CollisionBroadcaster2D.PlayerExitedTrigger -= OnPlayerExitTrigger2D;
 
-            CollisionBroadcaster3D.playerEnteredCollision -= OnPlayerEnteredCollision;
-            CollisionBroadcaster3D.playerEnteredTrigger -= OnPlayerEnteredTrigger;
-            CollisionBroadcaster3D.playerExitedCollision -= OnPlayerExitCollision;
-            CollisionBroadcaster3D.playerExitedTrigger -= OnPlayerExitTrigger;
+            CollisionBroadcaster3D.PlayerEnteredCollision -= OnPlayerEnteredCollision;
+            CollisionBroadcaster3D.PlayerEnteredTrigger -= OnPlayerEnteredTrigger;
+            CollisionBroadcaster3D.PlayerExitedCollision -= OnPlayerExitCollision;
+            CollisionBroadcaster3D.PlayerExitedTrigger -= OnPlayerExitTrigger;
         }
 
-        //Overriding the update completion state, as this criterion is not state based
+        /// <summary>
+        /// Evaluates if the criterion is completed.
+        /// </summary>
+        /// <remarks>
+        /// Overriding the update completion state, as this criterion is not state based
+        /// </remarks>
         public override void UpdateCompletion()
         {
         }
 
-        GameObject referencedGameObject
-        {
-            get { return objectReference.sceneObjectReference.ReferencedObjectAsGameObject;  }
-        }
+        GameObject ReferencedGameObject => objectReference.SceneObjectReference.ReferencedObjectAsGameObject;
 
         void OnPlayerEnteredCollision2D(CollisionBroadcaster2D sender)
         {
-            if (testMode == TriggerTaskTestMode.CollisionEnter && referencedGameObject == sender.gameObject)
-                completed = true;
+            if (TestMode == TriggerTaskTestMode.CollisionEnter && ReferencedGameObject == sender.gameObject)
+                Completed = true;
         }
 
         void OnPlayerEnteredTrigger2D(CollisionBroadcaster2D sender)
         {
-            if (testMode == TriggerTaskTestMode.TriggerEnter && referencedGameObject == sender.gameObject)
-                completed = true;
+            if (TestMode == TriggerTaskTestMode.TriggerEnter && ReferencedGameObject == sender.gameObject)
+                Completed = true;
         }
 
         void OnPlayerExitCollision2D(CollisionBroadcaster2D sender)
         {
-            if (testMode == TriggerTaskTestMode.CollisionExit && referencedGameObject == sender.gameObject)
-                completed = true;
+            if (TestMode == TriggerTaskTestMode.CollisionExit && ReferencedGameObject == sender.gameObject)
+                Completed = true;
         }
 
         void OnPlayerExitTrigger2D(CollisionBroadcaster2D sender)
         {
-            if (testMode == TriggerTaskTestMode.TriggerExit && referencedGameObject == sender.gameObject)
-                completed = true;
+            if (TestMode == TriggerTaskTestMode.TriggerExit && ReferencedGameObject == sender.gameObject)
+                Completed = true;
         }
 
         void OnPlayerEnteredCollision(CollisionBroadcaster3D sender)
         {
-            if (testMode == TriggerTaskTestMode.CollisionEnter && referencedGameObject == sender.gameObject)
-                completed = true;
+            if (TestMode == TriggerTaskTestMode.CollisionEnter && ReferencedGameObject == sender.gameObject)
+                Completed = true;
         }
 
         void OnPlayerEnteredTrigger(CollisionBroadcaster3D sender)
         {
-            if (testMode == TriggerTaskTestMode.TriggerEnter && referencedGameObject == sender.gameObject)
-                completed = true;
+            if (TestMode == TriggerTaskTestMode.TriggerEnter && ReferencedGameObject == sender.gameObject)
+                Completed = true;
         }
 
         void OnPlayerExitCollision(CollisionBroadcaster3D sender)
         {
-            if (testMode == TriggerTaskTestMode.CollisionExit && referencedGameObject == sender.gameObject)
-                completed = true;
+            if (TestMode == TriggerTaskTestMode.CollisionExit && ReferencedGameObject == sender.gameObject)
+                Completed = true;
         }
 
         void OnPlayerExitTrigger(CollisionBroadcaster3D sender)
         {
-            if (testMode == TriggerTaskTestMode.TriggerExit && referencedGameObject == sender.gameObject)
-                completed = true;
+            if (TestMode == TriggerTaskTestMode.TriggerExit && ReferencedGameObject == sender.gameObject)
+                Completed = true;
         }
 
+        /// <summary>
+        /// Auto-completes the criterion.
+        /// </summary>
+        /// <returns>True if the auto-completion succeeded.</returns>
         public override bool AutoComplete()
         {
-            if (referencedGameObject == null)
+            if (ReferencedGameObject == null)
                 return false;
 
-            if (referencedGameObject.GetComponent<BaseCollisionBroadcaster>() == null)
+            if (ReferencedGameObject.GetComponent<BaseCollisionBroadcaster>() == null)
                 return false;
 
             var playerComponent = SceneManager.GetActiveScene().GetRootGameObjects()
@@ -124,11 +159,11 @@ namespace Unity.InteractiveTutorials
             if (playerGameObject == null)
                 playerGameObject = playerComponent.gameObject;
 
-            switch (testMode)
+            switch (TestMode)
             {
                 case TriggerTaskTestMode.TriggerEnter:
                 case TriggerTaskTestMode.CollisionEnter:
-                    playerGameObject.transform.position = referencedGameObject.transform.position;
+                    playerGameObject.transform.position = ReferencedGameObject.transform.position;
                     return true;
 
                 case TriggerTaskTestMode.TriggerExit:

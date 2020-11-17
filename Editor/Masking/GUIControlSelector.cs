@@ -2,46 +2,87 @@ using System;
 using UnityEngine;
 using UnityObject = UnityEngine.Object;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
+    /// <summary>
+    /// Used the select which GUI controls are unmasked.
+    /// </summary>
+    //  TODO Should be GuiControlSelector
     [Serializable]
     public class GUIControlSelector
     {
+        /// <summary>
+        /// Supported selector modes.
+        /// </summary>
         public enum Mode
         {
-            GUIContent,
+            /// <summary>
+            /// Select by GUIContent.
+            /// </summary>
+            GuiContent,
+            /// <summary>
+            /// Select by Named Control's name (the name used for GUI.SetNextControlName()).
+            /// </summary>
             NamedControl,
+            /// <summary>
+            /// Select by property' path name.
+            /// </summary>
             Property,
-            GUIStyleName,
+            /// <summary>
+            /// Select by GUIStyle's name.
+            /// </summary>
+            GuiStyleName,
+            /// <summary>
+            /// Match by the referenced Unity Object.
+            /// </summary>
             ObjectReference,
         }
 
-        public Mode selectorMode { get { return m_SelectorMode; } set { m_SelectorMode = value; } }
+        /// <summary>
+        /// The used selector mode.
+        /// </summary>
+        public Mode SelectorMode { get => m_SelectorMode; set => m_SelectorMode = value; }
         [SerializeField]
-        private Mode m_SelectorMode;
+        Mode m_SelectorMode;
 
-        public GUIContent guiContent { get { return new GUIContent(m_GUIContent); } set { m_GUIContent = new GUIContent(value); } }
+        /// <summary>
+        /// Applicable if Mode.GuiContent used.
+        /// </summary>
+        public GUIContent GuiContent { get => new GUIContent(m_GUIContent); set => m_GUIContent = new GUIContent(value); }
         [SerializeField]
-        private GUIContent m_GUIContent = new GUIContent();
+        GUIContent m_GUIContent = new GUIContent();
 
-        public string controlName { get { return m_ControlName; } set { m_ControlName = value ?? ""; } }
+        /// <summary>
+        /// Applicable if Mode.NamedControl used.
+        /// </summary>
+        public string ControlName { get => m_ControlName; set => m_ControlName = value ?? ""; }
         [SerializeField]
-        private string m_ControlName = "";
+        string m_ControlName = "";
 
-        public string propertyPath { get { return m_PropertyPath; } set { m_PropertyPath = value ?? ""; } }
+        /// <summary>
+        /// Applicable if Mode.Property used.
+        /// </summary>
+        public string PropertyPath { get => m_PropertyPath; set => m_PropertyPath = value ?? ""; }
         [SerializeField]
-        private string m_PropertyPath = "";
+        string m_PropertyPath = "";
 
-        public Type targetType { get { return m_TargetType.type; } set { m_TargetType.type = value; } }
+        /// <summary>
+        /// Applicable if Mode.Property used.
+        /// </summary>
+        public Type TargetType { get => m_TargetType.Type; set => m_TargetType.Type = value; }
         [SerializeField, SerializedTypeFilter(typeof(UnityObject))]
-        private SerializedType m_TargetType = new SerializedType(null);
+        SerializedType m_TargetType = new SerializedType(null);
 
-        public string guiStyleName { get { return m_GUIStyleName; } set { m_GUIStyleName = value; } }
+        /// <summary>
+        /// Applicable if Mode.GuiStyleName used.
+        /// </summary>
+        public string GuiStyleName { get => m_GUIStyleName; set => m_GUIStyleName = value; }
         [SerializeField]
-        private string m_GUIStyleName;
+        string m_GUIStyleName;
 
         /// <summary>
         /// A reference to a Unity Object of which name will be matched against the text in UI elements.
+        /// Applicable if Mode.ObjectReference used.
         /// </summary>
         /// <remarks>
         /// In order for this to work for assets, the asset must have a short name, i.e.,

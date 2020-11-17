@@ -1,13 +1,10 @@
 using System;
-using UnityEditor;
 using UnityEngine.UIElements;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
-    /// <summary>
-    /// An utility class for common UIElements setup method
-    /// </summary>
-    public static class UIElementsUtils
+    // TODO Unused, utilise or remove.
+    static class UIElementsUtils
     {
         public static void SetupButton(string buttonName, Action onClickAction, bool isEnabled, VisualElement parent, string tooltip = "", bool showIfEnabled = true)
         {

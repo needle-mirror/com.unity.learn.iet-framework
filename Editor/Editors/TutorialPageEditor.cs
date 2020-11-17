@@ -5,12 +5,12 @@ using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
     using static Localization;
 
     [CustomEditor(typeof(TutorialPage))]
-    class TutorialPageEditor : Editor
+    class TutorialPageEditor : UnityEditor.Editor
     {
         static readonly bool k_IsAuthoringMode = ProjectMode.IsAuthoringMode();
         const string k_OnBeforeShownEventPropertyPath = "m_OnBeforePageShown";
@@ -374,7 +374,7 @@ namespace Unity.InteractiveTutorials
             {
                 RenderEventProperty(s_OnBeforeEventsTitle, m_OnBeforePageShown, 5);
                 RenderEventProperty(s_OnAfterEventsTitle, m_OnAfterPageShown, 5);
-                RenderEventProperty(s_OnTutorialPageStayEventsTitle, m_OnTutorialPageStay,5);
+                RenderEventProperty(s_OnTutorialPageStayEventsTitle, m_OnTutorialPageStay, 5);
                 RenderEventProperty(s_OnBeforeTutorialQuitEventsTitle, m_OnBeforeTutorialQuit, 10);
             }
 

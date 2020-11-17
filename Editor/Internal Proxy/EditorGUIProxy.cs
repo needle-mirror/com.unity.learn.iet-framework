@@ -1,9 +1,9 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
-    public static class EditorGUIProxy
+    internal static class EditorGUIProxy
     {
         public static string ScrollableTextAreaInternal(Rect position, string text, ref Vector2 scrollPosition, GUIStyle style) =>
             EditorGUI.ScrollableTextAreaInternal(position, text, ref scrollPosition, style);

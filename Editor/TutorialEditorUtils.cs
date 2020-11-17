@@ -3,7 +3,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
     /// <summary>
     /// Contains different utilities used in Tutorials custom editors
@@ -58,7 +58,7 @@ namespace Unity.InteractiveTutorials
                     "One or more callbacks of this event are not using 'Editor and Runtime' mode." +
                     "If you want to be able to execute them in Edit mode as well (that is, when running tutorials out of Play mode), " +
                     "be sure to choose 'Editor and Runtime' mode. "),
-                 MessageType.Warning
+                MessageType.Warning
             );
         }
 

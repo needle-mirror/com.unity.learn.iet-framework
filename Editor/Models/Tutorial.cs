@@ -7,7 +7,7 @@ using UnityEngine.Serialization;
 
 using UnityObject = UnityEngine.Object;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
     /// <summary>
     /// A container for tutorial pages which implement the tutorial's functionality.
@@ -25,7 +25,7 @@ namespace Unity.InteractiveTutorials
         /// <summary>
         /// Raised when any page of any tutorial tutorial is modified.
         /// </summary>
-        public static event Action<Tutorial> tutorialPagesModified;
+        public static event Action<Tutorial> TutorialPagesModified;
 
         /// <summary>
         /// The title shown in the window.
@@ -33,21 +33,19 @@ namespace Unity.InteractiveTutorials
         [Header("Content")]
         public LocalizableString TutorialTitle;
         [SerializeField, HideInInspector]
-        string m_TutorialTitle = "";
-        /// <summary> deprecated, use TutorialTitle </summary>
-        [Obsolete] public string tutorialTitle { get => m_TutorialTitle; set => m_TutorialTitle = value; }
+        string m_TutorialTitle;
 
         /// <summary>
         /// Lessond ID, arbitrary string, typically integers are used.
         /// </summary>
-        public string lessonId { get => m_LessonId; set => m_LessonId = value; }
+        public string LessonId { get => m_LessonId; set => m_LessonId = value; }
         [SerializeField]
         string m_LessonId = "";
 
         /// <summary>
         /// Tutorial version, arbitrary string, typically integers are used.
         /// </summary>
-        public string version { get => m_Version; set => m_Version = value; }
+        public string Version { get => m_Version; set => m_Version = value; }
         [SerializeField]
         string m_Version = "0";
 
@@ -61,7 +59,7 @@ namespace Unity.InteractiveTutorials
         /// <summary>
         /// The supported exit behavior types.
         /// </summary>
-        public enum ExitBehavior
+        public enum ExitBehaviorType
         {
             /// <summary>
             /// Show "home window", i.e. Unity Hub.
@@ -76,15 +74,15 @@ namespace Unity.InteractiveTutorials
         /// <summary>
         /// How should the tutorial behave upon exiting.
         /// </summary>
-        public ExitBehavior exitBehavior { get => m_ExitBehavior; set => m_ExitBehavior = value; }
+        public ExitBehaviorType ExitBehavior { get => m_ExitBehavior; set => m_ExitBehavior = value; }
         [Header("Exit Behavior")]
         [SerializeField]
-        ExitBehavior m_ExitBehavior = ExitBehavior.ShowHomeWindow;
+        ExitBehaviorType m_ExitBehavior = ExitBehaviorType.ShowHomeWindow;
 
         /// <summary>
         /// The supported skip behavior types.
         /// </summary>
-        public enum SkipTutorialBehavior
+        public enum SkipTutorialBehaviorType
         {
             /// <summary>
             /// Same as exit behaviour.
@@ -99,33 +97,9 @@ namespace Unity.InteractiveTutorials
         /// <summary>
         /// How should the tutorial behave upon skipping.
         /// </summary>
-        public SkipTutorialBehavior skipTutorialBehavior { get => m_SkipTutorialBehavior; set => m_SkipTutorialBehavior = value; }
+        public SkipTutorialBehaviorType SkipTutorialBehavior { get => m_SkipTutorialBehavior; set => m_SkipTutorialBehavior = value; }
         [SerializeField]
-        SkipTutorialBehavior m_SkipTutorialBehavior = SkipTutorialBehavior.SameAsExitBehavior;
-
-        /// <summary>
-        /// Obsolete.
-        /// </summary>
-        [Obsolete]
-        public UnityObject assetSelectedOnExit { get => m_AssetSelectedOnExit; set => m_AssetSelectedOnExit = value; }
-        [SerializeField]
-        UnityObject m_AssetSelectedOnExit = default;
-
-        /// <summary>
-        /// Obsolete.
-        /// </summary>
-        [Obsolete]
-        public TutorialWelcomePage welcomePage => m_WelcomePage;
-        [Header("Pages"), SerializeField]
-        TutorialWelcomePage m_WelcomePage = default;
-
-        /// <summary>
-        /// Obsolete.
-        /// </summary>
-        [Obsolete]
-        public TutorialWelcomePage completedPage => m_CompletedPage;
-        [SerializeField]
-        TutorialWelcomePage m_CompletedPage = default;
+        SkipTutorialBehaviorType m_SkipTutorialBehavior = SkipTutorialBehaviorType.SameAsExitBehavior;
 
         /// <summary>
         /// The layout used by the tutorial
@@ -138,50 +112,67 @@ namespace Unity.InteractiveTutorials
             "Linux: ~/.config/Preferences/Unity/<version>/Layouts")]
         UnityObject m_WindowLayout;
 
-        internal string windowLayoutPath => AssetDatabase.GetAssetPath(m_WindowLayout);
+        internal string WindowLayoutPath => AssetDatabase.GetAssetPath(m_WindowLayout);
 
         /// <summary>
         /// All the pages of this tutorial.
         /// </summary>
-        public IEnumerable<TutorialPage> pages => m_Pages;
+        public IEnumerable<TutorialPage> Pages => m_Pages;
         [SerializeField, FormerlySerializedAs("m_Steps")]
         internal TutorialPageCollection m_Pages = new TutorialPageCollection();
 
         AutoCompletion m_AutoCompletion;
 
         /// <summary>
-        /// Is this being skipped currently.
+        /// Is this tutorial being skipped currently.
         /// </summary>
-        public bool skipped { get; private set; }
+        public bool Skipped { get; private set; }
 
         /// <summary>
         /// Raised when this tutorial is being initiated.
         /// </summary>
-        public event Action tutorialInitiated;
+        public event Action TutorialInitiated;
         /// <summary>
         /// Raised when a page of this tutorial is being initiated.
         /// </summary>
-        public event Action<TutorialPage, int> pageInitiated;
+        public event Action<TutorialPage, int> PageInitiated;
         /// <summary>
         /// Raised when we are going back to the previous page.
         /// </summary>
-        public event Action<TutorialPage> goingBack;
+        public event Action<TutorialPage> GoingBack;
         /// <summary>
         /// Raised when this tutorial is completed.
         /// </summary>
-        public event Action<bool> tutorialCompleted;
+        public event Action<bool> TutorialCompleted;
 
-        public int currentPageIndex { get; private set; }
+        /// <summary>
+        /// The current page index.
+        /// </summary>
+        public int CurrentPageIndex { get; private set; }
 
-        public TutorialPage currentPage => m_Pages.count == 0
-                    ? null
-                    : m_Pages[currentPageIndex = Mathf.Min(currentPageIndex, m_Pages.count - 1)];
+        /// <summary>
+        /// Returns the current page.
+        /// </summary>
+        public TutorialPage CurrentPage =>
+             m_Pages.Count == 0
+                ? null
+                : m_Pages[CurrentPageIndex = Mathf.Min(CurrentPageIndex, m_Pages.Count - 1)];
 
-        public int pageCount => m_Pages.count;
+        /// <summary>
+        /// The page count of the tutorial.
+        /// </summary>
+        public int PageCount => m_Pages.Count;
 
-        public bool completed => pageCount == 0 || (currentPageIndex >= pageCount - 2 && currentPage != null && currentPage.allCriteriaAreSatisfied);
+        /// <summary>
+        /// Is the tutorial completed?
+        /// </summary>
+        public bool Completed =>
+            PageCount == 0 || (CurrentPageIndex >= PageCount - 2 && CurrentPage != null && CurrentPage.AreAllCriteriaSatisfied);
 
-        public bool isAutoCompleting => m_AutoCompletion.running;
+        /// <summary>
+        /// Are we currently auto-completing?
+        /// </summary>
+        public bool IsAutoCompleting => m_AutoCompletion.running;
 
         /// <summary>
         /// A wrapper class for serialization purposes.
@@ -190,12 +181,15 @@ namespace Unity.InteractiveTutorials
         public class TutorialPageCollection : CollectionWrapper<TutorialPage>
         {
             /// <summary> Creates and empty collection. </summary>
-            public TutorialPageCollection() : base() { }
+            public TutorialPageCollection() : base() {}
             /// <summary> Creates a new collection from existing items. </summary>
             /// <param name="items"></param>
-            public TutorialPageCollection(IList<TutorialPage> items) : base(items) { }
+            public TutorialPageCollection(IList<TutorialPage> items) : base(items) {}
         }
 
+        /// <summary>
+        /// Initializes the tutorial.
+        /// </summary>
         public Tutorial()
         {
             m_AutoCompletion = new AutoCompletion(this);
@@ -211,51 +205,67 @@ namespace Unity.InteractiveTutorials
             m_AutoCompletion.OnDisable();
         }
 
+        /// <summary>
+        /// Starts auto-completion of this tutorial.
+        /// </summary>
         public void StartAutoCompletion()
         {
             m_AutoCompletion.Start();
         }
 
+        /// <summary>
+        /// Stops auto-completion of this tutorial.
+        /// </summary>
         public void StopAutoCompletion()
         {
             m_AutoCompletion.Stop();
         }
 
+        /// <summary>
+        /// Stops this tutorial, meaning its completion requirements are removed.
+        /// </summary>
         public void StopTutorial()
         {
-            if (currentPage != null)
-                currentPage.RemoveCompletionRequirements();
+            if (CurrentPage != null)
+                CurrentPage.RemoveCompletionRequirements();
         }
 
+        /// <summary>
+        /// Goes to the previous tutorial page.
+        /// </summary>
         public void GoToPreviousPage()
         {
-            if (currentPageIndex == 0)
+            if (CurrentPageIndex == 0)
                 return;
 
-            OnGoingBack(currentPage);
-            currentPageIndex = Mathf.Max(0, currentPageIndex - 1);
-            OnPageInitiated(currentPage, currentPageIndex);
+            OnGoingBack(CurrentPage);
+            CurrentPageIndex = Mathf.Max(0, CurrentPageIndex - 1);
+            OnPageInitiated(CurrentPage, CurrentPageIndex);
         }
 
+        /// <summary>
+        /// Attempts to go to the next tutorial page.
+        /// </summary>
+        /// <returns>true if successful, false otherwise</returns>
         public bool TryGoToNextPage()
         {
-            if (!currentPage || !currentPage.allCriteriaAreSatisfied && !currentPage.hasMovedToNextPage)
+            if (!CurrentPage || !CurrentPage.AreAllCriteriaSatisfied && !CurrentPage.HasMovedToNextPage)
                 return false;
-            if (m_Pages.count == currentPageIndex + 1)
+            if (m_Pages.Count == CurrentPageIndex + 1)
             {
                 OnTutorialCompleted(true);
                 return false;
             }
-            int newIndex = Mathf.Min(m_Pages.count - 1, currentPageIndex + 1);
-            if (newIndex != currentPageIndex)
+            int newIndex = Mathf.Min(m_Pages.Count - 1, CurrentPageIndex + 1);
+            if (newIndex != CurrentPageIndex)
             {
-                if (currentPage != null)
+                if (CurrentPage != null)
                 {
-                    currentPage.OnPageCompleted();
+                    CurrentPage.OnPageCompleted();
                 }
-                currentPageIndex = newIndex;
-                OnPageInitiated(currentPage, currentPageIndex);
-                if (m_Pages.count == currentPageIndex + 1)
+                CurrentPageIndex = newIndex;
+                OnPageInitiated(CurrentPage, CurrentPageIndex);
+                if (m_Pages.Count == CurrentPageIndex + 1)
                 {
                     OnTutorialCompleted(false);
                 }
@@ -269,7 +279,7 @@ namespace Unity.InteractiveTutorials
         /// </summary>
         public void RaiseTutorialPagesModified()
         {
-            tutorialPagesModified?.Invoke(this);
+            TutorialPagesModified?.Invoke(this);
         }
 
         /// <summary>
@@ -289,11 +299,11 @@ namespace Unity.InteractiveTutorials
                 EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects);
 
             // move scene view camera into place
-            if (m_DefaultSceneCameraSettings != null && m_DefaultSceneCameraSettings.enabled)
+            if (m_DefaultSceneCameraSettings != null && m_DefaultSceneCameraSettings.Enabled)
                 m_DefaultSceneCameraSettings.Apply();
             OnTutorialInitiated();
-            if (pageCount > 0)
-                OnPageInitiated(currentPage, currentPageIndex);
+            if (PageCount > 0)
+                OnPageInitiated(CurrentPage, CurrentPageIndex);
         }
 
         internal void LoadWindowLayout()
@@ -311,38 +321,41 @@ namespace Unity.InteractiveTutorials
             {
                 page?.ResetUserProgress();
             }
-            currentPageIndex = 0;
-            skipped = false;
+            CurrentPageIndex = 0;
+            Skipped = false;
             LoadScene();
         }
 
-        protected virtual void OnTutorialInitiated()
+        void OnTutorialInitiated()
         {
-            tutorialInitiated?.Invoke();
+            TutorialInitiated?.Invoke();
         }
 
-        protected virtual void OnTutorialCompleted(bool exitTutorial)
+        void OnTutorialCompleted(bool exitTutorial)
         {
-            tutorialCompleted?.Invoke(exitTutorial);
+            TutorialCompleted?.Invoke(exitTutorial);
         }
 
-        protected virtual void OnPageInitiated(TutorialPage page, int index)
+        void OnPageInitiated(TutorialPage page, int index)
         {
             page?.Initiate();
-            pageInitiated?.Invoke(page, index);
+            PageInitiated?.Invoke(page, index);
         }
 
-        protected virtual void OnGoingBack(TutorialPage page)
+        void OnGoingBack(TutorialPage page)
         {
             page?.RemoveCompletionRequirements();
-            goingBack?.Invoke(page);
+            GoingBack?.Invoke(page);
         }
 
+        /// <summary>
+        /// Skips to the last page of the tutorial.
+        /// </summary>
         public void SkipToLastPage()
         {
-            skipped = true;
-            currentPageIndex = pageCount - 1;
-            OnPageInitiated(currentPage, currentPageIndex);
+            Skipped = true;
+            CurrentPageIndex = PageCount - 1;
+            OnPageInitiated(CurrentPage, CurrentPageIndex);
         }
 
         /// <summary>

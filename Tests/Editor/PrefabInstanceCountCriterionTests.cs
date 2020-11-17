@@ -10,7 +10,7 @@ using UnityEngine.TestTools;
 
 using UnityObject = UnityEngine.Object;
 
-namespace Unity.InteractiveTutorials.Tests
+namespace Unity.Tutorials.Core.Editor.Tests
 {
     public class PrefabInstanceCountCriterionTests : CriterionTestBase<PrefabInstanceCountCriterion>
     {
@@ -21,8 +21,8 @@ namespace Unity.InteractiveTutorials.Tests
         {
             EditorSceneManager.OpenScene(GetTestAssetPath("EmptyTestScene.unity"));
 
-            m_Criterion.prefabParent = AssetDatabase.LoadAssetAtPath<GameObject>(GetTestAssetPath("TestPrefab1.prefab"));
-            Assert.IsNotNull(m_Criterion.prefabParent, "Cannot load test prefab");
+            m_Criterion.PrefabParent = AssetDatabase.LoadAssetAtPath<GameObject>(GetTestAssetPath("TestPrefab1.prefab"));
+            Assert.IsNotNull(m_Criterion.PrefabParent, "Cannot load test prefab");
         }
 
         [TearDown]

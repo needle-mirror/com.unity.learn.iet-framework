@@ -1,10 +1,10 @@
 {
     "name": "Unity.InternalAPIEditorBridgeDev.002",
     "references": [
-        "Unity.InteractiveTutorials.Core",
+        "Unity.Tutorials.Core.Editor",
         "UnityEditor.InteractiveTutorialsFramework",
-        "Unity.InteractiveTutorials.Core.Scripts",
-        "Unity.InteractiveTutorials.Core.Tests",
+        "Unity.Tutorials.Core",
+        "Unity.Tutorials.Core.Tests",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
         "Unity.Settings.Editor"

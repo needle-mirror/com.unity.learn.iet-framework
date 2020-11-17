@@ -1,7 +1,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
     [CustomPropertyDrawer(typeof(LocalizableString), true)]
     class LocalizableStringDrawer : PropertyDrawer

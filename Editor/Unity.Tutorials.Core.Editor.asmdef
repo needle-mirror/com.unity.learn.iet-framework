@@ -1,8 +1,8 @@
 {
-    "name": "Unity.InteractiveTutorials.Core",
+    "name": "Unity.Tutorials.Core.Editor",
     "references": [
         "UnityEditor.InteractiveTutorialsFramework",
-        "Unity.InteractiveTutorials.Core.Scripts",
+        "Unity.Tutorials.Core",
         "Unity.EditorCoroutines.Editor",
         "Unity.Settings.Editor"
     ],

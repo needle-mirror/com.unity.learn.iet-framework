@@ -9,7 +9,7 @@ using UnityEngine.TestTools;
 
 using UnityObject = UnityEngine.Object;
 
-namespace Unity.InteractiveTutorials.Tests
+namespace Unity.Tutorials.Core.Editor.Tests
 {
     public class RequiredSelectionCriterionTests : CriterionTestBase<RequiredSelectionCriterion>
     {
@@ -24,7 +24,7 @@ namespace Unity.InteractiveTutorials.Tests
             m_ReferencedObject = new GameObject();
 
             m_ObjectReference = new ObjectReference();
-            m_ObjectReference.sceneObjectReference.Update(m_ReferencedObject);
+            m_ObjectReference.SceneObjectReference.Update(m_ReferencedObject);
 
             m_Criterion.SetObjectReferences(new[] { m_ObjectReference });
         }

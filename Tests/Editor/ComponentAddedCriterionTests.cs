@@ -10,7 +10,7 @@ using UnityEngine.TestTools;
 
 using UnityObject = UnityEngine.Object;
 
-namespace Unity.InteractiveTutorials.Tests
+namespace Unity.Tutorials.Core.Editor.Tests
 {
     public class ComponentAddedCriterionTests : CriterionTestBase<ComponentAddedCriterion>
     {
@@ -109,9 +109,9 @@ namespace Unity.InteractiveTutorials.Tests
 
             CollectionAssert.AreEquivalent(new[]
             {
-                "1: Unity.InteractiveTutorials.Tests.ComponentAddedCriterionTests+ComponentA",
-                "2: Unity.InteractiveTutorials.Tests.ComponentAddedCriterionTests+ComponentB",
-                "4: Unity.InteractiveTutorials.Tests.ComponentAddedCriterionTests+ComponentA"
+                "1: Unity.Tutorials.Core.Editor.Tests.ComponentAddedCriterionTests+ComponentA",
+                "2: Unity.Tutorials.Core.Editor.Tests.ComponentAddedCriterionTests+ComponentB",
+                "4: Unity.Tutorials.Core.Editor.Tests.ComponentAddedCriterionTests+ComponentA"
             }, futureReferences.Select(f => f.referenceName));
         }
 

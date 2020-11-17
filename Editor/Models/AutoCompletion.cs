@@ -2,7 +2,7 @@ using System;
 using UnityEditor;
 using UnityEngine;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
     [Serializable]
     class AutoCompletion
@@ -26,12 +26,12 @@ namespace Unity.InteractiveTutorials
         {
             if (m_Running)
             {
-                if (m_Tutorial.completed)
+                if (m_Tutorial.Completed)
                     Stop();
                 else
                 {
                     EditorApplication.update += OnUpdate;
-                    Criterion.criterionCompleted += OnCriterionCompleted;
+                    Criterion.CriterionCompleted += OnCriterionCompleted;
                 }
             }
         }
@@ -41,13 +41,13 @@ namespace Unity.InteractiveTutorials
             if (m_Running)
             {
                 EditorApplication.update -= OnUpdate;
-                Criterion.criterionCompleted -= OnCriterionCompleted;
+                Criterion.CriterionCompleted -= OnCriterionCompleted;
             }
         }
 
         public void Start()
         {
-            if (m_Running || m_Tutorial.completed)
+            if (m_Running || m_Tutorial.Completed)
                 return;
 
             m_Running = true;
@@ -55,7 +55,7 @@ namespace Unity.InteractiveTutorials
             m_CompletionDeadline = 0f;
 
             EditorApplication.update += OnUpdate;
-            Criterion.criterionCompleted += OnCriterionCompleted;
+            Criterion.CriterionCompleted += OnCriterionCompleted;
         }
 
         public void Stop()
@@ -66,9 +66,9 @@ namespace Unity.InteractiveTutorials
             m_Running = false;
 
             EditorApplication.update -= OnUpdate;
-            Criterion.criterionCompleted -= OnCriterionCompleted;
+            Criterion.CriterionCompleted -= OnCriterionCompleted;
 
-            if (m_Tutorial.completed)
+            if (m_Tutorial.Completed)
                 Debug.Log("Tutorial was completed automatically.");
             else
                 Debug.Log("Tutorial was did not complete automatically.");
@@ -117,14 +117,14 @@ namespace Unity.InteractiveTutorials
 
         Criterion GetNextIncompleteCriterion()
         {
-            foreach (var page in m_Tutorial.pages)
+            foreach (var page in m_Tutorial.Pages)
             {
-                foreach (var paragraph in page.paragraphs)
+                foreach (var paragraph in page.Paragraphs)
                 {
-                    foreach (var typedCriterion in paragraph.criteria)
+                    foreach (var typedCriterion in paragraph.Criteria)
                     {
-                        var criterion = typedCriterion.criterion;
-                        if (!criterion.completed)
+                        var criterion = typedCriterion.Criterion;
+                        if (!criterion.Completed)
                             return criterion;
                     }
                 }

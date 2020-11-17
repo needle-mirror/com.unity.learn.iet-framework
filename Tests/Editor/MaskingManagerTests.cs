@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEditor;
 using NUnit.Framework;
 
-namespace Unity.InteractiveTutorials.Tests
+namespace Unity.Tutorials.Core.Editor.Tests
 {
     public class MaskingManagerTests
     {

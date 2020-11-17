@@ -9,17 +9,30 @@ using UnityEngine.UIElements;
 using UnityEngine.Experimental.UIElements;
 #endif
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
     using static Localization;
 
-    public static class MaskingManager
+    /// <summary>
+    /// Manages masking and highlighting.
+    /// </summary>
+    internal static class MaskingManager
     {
         /// <summary>
         /// Master control for masking and highlighting.
         /// </summary>
         public static UserSetting<bool> MaskingEnabled =
             new UserSetting<bool>("IET.MaskingEnabled", Tr("Enable Masking and Highlighting"), true, Tr("Master control for Masking and Highlighting"));
+
+        /// <summary>
+        /// Delay, in seconds, before the highlight starts pulsating.
+        /// </summary>
+        public static float HighlightAnimationDelay { get; set; }
+
+        /// <summary>
+        /// Speed of the highligh pulsation.
+        /// </summary>
+        public static float HighlightAnimationSpeed { get; set; }
 
         internal static bool IsMasked(GUIViewProxy view, List<Rect> rects)
         {
@@ -49,29 +62,26 @@ namespace Unity.InteractiveTutorials
 
         static GUIViewProxyComparer s_GUIViewProxyComparer = new GUIViewProxyComparer();
 
-        private static readonly Dictionary<GUIViewProxy, MaskViewData> s_UnmaskedViews = new Dictionary<GUIViewProxy, MaskViewData>(s_GUIViewProxyComparer);
-        private static readonly Dictionary<GUIViewProxy, MaskViewData> s_HighlightedViews = new Dictionary<GUIViewProxy, MaskViewData>(s_GUIViewProxyComparer);
+        static readonly Dictionary<GUIViewProxy, MaskViewData> s_UnmaskedViews = new Dictionary<GUIViewProxy, MaskViewData>(s_GUIViewProxyComparer);
+        static readonly Dictionary<GUIViewProxy, MaskViewData> s_HighlightedViews = new Dictionary<GUIViewProxy, MaskViewData>(s_GUIViewProxyComparer);
 
-        private static readonly List<VisualElement> s_Masks = new List<VisualElement>();
-        private static readonly List<VisualElement> s_Highlighters = new List<VisualElement>();
+        static readonly List<VisualElement> s_Masks = new List<VisualElement>();
+        static readonly List<VisualElement> s_Highlighters = new List<VisualElement>();
 
-        private static double s_LastHighlightTime;
-
-        public static float highlightAnimationDelay { get; set; }
-        public static float highlightAnimationSpeed { get; set; }
+        static double s_LastHighlightTime;
 
         static MaskingManager()
         {
             EditorApplication.update += delegate
             {
                 // do not animate unless enough time has passed since masking was last applied
-                var t = EditorApplication.timeSinceStartup - s_LastHighlightTime - highlightAnimationDelay;
+                var t = EditorApplication.timeSinceStartup - s_LastHighlightTime - HighlightAnimationDelay;
                 if (t < 0d)
                     return;
 
                 var baseBorderWidth = 4.2f;
                 var borderWidthAmplitude = 2.1f;
-                var animatedBorderWidth = Mathf.Cos((float)t * highlightAnimationSpeed) * borderWidthAmplitude + baseBorderWidth;
+                var animatedBorderWidth = Mathf.Cos((float)t * HighlightAnimationSpeed) * borderWidthAmplitude + baseBorderWidth;
                 foreach (var highlighter in s_Highlighters)
                 {
                     if (highlighter == null)
@@ -84,12 +94,15 @@ namespace Unity.InteractiveTutorials
                 }
                 foreach (var view in s_HighlightedViews)
                 {
-                    if (view.Key.isValid)
+                    if (view.Key.IsValid)
                         view.Key.Repaint();
                 }
             };
         }
 
+        /// <summary>
+        /// Unmasks all views.
+        /// </summary>
         public static void Unmask()
         {
             foreach (var mask in s_Masks)
@@ -106,7 +119,7 @@ namespace Unity.InteractiveTutorials
             s_Highlighters.Clear();
         }
 
-        private static void CopyMaskData(UnmaskedView.MaskData maskData, Dictionary<GUIViewProxy, MaskViewData> viewsAndResources)
+        static void CopyMaskData(UnmaskedView.MaskData maskData, Dictionary<GUIViewProxy, MaskViewData> viewsAndResources)
         {
             viewsAndResources.Clear();
             foreach (var unmaskedView in maskData.m_MaskData)
@@ -116,11 +129,17 @@ namespace Unity.InteractiveTutorials
                 var maskViewData = unmaskedView.Value;
                 var unmaskedRegions = maskViewData.rects == null ? new List<Rect>(1) : maskViewData.rects.ToList();
                 if (unmaskedRegions.Count == 0)
-                    unmaskedRegions.Add(new Rect(0f, 0f, unmaskedView.Key.position.width, unmaskedView.Key.position.height));
+                    unmaskedRegions.Add(new Rect(0f, 0f, unmaskedView.Key.Position.width, unmaskedView.Key.Position.height));
                 viewsAndResources[unmaskedView.Key] = new MaskViewData() { maskType = maskViewData.maskType, rects = unmaskedRegions };
             }
         }
 
+        /// <summary>
+        /// Adds a mask for a view.
+        /// </summary>
+        /// <param name="view"></param>
+        /// <param name="child"></param>
+        // TODO 2.0 used only internally, make private/internal?
         public static void AddMaskToView(GUIViewProxy view, VisualElement child)
         {
             // Since 2019.3(?), we must suppress input to the elements behind masks.
@@ -160,6 +179,15 @@ namespace Unity.InteractiveTutorials
             }
         }
 
+        /// <summary>
+        /// Applies masking.
+        /// </summary>
+        /// <param name="unmaskedViewsAndRegionsMaskData"></param>
+        /// <param name="maskColor"></param>
+        /// <param name="highlightedRegionsMaskData"></param>
+        /// <param name="highlightColor"></param>
+        /// <param name="blockedInteractionsColor"></param>
+        /// <param name="highlightThickness"></param>
         public static void Mask(
             UnmaskedView.MaskData unmaskedViewsAndRegionsMaskData, Color maskColor,
             UnmaskedView.MaskData highlightedRegionsMaskData, Color highlightColor, Color blockedInteractionsColor, float highlightThickness
@@ -175,12 +203,12 @@ namespace Unity.InteractiveTutorials
 
             foreach (var view in views)
             {
-                if (!view.isValid)
+                if (!view.IsValid)
                     continue;
 
                 MaskViewData maskViewData;
 
-                var viewRect =  new Rect(0, 0, view.position.width, view.position.height);
+                var viewRect =  new Rect(0, 0, view.Position.width, view.Position.height);
 
                 // mask everything except the unmasked view rects
                 if (s_UnmaskedViews.TryGetValue(view, out maskViewData))

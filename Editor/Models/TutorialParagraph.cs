@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Video;
 using UnityEngine.Serialization;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
     /// <summary>
     /// Different paragraph types.
@@ -75,41 +75,6 @@ namespace Unity.InteractiveTutorials
         [LocalizableTextArea(1, 15)]
         public LocalizableString Text;
 
-        /// <summary> TODO 2.0 Deprecated, remove </summary>
-        [Obsolete]
-        public string summary { get { return m_Summary; } set { m_Summary = value; } }
-        [SerializeField, TextArea(1, 1)]
-        [Obsolete, HideInInspector]
-        string m_Summary;
-
-        /// <summary> TODO 2.0 Deprecated, remove </summary>
-        [Obsolete]
-        public string Description { get { return m_Description; } set { m_Description = value; } }
-        [FormerlySerializedAs("m_description1")]
-        [SerializeField, TextArea(1, 8)]
-        [Obsolete, HideInInspector]
-        string m_Description;
-
-        /// <summary> TODO 2.0 Deprecated, remove </summary>
-        [Obsolete]
-        public string InstructionTitle { get { return m_InstructionBoxTitle; } set { m_InstructionBoxTitle = value; } }
-        [FormerlySerializedAs("m_Text")]
-        [SerializeField, TextArea(1, 15)]
-        [Obsolete, HideInInspector]
-        string m_InstructionBoxTitle;
-
-        /// <summary> TODO 2.0 Deprecated, remove </summary>
-        [Obsolete]
-        public string InstructionText { get { return m_InstructionText; } set { m_InstructionText = value; } }
-        [SerializeField, TextArea(1, 15)]
-        [Obsolete, HideInInspector]
-        string m_InstructionText;
-
-        /// <summary> TODO 2.0 Deprecated, remove, superseded by Text </summary>
-        [SerializeField]
-        [Obsolete, HideInInspector]
-        internal string m_TutorialButtonText = "";
-
         /// <summary>
         /// Used for SwitchTutorial.
         /// </summary>
@@ -117,40 +82,18 @@ namespace Unity.InteractiveTutorials
         internal Tutorial m_Tutorial;
 
         /// <summary>
-        /// TODO 2.0 Deprecated, remove.
-        /// </summary>
-        public IEnumerable<InlineIcon> icons
-        {
-            get
-            {
-                m_Icons.GetItems(m_IconBuffer);
-                return m_IconBuffer;
-            }
-        }
-        [SerializeField]
-        InlineIconCollection m_Icons = new InlineIconCollection();
-        readonly List<InlineIcon> m_IconBuffer = new List<InlineIcon>();
-
-        /// <summary>
         /// The image if this paragraph's type is Image.
         /// </summary>
         public Texture2D Image { get => m_Image; set => m_Image = value; }
         [SerializeField]
-        Texture2D m_Image = null;
+        Texture2D m_Image;
 
         /// <summary>
         /// The video clip if this paragraph's type is Video.
         /// </summary>
         public VideoClip Video { get => m_Video; set => m_Video = value; }
         [SerializeField]
-        VideoClip m_Video = null;
-
-        /// <summary> TODO 2.0 remove </summary>
-        public ParagraphType type { get => Type; }
-        /// <summary> TODO 2.0 remove </summary>
-        public Texture2D image { get => Image; set => Image = value; }
-        /// <summary> TODO 2.0 remove </summary>
-        public VideoClip video { get => Video; set => Video = value; }
+        VideoClip m_Video;
 
         [SerializeField]
         internal CompletionType m_CriteriaCompletion = CompletionType.CompletedWhenAllAreTrue;
@@ -161,7 +104,7 @@ namespace Unity.InteractiveTutorials
         /// <summary>
         /// The completion criteria if this paragraph's type is Instruction.
         /// </summary>
-        public IEnumerable<TypedCriterion> criteria
+        public IEnumerable<TypedCriterion> Criteria
         {
             get
             {
@@ -173,16 +116,14 @@ namespace Unity.InteractiveTutorials
         /// <summary>
         /// The masking settings for this paragraph.
         /// </summary>
-        public MaskingSettings maskingSettings { get { return m_MaskingSettings; } }
+        internal MaskingSettings MaskingSettings => m_MaskingSettings;
         [SerializeField]
         MaskingSettings m_MaskingSettings = new MaskingSettings();
 
         /// <summary>
         /// Is this paragraph completed? Applicable if this paragraph's type is Instruction.
         /// </summary>
-        public bool Completed => completed;
-        /// <summary> TODO 2.0 Deprecated, will be renamed to Completed </summary>
-        public bool completed
+        public bool Completed
         {
             get
             {
@@ -191,16 +132,16 @@ namespace Unity.InteractiveTutorials
 
                 foreach (var typedCriterion in m_Criteria)
                 {
-                    var criterion = typedCriterion.criterion;
+                    var criterion = typedCriterion.Criterion;
                     if (criterion != null)
                     {
-                        if (!allMandatory && criterion.completed)
+                        if (!allMandatory && criterion.Completed)
                         {
                             result = true;
                             break;
                         }
 
-                        if (allMandatory && !criterion.completed)
+                        if (allMandatory && !criterion.Completed)
                         {
                             result = false;
                             break;
@@ -211,6 +152,18 @@ namespace Unity.InteractiveTutorials
                 return result;
             }
         }
+
+        // Backwards-compatibility for < 1.2
+        [SerializeField, HideInInspector]
+        string m_Summary;
+        [SerializeField, FormerlySerializedAs("m_description1"), HideInInspector]
+        string m_Description;
+        [SerializeField, FormerlySerializedAs("m_Text"), HideInInspector]
+        string m_InstructionBoxTitle;
+        [SerializeField, HideInInspector]
+        string m_InstructionText;
+        [SerializeField, HideInInspector]
+        string m_TutorialButtonText;
 
         /// <summary>
         /// UnityEngine.ISerializationCallbackReceiver override, do not call.
@@ -224,9 +177,8 @@ namespace Unity.InteractiveTutorials
         /// </summary>
         public void OnAfterDeserialize()
         {
-#pragma warning disable 612 // suppress warnings for using obsolete fields
             // Migrate content from < 1.2.
-            switch (type)
+            switch (Type)
             {
                 case ParagraphType.Narrative:
                     MigrateStringToLocalizableString(ref m_Summary, ref Title);
@@ -240,7 +192,6 @@ namespace Unity.InteractiveTutorials
                     MigrateStringToLocalizableString(ref m_TutorialButtonText, ref Text);
                     break;
             }
-#pragma warning restore 612
         }
 
         internal static void MigrateStringToLocalizableString(ref string oldField, ref LocalizableString newField)

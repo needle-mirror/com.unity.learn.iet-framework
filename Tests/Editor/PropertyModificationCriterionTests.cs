@@ -8,7 +8,7 @@ using UnityEngine.TestTools;
 
 using UnityObject = UnityEngine.Object;
 
-namespace Unity.InteractiveTutorials.Tests
+namespace Unity.Tutorials.Core.Editor.Tests
 {
     class TestComponent : MonoBehaviour
     {

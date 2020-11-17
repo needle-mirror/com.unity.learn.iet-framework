@@ -2,8 +2,9 @@ using UnityEngine;
 using UnityEditor;
 using NUnit.Framework;
 
-namespace Unity.InteractiveTutorials.Tests
+namespace Unity.Tutorials.Core.Editor.Tests
 {
+    // TODO badly named, give a more suitable name, SceneObjectGUIDTests or something like that
     public class AssetToSceneObjectReferenceManagerTests
     {
         private SceneObjectGUIDManager manager;
@@ -11,7 +12,7 @@ namespace Unity.InteractiveTutorials.Tests
         [SetUp]
         public void InitManager()
         {
-            manager = SceneObjectGUIDManager.instance = new SceneObjectGUIDManager();
+            manager = SceneObjectGUIDManager.Instance;
         }
 
         [Test]
@@ -25,8 +26,8 @@ namespace Unity.InteractiveTutorials.Tests
         {
             var c = CreateGameObjectWithReferenceComponent();
 
-            Assert.IsTrue(manager.Contains(c.id));
-            Assert.IsNotNull(manager.GetComponent(c.id));
+            Assert.IsTrue(manager.Contains(c.Id));
+            Assert.IsNotNull(manager.GetComponent(c.Id));
         }
 
         [Test]
@@ -36,10 +37,10 @@ namespace Unity.InteractiveTutorials.Tests
             var c2 = CreateGameObjectWithReferenceComponent();
             var c3 = CreateGameObjectWithReferenceComponent();
 
-            Assert.IsTrue(manager.Contains(c2.id));
-            Assert.AreEqual(c2, manager.GetComponent(c2.id));
-            Assert.AreNotEqual(c1, manager.GetComponent(c2.id));
-            Assert.AreNotEqual(c3, manager.GetComponent(c2.id));
+            Assert.IsTrue(manager.Contains(c2.Id));
+            Assert.AreEqual(c2, manager.GetComponent(c2.Id));
+            Assert.AreNotEqual(c1, manager.GetComponent(c2.Id));
+            Assert.AreNotEqual(c3, manager.GetComponent(c2.Id));
         }
 
         [Test]
@@ -56,7 +57,7 @@ namespace Unity.InteractiveTutorials.Tests
         public void Manager_WithComponentAddedAndRemoved_WillReturnNull()
         {
             var c = CreateGameObjectWithReferenceComponent();
-            var id = c.id;
+            var id = c.Id;
             Object.DestroyImmediate(c);
 
             Assert.IsNull(manager.GetComponent(id));
@@ -67,12 +68,12 @@ namespace Unity.InteractiveTutorials.Tests
         {
             var c1 = CreateGameObjectWithReferenceComponent();
             var c2 = CreateGameObjectWithReferenceComponent();
-            var c2Id = c2.id;
+            var c2Id = c2.Id;
             Object.DestroyImmediate(c2);
             var c3 = CreateGameObjectWithReferenceComponent();
 
-            Assert.IsNotNull(manager.GetComponent(c1.id));
-            Assert.IsNotNull(manager.GetComponent(c3.id));
+            Assert.IsNotNull(manager.GetComponent(c1.Id));
+            Assert.IsNotNull(manager.GetComponent(c3.Id));
             Assert.IsNull(manager.GetComponent(c2Id));
         }
 

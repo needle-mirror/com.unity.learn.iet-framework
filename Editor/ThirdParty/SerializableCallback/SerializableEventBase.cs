@@ -2,16 +2,29 @@ using System;
 
 namespace SerializableCallback
 {
+    /// <summary>
+    /// https://github.com/Siccity/SerializableCallback
+    /// </summary>
     public abstract class SerializableEventBase : SerializableCallbackBase
     {
+        /// <summary>
+        /// https://github.com/Siccity/SerializableCallback
+        /// </summary>
         public InvokableEventBase invokable;
 
+        /// <summary>
+        /// https://github.com/Siccity/SerializableCallback
+        /// </summary>
         public override void ClearCache()
         {
             base.ClearCache();
             invokable = null;
         }
 
+        /// <summary>
+        /// https://github.com/Siccity/SerializableCallback
+        /// </summary>
+        /// <returns></returns>
         protected InvokableEventBase GetPersistentMethod()
         {
             Type[] types = new Type[ArgTypes.Length];

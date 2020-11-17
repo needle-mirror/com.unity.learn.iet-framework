@@ -1,7 +1,7 @@
 using NUnit.Framework;
 using UnityEngine;
 
-namespace Unity.InteractiveTutorials.Tests
+namespace Unity.Tutorials.Core.Editor.Tests
 {
     class TutorialTests
     {
@@ -13,19 +13,19 @@ namespace Unity.InteractiveTutorials.Tests
             Tutorial tutorial;
             var c = CreateTutorial(out tutorial);
 
-            tutorial.currentPage.ValidateCriteria();
+            tutorial.CurrentPage.ValidateCriteria();
             Assert.IsTrue(tutorial.TryGoToNextPage());
 
-            tutorial.currentPage.ValidateCriteria();
+            tutorial.CurrentPage.ValidateCriteria();
             Assert.IsFalse(tutorial.TryGoToNextPage());
 
             c.IsCompleted = true;
             c.UpdateCompletion();
 
-            tutorial.currentPage.ValidateCriteria();
+            tutorial.CurrentPage.ValidateCriteria();
             Assert.IsTrue(tutorial.TryGoToNextPage());
 
-            tutorial.currentPage.ValidateCriteria();
+            tutorial.CurrentPage.ValidateCriteria();
             Assert.IsFalse(tutorial.TryGoToNextPage());
         }
 
@@ -35,18 +35,18 @@ namespace Unity.InteractiveTutorials.Tests
             Tutorial tutorial;
             var c = CreateTutorial(out tutorial);
 
-            tutorial.currentPage.ValidateCriteria();
+            tutorial.CurrentPage.ValidateCriteria();
             Assert.IsTrue(tutorial.TryGoToNextPage());
 
-            tutorial.currentPage.ValidateCriteria();
+            tutorial.CurrentPage.ValidateCriteria();
             Assert.IsFalse(tutorial.TryGoToNextPage());
 
             c.IsCompleted = true;
             c.UpdateCompletion();
-            tutorial.currentPage.ValidateCriteria();
+            tutorial.CurrentPage.ValidateCriteria();
             c.IsCompleted = false;
             c.UpdateCompletion();
-            tutorial.currentPage.ValidateCriteria();
+            tutorial.CurrentPage.ValidateCriteria();
             Assert.IsFalse(tutorial.TryGoToNextPage());
         }
 
@@ -56,26 +56,26 @@ namespace Unity.InteractiveTutorials.Tests
             Tutorial tutorial;
             var c = CreateTutorial(out tutorial);
 
-            tutorial.currentPage.ValidateCriteria();
+            tutorial.CurrentPage.ValidateCriteria();
             Assert.IsTrue(tutorial.TryGoToNextPage());
 
-            tutorial.currentPage.ValidateCriteria();
+            tutorial.CurrentPage.ValidateCriteria();
             Assert.IsFalse(tutorial.TryGoToNextPage());
 
             c.IsCompleted = true;
             c.UpdateCompletion();
 
-            tutorial.currentPage.ValidateCriteria();
+            tutorial.CurrentPage.ValidateCriteria();
             Assert.IsTrue(tutorial.TryGoToNextPage());
 
             tutorial.GoToPreviousPage();
             c.IsCompleted = false;
             c.UpdateCompletion();
-            tutorial.currentPage.ValidateCriteria();
-            Assert.IsFalse(tutorial.currentPage.allCriteriaAreSatisfied);
+            tutorial.CurrentPage.ValidateCriteria();
+            Assert.IsFalse(tutorial.CurrentPage.AreAllCriteriaSatisfied);
             Assert.IsTrue(tutorial.TryGoToNextPage());
 
-            tutorial.currentPage.ValidateCriteria();
+            tutorial.CurrentPage.ValidateCriteria();
             Assert.IsFalse(tutorial.TryGoToNextPage());
         }
 

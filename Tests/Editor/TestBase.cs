@@ -1,6 +1,6 @@
 using System.IO;
 
-namespace Unity.InteractiveTutorials.Tests
+namespace Unity.Tutorials.Core.Editor.Tests
 {
     public class TestBase
     {

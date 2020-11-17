@@ -1,23 +1,39 @@
+using System;
 using UnityEngine;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core
 {
+    /// <summary>
+    /// Broadcasts 2D collision events for IPlayerAvatar.
+    /// </summary>
     [RequireComponent(typeof(Collider2D))]
     public class CollisionBroadcaster2D : BaseCollisionBroadcaster
     {
-        public delegate void EventHandler(CollisionBroadcaster2D sender);
+        /// <summary>
+        /// Raised upon OnCollisionEnter2D.
+        /// </summary>
+        public static event Action<CollisionBroadcaster2D> PlayerEnteredCollision;
 
-        public static event EventHandler playerEnteredCollision = null;
-        public static event EventHandler playerExitedCollision = null;
-        public static event EventHandler playerEnteredTrigger = null;
-        public static event EventHandler playerExitedTrigger = null;
+        /// <summary>
+        /// Raised upon OnCollisionExit2D.
+        /// </summary>
+        public static event Action<CollisionBroadcaster2D> PlayerExitedCollision;
+
+        /// <summary>
+        /// Raised upon OnTriggerEnter2D.
+        /// </summary>
+        public static event Action<CollisionBroadcaster2D> PlayerEnteredTrigger;
+
+        /// <summary>
+        /// Raised upon OnTriggerExit2D.
+        /// </summary>
+        public static event Action<CollisionBroadcaster2D> PlayerExitedTrigger;
 
         void OnCollisionEnter2D(Collision2D collision)
         {
             if (collision.gameObject.GetComponentInChildren<IPlayerAvatar>() != null)
             {
-                if (playerEnteredCollision != null)
-                    playerEnteredCollision(this);
+                PlayerEnteredCollision?.Invoke(this);
             }
         }
 
@@ -25,8 +41,7 @@ namespace Unity.InteractiveTutorials
         {
             if (collision.gameObject.GetComponentInChildren<IPlayerAvatar>() != null)
             {
-                if (playerExitedCollision != null)
-                    playerExitedCollision(this);
+                PlayerExitedCollision?.Invoke(this);
             }
         }
 
@@ -34,8 +49,7 @@ namespace Unity.InteractiveTutorials
         {
             if (collider.GetComponentInChildren<IPlayerAvatar>() != null)
             {
-                if (playerEnteredTrigger != null)
-                    playerEnteredTrigger(this);
+                PlayerEnteredTrigger?.Invoke(this);
             }
         }
 
@@ -43,8 +57,7 @@ namespace Unity.InteractiveTutorials
         {
             if (collider.GetComponentInChildren<IPlayerAvatar>() != null)
             {
-                if (playerExitedTrigger != null)
-                    playerExitedTrigger(this);
+                PlayerExitedTrigger?.Invoke(this);
             }
         }
     }

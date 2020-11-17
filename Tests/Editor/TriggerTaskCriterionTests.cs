@@ -5,10 +5,11 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
+using Unity.Tutorials.Core;
 
 using UnityObject = UnityEngine.Object;
 
-namespace Unity.InteractiveTutorials.Tests
+namespace Unity.Tutorials.Core.Editor.Tests
 {
     public class TriggerTaskCriterionTests : CriterionTestBase<TriggerTaskCriterion>, IPrebuildSetup
     {
@@ -48,19 +49,19 @@ namespace Unity.InteractiveTutorials.Tests
 
             player.AddComponent<PlayerAvatarTestComponent>();
 
-            m_Criterion.objectReference.sceneObjectReference.Update(target);
-            m_Criterion.testMode = testMode;
-            Assert.IsFalse(m_Criterion.completed);
+            m_Criterion.objectReference.SceneObjectReference.Update(target);
+            m_Criterion.TestMode = testMode;
+            Assert.IsFalse(m_Criterion.Completed);
 
             player.transform.position = target.transform.position;
             yield return null;
             yield return null;
-            Assert.AreEqual(expectedCompletionWhenIntersecting, m_Criterion.completed);
+            Assert.AreEqual(expectedCompletionWhenIntersecting, m_Criterion.Completed);
 
             player.transform.position = Vector3.zero;
             yield return null;
             yield return null;
-            Assert.AreEqual(expectedCompletionWhenNotIntersectingAnymore, m_Criterion.completed);
+            Assert.AreEqual(expectedCompletionWhenNotIntersectingAnymore, m_Criterion.Completed);
         }
 
         [Ignore("This test needs to be in the editor assembly and run in play mode which is currently not supported")]
@@ -91,15 +92,15 @@ namespace Unity.InteractiveTutorials.Tests
             if (playerStartsInsideTarget)
                 player.transform.position = target.transform.position;
 
-            m_Criterion.objectReference.sceneObjectReference.Update(target);
-            m_Criterion.testMode = testMode;
+            m_Criterion.objectReference.SceneObjectReference.Update(target);
+            m_Criterion.TestMode = testMode;
 
-            Assert.IsFalse(m_Criterion.completed);
+            Assert.IsFalse(m_Criterion.Completed);
 
             Assert.AreEqual(expectedReturnValueAndCompletion, m_Criterion.AutoComplete());
             yield return null;
 
-            Assert.AreEqual(expectedReturnValueAndCompletion, m_Criterion.completed);
+            Assert.AreEqual(expectedReturnValueAndCompletion, m_Criterion.Completed);
         }
     }
 

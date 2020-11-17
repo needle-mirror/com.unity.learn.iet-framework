@@ -1,8 +1,8 @@
 using UnityEditor;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
-    public class PrefabUtilityShim
+    internal class PrefabUtilityShim
     {
         public static UnityEngine.Object GetCorrespondingObjectFromSource(UnityEngine.Object source)
         {

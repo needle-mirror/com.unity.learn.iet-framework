@@ -1,56 +1,76 @@
 using System.Collections.Generic;
 using UnityEngine.Assertions;
 
-public class SceneObjectGUIDManager
+namespace Unity.Tutorials.Core
 {
-    private static SceneObjectGUIDManager m_Instance;
-    private Dictionary<string, SceneObjectGUIDComponent> components = new Dictionary<string, SceneObjectGUIDComponent>();
-
-    public static SceneObjectGUIDManager instance
+    /// <summary>
+    /// Manages SceneObjectGUIDComponents.
+    /// </summary>
+    // TODO 2.0 should be renamed to SceneObjectGuidManager
+    public class SceneObjectGUIDManager
     {
-        get
+        static SceneObjectGUIDManager m_Instance;
+        Dictionary<string, SceneObjectGUIDComponent> m_Components = new Dictionary<string, SceneObjectGUIDComponent>();
+
+        /// <summary>
+        /// Returns the singleton instance.
+        /// </summary>
+        public static SceneObjectGUIDManager Instance
         {
-            if (!IsInitiated)
+            get
             {
-                m_Instance = new SceneObjectGUIDManager();
+                if (m_Instance == null)
+                {
+                    m_Instance = new SceneObjectGUIDManager();
+                }
+                return m_Instance;
             }
-            return m_Instance;
+            private set { m_Instance = value; }
         }
 
-        /*internal*/ set { m_Instance = value; }
-    }
-
-    /*internal */ public SceneObjectGUIDManager()
-    {
-    }
-
-    public static bool IsInitiated { get { return m_Instance != null; } }
-
-    public void Register(SceneObjectGUIDComponent component)
-    {
-        Assert.IsFalse(string.IsNullOrEmpty(component.id));
-
-        //Add will trow an exception if the id is already registered
-        components.Add(component.id, component);
-    }
-
-    public bool Contains(string id)
-    {
-        return components.ContainsKey(id);
-    }
-
-    public void Deregister(SceneObjectGUIDComponent component)
-    {
-        components.Remove(component.id);
-    }
-
-    public SceneObjectGUIDComponent GetComponent(string id)
-    {
-        SceneObjectGUIDComponent value;
-        if (components.TryGetValue(id, out value))
+        /// <summary>
+        /// Registers a GUID component.
+        /// </summary>
+        /// <param name="component"></param>
+        public void Register(SceneObjectGUIDComponent component)
         {
-            return value;
+            Assert.IsFalse(string.IsNullOrEmpty(component.Id));
+            //Add will trow an exception if the id is already registered
+            m_Components.Add(component.Id, component);
         }
-        return null;
+
+        /// <summary>
+        /// Does the manager contain a Component for specific GUID.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public bool Contains(string id)
+        {
+            return m_Components.ContainsKey(id);
+        }
+
+        /// <summary>
+        /// Unregisters a GUID Component.
+        /// </summary>
+        /// <param name="component"></param>
+        /// <returns>True if the Component was found and unregistered, false otherwise.</returns>
+        public bool Unregister(SceneObjectGUIDComponent component)
+        {
+            return m_Components.Remove(component.Id);
+        }
+
+        /// <summary>
+        /// Returns the GUID Component for a specific GUID, if found.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public SceneObjectGUIDComponent GetComponent(string id)
+        {
+            if (m_Components.TryGetValue(id, out SceneObjectGUIDComponent value))
+            {
+                return value;
+            }
+            return null;
+        }
     }
 }

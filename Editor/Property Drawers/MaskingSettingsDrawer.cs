@@ -3,17 +3,20 @@ using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
     [CustomPropertyDrawer(typeof(MaskingSettings))]
-    public class MaskingSettingsDrawer : PropertyDrawer
+    class MaskingSettingsDrawer : PropertyDrawer
     {
+        const string k_EnabledPath = "m_MaskingEnabled";
+        const string k_UnmaskedViewsPath = "m_UnmaskedViews";
+
         private readonly Dictionary<string, ReorderableList> m_UnmaskedViewsPerPropertyPath =
             new Dictionary<string, ReorderableList>();
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            var enabled = property.FindPropertyRelative(MaskingSettings.k_EnabledPath);
+            var enabled = property.FindPropertyRelative(k_EnabledPath);
             var height = EditorGUI.GetPropertyHeight(enabled);
             if (enabled.boolValue)
                 height += EditorGUIUtility.standardVerticalSpacing + GetListControl(property).GetHeight();
@@ -22,7 +25,7 @@ namespace Unity.InteractiveTutorials
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            var enabled = property.FindPropertyRelative(MaskingSettings.k_EnabledPath);
+            var enabled = property.FindPropertyRelative(k_EnabledPath);
             position.height = EditorGUI.GetPropertyHeight(enabled);
             using (new EditorGUI.PropertyScope(position, label, enabled))
                 property.isExpanded = enabled.boolValue = EditorGUI.ToggleLeft(position, label, enabled.boolValue);
@@ -45,7 +48,7 @@ namespace Unity.InteractiveTutorials
             ReorderableList list;
             if (!m_UnmaskedViewsPerPropertyPath.TryGetValue(key, out list))
             {
-                list = new ReorderableList(parentProperty.serializedObject, parentProperty.FindPropertyRelative(MaskingSettings.k_UnmaskedViewsPath));
+                list = new ReorderableList(parentProperty.serializedObject, parentProperty.FindPropertyRelative(k_UnmaskedViewsPath));
                 list.drawHeaderCallback = rect => EditorGUI.LabelField(rect, "Unmasked Views");
                 list.elementHeightCallback = index =>
                     EditorGUI.GetPropertyHeight(list.serializedProperty.GetArrayElementAtIndex(index), true) +

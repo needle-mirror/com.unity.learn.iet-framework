@@ -2,7 +2,7 @@ using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
     [CustomPropertyDrawer(typeof(TutorialParagraphCollection))]
     class TutorialParagraphCollectionDrawer : CollectionWrapperDrawer

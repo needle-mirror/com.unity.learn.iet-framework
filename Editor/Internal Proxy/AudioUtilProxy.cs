@@ -1,14 +1,17 @@
 using UnityEditor;
 using UnityEngine;
 
-public static class AudioUtilProxy
+namespace Unity.Tutorials.Core.Editor
 {
-    public static void PlayClip(AudioClip audioClip)
+    internal static class AudioUtilProxy
     {
+        internal static void PlayClip(AudioClip audioClip)
+        {
 #if UNITY_2020_2_OR_NEWER
-        AudioUtil.PlayPreviewClip(audioClip);
+            AudioUtil.PlayPreviewClip(audioClip);
 #else
-        AudioUtil.PlayClip(audioClip);
+            AudioUtil.PlayClip(audioClip);
 #endif
+        }
     }
 }

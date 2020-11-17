@@ -3,10 +3,10 @@ using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
     [CustomPropertyDrawer(typeof(UnmaskedView))]
-    public class UnmaskedViewDrawer : PropertyDrawer
+    class UnmaskedViewDrawer : PropertyDrawer
     {
         private const string k_SelectorTypePath = "m_SelectorType";
         private const string k_ViewTypePath = "m_ViewType";

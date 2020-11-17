@@ -5,10 +5,11 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-using UnityObject = UnityEngine.Object;
-
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
+    /// <summary>
+    /// Criterion for checking that specific Components are added to a GameObject.
+    /// </summary>
     public class ComponentAddedCriterion : Criterion
     {
         [SerializeField, FormerlySerializedAs("targetGameObject")]
@@ -17,27 +18,33 @@ namespace Unity.InteractiveTutorials
         [SerializeField, FormerlySerializedAs("requiredComponents")]
         SerializedTypeCollection m_RequiredComponents = new SerializedTypeCollection();
 
-        public GameObject targetGameObject
+        /// <summary>
+        /// Returns the target GameObject.
+        /// </summary>
+        public GameObject TargetGameObject
         {
             get
             {
                 if (m_TargetGameObject == null)
                     return null;
-                return m_TargetGameObject.sceneObjectReference.ReferencedObjectAsGameObject;
+                return m_TargetGameObject.SceneObjectReference.ReferencedObjectAsGameObject;
             }
             set
             {
                 if (m_TargetGameObject == null)
                     m_TargetGameObject = new ObjectReference();
-                m_TargetGameObject.sceneObjectReference.Update(value);
+                m_TargetGameObject.SceneObjectReference.Update(value);
             }
         }
 
-        public IList<Type> requiredComponents
+        /// <summary>
+        /// Returns the required Components.
+        /// </summary>
+        public IList<Type> RequiredComponents
         {
             get
             {
-                return m_RequiredComponents.Select(typeAndFutureReference => typeAndFutureReference.serializedType.type)
+                return m_RequiredComponents.Select(typeAndFutureReference => typeAndFutureReference.SerializedType.Type)
                     .ToList();
             }
             set
@@ -48,6 +55,9 @@ namespace Unity.InteractiveTutorials
             }
         }
 
+        /// <summary>
+        /// Starts testing of the criterion.
+        /// </summary>
         public override void StartTesting()
         {
             UpdateCompletion();
@@ -55,11 +65,17 @@ namespace Unity.InteractiveTutorials
             EditorApplication.update += UpdateCompletion;
         }
 
+        /// <summary>
+        /// Stops testing of the criterion.
+        /// </summary>
         public override void StopTesting()
         {
             EditorApplication.update -= UpdateCompletion;
         }
 
+        /// <summary>
+        /// Destroys unused future reference assets and updates future references.
+        /// </summary>
         protected override void OnValidate()
         {
             // Destroy unused future reference assets
@@ -71,14 +87,14 @@ namespace Unity.InteractiveTutorials
             {
                 requiredComponentsIndex++;
 
-                var type = typeAndFutureReference.serializedType.type;
+                var type = typeAndFutureReference.SerializedType.Type;
                 if (type == null)
                     continue;
 
-                if (typeAndFutureReference.futureReference == null)
-                    typeAndFutureReference.futureReference = CreateFutureObjectReference();
+                if (typeAndFutureReference.FutureReference == null)
+                    typeAndFutureReference.FutureReference = CreateFutureObjectReference();
 
-                typeAndFutureReference.futureReference.referenceName = string.Format("{0}: {1}",
+                typeAndFutureReference.FutureReference.ReferenceName = string.Format("{0}: {1}",
                     requiredComponentsIndex, type.FullName);
             }
 
@@ -86,16 +102,20 @@ namespace Unity.InteractiveTutorials
                 UpdateFutureObjectReferenceNames();
         }
 
+        /// <summary>
+        /// Evaluates if the criterion is completed.
+        /// </summary>
+        /// <returns></returns>
         protected override bool EvaluateCompletion()
         {
-            var gameObject = targetGameObject;
+            var gameObject = TargetGameObject;
             if (gameObject == null)
                 return false;
 
-            if (requiredComponents.Count() == 0)
+            if (RequiredComponents.Count() == 0)
                 return true;
 
-            foreach (var type in requiredComponents)
+            foreach (var type in RequiredComponents)
             {
                 if (type == null)
                 {
@@ -110,27 +130,35 @@ namespace Unity.InteractiveTutorials
             // Update future references
             foreach (var requiredType in m_RequiredComponents)
             {
-                var component = gameObject.GetComponent(requiredType.serializedType.type);
-                requiredType.futureReference.sceneObjectReference.Update(component);
+                var component = gameObject.GetComponent(requiredType.SerializedType.Type);
+                requiredType.FutureReference.SceneObjectReference.Update(component);
             }
 
             return true;
         }
 
+        /// <summary>
+        /// Returns FutureObjectReference for this Criterion.
+        /// </summary>
+        /// <returns></returns>
         protected override IEnumerable<FutureObjectReference> GetFutureObjectReferences()
         {
             return m_RequiredComponents
-                .Where(c => c.serializedType.type != null && c.futureReference != null)
-                .Select(c => c.futureReference);
+                .Where(c => c.SerializedType.Type != null && c.FutureReference != null)
+                .Select(c => c.FutureReference);
         }
 
+        /// <summary>
+        /// Auto-completes the criterion.
+        /// </summary>
+        /// <returns>True if the auto-completion succeeded.</returns>
         public override bool AutoComplete()
         {
-            var gameObject = targetGameObject;
+            var gameObject = TargetGameObject;
             if (gameObject == null)
                 return false;
 
-            foreach (var type in requiredComponents)
+            foreach (var type in RequiredComponents)
             {
                 var component = gameObject.AddComponent(type);
                 if (component == null)
@@ -140,24 +168,46 @@ namespace Unity.InteractiveTutorials
             return true;
         }
 
+        /// <summary>
+        /// Wrapper class for serialization purposes.
+        /// </summary>
         [Serializable]
         public class SerializedTypeCollection : CollectionWrapper<TypeAndFutureReference> {}
 
+        /// <summary>
+        /// A SerializedType-FutureObjectReference pair.
+        /// </summary>
         [Serializable]
         public class TypeAndFutureReference : ICloneable
         {
-            [SerializedTypeFilter(typeof(Component))]
-            public SerializedType serializedType;
-            public FutureObjectReference futureReference;
+            /// <summary>
+            /// The SerializedType.
+            /// </summary>
+            [SerializedTypeFilter(typeof(Component)), FormerlySerializedAs("serializedType")]
+            public SerializedType SerializedType;
 
+            /// <summary>
+            /// The FutureReference.
+            /// </summary>
+            [FormerlySerializedAs("futureReference")]
+            public FutureObjectReference FutureReference;
+
+            /// <summary>
+            /// Constructs from a SerializedType.
+            /// </summary>
+            /// <param name="serializedType"></param>
             public TypeAndFutureReference(SerializedType serializedType)
             {
-                this.serializedType = serializedType;
+                this.SerializedType = serializedType;
             }
 
+            /// <summary>
+            /// Creates a clone of this instance.
+            /// </summary>
+            /// <returns></returns>
             public object Clone()
             {
-                return new TypeAndFutureReference(serializedType);
+                return new TypeAndFutureReference(SerializedType);
             }
         }
     }

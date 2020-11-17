@@ -1,5 +1,5 @@
 {
-    "name": "Unity.InteractiveTutorials.Core.Scripts",
+    "name": "Unity.Tutorials.Core",
     "references": [],
     "optionalUnityReferences": [],
     "includePlatforms": [],

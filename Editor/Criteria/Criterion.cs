@@ -4,16 +4,29 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
+    /// <summary>
+    /// Base class for Criterion implementations.
+    /// </summary>
     public abstract class Criterion : ScriptableObject
     {
-        public static event Action<Criterion> criterionCompleted;
-        public static event Action<Criterion> criterionInvalidated;
+        /// <summary>
+        /// Raised when any Criterion is completed.
+        /// </summary>
+        public static event Action<Criterion> CriterionCompleted;
+
+        /// <summary>
+        /// Raised when any Criterion is invalidated.
+        /// </summary>
+        public static event Action<Criterion> CriterionInvalidated;
 
         bool m_Completed;
 
-        public bool completed
+        /// <summary>
+        /// Is the Criterion completed. Setting this raises CriterionCompleted/CriterionInvalidated.
+        /// </summary>
+        public bool Completed
         {
             get { return m_Completed; }
             protected set
@@ -23,40 +36,72 @@ namespace Unity.InteractiveTutorials
 
                 m_Completed = value;
                 if (m_Completed)
-                    criterionCompleted?.Invoke(this);
+                    CriterionCompleted?.Invoke(this);
                 else
-                    criterionInvalidated?.Invoke(this);
+                    CriterionInvalidated?.Invoke(this);
             }
         }
 
+        /// <summary>
+        /// Resets the completion state.
+        /// </summary>
         public void ResetCompletionState()
         {
             m_Completed = false;
         }
 
+        /// <summary>
+        /// Starts testing of the criterion.
+        /// </summary>
         public virtual void StartTesting()
         {
         }
 
+        /// <summary>
+        /// Stops testing of the criterion.
+        /// </summary>
         public virtual void StopTesting()
         {
         }
 
+        /// <summary>
+        /// Runs update logic for the criterion.
+        /// </summary>
         public virtual void UpdateCompletion()
         {
-            completed = EvaluateCompletion();
+            Completed = EvaluateCompletion();
         }
 
+        /// <summary>
+        /// Evaluates if the criterion is completed.
+        /// </summary>
+        /// <returns></returns>
         protected virtual bool EvaluateCompletion()
         {
             throw new NotImplementedException($"Missing implementation of EvaluateCompletion in: {GetType()}");
         }
 
+        /// <summary>
+        /// Auto-completes the criterion.
+        /// </summary>
+        /// <returns>True if the auto-completion succeeded.</returns>
+        public abstract bool AutoComplete();
+
+        /// <summary>
+        /// Returns FutureObjectReference for this Criterion.
+        /// </summary>
+        /// <returns></returns>
         protected virtual IEnumerable<FutureObjectReference> GetFutureObjectReferences()
         {
             return Enumerable.Empty<FutureObjectReference>();
         }
 
+        /// <summary>
+        /// Destroys unreferenced future references.
+        /// </summary>
+        /// <see>
+        /// https://docs.unity3d.com/ScriptReference/MonoBehaviour.OnValidate.html
+        /// </see>
         protected virtual void OnValidate()
         {
             // Find instanceIDs of referenced future references
@@ -70,7 +115,7 @@ namespace Unity.InteractiveTutorials
             foreach (var asset in assets)
             {
                 if (asset is FutureObjectReference
-                    && ((FutureObjectReference)asset).criterion == this
+                    && ((FutureObjectReference)asset).Criterion == this
                     && !referencedFutureReferenceInstanceIDs.Contains(asset.GetInstanceID()))
                 {
                     DestroyImmediate(asset, true);
@@ -78,16 +123,25 @@ namespace Unity.InteractiveTutorials
             }
         }
 
+        /// <summary>
+        /// Creates a default FutureObjectReference for this Criterion.
+        /// </summary>
+        /// <returns></returns>
         protected FutureObjectReference CreateFutureObjectReference()
         {
             return CreateFutureObjectReference("Future Reference");
         }
 
+        /// <summary>
+        /// Creates a FutureObjectReference by specific name for this Criterion.
+        /// </summary>
+        /// <param name="referenceName"></param>
+        /// <returns></returns>
         protected FutureObjectReference CreateFutureObjectReference(string referenceName)
         {
             var futureReference = CreateInstance<FutureObjectReference>();
-            futureReference.criterion = this;
-            futureReference.referenceName = referenceName;
+            futureReference.Criterion = this;
+            futureReference.ReferenceName = referenceName;
 
             var assetPath = AssetDatabase.GetAssetPath(this);
             AssetDatabase.AddObjectToAsset(futureReference, assetPath);
@@ -95,6 +149,9 @@ namespace Unity.InteractiveTutorials
             return futureReference;
         }
 
+        /// <summary>
+        /// Updates names of the references.
+        /// </summary>
         protected void UpdateFutureObjectReferenceNames()
         {
             // Update future reference names in next editor update due to AssetDatase interactions
@@ -114,7 +171,5 @@ namespace Unity.InteractiveTutorials
             foreach (var futureReference in futureReferences)
                 tutorialPage.UpdateFutureObjectReferenceName(futureReference);
         }
-
-        public abstract bool AutoComplete();
     }
 }

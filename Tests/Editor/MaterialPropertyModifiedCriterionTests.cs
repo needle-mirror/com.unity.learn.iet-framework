@@ -10,7 +10,7 @@ using UnityEngine.TestTools;
 using Object = System.Object;
 using UnityObject = UnityEngine.Object;
 
-namespace Unity.InteractiveTutorials.Tests
+namespace Unity.Tutorials.Core.Editor.Tests
 {
     public class MaterialPropertyModifiedCriterionTests : CriterionTestBase<MaterialPropertyModifiedCriterion>
     {

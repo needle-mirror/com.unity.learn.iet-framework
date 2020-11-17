@@ -4,7 +4,7 @@ using UnityEditor.Events;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
     /// <summary>
     /// Welcome page/dialog for a project shown using TutorialModalWindow.
@@ -93,6 +93,8 @@ namespace Unity.InteractiveTutorials
         /// <summary>
         /// Creates a default Close button.
         /// </summary>
+        /// <param name="page">Page for which the buttons is created.</param>
+        /// <returns>Data structure for the button.</returns>
         public static ButtonData CreateCloseButton(TutorialWelcomePage page)
         {
             var data = new ButtonData { Text = "Close", OnClick = new UnityEvent() };
@@ -126,9 +128,9 @@ namespace Unity.InteractiveTutorials
         /// </summary>
         public void StartTutorial()
         {
-            var projectSettings = TutorialProjectSettings.instance;
-            if (projectSettings.startupTutorial)
-                TutorialManager.instance.StartTutorial(projectSettings.startupTutorial);
+            var projectSettings = TutorialProjectSettings.Instance;
+            if (projectSettings.StartupTutorial)
+                TutorialManager.instance.StartTutorial(projectSettings.StartupTutorial);
         }
     }
 }

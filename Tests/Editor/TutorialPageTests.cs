@@ -5,7 +5,7 @@ using NUnit.Framework;
 using UnityObject = UnityEngine.Object;
 using UnityEngine.TestTools;
 
-namespace Unity.InteractiveTutorials.Tests
+namespace Unity.Tutorials.Core.Editor.Tests
 {
     public class TutorialPageTests
     {
@@ -13,12 +13,12 @@ namespace Unity.InteractiveTutorials.Tests
         {
             public void Complete(bool complete)
             {
-                completed = complete;
+                Completed = complete;
             }
 
             protected override bool EvaluateCompletion()
             {
-                return completed;
+                return Completed;
             }
 
             public override bool AutoComplete()
@@ -28,7 +28,7 @@ namespace Unity.InteractiveTutorials.Tests
         }
 
         TutorialPage m_Page;
-        MockCriterion m_Criterion; 
+        MockCriterion m_Criterion;
 
         [SetUp]
         public void SetUp()
@@ -54,12 +54,12 @@ namespace Unity.InteractiveTutorials.Tests
             if (m_Page == null)
                 return;
 
-            foreach (var paragraph in m_Page.paragraphs)
+            foreach (var paragraph in m_Page.Paragraphs)
             {
-                foreach (var criterion in paragraph.criteria)
+                foreach (var criterion in paragraph.Criteria)
                 {
-                    if (criterion != null && criterion.criterion != null)
-                        UnityObject.DestroyImmediate(criterion.criterion);
+                    if (criterion != null && criterion.Criterion != null)
+                        UnityObject.DestroyImmediate(criterion.Criterion);
                 }
             }
 
@@ -69,32 +69,32 @@ namespace Unity.InteractiveTutorials.Tests
         [Test]
         public void PageMarkedIncomplete_WhenACriterionIsInvalidated()
         {
-            Assert.IsFalse(m_Page.allCriteriaAreSatisfied);
+            Assert.IsFalse(m_Page.AreAllCriteriaSatisfied);
             m_Criterion.Complete(true);
-            Assert.IsTrue(m_Page.allCriteriaAreSatisfied);
+            Assert.IsTrue(m_Page.AreAllCriteriaSatisfied);
             m_Criterion.Complete(false);
-            Assert.IsFalse(m_Page.allCriteriaAreSatisfied);
+            Assert.IsFalse(m_Page.AreAllCriteriaSatisfied);
         }
 
         [Test]
         public void PageRemainsComplete_IfCriterionIsInvalidated_AfterAdvancingToNextPage()
         {
-            Assert.IsFalse(m_Page.allCriteriaAreSatisfied);
+            Assert.IsFalse(m_Page.AreAllCriteriaSatisfied);
             m_Criterion.Complete(true);
-            Assert.IsTrue(m_Page.allCriteriaAreSatisfied);
+            Assert.IsTrue(m_Page.AreAllCriteriaSatisfied);
 
             m_Page.OnPageCompleted();
-            Assert.IsTrue(m_Page.hasMovedToNextPage);
+            Assert.IsTrue(m_Page.HasMovedToNextPage);
 
             m_Criterion.Complete(false);
-            Assert.IsTrue(m_Page.allCriteriaAreSatisfied);
+            Assert.IsTrue(m_Page.AreAllCriteriaSatisfied);
         }
 
         [Test]
         public void PagePlaysCompletionSound_WheneverActiveInstructionCriterionIsCompleted()
         {
             var playedSound = 0;
-            m_Page.playedCompletionSound += page => ++playedSound;
+            m_Page.m_PlayedCompletionSound += page => ++ playedSound;
 
             m_Criterion.Complete(true);
 
@@ -121,10 +121,10 @@ namespace Unity.InteractiveTutorials.Tests
                     )
                 };
                 m_Page.m_Paragraphs =
-                    new TutorialParagraphCollection(new[] { m_Page.paragraphs.First(), secondInstruction });
+                    new TutorialParagraphCollection(new[] { m_Page.Paragraphs.First(), secondInstruction });
 
                 var playedSound = false;
-                m_Page.playedCompletionSound += page => playedSound = true;
+                m_Page.m_PlayedCompletionSound += page => playedSound = true;
 
                 secondCriterion.Complete(true);
                 Assert.IsFalse(playedSound, "Played sound for second step when first step was not yet completed.");

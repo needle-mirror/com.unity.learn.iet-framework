@@ -4,8 +4,11 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
+    /// <summary>
+    /// Criterion for checking that a specific object is framed in the Scene view.
+    /// </summary>
     public class FrameSelectedCriterion : Criterion
     {
         [Serializable]
@@ -16,12 +19,19 @@ namespace Unity.InteractiveTutorials
         [SerializeField]
         ObjectReferenceCollection m_ObjectReferences = new ObjectReferenceCollection();
 
+        /// <summary>
+        /// Sets object references.
+        /// </summary>
+        /// <param name="objectReferences"></param>
         public void SetObjectReferences(IEnumerable<ObjectReference> objectReferences)
         {
             m_ObjectReferences.SetItems(objectReferences);
             UpdateCompletion();
         }
 
+        /// <summary>
+        /// Starts testing of the criterion.
+        /// </summary>
         public override void StartTesting()
         {
 #if UNITY_2019_1_OR_NEWER
@@ -31,6 +41,9 @@ namespace Unity.InteractiveTutorials
 #endif
         }
 
+        /// <summary>
+        /// Stops testing of the criterion.
+        /// </summary>
         public override void StopTesting()
         {
 #if UNITY_2019_1_OR_NEWER
@@ -40,7 +53,12 @@ namespace Unity.InteractiveTutorials
 #endif
         }
 
-        // Overriding the update completion state, as this criterion is not state based
+        /// <summary>
+        /// Runs update logic for the criterion.
+        /// </summary>
+        /// <remarks>
+        /// Overriding the update completion state, as this criterion is not state based
+        /// </remarks>
         public override void UpdateCompletion()
         {
         }
@@ -58,7 +76,7 @@ namespace Unity.InteractiveTutorials
 
                 foreach (var objectReference in m_ObjectReferences)
                 {
-                    var referencedObject = objectReference.sceneObjectReference.ReferencedObject;
+                    var referencedObject = objectReference.SceneObjectReference.ReferencedObject;
                     if (referencedObject == null)
                         return;
 
@@ -66,10 +84,14 @@ namespace Unity.InteractiveTutorials
                         return;
                 }
 
-                completed = true;
+                Completed = true;
             }
         }
 
+        /// <summary>
+        /// Auto-completes the criterion.
+        /// </summary>
+        /// <returns>True if the auto-completion succeeded.</returns>
         public override bool AutoComplete()
         {
             if (!m_ObjectReferences.Any())
@@ -78,7 +100,7 @@ namespace Unity.InteractiveTutorials
                 return false;
             }
 
-            var referencedObjects = m_ObjectReferences.Select(or => or.sceneObjectReference.ReferencedObject);
+            var referencedObjects = m_ObjectReferences.Select(or => or.SceneObjectReference.ReferencedObject);
             if (referencedObjects.Any(obj => obj == null))
             {
                 Debug.LogWarning("Cannot auto-complete FrameSelectedCriterion with unresolved object references");

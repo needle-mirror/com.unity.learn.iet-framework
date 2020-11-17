@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
     /// <summary>
     /// A serializable string that is localized at run-time.
@@ -97,6 +97,7 @@ namespace Unity.InteractiveTutorials
             MinLines = 3;
             MaxLines = 3;
         }
+
         /// <summary>
         /// Constructs with desired number of lines.
         /// </summary>

@@ -1,23 +1,38 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
+    /// <summary>
+    /// Holder for SerializedType and Criterion.
+    /// </summary>
     [Serializable]
     public class TypedCriterion
     {
-        [SerializeField]
+        /// <summary>
+        /// The Type.
+        /// </summary>
+        [SerializeField, FormerlySerializedAs("type")]
         [SerializedTypeFilter(typeof(Criterion))]
-        public SerializedType type;
+        public SerializedType Type;
 
-        [SerializeField]
-        public Criterion criterion;
+        /// <summary>
+        /// The Criterion.
+        /// </summary>
+        [SerializeField, FormerlySerializedAs("criterion")]
+        public Criterion Criterion;
 
+        /// <summary>
+        /// Constructs with type and criterion.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="criterion"></param>
         public TypedCriterion(SerializedType type, Criterion criterion)
         {
-            this.type = type;
-            this.criterion = criterion;
+            Type = type;
+            Criterion = criterion;
         }
     }
 

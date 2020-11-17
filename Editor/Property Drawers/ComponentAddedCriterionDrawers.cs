@@ -2,14 +2,14 @@ using System;
 using UnityEngine;
 using UnityEditor;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
     class ComponentAddedCriterionDrawers
     {
         [CustomPropertyDrawer(typeof(ComponentAddedCriterion.TypeAndFutureReference))]
         class TypeAndFutureReferenceDrawer : PropertyDrawer
         {
-            static string s_SerializedTypeField = "serializedType";
+            static string s_SerializedTypeField = "SerializedType";
 
             public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
             {

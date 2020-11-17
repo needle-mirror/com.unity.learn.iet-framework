@@ -1,8 +1,8 @@
 using UnityEditor;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
-    public static class HomeWindowProxy
+    internal static class HomeWindowProxy
     {
         public static void ShowTutorials()
         {

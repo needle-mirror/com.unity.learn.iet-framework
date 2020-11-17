@@ -2,9 +2,13 @@ using System;
 using UnityEngine;
 using UnityEngine.UIElements;
 using System.Xml.Linq;
+using System.Text.RegularExpressions;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
+    /// <summary>
+    /// Creates UIToolkit elements from a rich text.
+    /// </summary>
     public static class RichTextParser
     {
         // Tries to parse text to XDocument word by word - outputs the longest successful string before failing
@@ -34,6 +38,18 @@ namespace Unity.InteractiveTutorials
             }
             return previousLongestString;
         }
+        /// <summary>
+        /// Used to extract the string after the closing tag
+        /// Example: "</a>hello" -> "hello"
+        /// </summary>
+        /// <param name="tagString"></param>
+        /// <returns>String with the closing tag removed from the beginning. Returns empty if there's no closing tag.</returns>
+        static string GetPostTagString(string tagString)
+        {
+            string tagRemoved = Regex.Replace(tagString, "^[^</]+</[^>]+>", "");
+            if (tagRemoved == tagString) tagRemoved = "";
+            return tagRemoved;
+        }
 
         /// <summary>
         /// Transforms HTML tags to word element labels with different styles to enable rich text.
@@ -52,7 +68,7 @@ namespace Unity.InteractiveTutorials
             {
                 XDocument.Parse("<content>" + htmlText + "</content>");
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 targetContainer.Clear();
                 errorText = e.Message;
@@ -93,6 +109,7 @@ namespace Unity.InteractiveTutorials
                     if (word == "" || word == " " || word == "   ") continue;
                     lastLineHadText = true;
                     string strippedWord = word;
+                    string textAfterTag = "";
                     bool removeBold = false;
                     bool removeItalic = false;
                     bool addParagraph = false;
@@ -122,10 +139,11 @@ namespace Unity.InteractiveTutorials
                         strippedWord = strippedWord.Substring(linkTo + 2, (strippedWord.Length - 2) - linkTo);
                         strippedWord.Replace("\">", "");
                     }
+                    textAfterTag = GetPostTagString(strippedWord);
+
                     if (strippedWord.Contains("</a>"))
-                    {
+                    {   
                         strippedWord = strippedWord.Replace("</a>", "");
-                        // TODO </a>text -> also text part is still blue. Parse - for now we can take care when authoring.
                         removeLink = true;
                     }
                     if (strippedWord.Contains("<br/>"))
@@ -143,6 +161,12 @@ namespace Unity.InteractiveTutorials
                         strippedWord = strippedWord.Replace("</i>", "");
                         removeItalic = true;
                     }
+
+                    if (textAfterTag != "")
+                    {
+                        strippedWord = strippedWord.Replace(textAfterTag, "");
+                    }
+
                     if (boldOn)
                     {
                         Label wordLabel = new Label(strippedWord);
@@ -180,6 +204,11 @@ namespace Unity.InteractiveTutorials
                     {
                         Label newlabel = new Label(strippedWord);
                         targetContainer.Add(newlabel);
+                    }
+                    if (textAfterTag != "")
+                    {
+                        Label afterTagLabel = new Label(textAfterTag);
+                        targetContainer.Add(afterTagLabel);
                     }
                     if (removeBold) boldOn = false;
                     if (removeItalic) italicOn = false;

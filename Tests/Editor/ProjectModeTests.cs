@@ -4,7 +4,7 @@ using UnityEngine.TestTools;
 using NUnit.Framework;
 using System.Collections;
 
-namespace Unity.InteractiveTutorials.InternalToolsTests
+namespace Unity.Tutorials.Core.Editor.InternalToolsTests
 {
     public class ProjectModeTest
     {

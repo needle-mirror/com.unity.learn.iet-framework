@@ -2,16 +2,37 @@ using System;
 using UnityEditor;
 using UnityEngine;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
     /// <summary>
     /// The Scene View camera mode
     /// </summary>
-    public enum SceneViewCameraMode { SceneView2D, SceneView3D };
+    public enum SceneViewCameraMode
+    {
+        /// <summary>
+        /// 2D view.
+        /// </summary>
+        SceneView2D,
+        /// <summary>
+        /// 3D view.
+        /// </summary>
+        SceneView3D
+    };
+
     /// <summary>
     /// Determines how the camera position is applied when loaded
     /// </summary>
-    public enum SceneViewFocusMode { Manual, FrameObject };
+    public enum SceneViewFocusMode
+    {
+        /// <summary>
+        /// The camera is positioned as specified by the various settings.
+        /// </summary>
+        Manual,
+        /// <summary>
+        /// A specific object is framed automatically.
+        /// </summary>
+        FrameObject
+    };
 
     /// <summary>
     /// Used to store and apply scene view camera settings
@@ -22,56 +43,57 @@ namespace Unity.InteractiveTutorials
         /// <summary>
         /// The Scene View camera mode
         /// </summary>
-        public SceneViewCameraMode cameraMode { get { return m_CameraMode; } }
+        public SceneViewCameraMode CameraMode => m_CameraMode;
         [SerializeField]
         SceneViewCameraMode m_CameraMode = SceneViewCameraMode.SceneView2D;
 
         /// <summary>
         /// Determines how the camera position is applied when loaded
         /// </summary>
-        public SceneViewFocusMode focusMode { get { return m_FocusMode; } }
+        public SceneViewFocusMode FocusMode => m_FocusMode;
         [SerializeField]
         SceneViewFocusMode m_FocusMode = SceneViewFocusMode.Manual;
 
         /// <summary>
         /// Is the camera ortographic?
         /// </summary>
-        public bool orthographic { get { return m_Orthographic; } }
+        public bool Orthographic => m_Orthographic;
         [SerializeField]
         bool m_Orthographic = false;
 
         /// <summary>
         /// Ortographic size of the camera
         /// </summary>
-        public float size { get { return m_Size; } }
+        public float Size => m_Size;
         [SerializeField]
         float m_Size = default;
 
         /// <summary>
         /// The point the camera will look at
         /// </summary>
-        public Vector3 pivot { get { return m_Pivot; } }
+        public Vector3 Pivot => m_Pivot;
         [SerializeField]
         Vector3 m_Pivot = default;
 
         /// <summary>
         /// The rotation of the camera
         /// </summary>
-        public Quaternion rotation { get { return m_Rotation; } }
+        public Quaternion Rotation => m_Rotation;
         [SerializeField]
         Quaternion m_Rotation = default;
 
         /// <summary>
-        /// The object that can be framed by the camera
+        /// The object that can be framed by the camera.
+        /// Applicable if SceneViewFocusMode.FrameObject used as FocusMode.
         /// </summary>
-        public SceneObjectReference frameObject { get { return m_FrameObject; } }
+        public SceneObjectReference FrameObject => m_FrameObject;
         [SerializeField]
         SceneObjectReference m_FrameObject = null;
 
         /// <summary>
         /// Are these camera settings going to be used?
         /// </summary>
-        public bool enabled { get { return m_Enabled; } }
+        public bool Enabled => m_Enabled;
         [SerializeField]
         bool m_Enabled = false;
 
@@ -81,20 +103,20 @@ namespace Unity.InteractiveTutorials
         public void Apply()
         {
             var sceneView = EditorWindow.GetWindow<SceneView>(null, false);
-            sceneView.in2DMode = (cameraMode == SceneViewCameraMode.SceneView2D);
-            switch (focusMode)
+            sceneView.in2DMode = (CameraMode == SceneViewCameraMode.SceneView2D);
+            switch (FocusMode)
             {
                 case SceneViewFocusMode.FrameObject:
-                    GameObject go = frameObject.ReferencedObjectAsGameObject;
+                    GameObject go = FrameObject.ReferencedObjectAsGameObject;
                     if (go == null)
                         throw new InvalidOperationException("Error looking up frame object");
                     sceneView.Frame(GameObjectProxy.CalculateBounds(go), true);
                     break;
                 case SceneViewFocusMode.Manual:
-                    sceneView.LookAt(pivot, rotation, size, orthographic, false);
+                    sceneView.LookAt(Pivot, Rotation, Size, Orthographic, false);
                     break;
                 default:
-                    throw new NotImplementedException(string.Format("Focus mode {0} not supported", focusMode));
+                    throw new NotImplementedException(string.Format("Focus mode {0} not supported", FocusMode));
             }
         }
     }

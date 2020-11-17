@@ -1,43 +1,35 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
+    /// <summary>
+    /// Criterion for checking that a specific EditorWindow is opened.
+    /// </summary>
     public class EditorWindowCriterion : Criterion
     {
         [SerializedTypeFilter(typeof(EditorWindow))]
         [SerializeField]
         SerializedType m_EditorWindowType = new SerializedType(null);
 
-        public SerializedType editorWindowType
-        {
-            get
-            {
-                return m_EditorWindowType;
-            }
-            set
-            {
-                m_EditorWindowType = value;
-            }
-        }
+        /// <summary>
+        /// The EditorWindow type we want to test for.
+        /// </summary>
+        public SerializedType EditorWindowType { get => m_EditorWindowType; set => m_EditorWindowType = value; }
 
         [SerializeField]
         bool m_CloseIfAlreadyOpen;
 
-        public bool closeIfAlreadyOpen
-        {
-            get
-            {
-                return m_CloseIfAlreadyOpen;
-            }
-            set
-            {
-                m_CloseIfAlreadyOpen = value;
-            }
-        }
+        /// <summary>
+        /// TODO 2.0 unused, remove?
+        /// </summary>
+        public bool CloseIfAlreadyOpen { get => m_CloseIfAlreadyOpen; set => m_CloseIfAlreadyOpen = value; }
 
         EditorWindow m_WindowInstance;
 
+        /// <summary>
+        /// Starts testing of the criterion.
+        /// </summary>
         public override void StartTesting()
         {
             UpdateCompletion();
@@ -45,24 +37,31 @@ namespace Unity.InteractiveTutorials
             EditorApplication.update += UpdateCompletion;
         }
 
+        /// <summary>
+        /// Stops testing of the criterion.
+        /// </summary>
         public override void StopTesting()
         {
             EditorApplication.update -= UpdateCompletion;
         }
 
+        /// <summary>
+        /// Evaluates if the criterion is completed.
+        /// </summary>
+        /// <returns></returns>
         protected override bool EvaluateCompletion()
         {
-            if (m_EditorWindowType.type == null)
+            if (m_EditorWindowType.Type == null)
             {
                 return false;
             }
             if (!m_WindowInstance)
             {
-                var windows = Resources.FindObjectsOfTypeAll(m_EditorWindowType.type);
+                var windows = Resources.FindObjectsOfTypeAll(m_EditorWindowType.Type);
 
                 foreach (var w in windows)
                 {
-                    if (w.GetType() == m_EditorWindowType.type)
+                    if (w.GetType() == m_EditorWindowType.Type)
                     {
                         m_WindowInstance = (EditorWindow)w;
 
@@ -72,21 +71,25 @@ namespace Unity.InteractiveTutorials
                 }
                 return false;
             }
-            if (m_WindowInstance.GetType() != m_EditorWindowType.type)
+            if (m_WindowInstance.GetType() != m_EditorWindowType.Type)
             {
                 m_WindowInstance = null;
             }
             return true;
         }
 
+        /// <summary>
+        /// Auto-completes the criterion.
+        /// </summary>
+        /// <returns>True if the auto-completion succeeded.</returns>
         public override bool AutoComplete()
         {
-            if (m_EditorWindowType.type == null)
+            if (m_EditorWindowType.Type == null)
             {
                 return false;
             }
 
-            var window = EditorWindow.GetWindow(m_EditorWindowType.type);
+            EditorWindow.GetWindow(m_EditorWindowType.Type);
             return true;
         }
     }

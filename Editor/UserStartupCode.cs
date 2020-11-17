@@ -4,7 +4,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
     /// <summary>
     /// Runs IET project initialization logic.
@@ -14,9 +14,9 @@ namespace Unity.InteractiveTutorials
     {
         internal static void RunStartupCode()
         {
-            var projectSettings = TutorialProjectSettings.instance;
-            if (projectSettings.initialScene != null)
-                EditorSceneManager.OpenScene(AssetDatabase.GetAssetPath(projectSettings.initialScene));
+            var projectSettings = TutorialProjectSettings.Instance;
+            if (projectSettings.InitialScene != null)
+                EditorSceneManager.OpenScene(AssetDatabase.GetAssetPath(projectSettings.InitialScene));
 
             TutorialManager.WriteAssetsToTutorialDefaultsFolder();
 
@@ -27,7 +27,7 @@ namespace Unity.InteractiveTutorials
             ShowTutorialWindow();
 
             // NOTE camera settings can be applied successfully only after potential layout changes
-            if (projectSettings.InitialCameraSettings != null && projectSettings.InitialCameraSettings.enabled)
+            if (projectSettings.InitialCameraSettings != null && projectSettings.InitialCameraSettings.Enabled)
                 projectSettings.InitialCameraSettings.Apply();
 
             if (projectSettings.WelcomePage)
@@ -132,7 +132,7 @@ namespace Unity.InteractiveTutorials
                 .Concat(
                     AssetDatabase.FindAssets($"t:{typeof(Tutorial).FullName}")
                         .Select(guid =>
-                            AssetDatabase.LoadAssetAtPath<Tutorial>(AssetDatabase.GUIDToAssetPath(guid)).windowLayoutPath
+                            AssetDatabase.LoadAssetAtPath<Tutorial>(AssetDatabase.GUIDToAssetPath(guid)).WindowLayoutPath
                         )
                 )
                 .Where(StringExt.IsNotNullOrEmpty)

@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Unity.InteractiveTutorials.Tests
+namespace Unity.Tutorials.Core.Tests
 {
     static class TestComponents
     {

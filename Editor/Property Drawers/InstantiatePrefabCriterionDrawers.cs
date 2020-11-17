@@ -3,7 +3,7 @@ using UnityEngine;
 
 using UnityObject = UnityEngine.Object;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
     class InstantiatePrefabCriterionDrawers
     {

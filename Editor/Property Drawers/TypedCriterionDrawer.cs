@@ -1,12 +1,9 @@
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-using UnityObject = UnityEngine.Object;
-
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
     [CustomPropertyDrawer(typeof(TypedCriterion))]
     class TypedCriterionDrawer : PropertyDrawer
@@ -14,8 +11,8 @@ namespace Unity.InteractiveTutorials
         // criterionProperty is a SerializedProperty on the SerializedObject for the Criterion
         delegate void PropertyIteratorCallback(SerializedProperty criterionProperty);
 
-        const string k_TypeField = "type";
-        const string k_CriterionField = "criterion";
+        const string k_TypeField = "Type";
+        const string k_CriterionField = "Criterion";
 
         Dictionary<String, SerializedObject> m_PerPropertyCriterionSerializedObjects =
             new Dictionary<String, SerializedObject>();

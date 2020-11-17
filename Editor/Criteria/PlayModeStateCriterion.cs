@@ -2,8 +2,11 @@ using System;
 using UnityEditor;
 using UnityEngine;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
+    /// <summary>
+    /// Criterion for checking a specific Play Mode state.
+    /// </summary>
     public class PlayModeStateCriterion : Criterion
     {
         enum PlayModeState
@@ -15,6 +18,9 @@ namespace Unity.InteractiveTutorials
         [SerializeField]
         PlayModeState m_RequiredPlayModeState = PlayModeState.Playing;
 
+        /// <summary>
+        /// Starts testing of the criterion.
+        /// </summary>
         public override void StartTesting()
         {
             UpdateCompletion();
@@ -22,6 +28,9 @@ namespace Unity.InteractiveTutorials
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
         }
 
+        /// <summary>
+        /// Stops testing of the criterion.
+        /// </summary>
         public override void StopTesting()
         {
             EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
@@ -38,6 +47,10 @@ namespace Unity.InteractiveTutorials
             }
         }
 
+        /// <summary>
+        /// Evaluates if the criterion is completed.
+        /// </summary>
+        /// <returns></returns>
         protected override bool EvaluateCompletion()
         {
             switch (m_RequiredPlayModeState)
@@ -53,6 +66,10 @@ namespace Unity.InteractiveTutorials
             }
         }
 
+        /// <summary>
+        /// Auto-completes the criterion.
+        /// </summary>
+        /// <returns>True if the auto-completion succeeded.</returns>
         public override bool AutoComplete()
         {
             EditorApplication.isPlaying = m_RequiredPlayModeState == PlayModeState.Playing;

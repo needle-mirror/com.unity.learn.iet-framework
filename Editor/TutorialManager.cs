@@ -8,7 +8,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
     class TutorialManager : ScriptableObject
     {
@@ -100,7 +100,7 @@ namespace Unity.InteractiveTutorials
 
             // Is the previous tutorial finished? Make sure to record the progress.
             // by trying to progress to the next page which will take care of it.
-            if (m_Tutorial && m_Tutorial.completed)
+            if (m_Tutorial && m_Tutorial.Completed)
                 m_Tutorial.TryGoToNextPage();
 
             m_Tutorial = tutorial;
@@ -392,7 +392,7 @@ namespace Unity.InteractiveTutorials
 
         static void LoadTutorialDefaultsIntoAssetsFolder()
         {
-            if (!TutorialProjectSettings.instance.restoreDefaultAssetsOnTutorialReload)
+            if (!TutorialProjectSettings.Instance.RestoreDefaultAssetsOnTutorialReload)
                 return;
 
             AssetDatabase.SaveAssets();
@@ -407,7 +407,7 @@ namespace Unity.InteractiveTutorials
 
         internal static void WriteAssetsToTutorialDefaultsFolder()
         {
-            if (!TutorialProjectSettings.instance.restoreDefaultAssetsOnTutorialReload)
+            if (!TutorialProjectSettings.Instance.RestoreDefaultAssetsOnTutorialReload)
                 return;
 
             if (EditorApplication.isPlaying)

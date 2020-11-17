@@ -5,16 +5,30 @@ using Object = UnityEngine.Object;
 
 namespace SerializableCallback
 {
+    /// <summary>
+    /// https://github.com/Siccity/SerializableCallback
+    /// </summary>
+    /// <typeparam name="TReturn"></typeparam>
     public abstract class SerializableCallbackBase<TReturn> : SerializableCallbackBase
     {
+        /// <summary>
+        /// https://github.com/Siccity/SerializableCallback
+        /// </summary>
         public InvokableCallbackBase<TReturn> func;
 
+        /// <summary>
+        /// https://github.com/Siccity/SerializableCallback
+        /// </summary>
         public override void ClearCache()
         {
             base.ClearCache();
             func = null;
         }
 
+        /// <summary>
+        /// https://github.com/Siccity/SerializableCallback
+        /// </summary>
+        /// <returns></returns>
         protected InvokableCallbackBase<TReturn> GetPersistentMethod()
         {
             Type[] types = new Type[ArgTypes.Length + 1];
@@ -54,15 +68,42 @@ namespace SerializableCallback
         public Object target { get { return _target; } set { _target = value; ClearCache(); } }
         /// <summary> Target method name </summary>
         public string methodName { get { return _methodName; } set { _methodName = value; ClearCache(); } }
+        /// <summary>
+        /// https://github.com/Siccity/SerializableCallback
+        /// </summary>
         public object[] Args { get { return args != null ? args : args = _args.Select(x => x.GetValue()).ToArray(); } }
+        /// <summary>
+        /// https://github.com/Siccity/SerializableCallback
+        /// </summary>
         public object[] args;
+        /// <summary>
+        /// https://github.com/Siccity/SerializableCallback
+        /// </summary>
         public Type[] ArgTypes { get { return argTypes != null ? argTypes : argTypes = _args.Select(x => Arg.RealType(x.argType)).ToArray(); } }
+        /// <summary>
+        /// https://github.com/Siccity/SerializableCallback
+        /// </summary>
         public Type[] argTypes;
+        /// <summary>
+        /// https://github.com/Siccity/SerializableCallback
+        /// </summary>
         public bool dynamic { get { return _dynamic; } set { _dynamic = value; ClearCache(); } }
 
+        /// <summary>
+        /// https://github.com/Siccity/SerializableCallback
+        /// </summary>
         [SerializeField] protected Object _target;
+        /// <summary>
+        /// https://github.com/Siccity/SerializableCallback
+        /// </summary>
         [SerializeField] protected string _methodName;
+        /// <summary>
+        /// https://github.com/Siccity/SerializableCallback
+        /// </summary>
         [SerializeField] protected Arg[] _args;
+        /// <summary>
+        /// https://github.com/Siccity/SerializableCallback
+        /// </summary>
         [SerializeField] protected bool _dynamic;
 #pragma warning disable 0414
         [SerializeField] private string _typeName;
@@ -71,6 +112,9 @@ namespace SerializableCallback
         [SerializeField] private bool dirty;
 
 #if UNITY_EDITOR
+        /// <summary>
+        /// https://github.com/Siccity/SerializableCallback
+        /// </summary>
         protected SerializableCallbackBase()
         {
             _typeName = base.GetType().AssemblyQualifiedName;
@@ -78,12 +122,22 @@ namespace SerializableCallback
 
 #endif
 
+        /// <summary>
+        /// https://github.com/Siccity/SerializableCallback
+        /// </summary>
         public virtual void ClearCache()
         {
             argTypes = null;
             args = null;
         }
 
+        /// <summary>
+        /// https://github.com/Siccity/SerializableCallback
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="methodName"></param>
+        /// <param name="dynamic"></param>
+        /// <param name="args"></param>
         public void SetMethod(Object target, string methodName, bool dynamic, params Arg[] args)
         {
             _target = target;
@@ -93,8 +147,14 @@ namespace SerializableCallback
             ClearCache();
         }
 
+        /// <summary>
+        /// https://github.com/Siccity/SerializableCallback
+        /// </summary>
         protected abstract void Cache();
 
+        /// <summary>
+        /// https://github.com/Siccity/SerializableCallback
+        /// </summary>
         public void OnBeforeSerialize()
         {
 #if UNITY_EDITOR
@@ -102,6 +162,9 @@ namespace SerializableCallback
 #endif
         }
 
+        /// <summary>
+        /// https://github.com/Siccity/SerializableCallback
+        /// </summary>
         public void OnAfterDeserialize()
         {
 #if UNITY_EDITOR
@@ -110,22 +173,81 @@ namespace SerializableCallback
         }
     }
 
+    /// <summary>
+    /// https://github.com/Siccity/SerializableCallback
+    /// </summary>
     [System.Serializable]
     public struct Arg
     {
-        public enum ArgType { Unsupported, Bool, Int, Float, String, Object }
+        /// <summary>
+        /// https://github.com/Siccity/SerializableCallback
+        /// </summary>
+        public enum ArgType
+        {
+            /// <summary>
+            /// 
+            /// </summary>
+            Unsupported,
+            /// <summary>
+            /// 
+            /// </summary>
+            Bool,
+            /// <summary>
+            /// 
+            /// </summary>
+            Int,
+            /// <summary>
+            /// 
+            /// </summary>
+            Float,
+            /// <summary>
+            /// 
+            /// </summary>
+            String,
+            /// <summary>
+            /// 
+            /// </summary>
+            Object
+        }
+        /// <summary>
+        /// https://github.com/Siccity/SerializableCallback
+        /// </summary>
         public bool boolValue;
+        /// <summary>
+        /// https://github.com/Siccity/SerializableCallback
+        /// </summary>
         public int intValue;
+        /// <summary>
+        /// https://github.com/Siccity/SerializableCallback
+        /// </summary>
         public float floatValue;
+        /// <summary>
+        /// https://github.com/Siccity/SerializableCallback
+        /// </summary>
         public string stringValue;
+        /// <summary>
+        /// https://github.com/Siccity/SerializableCallback
+        /// </summary>
         public Object objectValue;
+        /// <summary>
+        /// https://github.com/Siccity/SerializableCallback
+        /// </summary>
         public ArgType argType;
 
+        /// <summary>
+        /// https://github.com/Siccity/SerializableCallback
+        /// </summary>
+        /// <returns></returns>
         public object GetValue()
         {
             return GetValue(argType);
         }
 
+        /// <summary>
+        /// https://github.com/Siccity/SerializableCallback
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
         public object GetValue(ArgType type)
         {
             switch (type)
@@ -145,6 +267,11 @@ namespace SerializableCallback
             }
         }
 
+        /// <summary>
+        /// https://github.com/Siccity/SerializableCallback
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
         public static Type RealType(ArgType type)
         {
             switch (type)
@@ -164,6 +291,11 @@ namespace SerializableCallback
             }
         }
 
+        /// <summary>
+        /// https://github.com/Siccity/SerializableCallback
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
         public static ArgType FromRealType(Type type)
         {
             if (type == typeof(bool)) return ArgType.Bool;
@@ -174,6 +306,11 @@ namespace SerializableCallback
             else  return ArgType.Unsupported;
         }
 
+        /// <summary>
+        /// https://github.com/Siccity/SerializableCallback
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
         public static bool IsSupported(Type type)
         {
             return FromRealType(type) != ArgType.Unsupported;

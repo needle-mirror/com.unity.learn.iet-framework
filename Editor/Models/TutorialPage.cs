@@ -5,59 +5,80 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
-    enum PlayModeState
-    {
-        Any,
-        Playing,
-        NotPlaying
-    }
-
     /// <summary>
     /// A TutorialPage consists of TutorialParagraphs which define the content of the page.
     /// </summary>
     public class TutorialPage : ScriptableObject, ISerializationCallbackReceiver
     {
-        public static event Action<TutorialPage> criteriaCompletionStateTested;
+        /// <summary>
+        /// Raised when any page's criteria are tested for completion.
+        /// </summary>
+        public static event Action<TutorialPage> CriteriaCompletionStateTested;
+
         // TODO 2.0 merge these two events and provide event data which tells which type of change we had?
-        public static event Action<TutorialPage> tutorialPageMaskingSettingsChanged;
-        public static event Action<TutorialPage> tutorialPageNonMaskingSettingsChanged;
 
-        internal event Action<TutorialPage> playedCompletionSound;
+        /// <summary>
+        /// Raised when any page's masking settings are changed.
+        /// </summary>
+        public static event Action<TutorialPage> TutorialPageMaskingSettingsChanged;
 
-        public bool hasMovedToNextPage { get; private set; }
+        /// <summary>
+        /// Raised when any page's non-masking settings are changed.
+        /// </summary>
+        public static event Action<TutorialPage> TutorialPageNonMaskingSettingsChanged;
 
-        public bool allCriteriaAreSatisfied { get; private set; }
+        internal event Action<TutorialPage> m_PlayedCompletionSound;
 
-        public TutorialParagraphCollection paragraphs { get { return m_Paragraphs; } }
+        /// <summary>
+        /// Are we moving to the next page?
+        /// </summary>
+        public bool HasMovedToNextPage { get; private set; }
+
+        /// <summary>
+        /// Are all criteria satisfied?
+        /// </summary>
+        public bool AreAllCriteriaSatisfied { get; private set; }
+
+        /// <summary>
+        /// Paragraphs of this page.
+        /// </summary>
+        public TutorialParagraphCollection Paragraphs => m_Paragraphs;
         [SerializeField]
         internal TutorialParagraphCollection m_Paragraphs = new TutorialParagraphCollection();
 
-        public bool HasCriteria ()
+        /// <summary>
+        /// Has the current page any completion criteria?
+        /// </summary>
+        /// <returns></returns>
+        public bool HasCriteria()
         {
-            foreach(TutorialParagraph para in paragraphs )
+            foreach (TutorialParagraph para in Paragraphs)
             {
-                foreach(TypedCriterion crit in para.criteria)
+                foreach (TypedCriterion crit in para.Criteria)
                 {
-                    if (crit.criterion != null) return true;
+                    if (crit.Criterion != null) return true;
                 }
             }
 
             return false;
         }
 
-        public MaskingSettings currentMaskingSettings
+        /// <summary>
+        /// Currently active masking settings.
+        /// </summary>
+        internal MaskingSettings CurrentMaskingSettings
         {
             get
             {
                 MaskingSettings result = null;
-                for (int i = 0, count = m_Paragraphs.count; i < count; ++i)
+                for (int i = 0, count = m_Paragraphs.Count; i < count; ++i)
                 {
-                    if (!m_Paragraphs[i].maskingSettings.enabled) { continue; }
+                    if (!m_Paragraphs[i].MaskingSettings.Enabled) { continue; }
 
-                    result = m_Paragraphs[i].maskingSettings;
-                    if (!m_Paragraphs[i].completed)
+                    result = m_Paragraphs[i].MaskingSettings;
+                    if (!m_Paragraphs[i].Completed)
                         break;
                 }
                 return result;
@@ -81,62 +102,30 @@ namespace Unity.InteractiveTutorials
         [Tooltip("The text shown on the Next button on the last page.")]
         public LocalizableString DoneButton;
 
-        /// <summary>
-        /// TODO 2.0 deprecated, remove.
-        /// </summary>
-        public string nextButton
-        {
-            get { return m_NextButton; }
-            set
-            {
-                if (m_NextButton != value)
-                {
-                    m_NextButton = value;
-                    RaiseTutorialPageNonMaskingSettingsChangedEvent();
-                }
-            }
-        }
+        // Backwards-compatibility for < 1.2
         [SerializeField, HideInInspector]
         string m_NextButton = "Next";
-
-        /// <summary>
-        /// TODO 2.0 deprecated, remove.
-        /// </summary>
-        public string doneButton
-        {
-            get { return m_DoneButton; }
-            set
-            {
-                if (m_DoneButton != value)
-                {
-                    m_DoneButton = value;
-                    RaiseTutorialPageNonMaskingSettingsChangedEvent();
-                }
-            }
-        }
         [SerializeField, HideInInspector]
         string m_DoneButton = "Done";
 
         /// <summary>
         /// Returns the asset database GUID of this asset.
         /// </summary>
-        public string guid
-        {
-            get
-            {
-                return AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(this));
-            }
-        }
+        public string Guid => AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(this));
 
         [Header("Sounds")]
         [SerializeField]
         AudioClip m_CompletedSound = null;
 
-        public bool autoAdvanceOnComplete { get { return m_autoAdvance; } set { m_autoAdvance = value; } }
+        /// <summary>
+        /// Should we auto-advance upon completion.
+        /// </summary>
+        public bool AutoAdvanceOnComplete { get => m_autoAdvance; set => m_autoAdvance = value; }
         [Header("Auto advance on complete?")]
         [SerializeField]
         bool m_autoAdvance;
 
+        // TODO 2.0 check the naming of these events
         [Header("Callbacks")]
         [SerializeField]
         [Tooltip("These methods will be called right before the page is displayed (even when going back)")]
@@ -154,19 +143,19 @@ namespace Unity.InteractiveTutorials
         [SerializeField]
         internal UnityEvent m_OnTutorialPageStay = default;
 
+        static Queue<WeakReference<TutorialPage>> s_DeferedValidationQueue = new Queue<WeakReference<TutorialPage>>();
+
         /// <summary> TODO 2.0 Make internal. </summary>
         public void RaiseTutorialPageMaskingSettingsChangedEvent()
         {
-            tutorialPageMaskingSettingsChanged?.Invoke(this);
+            TutorialPageMaskingSettingsChanged?.Invoke(this);
         }
 
         /// <summary> TODO 2.0 Make internal. </summary>
         public void RaiseTutorialPageNonMaskingSettingsChangedEvent()
         {
-            tutorialPageNonMaskingSettingsChanged?.Invoke(this);
+            TutorialPageNonMaskingSettingsChanged?.Invoke(this);
         }
-
-        static Queue<WeakReference<TutorialPage>> s_DeferedValidationQueue = new Queue<WeakReference<TutorialPage>>();
 
         static TutorialPage()
         {
@@ -204,12 +193,12 @@ namespace Unity.InteractiveTutorials
         {
             // Find instanceIDs of referenced criteria
             var referencedCriteriaInstanceIDs = new HashSet<int>();
-            foreach (var paragraph in paragraphs)
+            foreach (var paragraph in Paragraphs)
             {
-                foreach (var typedCriterion in paragraph.criteria)
+                foreach (var typedCriterion in paragraph.Criteria)
                 {
-                    if (typedCriterion.criterion != null)
-                        referencedCriteriaInstanceIDs.Add(typedCriterion.criterion.GetInstanceID());
+                    if (typedCriterion.Criterion != null)
+                        referencedCriteriaInstanceIDs.Add(typedCriterion.Criterion.GetInstanceID());
                 }
             }
 
@@ -227,8 +216,8 @@ namespace Unity.InteractiveTutorials
             var futureReferences = assets.Where(o => o is FutureObjectReference).Cast<FutureObjectReference>();
             foreach (var futureReference in futureReferences)
             {
-                if (futureReference.criterion == null
-                    || !referencedCriteriaInstanceIDs.Contains(futureReference.criterion.GetInstanceID()))
+                if (futureReference.Criterion == null
+                    || !referencedCriteriaInstanceIDs.Contains(futureReference.Criterion.GetInstanceID()))
                 {
                     // Destroy future reference from unrefereced criteria
                     DestroyImmediate(futureReference, true);
@@ -238,15 +227,18 @@ namespace Unity.InteractiveTutorials
             }
         }
 
-        /// <summary> TODO 2.0 Make internal. </summary>
+        /// <summary>
+        /// TODO 2.0 Make internal.
+        /// </summary>
+        /// <param name="futureReference"></param>
         public void UpdateFutureObjectReferenceName(FutureObjectReference futureReference)
         {
             int paragraphIndex;
             int criterionIndex;
-            if (GetIndicesForCriterion(futureReference.criterion, out paragraphIndex, out criterionIndex))
+            if (GetIndicesForCriterion(futureReference.Criterion, out paragraphIndex, out criterionIndex))
             {
                 futureReference.name = string.Format("Paragraph {0}, Criterion {1}, {2}",
-                    paragraphIndex + 1, criterionIndex + 1, futureReference.referenceName);
+                    paragraphIndex + 1, criterionIndex + 1, futureReference.ReferenceName);
             }
         }
 
@@ -255,11 +247,11 @@ namespace Unity.InteractiveTutorials
             paragraphIndex = 0;
             criterionIndex = 0;
 
-            foreach (var paragraph in paragraphs)
+            foreach (var paragraph in Paragraphs)
             {
-                foreach (var typedCriterion in paragraph.criteria)
+                foreach (var typedCriterion in paragraph.Criteria)
                 {
-                    if (typedCriterion.criterion == criterion)
+                    if (typedCriterion.Criterion == criterion)
                         return true;
 
                     criterionIndex++;
@@ -274,7 +266,7 @@ namespace Unity.InteractiveTutorials
         internal void Initiate()
         {
             SetupCompletionRequirements();
-            if (m_CameraSettings != null && m_CameraSettings.enabled)
+            if (m_CameraSettings != null && m_CameraSettings.Enabled)
             {
                 m_CameraSettings.Apply();
             }
@@ -284,41 +276,41 @@ namespace Unity.InteractiveTutorials
         public void ResetUserProgress()
         {
             RemoveCompletionRequirements();
-            foreach (var paragraph in paragraphs)
+            foreach (var paragraph in Paragraphs)
             {
-                if (paragraph.type == ParagraphType.Instruction)
+                if (paragraph.Type == ParagraphType.Instruction)
                 {
-                    foreach (var criteria in paragraph.criteria)
+                    foreach (var criteria in paragraph.Criteria)
                     {
-                        if (criteria != null && criteria.criterion != null)
+                        if (criteria != null && criteria.Criterion != null)
                         {
-                            criteria.criterion.ResetCompletionState();
-                            criteria.criterion.StopTesting();
+                            criteria.Criterion.ResetCompletionState();
+                            criteria.Criterion.StopTesting();
                         }
                     }
                 }
             }
-            allCriteriaAreSatisfied = false;
-            hasMovedToNextPage = false;
+            AreAllCriteriaSatisfied = false;
+            HasMovedToNextPage = false;
         }
 
         internal void SetupCompletionRequirements()
         {
             ValidateCriteria();
-            if (hasMovedToNextPage)
+            if (HasMovedToNextPage)
                 return;
 
-            Criterion.criterionCompleted += OnCriterionCompleted;
-            Criterion.criterionInvalidated += OnCriterionInvalidated;
+            Criterion.CriterionCompleted += OnCriterionCompleted;
+            Criterion.CriterionInvalidated += OnCriterionInvalidated;
 
-            foreach (var paragraph in paragraphs)
+            foreach (var paragraph in Paragraphs)
             {
-                if (paragraph.criteria != null)
+                if (paragraph.Criteria != null)
                 {
-                    foreach (var criterion in paragraph.criteria)
+                    foreach (var criterion in paragraph.Criteria)
                     {
-                        if (criterion.criterion)
-                            criterion.criterion.StartTesting();
+                        if (criterion.Criterion)
+                            criterion.Criterion.StartTesting();
                     }
                 }
             }
@@ -326,18 +318,18 @@ namespace Unity.InteractiveTutorials
 
         internal void RemoveCompletionRequirements()
         {
-            Criterion.criterionCompleted -= OnCriterionCompleted;
-            Criterion.criterionInvalidated -= OnCriterionInvalidated;
+            Criterion.CriterionCompleted -= OnCriterionCompleted;
+            Criterion.CriterionInvalidated -= OnCriterionInvalidated;
 
-            foreach (var paragraph in paragraphs)
+            foreach (var paragraph in Paragraphs)
             {
-                if (paragraph.criteria != null)
+                if (paragraph.Criteria != null)
                 {
-                    foreach (var criterion in paragraph.criteria)
+                    foreach (var criterion in paragraph.Criteria)
                     {
-                        if (criterion.criterion)
+                        if (criterion.Criterion)
                         {
-                            criterion.criterion.StopTesting();
+                            criterion.Criterion.StopTesting();
                         }
                     }
                 }
@@ -346,10 +338,10 @@ namespace Unity.InteractiveTutorials
 
         void OnCriterionCompleted(Criterion sender)
         {
-            if (!m_Paragraphs.Any(p => p.criteria.Any(c => c.criterion == sender)))
+            if (!m_Paragraphs.Any(p => p.Criteria.Any(c => c.Criterion == sender)))
                 return;
 
-            if (sender.completed)
+            if (sender.Completed)
             {
                 int paragraphIndex, criterionIndex;
                 if (GetIndicesForCriterion(sender, out paragraphIndex, out criterionIndex))
@@ -358,7 +350,7 @@ namespace Unity.InteractiveTutorials
                     var playSoundEffect = true;
                     for (int i = 0; i < paragraphIndex; ++i)
                     {
-                        if (!m_Paragraphs[i].criteria.All(c => c.criterion.completed))
+                        if (!m_Paragraphs[i].Criteria.All(c => c.Criterion.Completed))
                         {
                             playSoundEffect = false;
                             break;
@@ -369,7 +361,7 @@ namespace Unity.InteractiveTutorials
                         Undo.ClearAll();
                         if (m_CompletedSound != null)
                             AudioUtilProxy.PlayClip(m_CompletedSound);
-                        playedCompletionSound?.Invoke(this);
+                        m_PlayedCompletionSound?.Invoke(this);
                     }
                 }
             }
@@ -378,37 +370,37 @@ namespace Unity.InteractiveTutorials
 
         void OnCriterionInvalidated(Criterion sender)
         {
-            if (m_Paragraphs.Any(p => p.criteria.Any(c => c.criterion == sender)))
+            if (m_Paragraphs.Any(p => p.Criteria.Any(c => c.Criterion == sender)))
                 ValidateCriteria();
         }
 
         internal void ValidateCriteria()
         {
-            allCriteriaAreSatisfied = true;
+            AreAllCriteriaSatisfied = true;
 
-            foreach (var paragraph in paragraphs)
+            foreach (var paragraph in Paragraphs)
             {
-                if (paragraph.type == ParagraphType.Instruction)
+                if (paragraph.Type == ParagraphType.Instruction)
                 {
-                    if (!paragraph.completed)
+                    if (!paragraph.Completed)
                     {
-                        allCriteriaAreSatisfied = false;
+                        AreAllCriteriaSatisfied = false;
                         break;
                     }
                 }
 
-                if (!allCriteriaAreSatisfied)
+                if (!AreAllCriteriaSatisfied)
                     break;
             }
 
-            criteriaCompletionStateTested?.Invoke(this);
+            CriteriaCompletionStateTested?.Invoke(this);
         }
 
         /// <summary> TODO 2.0 Make internal. </summary>
         public void OnPageCompleted()
         {
             RemoveCompletionRequirements();
-            hasMovedToNextPage = true;
+            HasMovedToNextPage = true;
         }
 
         /// <summary>

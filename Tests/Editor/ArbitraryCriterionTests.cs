@@ -4,7 +4,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
 
-namespace Unity.InteractiveTutorials.Tests
+namespace Unity.Tutorials.Core.Editor.Tests
 {
     public class ArbitraryCriterionTests : CriterionTestBase<ArbitraryCriterion>
     {
@@ -52,7 +52,7 @@ namespace Unity.InteractiveTutorials.Tests
         {
             m_Criterion.Callback = null;
             yield return null;
-            Assert.IsFalse(m_Criterion.completed);
+            Assert.IsFalse(m_Criterion.Completed);
         }
 
         [UnityTest]
@@ -62,7 +62,7 @@ namespace Unity.InteractiveTutorials.Tests
             m_Criterion.Callback.SetMethod(m_CallbackHandler, "DoesFooExist", dynamic: false);
             CallbackHandler.GetOrCreateFoo();
             yield return null;
-            Assert.IsTrue(m_Criterion.completed);
+            Assert.IsTrue(m_Criterion.Completed);
         }
 
         [UnityTest]
@@ -71,7 +71,7 @@ namespace Unity.InteractiveTutorials.Tests
             m_Criterion.AutoCompleteCallback = null;
             Assert.IsFalse(m_Criterion.AutoComplete());
             yield return null;
-            Assert.IsFalse(m_Criterion.completed);
+            Assert.IsFalse(m_Criterion.Completed);
         }
 
         [UnityTest]
@@ -83,7 +83,7 @@ namespace Unity.InteractiveTutorials.Tests
             m_Criterion.AutoCompleteCallback.SetMethod(m_CallbackHandler, "AutoComplete", dynamic: false);
             Assert.IsTrue(m_Criterion.AutoComplete());
             yield return null;
-            Assert.IsTrue(m_Criterion.completed);
+            Assert.IsTrue(m_Criterion.Completed);
         }
     }
 }

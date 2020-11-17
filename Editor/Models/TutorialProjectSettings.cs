@@ -1,12 +1,17 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
-    class TutorialProjectSettings : ScriptableObject
+    /// <summary>
+    /// Controls start-up and initial settings and behavior of the tutorial project.
+    /// </summary>
+    public class TutorialProjectSettings : ScriptableObject
     {
-        static TutorialProjectSettings s_Instance;
-        public static TutorialProjectSettings instance
+        /// <summary>
+        /// The singleton instance.
+        /// </summary>
+        public static TutorialProjectSettings Instance
         {
             get
             {
@@ -30,49 +35,61 @@ namespace Unity.InteractiveTutorials
                 return s_Instance;
             }
         }
+        static TutorialProjectSettings s_Instance;
 
+        /// <summary>
+        /// Resets the singleton instance.
+        /// Use if you create a new project settings instance and want to update Instance to point to it.
+        /// </summary>
         public static void ReloadInstance()
         {
             s_Instance = null;
         }
 
+        /// <summary>
+        /// The page shown in the welcome dialog when the project is started for the first time.
+        /// </summary>
+        public TutorialWelcomePage WelcomePage { get => m_WelcomePage; set => m_WelcomePage = value; }
         [Header("Initial Scene and Camera Settings")]
         [SerializeField]
         [Tooltip("If set, this page is shown in the welcome dialog when the project is started for the first time.")]
         TutorialWelcomePage m_WelcomePage = default;
 
         /// <summary>
-        /// The page shown in the welcome dialog when the project is started for the first time.
+        /// Initial scene that is loaded when the project is started for the first time.
         /// </summary>
-        public TutorialWelcomePage WelcomePage { get { return m_WelcomePage; } set { m_WelcomePage = value; } }
-
+        // TODO Setter?
+        public SceneAsset InitialScene => m_InitialScene;
         [SerializeField]
         [Tooltip("Initial scene that is loaded when the project is started for the first time.")]
         SceneAsset m_InitialScene = null;
-        public SceneAsset initialScene => m_InitialScene;
 
+        /// <summary>
+        /// Initial camera settings when the project is loaded for the first time.
+        /// </summary>
+        public SceneViewCameraSettings InitialCameraSettings => m_InitialCameraSettings;
         [SerializeField]
         SceneViewCameraSettings m_InitialCameraSettings = new SceneViewCameraSettings();
-        public SceneViewCameraSettings InitialCameraSettings => m_InitialCameraSettings;
 
+        /// <summary>
+        /// If enabled, the original assets of the project are restored when a tutorial starts.
+        /// </summary>
+        // TODO setter?
+        public bool RestoreDefaultAssetsOnTutorialReload => m_RestoreDefaultAssetsOnTutorialReload;
         [Header("Start-Up Settings")]
         [SerializeField]
         [Tooltip("If enabled, the original assets of the project are restored when a tutorial starts.")]
         bool m_RestoreDefaultAssetsOnTutorialReload = default;
-        public bool restoreDefaultAssetsOnTutorialReload => m_RestoreDefaultAssetsOnTutorialReload;
 
+        // TODO 2.0 remove
         [SerializeField]
         [Tooltip("If enabled, disregard startup tutorial and start the first tutorial found in the project.")]
         bool m_UseLegacyStartupBehavior = default;
 
-        [SerializeField]
-        [Tooltip("If set, this is the tutorial that can be started from the welcome dialog.")]
-        Tutorial m_StartupTutorial = default;
-
         /// <summary>
         /// The tutorial to run at startup, from the Welcome page
         /// </summary>
-        public Tutorial startupTutorial
+        public Tutorial StartupTutorial
         {
             get
             {
@@ -92,10 +109,13 @@ namespace Unity.InteractiveTutorials
             }
             set { m_StartupTutorial = value; }
         }
-
         [SerializeField]
-        [Tooltip("Style settings for this project.")]
-        TutorialStyles m_TutorialStyle;
+        [Tooltip("If set, this is the tutorial that can be started from the welcome dialog.")]
+        Tutorial m_StartupTutorial = default;
+
+        /// <summary>
+        /// TutorialStyles settings for the project. If no settings exist, default settings will be created.
+        /// </summary>
         public TutorialStyles TutorialStyle
         {
             get
@@ -106,7 +126,11 @@ namespace Unity.InteractiveTutorials
                 }
                 return m_TutorialStyle;
             }
+            // TODO setter?
         }
+        [SerializeField]
+        [Tooltip("Style settings for this project.")]
+        TutorialStyles m_TutorialStyle;
 
         internal static readonly string k_DefaultStyleAsset =
             "Packages/com.unity.learn.iet-framework/Editor/UI/Tutorial Styles.asset";

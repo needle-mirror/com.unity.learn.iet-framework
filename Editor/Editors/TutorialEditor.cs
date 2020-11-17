@@ -3,12 +3,12 @@ using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
     using static Localization;
 
     [CustomEditor(typeof(Tutorial))]
-    class TutorialEditor : Editor
+    class TutorialEditor : UnityEditor.Editor
     {
         static class Contents
         {
@@ -95,11 +95,11 @@ namespace Unity.InteractiveTutorials
 
             // Auto completion
             GUILayout.Label(Contents.autoCompletion, EditorStyles.boldLabel);
-            using (new EditorGUI.DisabledScope(tutorial.completed))
+            using (new EditorGUI.DisabledScope(tutorial.Completed))
             {
-                if (GUILayout.Button(tutorial.isAutoCompleting ? Contents.stopAutoCompletion : Contents.startAutoCompletion))
+                if (GUILayout.Button(tutorial.IsAutoCompleting ? Contents.stopAutoCompletion : Contents.startAutoCompletion))
                 {
-                    if (tutorial.isAutoCompleting)
+                    if (tutorial.IsAutoCompleting)
                         tutorial.StopAutoCompletion();
                     else
                         tutorial.StartAutoCompletion();

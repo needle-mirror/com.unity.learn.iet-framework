@@ -3,7 +3,7 @@ using UnityEditor;
 using UnityEditor.SettingsManagement;
 using UnityEngine;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
     using static Localization;
 

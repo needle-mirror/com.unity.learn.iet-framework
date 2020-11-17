@@ -2,8 +2,11 @@ using System;
 using UnityEditor;
 using UnityEngine;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
+    /// <summary>
+    /// Criterion for checking that Scene View Camera has moved.
+    /// </summary>
     public class SceneViewCameraMovedCriterion : Criterion
     {
         [NonSerialized]
@@ -13,6 +16,9 @@ namespace Unity.InteractiveTutorials
         [NonSerialized]
         Quaternion m_InitialCameraOrientation;
 
+        /// <summary>
+        /// Starts testing of the criterion.
+        /// </summary>
         public override void StartTesting()
         {
             UpdateInitialCameraPositionIfNeeded();
@@ -34,12 +40,19 @@ namespace Unity.InteractiveTutorials
             m_InitialCameraOrientation = SceneView.lastActiveSceneView.camera.transform.localRotation;
         }
 
+        /// <summary>
+        /// Stops testing of the criterion.
+        /// </summary>
         public override void StopTesting()
         {
             EditorApplication.update -= UpdateCompletion;
             m_InitialPositionInitialized = false;
         }
 
+        /// <summary>
+        /// Evaluates if the criterion is completed.
+        /// </summary>
+        /// <returns></returns>
         protected override bool EvaluateCompletion()
         {
             if (SceneView.lastActiveSceneView == null)
@@ -51,6 +64,10 @@ namespace Unity.InteractiveTutorials
             return m_InitialCameraPosition != currentPosition || m_InitialCameraOrientation != currentOrientation;
         }
 
+        /// <summary>
+        /// Auto-completes the criterion.
+        /// </summary>
+        /// <returns>True if the auto-completion succeeded.</returns>
         public override bool AutoComplete()
         {
             SceneView.lastActiveSceneView.camera.transform.position = m_InitialCameraPosition + Vector3.back;

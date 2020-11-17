@@ -8,10 +8,19 @@ using Object = UnityEngine.Object;
 
 namespace SerializableCallback
 {
+    /// <summary>
+    /// https://github.com/Siccity/SerializableCallback
+    /// </summary>
     [CustomPropertyDrawer(typeof(TargetConstraintAttribute))]
     [CustomPropertyDrawer(typeof(SerializableCallbackBase), true)]
     public class SerializableCallbackDrawer : PropertyDrawer
     {
+        /// <summary>
+        /// https://github.com/Siccity/SerializableCallback
+        /// </summary>
+        /// <param name="position"></param>
+        /// <param name="property"></param>
+        /// <param name="label"></param>
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             // Indent label
@@ -320,6 +329,12 @@ namespace SerializableCallback
             else  return t.Name;
         }
 
+        /// <summary>
+        /// https://github.com/Siccity/SerializableCallback
+        /// </summary>
+        /// <param name="property"></param>
+        /// <param name="label"></param>
+        /// <returns></returns>
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
             float lineheight = EditorGUIUtility.standardVerticalSpacing + EditorGUIUtility.singleLineHeight;

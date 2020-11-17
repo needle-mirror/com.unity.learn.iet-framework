@@ -1,25 +1,23 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
+    /// <summary>
+    /// Criterion for checking that a specific scene is added to the build.
+    /// </summary>
     public class SceneAddedToBuildCriterion : Criterion
     {
+        /// <summary>
+        /// The scene that needs to be added to the build.
+        /// </summary>
+        public SceneAsset Scene { get => m_Scene; set => m_Scene = value; }
         [SerializeField]
         SceneAsset m_Scene;
 
-        public SceneAsset scene
-        {
-            get
-            {
-                return m_Scene;
-            }
-            set
-            {
-                m_Scene = value;
-            }
-        }
-
+        /// <summary>
+        /// Starts testing of the criterion.
+        /// </summary>
         public override void StartTesting()
         {
             UpdateCompletion();
@@ -27,11 +25,18 @@ namespace Unity.InteractiveTutorials
             EditorBuildSettings.sceneListChanged += UpdateCompletion;
         }
 
+        /// <summary>
+        /// Stops testing of the criterion.
+        /// </summary>
         public override void StopTesting()
         {
             EditorBuildSettings.sceneListChanged -= UpdateCompletion;
         }
 
+        /// <summary>
+        /// Evaluates if the criterion is completed.
+        /// </summary>
+        /// <returns></returns>
         protected override bool EvaluateCompletion()
         {
             if (m_Scene == null)
@@ -53,6 +58,10 @@ namespace Unity.InteractiveTutorials
             return false;
         }
 
+        /// <summary>
+        /// Auto-completes the criterion.
+        /// </summary>
+        /// <returns>True if the auto-completion succeeded.</returns>
         public override bool AutoComplete()
         {
             if (m_Scene == null)
@@ -73,6 +82,12 @@ namespace Unity.InteractiveTutorials
             return true;
         }
 
+        /// <summary>
+        /// Is a specific Scene added to Build Settings.
+        /// </summary>
+        /// <param name="asset"></param>
+        /// <param name="forceEnable"></param>
+        /// <returns></returns>
         public static bool SceneIsAddedToBuildSettings(SceneAsset asset, bool forceEnable = false)
         {
             if (EditorBuildSettings.scenes.Length == 0)
@@ -94,6 +109,11 @@ namespace Unity.InteractiveTutorials
             return false;
         }
 
+        /// <summary>
+        /// Adds a Scene to Build Settings.
+        /// </summary>
+        /// <param name="scene"></param>
+        /// <param name="enabled"></param>
         public static void AddSceneToBuildSettings(SceneAsset scene, bool enabled = true)
         {
             var scenes = new EditorBuildSettingsScene[EditorBuildSettings.scenes.Length + 1];

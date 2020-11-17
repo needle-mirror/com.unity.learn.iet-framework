@@ -1,11 +1,8 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 using UnityEditor;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
-    static public class UsabilityAnalyticsProxy
+    internal class UsabilityAnalyticsProxy
     {
         public static void SendEvent(string eventType, System.DateTime startTime, System.TimeSpan duration, bool isBlocking, object parameters)
         {

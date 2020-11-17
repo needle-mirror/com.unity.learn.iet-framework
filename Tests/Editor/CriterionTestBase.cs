@@ -8,7 +8,7 @@ using UnityEngine;
 
 using UnityObject = UnityEngine.Object;
 
-namespace Unity.InteractiveTutorials.Tests
+namespace Unity.Tutorials.Core.Editor.Tests
 {
     public class CriterionTestBase<T> : TestBase where T : Criterion
     {
@@ -59,7 +59,7 @@ namespace Unity.InteractiveTutorials.Tests
                 return AssetDatabase.LoadAllAssetsAtPath(k_TempTutorialPagePath)
                     .Where(a => a is FutureObjectReference)
                     .Cast<FutureObjectReference>()
-                    .Where(f => f.criterion == m_Criterion);
+                    .Where(f => f.Criterion == m_Criterion);
             }
         }
 

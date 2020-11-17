@@ -3,7 +3,7 @@ using UnityEditor;
 using UnityEngine;
 using SerializableCallback;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
     /// <summary>
     /// Allows tutorial author to specify arbitrary completion criterion.
@@ -13,19 +13,32 @@ namespace Unity.InteractiveTutorials
     /// </summary>
     public class ArbitraryCriterion : Criterion
     {
+        /// <summary>
+        /// Needed for serialization.
+        /// </summary>
         [Serializable]
         public class BoolCallback : SerializableCallback<bool>
         {
         }
 
+        /// <summary>
+        /// The callback for criterion evalution logic.
+        /// </summary>
         public BoolCallback Callback { get => m_Callback; set => m_Callback = value; }
         [SerializeField]
         BoolCallback m_Callback = default;
 
+        /// <summary>
+        /// The callback for auto-completion logic.
+        /// </summary>
         public BoolCallback AutoCompleteCallback { get => m_AutoCompleteCallback; set => m_AutoCompleteCallback = value; }
         [SerializeField]
         BoolCallback m_AutoCompleteCallback = default;
 
+        /// <summary>
+        /// Evaluates if the criterion is completed.
+        /// </summary>
+        /// <returns></returns>
         protected override bool EvaluateCompletion()
         {
             // TODO revisit the logic here -- should AutoCompleteCallback take a precedence over Callback?
@@ -36,6 +49,9 @@ namespace Unity.InteractiveTutorials
                 return false;
         }
 
+        /// <summary>
+        /// Starts testing of the criterion.
+        /// </summary>
         public override void StartTesting()
         {
             UpdateCompletion();
@@ -43,11 +59,18 @@ namespace Unity.InteractiveTutorials
             EditorApplication.update += UpdateCompletion;
         }
 
+        /// <summary>
+        /// Stops testing of the criterion.
+        /// </summary>
         public override void StopTesting()
         {
             EditorApplication.update -= UpdateCompletion;
         }
 
+        /// <summary>
+        /// Auto-completes the criterion.
+        /// </summary>
+        /// <returns>True if the auto-completion succeeded.</returns>
         public override bool AutoComplete()
         {
             if (m_AutoCompleteCallback != null)

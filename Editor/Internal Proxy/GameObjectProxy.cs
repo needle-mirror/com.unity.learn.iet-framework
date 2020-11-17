@@ -1,9 +1,8 @@
-using UnityEditor;
 using UnityEngine;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
-    public static class GameObjectProxy
+    internal static class GameObjectProxy
     {
         public static Bounds CalculateBounds(GameObject gameObject)
         {

@@ -1,8 +1,8 @@
 using UnityEditor.Connect;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
-    public static class UnityConnectProxy
+    internal static class UnityConnectProxy
     {
         public static string GetUserId() => UnityConnect.instance.GetUserId();
 

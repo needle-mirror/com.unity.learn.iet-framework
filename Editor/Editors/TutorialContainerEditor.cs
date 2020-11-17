@@ -1,10 +1,10 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
     [CustomEditor(typeof(TutorialContainer))]
-    public class TutorialContainerEditor : Editor
+    class TutorialContainerEditor : UnityEditor.Editor
     {
         static readonly bool k_IsAuthoringMode = ProjectMode.IsAuthoringMode();
 

@@ -1,5 +1,5 @@
 {
-    "name": "Unity.InteractiveTutorials.Core.Tests",
+    "name": "Unity.Tutorials.Core.Tests",
     "references": [],
     "optionalUnityReferences": [
         "TestAssemblies"

@@ -2,15 +2,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Video;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
-    class VideoPlaybackManager
+    internal class VideoPlaybackManager
     {
         struct CacheEntry
         {
-            public Texture2D texture2D;
-            public VideoPlayer videoPlayer;
-            public RenderTexture renderTexture;
+            public Texture2D Texture2D;
+            public VideoPlayer VideoPlayer;
+            public RenderTexture RenderTexture;
         }
 
         GameObject m_GameObject;
@@ -43,18 +43,18 @@ namespace Unity.InteractiveTutorials
                 videoPlayer.targetTexture = renderTexture;
                 videoPlayer.Play();
 
-                cacheEntry.renderTexture = renderTexture;
-                cacheEntry.videoPlayer = videoPlayer;
+                cacheEntry.RenderTexture = renderTexture;
+                cacheEntry.VideoPlayer = videoPlayer;
                 m_Cache.Add(videoClip, cacheEntry);
             }
 
-            if (cacheEntry.texture2D == null)
-                cacheEntry.texture2D = new Texture2D(cacheEntry.renderTexture.width, cacheEntry.renderTexture.height, TextureFormat.RGBA32, false);
+            if (cacheEntry.Texture2D == null)
+                cacheEntry.Texture2D = new Texture2D(cacheEntry.RenderTexture.width, cacheEntry.RenderTexture.height, TextureFormat.RGBA32, false);
 
-            TextureToTexture2D(cacheEntry.renderTexture, ref cacheEntry.texture2D);
+            TextureToTexture2D(cacheEntry.RenderTexture, ref cacheEntry.Texture2D);
             m_Cache[videoClip] = cacheEntry;
 
-            return cacheEntry.texture2D;
+            return cacheEntry.Texture2D;
         }
 
         static void TextureToTexture2D(Texture texture, ref Texture2D texture2D)
@@ -75,9 +75,9 @@ namespace Unity.InteractiveTutorials
         {
             foreach (var cacheEntry in m_Cache.Values)
             {
-                Object.DestroyImmediate(cacheEntry.texture2D);
-                Object.DestroyImmediate(cacheEntry.videoPlayer);
-                Object.DestroyImmediate(cacheEntry.renderTexture);
+                Object.DestroyImmediate(cacheEntry.Texture2D);
+                Object.DestroyImmediate(cacheEntry.VideoPlayer);
+                Object.DestroyImmediate(cacheEntry.RenderTexture);
             }
 
             m_Cache.Clear();

@@ -1,4 +1,4 @@
 using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("Unity.InternalAPIEditorBridgeDev.005")]
+[assembly: InternalsVisibleTo("Unity.Tutorials.Authoring.Editor")]
 [assembly: InternalsVisibleTo("Unity.InternalAPIEditorBridgeDev.002")]

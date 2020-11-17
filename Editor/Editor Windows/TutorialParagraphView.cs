@@ -2,7 +2,7 @@ using UnityEditor;
 using UnityEngine;
 using System;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
     [Serializable]
     class TutorialParagraphView
@@ -38,17 +38,17 @@ namespace Unity.InteractiveTutorials
 
         public void Draw(ref bool previousTaskState, bool pageCompleted)
         {
-            switch (paragraph.type)
+            switch (paragraph.Type)
             {
                 case ParagraphType.Image:
                     // TODO currently draws image all the time - let's draw it once for each page
-                    videoTextureCache = paragraph.image;
+                    videoTextureCache = paragraph.Image;
                     EditorApplication.update += RepaintSoon;
                     break;
                 case ParagraphType.Video:
-                    if (paragraph.video != null && m_TutorialWindow != null)
+                    if (paragraph.Video != null && m_TutorialWindow != null)
                     {
-                        videoTextureCache = m_TutorialWindow.videoPlaybackManager.GetTextureForVideoClip(paragraph.video);
+                        videoTextureCache = m_TutorialWindow.VideoPlaybackManager.GetTextureForVideoClip(paragraph.Video);
                         EditorApplication.update += RepaintSoon;
                     }
                     break;

@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEditor;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
     /// <summary>
     /// Proxy class for accessing UnityEditor.LocalizationDatabase.
@@ -26,6 +26,7 @@ namespace Unity.InteractiveTutorials
         /// <summary>
         /// Returns available Editor languages.
         /// </summary>
+        /// <returns></returns>
         public static SystemLanguage[] GetAvailableEditorLanguages() =>
             LocalizationDatabase.GetAvailableEditorLanguages();
     }

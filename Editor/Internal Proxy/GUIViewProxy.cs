@@ -4,96 +4,117 @@ using UnityEditor;
 using UnityEngine;
 using UnityObject = UnityEngine.Object;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
+    /// <summary>
+    /// Proxy class for accessing UnityEditor.GUIView.
+    /// </summary>
+    /// <remarks>
+    /// Not a pure proxy class, contains some custom functionality.
+    /// </remarks>
     public class GUIViewProxy
     {
-        public static event Action<UnityObject> positionChanged;
+        /// <summary>
+        /// Raised then the position of the underlying GUIView changes.
+        /// </summary>
+        public static event Action<UnityObject> PositionChanged;
 
-        public static Type guiViewType { get { return typeof(GUIView); }}
-        public static Type tooltipViewType { get { return typeof(TooltipView); }}
+        /// <summary>
+        /// Type of internal class GUIView.
+        /// </summary>
+        public static Type GuiViewType => typeof(GUIView);
+
+        /// <summary>
+        /// Type of internal class TooltipView.
+        /// </summary>
+        public static Type TooltipViewType => typeof(TooltipView);
+
+        /// <summary>
+        /// Type of internal class Toolbar.
+        /// </summary>
+        public static Type ToolbarType => typeof(Toolbar);
 
         static GUIViewProxy()
         {
-            GUIView.positionChanged += OnPositionChanged;
+            GUIView.positionChanged += (guiView) => PositionChanged?.Invoke(guiView);
         }
 
-        static void OnPositionChanged(GUIView guiView)
-        {
-            if (positionChanged != null)
-                positionChanged(guiView);
-        }
+        /// <summary>
+        /// Returns if typeof(GUIView).IsAssignableFrom(type).
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        public static bool IsAssignableFrom(Type type) => GuiViewType.IsAssignableFrom(type);
 
-        public static bool IsAssignableFrom(Type type)
-        {
-            return typeof(GUIView).IsAssignableFrom(type);
-        }
+        internal GUIView GuiView { get; }
 
-        GUIView m_GUIView;
+        /// <summary>
+        /// Does this GUIViewProxy have a GUIView.
+        /// </summary>
+        public bool IsValid => GuiView != null;
 
-        internal GUIView guiView { get { return m_GUIView; } }
+        /// <summary>
+        /// Are the underlying GUIView's window and the window's root view valid.
+        /// </summary>
+        public bool IsWindowAndRootViewValid => GuiView.window != null && GuiView.window.rootView != null;
 
-        public bool isValid { get { return m_GUIView != null; } }
-        public bool isWindowAndRootViewValid { get { return m_GUIView.window != null && m_GUIView.window.rootView != null; } }
-        public Rect position { get { return m_GUIView.position; } }
+        /// <summary>
+        /// Position of the GUIView.
+        /// </summary>
+        public Rect Position => GuiView.position;
 
         internal GUIViewProxy(GUIView guiView)
         {
-            m_GUIView = guiView;
+            GuiView = guiView;
         }
 
-        public void Repaint()
-        {
-            m_GUIView.Repaint();
-        }
+        /// <summary>
+        /// Calls GUIView.Repaint().
+        /// </summary>
+        public void Repaint() => GuiView.Repaint();
 
-        public void RepaintImmediately()
-        {
-            m_GUIView.RepaintImmediately();
-        }
+        /// <summary>
+        /// Calls GUIView.RepaintImmediately().
+        /// </summary>
+        public void RepaintImmediately() => GuiView.RepaintImmediately();
 
+        /// <summary>
+        /// Is the type instance of underlying HostView's actual view.
+        /// </summary>
+        /// <param name="editorWindowType"></param>
+        /// <returns></returns>
         public bool IsActualViewAssignableTo(Type editorWindowType)
         {
-            var hostView = m_GUIView as HostView;
+            var hostView = GuiView as HostView;
             return hostView != null && hostView.actualView != null && editorWindowType.IsInstanceOfType(hostView.actualView);
         }
 
+        /// <summary>
+        /// Is the GUIView docked to the Editor.
+        /// </summary>
+        /// <returns></returns>
         public bool IsDockedToEditor()
         {
-            var hostView = m_GUIView as HostView;
-
-            if (hostView != null && hostView.window != null)
-            {
-                return hostView.window.showMode == ShowMode.MainWindow;
-            }
-
-            return true;
+            var hostView = GuiView as HostView;
+            return hostView == null || hostView.window == null || hostView.window.showMode == ShowMode.MainWindow;
         }
 
-        public bool IsGUIViewAssignableTo(Type targetViewType)
-        {
-            return targetViewType.IsInstanceOfType(m_GUIView);
-        }
+        /// <summary>
+        /// Is the type instance of the underlying GUIView.
+        /// </summary>
+        /// <param name="targetViewType"></param>
+        /// <returns></returns>
+        public bool IsGUIViewAssignableTo(Type targetViewType) => targetViewType.IsInstanceOfType(GuiView);
     }
 
-    public class GUIViewProxyComparer : IEqualityComparer<GUIViewProxy>
+    internal class GUIViewProxyComparer : IEqualityComparer<GUIViewProxy>
     {
-        public bool Equals(GUIViewProxy x, GUIViewProxy y)
-        {
-            return x.guiView == y.guiView;
-        }
-
-        public int GetHashCode(GUIViewProxy obj)
-        {
-            return obj.guiView.GetHashCode();
-        }
+        public bool Equals(GUIViewProxy x, GUIViewProxy y) => x.GuiView == y.GuiView;
+        public int GetHashCode(GUIViewProxy obj) => obj.GuiView.GetHashCode();
     }
 
-    public static class EditorWindowExtension
+    internal static class EditorWindowExtension
     {
-        public static GUIViewProxy GetParent(this EditorWindow window)
-        {
-            return new GUIViewProxy(window.m_Parent);
-        }
+        public static GUIViewProxy GetParent(this EditorWindow window) => new GUIViewProxy(window.m_Parent);
     }
 }

@@ -1,8 +1,8 @@
 using UnityEditor;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
-    public static class WindowLayoutProxy
+    internal static class WindowLayoutProxy
     {
         public static void SaveWindowLayout(string path)
         {

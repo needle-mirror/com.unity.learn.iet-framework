@@ -8,7 +8,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 
-namespace Unity.InteractiveTutorials.Tests
+namespace Unity.Tutorials.Core.Editor.Tests
 {
     public class TutorialManagerTests
     {
@@ -52,7 +52,7 @@ namespace Unity.InteractiveTutorials.Tests
         {
             // Set exit behavior to close window on exit
             var exitBehaviorProperty = tutorial.FindProperty("m_ExitBehavior");
-            exitBehaviorProperty.enumValueIndex = (int)Tutorial.ExitBehavior.CloseWindow;
+            exitBehaviorProperty.enumValueIndex = (int)Tutorial.ExitBehaviorType.CloseWindow;
         }
 
         void SetupLayout(SerializedObject tutorial)
@@ -120,7 +120,7 @@ namespace Unity.InteractiveTutorials.Tests
             yield return new WaitForDelayCall();
 
             // Complete tutorial
-            m_Tutorial.currentPage.ValidateCriteria();
+            m_Tutorial.CurrentPage.ValidateCriteria();
             m_Tutorial.TryGoToNextPage();
             yield return new WaitForDelayCall();
 
@@ -198,7 +198,7 @@ namespace Unity.InteractiveTutorials.Tests
             TutorialManager.instance.StartTutorial(m_Tutorial);
 
             // Complete tutorial
-            m_Tutorial.currentPage.ValidateCriteria();
+            m_Tutorial.CurrentPage.ValidateCriteria();
             m_Tutorial.TryGoToNextPage();
             yield return new WaitForDelayCall();
 

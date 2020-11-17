@@ -7,7 +7,7 @@ using UnityEngine;
 
 using UnityObject = UnityEngine.Object;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
     [CustomPropertyDrawer(typeof(SerializedType))]
     class SerializedTypeDrawer : PropertyDrawer
@@ -89,7 +89,7 @@ namespace Unity.InteractiveTutorials
             if (!m_PropertyPathToOptions.TryGetValue(property.propertyPath, out options))
             {
                 var filterAttribute = Attribute.GetCustomAttribute(fieldInfo, typeof(SerializedTypeFilterAttributeBase), true) as SerializedTypeFilterAttributeBase;
-                options = new Options(filterAttribute.baseType);
+                options = new Options(filterAttribute.BaseType);
                 m_PropertyPathToOptions[property.propertyPath] = options;
             }
 

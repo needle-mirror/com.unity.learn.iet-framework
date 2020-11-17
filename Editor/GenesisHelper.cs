@@ -5,12 +5,11 @@ using System.Text;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Networking;
-using UnityEditor.Connect;
 
-namespace Unity.InteractiveTutorials
+namespace Unity.Tutorials.Core.Editor
 {
     [InitializeOnLoad]
-    public static class GenesisHelper
+    internal static class GenesisHelper
     {
         static readonly string prodHost = @"https://api.unity.com";
         static readonly string stagingHost = @"https://api-staging.unity.com";
@@ -132,7 +131,7 @@ namespace Unity.InteractiveTutorials
 
         private static void GetTutorial(string lessonId, Action<List<TutorialProgressStatus>> action)
         {
-            var userId = UnityConnectProxy.GetUserId();
+            var userId = UnityConnectProxy.GetUserId(); // TODO return if userId null/empty
             var getLink = @"/v1/users/" + userId + @"/lessons";
             var address = HostAddress + getLink;
             var req = MakeGetLessonsRequest(address, lessonId);

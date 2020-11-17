@@ -6,7 +6,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.TestTools;
 
-namespace Unity.InteractiveTutorials.Tests
+namespace Unity.Tutorials.Core.Editor.Tests
 {
     public class FrameSelectedCriterionTests : CriterionTestBase<FrameSelectedCriterion>
     {
@@ -21,7 +21,7 @@ namespace Unity.InteractiveTutorials.Tests
             m_ReferencedObject = new GameObject();
 
             m_ObjectReference = new ObjectReference();
-            m_ObjectReference.sceneObjectReference.Update(m_ReferencedObject);
+            m_ObjectReference.SceneObjectReference.Update(m_ReferencedObject);
 
             m_Criterion.SetObjectReferences(new[] { m_ObjectReference });
 
