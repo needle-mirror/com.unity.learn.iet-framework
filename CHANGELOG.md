@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [1.2.2] - 2021-01-15
+### Fixed
+- Null reference exception when starting a project which shows the Tutorials window by using the new window docking mechanism.
+- Don't show Tutorials window when starting a project if there are no tutorials configured to be ran in the project (no `TutorialContainer` asset).
+- Tutorial not auto-advancing when a tutorial instruction involved exiting Play Mode.
+- Null reference exception upon returning to a tutorial page with video when the same tutorial page was exited earlier by choosing _Show Tutorials_ menu item.
+
 ## [1.2.1] - 2020-11-17
 ### Fixed
  - Tutorial pages without completion criteria were auto-advanced even if not configured to do so if the previous page was set to auto-advance.

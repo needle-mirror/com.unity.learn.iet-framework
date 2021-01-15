@@ -244,7 +244,11 @@ namespace Unity.InteractiveTutorials
             var dropMethod = rootSplitView.GetType().GetMethod("PerformDrop", BindingFlags.Instance | BindingFlags.Public);
 
             var dropInfo = dragMethod.Invoke(rootSplitView, new object[] { child, screenPoint });
-            dropMethod.Invoke(rootSplitView, new object[] { child, dropInfo, screenPoint });
+            if (dropInfo != null)
+                dropMethod.Invoke(rootSplitView, new object[] { child, dropInfo, screenPoint });
+
+            // NOTE Could consider returning the return value (bool) of SplitView.PerformDrop() here
+            // but looking at the code it seems to return always 'true' so this seem futile currently.
         }
     }
 }

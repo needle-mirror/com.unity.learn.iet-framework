@@ -24,7 +24,11 @@ namespace Unity.InteractiveTutorials
             EditorPrefs.SetString("ComponentSearchString", string.Empty);
             Tools.current = Tool.Move;
 
-            ShowTutorialWindow();
+            var readme = TutorialWindow.FindReadme();
+            if (readme != null)
+            {
+                ShowTutorialWindow();
+            }
 
             // NOTE camera settings can be applied successfully only after potential layout changes
             if (projectSettings.InitialCameraSettings != null && projectSettings.InitialCameraSettings.enabled)

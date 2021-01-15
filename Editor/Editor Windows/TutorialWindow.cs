@@ -433,7 +433,7 @@ namespace Unity.InteractiveTutorials
         IEnumerator EnforceCheckmark(TutorialContainer.Section section, VisualElement element)
         {
             float seconds = 20f;
-            while (seconds > 0f && !DoneFetchingTutorialStates)
+            while (seconds > 0f && !DoneFetchingTutorialStates) //todo: refactor to use WaitForSecondsRealtime() instead of Time.deltaTime
             {
                 yield return null;
                 seconds -= Time.deltaTime;
@@ -688,13 +688,8 @@ namespace Unity.InteractiveTutorials
 
         IEnumerator GoToNextPageAfterDelay()
         {
-            //TODO WaitForSecondsRealtime();
-            float seconds = 0.5f;
-            while (seconds > 0f)
-            {
-                seconds -= Time.deltaTime;
-                yield return null;
-            }
+            yield return new WaitForSecondsRealtime(0.5f);
+            
             if (currentTutorial.TryGoToNextPage())
             {
                 UpdatePageState();
