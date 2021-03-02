@@ -51,33 +51,10 @@ namespace Unity.Tutorials.Core.Editor
 
         [Header("Scene Data")]
         [SerializeField]
-        SceneAsset m_Scene = default;
+        internal SceneAsset m_Scene = default;
 
         [SerializeField]
         SceneViewCameraSettings m_DefaultSceneCameraSettings = default;
-
-        /// <summary>
-        /// The supported exit behavior types.
-        /// </summary>
-        public enum ExitBehaviorType
-        {
-            /// <summary>
-            /// Show "home window", i.e. Unity Hub.
-            /// </summary>
-            ShowHomeWindow,
-            /// <summary>
-            /// Exit the tutorial, despite its name, this does not close the window.
-            /// </summary>
-            CloseWindow,
-        }
-
-        /// <summary>
-        /// How should the tutorial behave upon exiting.
-        /// </summary>
-        public ExitBehaviorType ExitBehavior { get => m_ExitBehavior; set => m_ExitBehavior = value; }
-        [Header("Exit Behavior")]
-        [SerializeField]
-        ExitBehaviorType m_ExitBehavior = ExitBehaviorType.ShowHomeWindow;
 
         /// <summary>
         /// The supported skip behavior types.

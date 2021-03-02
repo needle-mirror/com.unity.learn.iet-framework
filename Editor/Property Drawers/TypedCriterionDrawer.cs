@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -18,6 +19,7 @@ namespace Unity.Tutorials.Core.Editor
             new Dictionary<String, SerializedObject>();
 
         Rect m_CriterionPropertyRect;
+        bool m_InspectorRedrawn = false;
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
@@ -33,12 +35,15 @@ namespace Unity.Tutorials.Core.Editor
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
+            m_InspectorRedrawn = true;
             EditorGUI.BeginChangeCheck();
             Rect typeFieldPosition = position;
             typeFieldPosition.height = EditorGUIUtility.singleLineHeight;
             EditorGUI.PropertyField(typeFieldPosition, property.FindPropertyRelative(k_TypeField));
-            if (EditorGUI.EndChangeCheck())
+            if (EditorGUI.EndChangeCheck() || GUI.changed)
+            {
                 OnCriterionTypeChanged(property);
+            }
 
             position.y += typeFieldPosition.height + EditorGUIUtility.standardVerticalSpacing;
             position.height -= typeFieldPosition.height + EditorGUIUtility.standardVerticalSpacing;
@@ -118,8 +123,14 @@ namespace Unity.Tutorials.Core.Editor
 
                 AssetDatabase.AddObjectToAsset(criterion, parentProperty.serializedObject.targetObject);
                 string parentAssetPath = AssetDatabase.GetAssetPath(parentProperty.serializedObject.targetObject);
-                AssetDatabase.ImportAsset(parentAssetPath);
 
+                // Work around "NullReferenceException: SerializedObject of SerializedProperty has been Disposed.",
+                // https://fogbugz.unity3d.com/f/cases/1318338/
+#if UNITY_2020_2_6 || UNITY_2020_2_7 || (UNITY_2020_3_OR_NEWER && !UNITY_2021)
+                EditorCoroutines.Editor.EditorCoroutineUtility.StartCoroutineOwnerless(ImportCriterionParentAssetWhenReady(criterionProperty, criterion, parentAssetPath));
+#else
+                AssetDatabase.ImportAsset(parentAssetPath);
+#endif
                 criterionProperty.objectReferenceValue = criterion;
 
                 m_PerPropertyCriterionSerializedObjects.Clear();
@@ -128,6 +139,24 @@ namespace Unity.Tutorials.Core.Editor
             {
                 criterionProperty.objectReferenceValue = null;
             }
+        }
+
+        IEnumerator ImportCriterionParentAssetWhenReady(SerializedProperty criterionProperty, ScriptableObject criterion, string parentAssetPath)
+        {
+            do
+            {
+                yield return null;
+            } while (criterionProperty.objectReferenceValue != criterion);
+
+            //this seems to be necessary in order to prevent errors when multiple criteria are on the same tutorial page
+            m_InspectorRedrawn = false;
+
+            do
+            {
+                yield return null;
+            } while (!m_InspectorRedrawn);
+
+            AssetDatabase.ImportAsset(parentAssetPath);
         }
     }
 }

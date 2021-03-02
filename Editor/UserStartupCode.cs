@@ -24,7 +24,11 @@ namespace Unity.Tutorials.Core.Editor
             EditorPrefs.SetString("ComponentSearchString", string.Empty);
             Tools.current = Tool.Move;
 
-            ShowTutorialWindow();
+            var readme = TutorialWindow.FindReadme();
+            if (readme != null)
+            {
+                ShowTutorialWindow();
+            }
 
             // NOTE camera settings can be applied successfully only after potential layout changes
             if (projectSettings.InitialCameraSettings != null && projectSettings.InitialCameraSettings.Enabled)
@@ -36,9 +40,12 @@ namespace Unity.Tutorials.Core.Editor
 
         /// <summary>
         /// Shows Tutorials window using the currently specified behaviour:
-        /// - if TutorialContainer exists and TutorialContainer.ProjectLayout is specified,
-        ///   the window is loaded and shown using the specified window layout (old behaviour), or
-        /// - else the window is shown by anchoring and docking next to the Inspector (new behaviour).
+        /// 1. if TutorialContainer exists and TutorialContainer.ProjectLayout is specified,
+        ///    the window is loaded and shown using the specified project window layout (old behaviour), or
+        /// 2. the window is shown by anchoring and docking next to the Inspector (new behaviour), or
+        /// 3. if the Inspector is not available or the project layout does not contain Tutorials window,
+        ///    the window is shown an as free-floating window.
+        /// If Tutorials window is already created, it is simply brought to the foreground and focused.
         /// </summary>
         public static void ShowTutorialWindow()
         {
@@ -123,7 +130,7 @@ namespace Unity.Tutorials.Core.Editor
 
         // Replaces LastProjectPaths in window layouts used in tutorials so that e.g.
         // pre-saved Project window states work correctly.
-        static void PrepareWindowLayouts()
+        internal static void PrepareWindowLayouts()
         {
             AssetDatabase.FindAssets($"t:{typeof(TutorialContainer).FullName}")
                 .Select(guid =>

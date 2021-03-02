@@ -185,27 +185,27 @@ namespace SerializableCallback
         public enum ArgType
         {
             /// <summary>
-            /// 
+            /// https://github.com/Siccity/SerializableCallback
             /// </summary>
             Unsupported,
             /// <summary>
-            /// 
+            /// https://github.com/Siccity/SerializableCallback
             /// </summary>
             Bool,
             /// <summary>
-            /// 
+            /// https://github.com/Siccity/SerializableCallback
             /// </summary>
             Int,
             /// <summary>
-            /// 
+            /// https://github.com/Siccity/SerializableCallback
             /// </summary>
             Float,
             /// <summary>
-            /// 
+            /// https://github.com/Siccity/SerializableCallback
             /// </summary>
             String,
             /// <summary>
-            /// 
+            /// https://github.com/Siccity/SerializableCallback
             /// </summary>
             Object
         }

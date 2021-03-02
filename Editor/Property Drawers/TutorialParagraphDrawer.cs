@@ -1,4 +1,4 @@
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
 
 namespace Unity.Tutorials.Core.Editor
@@ -8,7 +8,6 @@ namespace Unity.Tutorials.Core.Editor
     {
         const string k_TypePath = "m_Type";
         const string k_TextPath = "m_Text";
-        const string k_IconsPath = "m_Icons";
         const string k_CriteriaPath = "m_Criteria";
         const string k_SummaryPath = "m_Summary";
         const string k_CompletionPath = "m_CriteriaCompletion";
@@ -25,11 +24,7 @@ namespace Unity.Tutorials.Core.Editor
             switch (childProperty.name)
             {
                 case k_TextPath:
-                    if (type == ParagraphType.Icons || type == ParagraphType.SwitchTutorial || type == ParagraphType.Image || type == ParagraphType.Video)
-                        return;
-                    break;
-                case k_IconsPath:
-                    if (type != ParagraphType.Icons)
+                    if (type == ParagraphType.SwitchTutorial || type == ParagraphType.Image || type == ParagraphType.Video)
                         return;
                     break;
                 case k_TutorialButtonTextPath:
@@ -64,11 +59,7 @@ namespace Unity.Tutorials.Core.Editor
             switch (childProperty.name)
             {
                 case k_TextPath:
-                    if (type == ParagraphType.Icons || type == ParagraphType.Image || type == ParagraphType.Video)
-                        return -EditorGUIUtility.standardVerticalSpacing;
-                    break;
-                case k_IconsPath:
-                    if (type != ParagraphType.Icons)
+                    if (type == ParagraphType.Image || type == ParagraphType.Video)
                         return -EditorGUIUtility.standardVerticalSpacing;
                     break;
                 case k_CriteriaPath:

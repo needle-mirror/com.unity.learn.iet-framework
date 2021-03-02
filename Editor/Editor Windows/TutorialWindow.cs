@@ -10,6 +10,7 @@ using Unity.EditorCoroutines.Editor;
 
 using UnityObject = UnityEngine.Object;
 using static Unity.Tutorials.Core.Editor.RichTextParser;
+using UnityEditor.SceneManagement;
 
 namespace Unity.Tutorials.Core.Editor
 {
@@ -42,12 +43,10 @@ namespace Unity.Tutorials.Core.Editor
 
         SystemLanguage m_CurrentEditorLanguage; // uninitialized in order to force translation when the window is enabled for the first time
 
-        static TutorialWindow instance;
-
-        List<TutorialParagraphView> m_Paragraphs = new List<TutorialParagraphView>();
+        List<TutorialParagraph> m_Paragraphs = new List<TutorialParagraph>();
         int[] m_Indexes;
         [SerializeField]
-        List<TutorialParagraphView> m_AllParagraphs = new List<TutorialParagraphView>();
+        List<TutorialParagraph> m_AllParagraphs = new List<TutorialParagraph>();
 
         internal static readonly float s_AuthoringModeToolbarButtonWidth = 115;
 
@@ -56,27 +55,38 @@ namespace Unity.Tutorials.Core.Editor
         string m_NextButtonText = "";
         string m_BackButtonText = "";
         string m_WindowTitleContent;
-        string m_HomePromptTitle;
-        string m_HomePromptText;
-        string m_PromptYes;
-        string m_PromptNo;
+        string m_HomePromptTitle; // TODO unused currently
+        string m_HomePromptText; // TODO unused currently
+        string m_PromptYes; // TODO unused currently
+        string m_PromptNo; // TODO unused currently
         string m_PromptOk;
         string m_MenuPathGuide;
         string m_TabClosedDialogTitle;
         string m_TabClosedDialogText;
+        bool m_IsInitialized;
 
         internal Tutorial currentTutorial;
 
         /// <summary>
-        /// Creates the window if it does not exist, anchoring it as a tab next to the inspector.
+        /// Creates the window if it does not exist, anchoring it as a tab next to the Inspector.
+        /// If the window exists already, it's simply brought to the foreground and focused without any other actions.
+        /// If Inspector is not visible currently, Tutorials window is will be shown as a free-floating window.
         /// </summary>
+        /// <remarks>
+        /// This is the new and preferred way to show the Tutorials window.
+        /// </remarks>
+        /// <returns></returns>
         internal static TutorialWindow CreateNextToInspector()
         {
-            var inspectorWindow =  Resources.FindObjectsOfTypeAll<EditorWindow>()
+            var inspectorWindow = Resources.FindObjectsOfTypeAll<EditorWindow>()
                 .FirstOrDefault(wnd => wnd.GetType().Name == "InspectorWindow");
 
             Type windowToAnchorTo = inspectorWindow != null ? inspectorWindow.GetType() : null;
-            var tutorialWindow = CreateWindow(windowToAnchorTo);
+            bool alreadyCreated = EditorWindowUtils.FindOpenInstance<TutorialWindow>() != null;
+            // If Inspector not visible/opened, Tutorials window will be created as a free-floating window
+            var tutorialWindow = GetOrCreateWindow(windowToAnchorTo); // create & anchor or simply focus
+            if (alreadyCreated)
+                return tutorialWindow;
 
             if (inspectorWindow)
                 inspectorWindow.DockWindow(tutorialWindow, EditorWindowUtils.DockPosition.Right);
@@ -87,27 +97,43 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Creates the window if it does not exist, and positions it using a window layout
         /// specified either by the project's TutorialContainer or Tutorial Framework's default layout.
+        /// If the window exists already, it's simply brought to the foreground and focused without any other actions.
+        /// If the project layout does not contain Tutorials window, it will be shown as a free-floating window.
         /// </summary>
+        /// <remarks>
+        /// This is the old way to show the Tutorials window and should be preferred only in situations where
+        /// a special window layout is preferred when starting a tutorial project for the first time.
+        /// </remarks>
         /// <returns></returns>
         internal static TutorialWindow CreateWindowAndLoadLayout()
         {
-            instance = CreateWindow();
+            var tutorialWindow = EditorWindowUtils.FindOpenInstance<TutorialWindow>();
+            if (tutorialWindow != null)
+                return GetOrCreateWindow(); // focus
+
             var readme = FindReadme();
             if (readme != null)
                 readme.LoadTutorialProjectLayout();
-            return instance;
+
+            // If project layout did not contain tutorial window, it will be created as a free-floating window
+            tutorialWindow = EditorWindowUtils.FindOpenInstance<TutorialWindow>();
+            if (tutorialWindow == null)
+                tutorialWindow = GetOrCreateWindow(); // create
+
+            return tutorialWindow;
         }
 
         /// <summary>
-        /// Creates a window, and positions it as a tab of another window, if wanted.
+        /// Creates a window and positions it as a tab of another window, if wanted.
+        /// If the window exists already, it's brought to the foreground and focused.
         /// </summary>
         /// <param name="windowToAnchorTo"></param>
         /// <returns></returns>
-        internal static TutorialWindow CreateWindow(Type windowToAnchorTo = null)
+        internal static TutorialWindow GetOrCreateWindow(Type windowToAnchorTo = null)
         {
-            instance = GetWindow<TutorialWindow>(windowToAnchorTo);
-            instance.minSize = new Vector2(k_MinWidth, k_MinHeight);
-            return instance;
+            var window = GetWindow<TutorialWindow>(windowToAnchorTo);
+            window.minSize = new Vector2(k_MinWidth, k_MinHeight);
+            return window;
         }
 
         internal TutorialContainer readme
@@ -129,9 +155,19 @@ namespace Unity.Tutorials.Core.Editor
                 }
             }
         }
-        [SerializeField] TutorialContainer m_Readme;
+        [SerializeField]
+        TutorialContainer m_Readme;
 
-        TutorialContainer.Section[] Cards => readme?.Sections ?? new TutorialContainer.Section[0];
+        TutorialContainer.Section[] Sections => readme?.Sections ?? new TutorialContainer.Section[0];
+
+        class Card
+        {
+            public TutorialContainer.Section Section;
+            public VisualElement Element;
+        }
+
+        [SerializeField]
+        Card[] m_Cards = { };
 
         bool CanMoveToNextPage =>
             currentTutorial != null && currentTutorial.CurrentPage != null &&
@@ -157,7 +193,10 @@ namespace Unity.Tutorials.Core.Editor
         [SerializeField]
         bool m_PlayModeChanging;
 
-        internal VideoPlaybackManager VideoPlaybackManager { get; } = new VideoPlaybackManager();
+        VideoPlaybackManager VideoPlaybackManager { get; } = new VideoPlaybackManager();
+        Texture m_VideoTextureCache;
+
+        bool m_DoneFetchingTutorialStates = false;
 
         void OnTutorialContainerModified()
         {
@@ -188,11 +227,7 @@ namespace Unity.Tutorials.Core.Editor
             readme = FindReadme(); // TODO could this be removed?
         }
 
-        /// <summary>
-        /// TODO 2.0 make internal
-        /// </summary>
-        /// <param name="newTexture"></param>
-        public void UpdateVideoFrame(Texture newTexture)
+        void UpdateVideoFrame(Texture newTexture)
         {
             rootVisualElement.Q("TutorialMedia").style.backgroundImage = Background.FromTexture2D((Texture2D)newTexture);
         }
@@ -200,8 +235,8 @@ namespace Unity.Tutorials.Core.Editor
         void UpdateHeader(TextElement contextText, TextElement titleText, VisualElement backDrop)
         {
             bool hasTutorial = currentTutorial != null;
-            var context = readme != null ? readme.Title.Value : string.Empty;
-            var title = hasTutorial ? currentTutorial.TutorialTitle.Value : readme?.ProjectName.Value;
+            var context = readme != null ? readme.Subtitle.Value : string.Empty;
+            var title = hasTutorial ? currentTutorial.TutorialTitle.Value : readme?.Title.Value;
             // For now drawing header only for Readme
             if (readme)
             {
@@ -275,7 +310,7 @@ namespace Unity.Tutorials.Core.Editor
             Button linkButton = rootVisualElement.Q<Button>("LinkButton");
             if (endLink != null)
             {
-                linkButton.clickable.clicked += () => TutorialManager.instance.StartTutorial(endLink);
+                linkButton.clickable = new Clickable(() => StartEndLinkTutorial(endLink));
                 linkButton.text = Tr(endText);
                 ShowElement(linkButton);
             }
@@ -290,7 +325,7 @@ namespace Unity.Tutorials.Core.Editor
                 RichTextToVisualElements(narrative.Text, rootVisualElement.Q("TutorialStepBox1"));
             }
 
-            if (instruction == null || string.IsNullOrEmpty(instruction.Text))
+            if (instruction == null || (string.IsNullOrEmpty(instruction.Text) && string.IsNullOrEmpty(instruction.Title)))
             {
                 // hide instruction box if no text
                 HideElement("InstructionContainer");
@@ -315,6 +350,12 @@ namespace Unity.Tutorials.Core.Editor
             {
                 HideElement("NextButtonBase");
             }
+        }
+
+        void StartEndLinkTutorial(Tutorial endLink)
+        {
+            TutorialManager.instance.IsTransitioningBetweenTutorials = true;
+            TutorialManager.instance.StartTutorial(endLink);
         }
 
         // Sets the instruction highlight to green or blue and toggles between arrow and checkmark
@@ -371,88 +412,132 @@ namespace Unity.Tutorials.Core.Editor
             rootVisualElement.Q("NextButton").SetEnabled(enable);
         }
 
-        void CreateTutorialMenuCards(VisualTreeAsset vistree, string cardElementName, string linkCardElementName, VisualElement cardContainer)
+        void CreateTutorialMenuCards(VisualTreeAsset vistree, VisualElement cardContainer)
         {
-            var cards = Cards.OrderBy(card => card.OrderInView).ToArray();
+            m_Cards = Sections
+                .OrderBy(section => section.OrderInView)
+                .Select(section => new Card() { Section = section })
+                .ToArray();
 
-            cardContainer.style.alignItems = Align.Center;
-
-            for (int index = 0; index < cards.Length; ++index)
+            if (m_Cards.Any())
             {
-                var card = cards[index];
+                LoadTutorialStates();
+                FetchTutorialStates();
+                EditorCoroutineUtility.StartCoroutineOwnerless(UpdateCheckmarksWhenStatesFetched());
+            }
 
-                // If it's a tutorial, use tutorial card - otherwise link card
-                VisualElement cardElement = vistree.CloneTree().Q("TutorialsContainer").Q(card.IsTutorial ? cardElementName : linkCardElementName);
-                cardElement.Q<Label>("TutorialName").text = card.Heading;
-                cardElement.Q<Label>("TutorialDescription").text = card.Text;
-                if (card.IsTutorial)
+            foreach(var card in m_Cards)
+            {
+                var section = card.Section;
+                card.Element = vistree.CloneTree().Q("TutorialsContainer").Q(section.IsTutorial ? "CardContainer" : "LinkCardContainer");
+                var element = card.Element;
+                element.Q<Label>("TutorialName").text = section.Heading;
+                element.Q<Label>("TutorialDescription").text = section.Text;
+                element.tooltip = section.IsTutorial ? Tr("Tutorial: ") + section.Text : section.Url;
+                if (section.Image != null)
+                    element.Q("TutorialImage").style.backgroundImage = Background.FromTexture2D(section.Image);
+
+                // NOTE Setting up the checkmark at this point might be futile as we just requested the states from the backend.
+                UpdateCheckmark(card);
+
+                if (section.IsTutorial)
                 {
-                    cardElement.RegisterCallback((MouseUpEvent evt) =>
+                    element.RegisterCallback((MouseUpEvent evt) =>
                     {
-                        card.StartTutorial();
-                        //ShowCurrentTutorialContent();
+                        section.StartTutorial();
                     });
                 }
-                if (!string.IsNullOrEmpty(card.Url))
+                if (!string.IsNullOrEmpty(section.Url))
                 {
-                    AnalyticsHelper.SendExternalReferenceImpressionEvent(card.Url, card.Heading.Untranslated, card.LinkText, card.TutorialId);
+                    AnalyticsHelper.SendExternalReferenceImpressionEvent(section.Url, section.Heading.Untranslated, section.Metadata, section.TutorialId);
 
-                    cardElement.RegisterCallback((MouseUpEvent evt) =>
+                    element.RegisterCallback((MouseUpEvent evt) =>
                     {
-                        card.OpenUrl();
+                        section.OpenUrl();
                     });
                 }
 
-                EditorApplication.delayCall += () =>
-                {
-                    EditorApplication.delayCall += () =>
-                    {
-                        // HACK: needs two delaycalls or GenesisHelper gives 404
-                        FetchTutorialStates();
-                    };
-                };
-
-                cardElement.Q<Label>("CompletionStatus").text = cards[index].TutorialCompleted ? Tr("COMPLETED") : "";
-                SetElementVisible(cardElement.Q("TutorialCheckmark"), cards[index].TutorialCompleted);
-
-                EditorCoroutineUtility.StartCoroutineOwnerless(EnforceCheckmark(cards[index], cardElement));
-
-                if (card.Image != null)
-                {
-                    cardElement.Q("TutorialImage").style.backgroundImage = Background.FromTexture2D(card.Image);
-                }
-                cardElement.tooltip = card.IsTutorial ? Tr("Tutorial: ") + card.Text : card.Url;
-                cardContainer.Add(cardElement);
+                cardContainer.Add(element);
             }
         }
 
-        IEnumerator EnforceCheckmark(TutorialContainer.Section section, VisualElement element)
+        IEnumerator UpdateCheckmarksWhenStatesFetched()
         {
-            float seconds = 20f;
-            while (seconds > 0f && !DoneFetchingTutorialStates)
-            {
+            while (!m_DoneFetchingTutorialStates)
                 yield return null;
-                seconds -= Time.deltaTime;
-            }
 
-            element.Q<Label>("CompletionStatus").text = section.TutorialCompleted ? Tr("COMPLETED") : "";
-            SetElementVisible(element.Q("TutorialCheckmark"), section.TutorialCompleted);
+            foreach(var card in m_Cards)
+                UpdateCheckmark(card);
+        }
+
+        void UpdateCheckmark(Card card)
+        {
+            card.Element.Q<Label>("CompletionStatus").text = card.Section.TutorialCompleted ? Tr("COMPLETED") : "";
+            SetElementVisible(card.Element.Q("TutorialCheckmark"), card.Section.TutorialCompleted);
         }
 
         void RenderVideoIfPossible()
         {
-            var paragraphType = currentTutorial?.CurrentPage?.Paragraphs.ElementAt(0).Type;
-            if (paragraphType == ParagraphType.Video || paragraphType == ParagraphType.Image)
+            // Possible media is always at the first paragraph.
+            var paragraph = currentTutorial?.CurrentPage?.Paragraphs.FirstOrDefault();
+            if (paragraph == null)
+                return;
+
+            switch (paragraph.Type)
             {
-                var pageCompleted = currentTutorial.CurrentPageIndex <= m_FarthestPageCompleted;
-                var previousTaskState = true;
-                GetCurrentParagraph().ElementAt(0).Draw(ref previousTaskState, pageCompleted);
+                case ParagraphType.Image:
+                    // TODO currently draws image all the time - let's draw it once for each page
+                    m_VideoTextureCache = paragraph.Image;
+                    UpdateVideoFrame(m_VideoTextureCache);
+                    break;
+                case ParagraphType.Video:
+                    if (paragraph.Video != null)
+                    {
+                        m_VideoTextureCache = VideoPlaybackManager.GetTextureForVideoClip(paragraph.Video);
+                        UpdateVideoFrame(m_VideoTextureCache);
+                        Repaint();
+                    }
+                    break;
             }
+
         }
 
         void OnEnable()
         {
+            EditorCoroutineUtility.StartCoroutineOwnerless(DeferredOnEnable());
+        }
+
+        IEnumerator DeferredOnEnable()
+        {
+            m_IsInitialized = false;
+            m_CurrentEditorLanguage = LocalizationDatabaseProxy.currentEditorLanguage;
+
+            if (EditorApplication.isPlaying)
+            {
+                yield return null;
+            }
+            else
+            {
+                yield return new EditorWaitForSeconds(0.5f);
+            }
+
+            AssetDatabase.Refresh();
+            AddCallbacksToEvents();
             InitializeUI();
+            m_IsInitialized = true;
+        }
+
+        void AddCallbacksToEvents()
+        {
+            Criterion.CriterionCompleted += OnCriterionCompleted;
+
+            // test for page completion state changes (rather than criteria completion/invalidation directly)
+            // so that page completion state will be up-to-date
+            TutorialPage.CriteriaCompletionStateTested += OnTutorialPageCriteriaCompletionStateTested;
+            TutorialPage.TutorialPageMaskingSettingsChanged += OnTutorialPageMaskingSettingsChanged;
+            TutorialPage.TutorialPageNonMaskingSettingsChanged += OnTutorialPageNonMaskingSettingsChanged;
+            EditorApplication.playModeStateChanged -= TrackPlayModeChanging;
+            EditorApplication.playModeStateChanged += TrackPlayModeChanging;
         }
 
         void InitializeUI()
@@ -475,10 +560,6 @@ namespace Unity.Tutorials.Core.Editor
 
             rootVisualElement.Clear();
 
-            instance = this;
-
-            Criterion.CriterionCompleted += OnCriterionCompleted;
-
             IMGUIContainer imguiToolBar = new IMGUIContainer(OnGuiToolbar);
             IMGUIContainer videoBox = new IMGUIContainer(RenderVideoIfPossible);
             videoBox.style.alignSelf = new StyleEnum<Align>(Align.Center);
@@ -498,7 +579,10 @@ namespace Unity.Tutorials.Core.Editor
             VisualElement linkButton = topBarAsset.CloneTree().Q("LinkButton");
 
             VisualElement cardContainer = topBarAsset.CloneTree().Q("TutorialListScrollView");
-            CreateTutorialMenuCards(topBarAsset, "CardContainer", "LinkCardContainer", cardContainer); //[TODO] be careful: this will also trigger analytics events even when you start a tutorial
+            cardContainer.style.alignItems = Align.Center;
+
+            // TODO Don't create cards if we have tutorial in progress?
+            CreateTutorialMenuCards(topBarAsset, cardContainer); //[TODO] be careful: this will also trigger analytics event for link card impression
 
             tutorialContents.Add(cardContainer);
             VisualElement topBarVisElement = topBarAsset.CloneTree().Q("TitleHeader");
@@ -526,22 +610,13 @@ namespace Unity.Tutorials.Core.Editor
 
             // Set here in addition to CreateWindow() so that title of old saved layouts is overwritten,
             // also make sure the title is translated always.
-            instance.titleContent.text = m_WindowTitleContent;
+            titleContent.text = m_WindowTitleContent;
 
             VideoPlaybackManager.OnEnable();
 
             GUIViewProxy.PositionChanged += OnGUIViewPositionChanged;
             HostViewProxy.actualViewChanged += OnHostViewActualViewChanged;
             Tutorial.TutorialPagesModified += OnTutorialPagesModified;
-
-            // test for page completion state changes (rather than criteria completion/invalidation directly)
-            // so that page completion state will be up-to-date
-            TutorialPage.CriteriaCompletionStateTested -= OnTutorialPageCriteriaCompletionStateTested; // TODO hotfix for auto-completion issues introduced in  7f238cbbcc289120f5c086b66f6bb3c003197a06
-            TutorialPage.CriteriaCompletionStateTested += OnTutorialPageCriteriaCompletionStateTested;
-            TutorialPage.TutorialPageMaskingSettingsChanged += OnTutorialPageMaskingSettingsChanged;
-            TutorialPage.TutorialPageNonMaskingSettingsChanged += OnTutorialPageNonMaskingSettingsChanged;
-            EditorApplication.playModeStateChanged -= TrackPlayModeChanging;
-            EditorApplication.playModeStateChanged += TrackPlayModeChanging;
 
             root.Add(footerBar);
             SetUpTutorial();
@@ -597,6 +672,7 @@ namespace Unity.Tutorials.Core.Editor
 
         static void SetElementVisible(VisualElement elem, bool visible)
         {
+            if (elem == null) { return; }
             elem.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
@@ -639,14 +715,6 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
-        void WindowForParagraph()
-        {
-            foreach (var p in m_Paragraphs)
-            {
-                p.SetWindow(instance);
-            }
-        }
-
         void OnHostViewActualViewChanged()
         {
             if (TutorialManager.IsLoadingLayout) { return; }
@@ -665,11 +733,6 @@ namespace Unity.Tutorials.Core.Editor
         {
             if (currentTutorial == null || currentTutorial.CurrentPage != sender) { return; }
 
-            foreach (var paragraph in m_Paragraphs)
-            {
-                paragraph.ResetState();
-            }
-
             if (sender.AreAllCriteriaSatisfied && sender.AutoAdvanceOnComplete && !sender.HasMovedToNextPage)
             {
                 EditorCoroutineUtility.StartCoroutineOwnerless(GoToNextPageAfterDelay());
@@ -681,14 +744,9 @@ namespace Unity.Tutorials.Core.Editor
 
         IEnumerator GoToNextPageAfterDelay()
         {
-            //TODO WaitForSecondsRealtime();
-            float seconds = 0.5f;
-            while (seconds > 0f)
-            {
-                seconds -= Time.deltaTime;
-                yield return null;
-            }
-            if (currentTutorial.TryGoToNextPage())
+            yield return new EditorWaitForSeconds(0.5f);
+
+            if (currentTutorial != null && currentTutorial.TryGoToNextPage())
             {
                 UpdatePageState();
                 yield break;
@@ -708,46 +766,58 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
+        IEnumerator ExitTutorialAndPlaymode(bool completed)
+        {
+            if (EditorApplication.isPlaying)
+            {
+                EditorApplication.isPlaying = false;
+                while (EditorApplication.isPlaying)
+                {
+                    yield return null;
+                }
+            }
+            else
+            {
+                yield return null;
+            }
+            ExitTutorial(completed);
+        }
+
         void ExitTutorial(bool completed)
         {
-            switch (currentTutorial.ExitBehavior)
+            if (EditorApplication.isPlaying)
             {
-                case Tutorial.ExitBehaviorType.ShowHomeWindow:
-                    if (completed)
-                    {
-                        HomeWindowProxy.ShowTutorials();
-                    }
-                    else if (
-                        !IsInProgress() ||
-                        EditorUtility.DisplayDialog(m_HomePromptTitle, m_HomePromptText, m_PromptYes, m_PromptNo))
-                    {
-                        HomeWindowProxy.ShowTutorials();
-                        GUIUtility.ExitGUI();
-                    }
-                    return; // Return to avoid selecting asset on exit
-                case Tutorial.ExitBehaviorType.CloseWindow:
-                    // New behaviour: exiting resets and nullifies the current tutorial and shows the project's tutorials.
-                    if (completed)
-                    {
-                        SetTutorial(null, false);
-                        ResetTutorial();
-                        TutorialManager.instance.RestoreOriginalState();
-                    }
-                    else
-                    // TODO experimenting with UX that never shows the exit dialog, can be removed for good if deemed good.
-                    //    if (!IsInProgress()
-                    //    || EditorUtility.DisplayDialog(k_ExitPromptTitle.text, k_ExitPromptText.text, k_PromptYes.text, k_PromptNo.text))
-                    {
-                        currentTutorial.CurrentPage.RaiseOnBeforeQuitTutorialEvent();
-                        SetTutorial(null, false);
-                        ResetTutorial();
-                        TutorialManager.instance.RestoreOriginalState();
-                    }
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
+                /* todo: this requires a frame anyway, so the save dialog won't show
+                 * if we want to support the save dialog even in that case, then we should use "ExitTutorialAndPlaymode" coroutine 
+                 * instead of directly calling this method.
+                 * However, using that coroutine breaks the tutorial switching system due to race conditions.
+                 * I'm leaving both that routine and this comment here so we know what to do in the future.
+                 */
+                EditorApplication.isPlaying = false;
             }
 
+            if (!TutorialManager.instance.IsTransitioningBetweenTutorials
+                && !EditorApplication.isPlaying && !EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+            {
+                return;
+            }
+
+            // New behaviour: exiting resets and nullifies the current tutorial and shows the project's tutorials.
+            if (completed)
+            {
+                SetTutorial(null, false);
+                ResetTutorial();
+                TutorialManager.instance.RestoreOriginalState();
+            }
+            else
+            {
+                currentTutorial.CurrentPage.RaiseOnBeforeQuitTutorialEvent();
+                SetTutorial(null, false);
+                ResetTutorial();
+                TutorialManager.instance.RestoreOriginalState();
+            }
+
+            //todo: Note to Ali/Mika: can we remove the code below, as it is unused?
             // TODO new behaviour testing: assetSelectedOnExit was originally used for selecting
             // Readme but this is not required anymore as the TutorialWindow contains Readme's functionality.
             //if (currentTutorial?.assetSelectedOnExit != null)
@@ -779,25 +849,10 @@ namespace Unity.Tutorials.Core.Editor
 
         internal void CreateTutorialViews()
         {
-            if (currentTutorial == null) return; // HACK
-            m_AllParagraphs.Clear();
-            foreach (var page in currentTutorial.Pages)
-            {
-                if (page == null) { continue; }
-
-                var instructionIndex = 0;
-                foreach (var paragraph in page.Paragraphs)
-                {
-                    if (paragraph.Type == ParagraphType.Instruction)
-                    {
-                        ++instructionIndex;
-                    }
-                    m_AllParagraphs.Add(new TutorialParagraphView(paragraph, instance, Styles.OrderedListDelimiter, Styles.UnorderedListBullet, instructionIndex));
-                }
-            }
+            m_AllParagraphs = currentTutorial.Pages.SelectMany(pg => pg.Paragraphs).ToList();
         }
 
-        List<TutorialParagraphView> GetCurrentParagraph()
+        List<TutorialParagraph> GetCurrentParagraph()
         {
             if (m_Indexes == null || m_Indexes.Length != currentTutorial.PageCount)
             {
@@ -813,10 +868,12 @@ namespace Unity.Tutorials.Core.Editor
                 }
             }
 
-            List<TutorialParagraphView> tmp = new List<TutorialParagraphView>();
+            List<TutorialParagraph> tmp = new List<TutorialParagraph>();
             if (m_Indexes.Length > 0)
             {
-                var endIndex = currentTutorial.CurrentPageIndex + 1 > currentTutorial.PageCount - 1 ? m_AllParagraphs.Count : m_Indexes[currentTutorial.CurrentPageIndex + 1];
+                var endIndex = currentTutorial.CurrentPageIndex + 1 > currentTutorial.PageCount - 1
+                    ? m_AllParagraphs.Count
+                    : m_Indexes[currentTutorial.CurrentPageIndex + 1];
                 for (int i = m_Indexes[currentTutorial.CurrentPageIndex]; i < endIndex; i++)
                 {
                     tmp.Add(m_AllParagraphs[i]);
@@ -851,7 +908,15 @@ namespace Unity.Tutorials.Core.Editor
 
             m_Paragraphs.TrimExcess();
 
-            WindowForParagraph();
+            EditorCoroutineUtility.StartCoroutineOwnerless(DelayedShowCurrentTutorialContent());
+        }
+
+        IEnumerator DelayedShowCurrentTutorialContent()
+        {
+            while (!m_IsInitialized)
+            {
+                yield return null;
+            }
             ShowCurrentTutorialContent(); // HACK
         }
 
@@ -894,24 +959,27 @@ namespace Unity.Tutorials.Core.Editor
             currentTutorial.StopTutorial();
         }
 
-        internal void SetTutorial(Tutorial tutorial, bool reload)
+        internal void SetTutorial(Tutorial tutorial, bool resetProgress)
         {
             ClearTutorialListener();
 
+            ResetTutorialProgress(currentTutorial, resetProgress);
             currentTutorial = tutorial;
-            if (currentTutorial != null)
-            {
-                if (reload)
-                {
-                    currentTutorial.ResetProgress();
-                }
-                m_AllParagraphs.Clear();
-                m_Paragraphs.Clear();
-            }
+            ResetTutorialProgress(currentTutorial, resetProgress);
 
             ApplyMaskingSettings(currentTutorial != null);
-
             SetUpTutorial();
+        }
+
+        void ResetTutorialProgress(Tutorial tutorial, bool resetProgress)
+        {
+            if (tutorial == null) { return; }
+            if (resetProgress)
+            {
+                tutorial.ResetProgress();
+            }
+            m_AllParagraphs.Clear();
+            m_Paragraphs.Clear();
         }
 
         void SetUpTutorial()
@@ -1151,7 +1219,7 @@ namespace Unity.Tutorials.Core.Editor
                     }
                     else // otherwise, highlight manually specified control rects if there are any
                     {
-                        var unmaskedControls = new List<GUIControlSelector>();
+                        var unmaskedControls = new List<GuiControlSelector>();
                         var unmaskedViewsWithControlsSpecified =
                             maskingSettings.UnmaskedViews.Where(v => v.GetUnmaskedControls(unmaskedControls) > 0).ToArray();
                         // if there are no manually specified control rects, highlight all unmasked views
@@ -1288,28 +1356,30 @@ namespace Unity.Tutorials.Core.Editor
 
         internal void MarkAllTutorialsUncompleted()
         {
-            Cards.ToList().ForEach(s => MarkTutorialCompleted(s.TutorialId, false));
-            // TODO Refresh the cards
+            Sections.ToList().ForEach(s => MarkTutorialCompleted(s.TutorialId, false));
+            foreach (var card in m_Cards)
+                UpdateCheckmark(card);
         }
 
-        bool DoneFetchingTutorialStates = false;
+        void LoadTutorialStates()
+        {
+            Sections.ToList().ForEach(s => s.LoadState());
+        }
 
         // Fetches statuses from the web API
         internal void FetchTutorialStates()
         {
-            DoneFetchingTutorialStates = false;
+            m_DoneFetchingTutorialStates = false;
             GenesisHelper.GetAllTutorials((tutorials) =>
             {
                 tutorials.ForEach(t => MarkTutorialCompleted(t.lessonId, t.status == "Finished"));
-                DoneFetchingTutorialStates = true;
+                m_DoneFetchingTutorialStates = true;
             });
         }
 
         void MarkTutorialCompleted(string lessonId, bool completed)
         {
-            var sections = readme?.Sections ?? new TutorialContainer.Section[0];
-            var section = Array.Find(sections, s => s.TutorialId == lessonId);
-            if (section != null)
+            foreach(var section in Array.FindAll(Sections, s => s.TutorialId == lessonId))
             {
                 section.TutorialCompleted = completed;
                 section.SaveState();

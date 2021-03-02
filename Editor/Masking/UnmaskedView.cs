@@ -117,7 +117,7 @@ namespace Unity.Tutorials.Core.Editor
 
             // initialize result
             var result = new Dictionary<GUIViewProxy, MaskViewData>();
-            var unmaskedControls = new Dictionary<GUIViewProxy, List<GUIControlSelector>>();
+            var unmaskedControls = new Dictionary<GUIViewProxy, List<GuiControlSelector>>();
             var viewsWithWindows = new Dictionary<GUIViewProxy, HashSet<EditorWindow>>();
             foreach (var unmaskedView in unmaskedViews)
             {
@@ -129,9 +129,9 @@ namespace Unity.Tutorials.Core.Editor
                         result[view] = new MaskViewData() { rects = new List<Rect>(8), maskType = unmaskedView.m_MaskType, maskSizeModifier = unmaskedView.m_MaskSizeModifier};
                     }
 
-                    List<GUIControlSelector> controls;
+                    List<GuiControlSelector> controls;
                     if (!unmaskedControls.TryGetValue(view, out controls))
-                        unmaskedControls[view] = controls = new List<GUIControlSelector>();
+                        unmaskedControls[view] = controls = new List<GuiControlSelector>();
 
                     controls.AddRange(unmaskedView.m_UnmaskedControls);
                 }
@@ -186,7 +186,7 @@ namespace Unity.Tutorials.Core.Editor
                     bool regionFound = false;
                     switch (controlSelector.SelectorMode)
                     {
-                        case GUIControlSelector.Mode.GuiContent:
+                        case GuiControlSelector.Mode.GuiContent:
                             var selectorContent = controlSelector.GuiContent;
                             foreach (var instruction in drawInstructions)
                             {
@@ -197,7 +197,7 @@ namespace Unity.Tutorials.Core.Editor
                                 }
                             }
                             break;
-                        case GUIControlSelector.Mode.GuiStyleName:
+                        case GuiControlSelector.Mode.GuiStyleName:
                             foreach (var instruction in drawInstructions)
                             {
                                 if (instruction.usedGUIStyleName == controlSelector.GuiStyleName)
@@ -207,7 +207,7 @@ namespace Unity.Tutorials.Core.Editor
                                 }
                             }
                             break;
-                        case GUIControlSelector.Mode.NamedControl:
+                        case GuiControlSelector.Mode.NamedControl:
                             foreach (var instruction in namedControlInstructions)
                             {
                                 if (instruction.name == controlSelector.ControlName)
@@ -217,7 +217,7 @@ namespace Unity.Tutorials.Core.Editor
                                 }
                             }
                             break;
-                        case GUIControlSelector.Mode.Property:
+                        case GuiControlSelector.Mode.Property:
                             if (controlSelector.TargetType == null)
                                 continue;
                             var targetTypeName = controlSelector.TargetType.AssemblyQualifiedName;
@@ -243,7 +243,7 @@ namespace Unity.Tutorials.Core.Editor
                                 foundAncestorProperty = regionFound;
                             }
                             break;
-                        case GUIControlSelector.Mode.ObjectReference:
+                        case GuiControlSelector.Mode.ObjectReference:
                             if (controlSelector.ObjectReference == null)
                                 continue;
 
@@ -457,7 +457,7 @@ namespace Unity.Tutorials.Core.Editor
         [SerializeField]
         SerializedType m_ViewType = new SerializedType(null);
 
-        [SerializedTypeFilter(typeof(EditorWindow))]
+        [SerializedTypeFilter(typeof(EditorWindow),false)]
         [SerializeField]
         SerializedType m_EditorWindowType = new SerializedType(null);
 
@@ -492,9 +492,9 @@ namespace Unity.Tutorials.Core.Editor
         MaskSizeModifier m_MaskSizeModifier = MaskSizeModifier.NoModifications;
 
         [SerializeField]
-        List<GUIControlSelector> m_UnmaskedControls = new List<GUIControlSelector>();
+        List<GuiControlSelector> m_UnmaskedControls = new List<GuiControlSelector>();
 
-        public int GetUnmaskedControls(List<GUIControlSelector> unmaskedControls)
+        public int GetUnmaskedControls(List<GuiControlSelector> unmaskedControls)
         {
             unmaskedControls.Clear();
             unmaskedControls.AddRange(m_UnmaskedControls);
@@ -503,7 +503,7 @@ namespace Unity.Tutorials.Core.Editor
 
         protected UnmaskedView() {}
 
-        internal static UnmaskedView CreateInstanceForGUIView<T>(IList<GUIControlSelector> unmaskedControls = null)
+        internal static UnmaskedView CreateInstanceForGUIView<T>(IList<GuiControlSelector> unmaskedControls = null)
         {
             if (!GUIViewProxy.IsAssignableFrom(typeof(T)))
                 throw new InvalidOperationException("Type must be assignable to GUIView");
@@ -516,7 +516,7 @@ namespace Unity.Tutorials.Core.Editor
             return result;
         }
 
-        public static UnmaskedView CreateInstanceForEditorWindow<T>(IList<GUIControlSelector> unmaskedControls = null) where T : EditorWindow
+        public static UnmaskedView CreateInstanceForEditorWindow<T>(IList<GuiControlSelector> unmaskedControls = null) where T : EditorWindow
         {
             UnmaskedView result = new UnmaskedView();
             result.m_SelectorType = SelectorType.EditorWindow;
@@ -531,7 +531,7 @@ namespace Unity.Tutorials.Core.Editor
     class EditorWindowType
     {
         [SerializeField, FormerlySerializedAs("editorWindowType")]
-        [SerializedTypeFilter(typeof(EditorWindow))]
+        [SerializedTypeFilter(typeof(EditorWindow), false)]
         public SerializedType Type;
 
         public EditorWindowType(SerializedType editorWindowType)

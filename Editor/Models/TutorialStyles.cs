@@ -59,17 +59,17 @@ namespace Unity.Tutorials.Core.Editor
 
         StyleSheet m_LastCommonStyleSheet;
 
+        #region TODO Will be deprecated and deleted
         /// <summary>
-        /// The default style sheet file used when the Personal Editor Theme is chosen.
+        /// The default style sheet file used when the Personal Editor Theme is chosen. Deprecated.
         /// </summary>
         public static readonly string DefaultLightStyleFile = $"{TutorialWindow.k_UIAssetPath}/Main_Light.uss";
 
         /// <summary>
-        /// The default style sheet file used when the Professional Editor Theme is chosen.
+        /// The default style sheet file used when the Professional Editor Theme is chosen. Deprecated.
         /// </summary>
         public static readonly string DefaultDarkStyleFile = $"{TutorialWindow.k_UIAssetPath}/Main_Dark.uss";
 
-        #region TODO Will be deprecated and deleted
         /// <summary>
         /// Deprecated.
         /// </summary>
@@ -98,14 +98,6 @@ namespace Unity.Tutorials.Core.Editor
         {
             MaskingManager.HighlightAnimationSpeed = m_HighlightAnimationSpeed;
             MaskingManager.HighlightAnimationDelay = m_HighlightAnimationDelay;
-            if (LightThemeStyleSheet == null)
-            {
-                LightThemeStyleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(DefaultLightStyleFile);
-            }
-            if (DarkThemeStyleSheet == null)
-            {
-                DarkThemeStyleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(DefaultDarkStyleFile);
-            }
         }
 
         /// <summary>
@@ -121,14 +113,32 @@ namespace Unity.Tutorials.Core.Editor
             AddThemeStyleTo(target);
         }
 
+        static void RemoveStyleSheet(StyleSheet styleSheet, VisualElement target)
+        {
+            if (!styleSheet) { return; }
+            if (!target.styleSheets.Contains(styleSheet)) { return; }
+            target.styleSheets.Remove(styleSheet);
+        }
+
         /// <summary>
         /// Adds a Theme-specific style to a VisualElement
         /// </summary>
         /// <param name="target">VisualElement to which the style should be added (usually, you want to do this to the root)</param>
         void AddThemeStyleTo(VisualElement target)
         {
+            RemoveStyleSheet(m_LastCommonStyleSheet, target);
+
             m_LastCommonStyleSheet = EditorGUIUtility.isProSkin ? DarkThemeStyleSheet : LightThemeStyleSheet;
-            if (!m_LastCommonStyleSheet) { return; }
+            if (!m_LastCommonStyleSheet)
+            {
+                string theme = EditorGUIUtility.isProSkin ? "_Dark" : "_Light";
+                m_LastCommonStyleSheet = TutorialWindow.LoadUIAsset<StyleSheet>(string.Format("Main{0}.uss", theme));
+                if (!m_LastCommonStyleSheet)
+                {
+                    Debug.LogErrorFormat("Default Stylesheet for theme {0} is null", theme);
+                    return;
+                }
+            }
             target.styleSheets.Add(m_LastCommonStyleSheet);
         }
     }

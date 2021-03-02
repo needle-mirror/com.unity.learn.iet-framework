@@ -15,7 +15,7 @@ namespace Unity.Tutorials.Core.Editor
         /// The Type.
         /// </summary>
         [SerializeField, FormerlySerializedAs("type")]
-        [SerializedTypeFilter(typeof(Criterion))]
+        [SerializedTypeFilter(typeof(Criterion), true)]
         public SerializedType Type;
 
         /// <summary>

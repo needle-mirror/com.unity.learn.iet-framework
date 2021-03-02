@@ -76,7 +76,7 @@ namespace Unity.Tutorials.Core.Editor.Tests
 
             m_Window = EditorWindow.GetWindow<TutorialWindow>();
             TutorialWindow.ShowTutorialsClosedDialog.SetValue(false);
-            m_Window.SetTutorial(m_Tutorial, reload: false);
+            m_Window.SetTutorial(m_Tutorial, false);
         }
 
         [TearDown]
@@ -406,9 +406,10 @@ namespace Unity.Tutorials.Core.Editor.Tests
         [Ignore("Imgui elements in containers, TODO")]
         public void ApplyHighlighting_ToOnlySpecifiedControls_WhenMaskingSettingsSpecifyControlsAndEntireWindowsAndViews()
         {
-            var playButtonContrlSelector = new GUIControlSelector
+            var playButtonContrlSelector = new GuiControlSelector
             {
-                SelectorMode = GUIControlSelector.Mode.NamedControl, ControlName = "ToolbarPlayModePlayButton"
+                SelectorMode = GuiControlSelector.Mode.NamedControl,
+                ControlName = "ToolbarPlayModePlayButton"
             };
             firstPage.m_Paragraphs[0].MaskingSettings.SetUnmaskedViews(
                 new[]

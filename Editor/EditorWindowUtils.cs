@@ -17,8 +17,7 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public static T FindOpenInstance<T>() where T : EditorWindow =>
-            Resources.FindObjectsOfTypeAll<T>().FirstOrDefault();
+        public static T FindOpenInstance<T>() where T : EditorWindow => Resources.FindObjectsOfTypeAll<T>().FirstOrDefault();
 
         /// <summary>
         /// Supported dock positions.
@@ -29,10 +28,10 @@ namespace Unity.Tutorials.Core.Editor
             /// Dock to the left side of the window.
             /// </summary>
             Left,
-
-            // TODO Top docking not working, investigate.
-            // Top,
-
+            /// <summary>
+            /// Dock to the top of the window.
+            /// </summary>
+            Top,
             /// <summary>
             /// Dock to the right side of the window.
             /// </summary>
@@ -52,9 +51,9 @@ namespace Unity.Tutorials.Core.Editor
         public static void DockWindow(this EditorWindow anchor, EditorWindow docked, DockPosition position)
         {
             // NOTE Code adapted from https://gist.github.com/Thundernerd/5085ec29819b2960f5ff2ee32ad57cbb#gistcomment-2834853
-            var anchorParent = GetParentOf(anchor);
-            SetDragSource(anchorParent, GetParentOf(docked));
-            PerformDrop(GetWindowOf(anchorParent), docked, GetFakeMousePosition(anchor, position));
+            var anchorParent = WindowLayoutProxy.GetParentOf(anchor);
+            SetDragSource(anchorParent, WindowLayoutProxy.GetParentOf(docked));
+            WindowLayoutProxy.PerformDrop(anchorParent, docked, GetFakeMousePosition(anchor, position));
         }
 
         /// <summary>
@@ -144,107 +143,53 @@ namespace Unity.Tutorials.Core.Editor
         static EditorWindowUtils()
         {
             // Assertions to surface potential reflection problems as soon as possible.
-            // These should make Packge Validation Suite's EmptyConsoleTest to fail in case
+            // These should make Package Validation Suite's EmptyConsoleTest to fail in case
             // the internal APIs would change.
 
             // TODO assert types used by GetEditorMainWindowPos() also.
 
-            // EditorWindow
-            var type = typeof(EditorWindow);
-            Debug.Assert(
-                type.GetField("m_Parent", BindingFlags.Instance | BindingFlags.NonPublic) != null,
-                "Internal API EditorWindow.m_Parent missing."
-            );
-
             // DockArea
-            type = Type.GetType("UnityEditor.DockArea, UnityEditor, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null");
+            var type = Type.GetType("UnityEditor.DockArea, UnityEditor, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null");
             Debug.Assert(type != null);
             Debug.Assert(
                 type.GetField("s_OriginalDragSource", BindingFlags.Static | BindingFlags.NonPublic) != null,
                 "Internal API DockArea.s_OriginalDragSource missing."
             );
-
-            // HostView
-            type = Type.GetType("UnityEditor.HostView, UnityEditor, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null");
-            Debug.Assert(type != null);
-            Debug.Assert(
-                type.GetProperty("window", BindingFlags.Instance | BindingFlags.Public) != null,
-                "Internal API HostView.window missing."
-            );
-
-            // ContainerWindow
-            type = Type.GetType("UnityEditor.ContainerWindow, UnityEditor, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null");
-            Debug.Assert(type != null);
-            Debug.Assert(
-                type.GetProperty("rootSplitView", BindingFlags.Instance | BindingFlags.Public) != null,
-                "Internal API ContainerWindow.rootSplitView missing."
-            );
-
-            // SplitView
-            type = Type.GetType("UnityEditor.SplitView, UnityEditor, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null");
-            Debug.Assert(
-                type.GetMethod("DragOver", BindingFlags.Instance | BindingFlags.Public) != null,
-                "Internal API SplitView.DragOver does not exist."
-            );
-            Debug.Assert(
-                type.GetMethod("PerformDrop", BindingFlags.Instance | BindingFlags.Public) != null,
-                "Internal API SplitView.PerformDrop does not exist."
-            );
         }
 
-        static Vector2 GetFakeMousePosition(EditorWindow wnd, DockPosition position)
+        static Vector2 GetFakeMousePosition(EditorWindow window, DockPosition position)
         {
             Vector2 mousePosition = Vector2.zero;
 
             // The 20 is required to make the docking work.
             // Smaller values might not work when faking the mouse position.
+            const float offset = 20;
+
             switch (position)
             {
                 case DockPosition.Left:
-                    mousePosition.Set(20, wnd.position.size.y / 2);
+                    mousePosition.Set(offset, window.position.size.y / 2);
                     break;
-                //case DockPosition.Top:
-                //    mousePosition.Set(wnd.position.size.x / 2, 20);
-                //    break;
+                case DockPosition.Top:
+                    // Top docking seems to require roughly a double offset in order to work,
+                    // probably due to extra space required by the tab bar.
+                    mousePosition.Set(window.position.size.x / 2, offset * 2);
+                    break;
                 case DockPosition.Right:
-                    mousePosition.Set(wnd.position.size.x - 20, wnd.position.size.y / 2);
+                    mousePosition.Set(window.position.size.x - offset, window.position.size.y / 2);
                     break;
                 case DockPosition.Bottom:
-                    mousePosition.Set(wnd.position.size.x / 2, wnd.position.size.y - 20);
+                    mousePosition.Set(window.position.size.x / 2, window.position.size.y - offset);
                     break;
             }
 
-            return new Vector2(wnd.position.x + mousePosition.x, wnd.position.y + mousePosition.y);
-        }
-
-        static object GetParentOf(object target)
-        {
-            var field = target.GetType().GetField("m_Parent", BindingFlags.Instance | BindingFlags.NonPublic);
-            return field.GetValue(target);
-        }
-
-        static object GetWindowOf(object target)
-        {
-            var property = target.GetType().GetProperty("window", BindingFlags.Instance | BindingFlags.Public);
-            return property.GetValue(target, null);
+            return new Vector2(window.position.x + mousePosition.x, window.position.y + mousePosition.y);
         }
 
         static void SetDragSource(object target, object source)
         {
             var field = target.GetType().GetField("s_OriginalDragSource", BindingFlags.Static | BindingFlags.NonPublic);
             field.SetValue(null, source);
-        }
-
-        static void PerformDrop(object window, EditorWindow child, Vector2 screenPoint)
-        {
-            var rootSplitViewProperty = window.GetType().GetProperty("rootSplitView", BindingFlags.Instance | BindingFlags.Public);
-            object rootSplitView = rootSplitViewProperty.GetValue(window, null);
-
-            var dragMethod = rootSplitView.GetType().GetMethod("DragOver", BindingFlags.Instance | BindingFlags.Public);
-            var dropMethod = rootSplitView.GetType().GetMethod("PerformDrop", BindingFlags.Instance | BindingFlags.Public);
-
-            var dropInfo = dragMethod.Invoke(rootSplitView, new object[] { child, screenPoint });
-            dropMethod.Invoke(rootSplitView, new object[] { child, dropInfo, screenPoint });
         }
     }
 }

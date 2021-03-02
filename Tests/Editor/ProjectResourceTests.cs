@@ -11,7 +11,6 @@ namespace Unity.Tutorials.Core.Editor.Tests
         readonly string[] k_UITexturePaths =
         {
             "Packages/com.unity.learn.iet-framework/Editor/UI",
-            "Packages/com.unity.learn.iet-framework/Editor/Resources/icons"
         };
 
         [Test]

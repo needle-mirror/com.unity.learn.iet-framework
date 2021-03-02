@@ -27,7 +27,7 @@ namespace Unity.Tutorials.Core.Editor
         [CustomPropertyDrawer(typeof(ComponentAddedCriterion.SerializedTypeCollection))]
         class TypedCriterionCollectionDrawer : CollectionWrapperDrawer
         {
-            const string k_FutureReferencePath = "futureReference";
+            const string k_FutureReferencePath = "FutureReference";
 
             protected override void OnReorderableListCreated(UnityEditorInternal.ReorderableList list)
             {

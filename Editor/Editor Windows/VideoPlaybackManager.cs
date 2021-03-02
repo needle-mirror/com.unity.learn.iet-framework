@@ -13,7 +13,9 @@ namespace Unity.Tutorials.Core.Editor
             public RenderTexture RenderTexture;
         }
 
-        GameObject m_GameObject;
+        // NOTE Static reference fixes a peculiar NRE issue when a tutorial which has Window Layout set
+        // is exited by Tutorials > Show Tutorials instead of exiting the tutorial regularly.
+        static GameObject m_GameObject;
         Dictionary<VideoClip, CacheEntry> m_Cache = new Dictionary<VideoClip, CacheEntry>();
 
         public void OnEnable()

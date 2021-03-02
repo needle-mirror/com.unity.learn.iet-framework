@@ -16,6 +16,8 @@ namespace Unity.Tutorials.Core.Editor
 
         private static List<KeyValuePair<UnityWebRequestAsyncOperation, Action<UnityWebRequest>>> m_Requests = new List<KeyValuePair<UnityWebRequestAsyncOperation, Action<UnityWebRequest>>>();
 
+        public static bool HasWarnedAboutLogin { get; private set; }
+
         private static string HostAddress
         {
             get { return (IsStagingEnv() ? stagingHost : prodHost); }
@@ -131,7 +133,16 @@ namespace Unity.Tutorials.Core.Editor
 
         private static void GetTutorial(string lessonId, Action<List<TutorialProgressStatus>> action)
         {
-            var userId = UnityConnectProxy.GetUserId(); // TODO return if userId null/empty
+            var userId = UnityConnectProxy.GetUserId();
+            if (userId.IsNullOrEmpty())
+            {
+                if (!HasWarnedAboutLogin)
+                {
+                    Debug.LogWarning("Error: No user ID. Are you logged in?");
+                    HasWarnedAboutLogin = true;
+                }
+                return;
+            }
             var getLink = @"/v1/users/" + userId + @"/lessons";
             var address = HostAddress + getLink;
             var req = MakeGetLessonsRequest(address, lessonId);
@@ -149,6 +160,7 @@ namespace Unity.Tutorials.Core.Editor
         public static void LogTutorialStatusUpdate(string lessonId, string lessonStatus)
         {
             var userId = UnityConnectProxy.GetUserId();
+            if (userId.IsNullOrEmpty()) return;
             var getLink = @"/v1/users/" + userId + @"/lessons";
             var address = HostAddress + getLink;
 

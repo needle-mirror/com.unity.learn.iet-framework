@@ -8,9 +8,8 @@ namespace Unity.Tutorials.Core.Editor
     class TutorialParagraphCollectionDrawer : CollectionWrapperDrawer
     {
         const string k_TypePath = "m_Type";
-        const string k_TextPath = "m_Text";
+        const string k_TextPath = "Text.m_Untranslated";
         const string k_SummaryPath = "m_Summary";
-        const string k_IconsPath = "m_Icons.m_Items";
         const string k_CriteriaPath = "m_Criteria.m_Items";
 
 
@@ -24,7 +23,6 @@ namespace Unity.Tutorials.Core.Editor
                 lastElement.FindPropertyRelative(k_TypePath).intValue = 0;
                 lastElement.FindPropertyRelative(k_TextPath).stringValue = "";
                 lastElement.FindPropertyRelative(k_SummaryPath).stringValue = "";
-                lastElement.FindPropertyRelative(k_IconsPath).arraySize = 0;
                 lastElement.FindPropertyRelative(k_CriteriaPath).arraySize = 0;
                 list.serializedProperty.serializedObject.ApplyModifiedProperties();
             };

@@ -8,7 +8,7 @@ namespace Unity.Tutorials.Core.Editor
     /// </summary>
     public class EditorWindowCriterion : Criterion
     {
-        [SerializedTypeFilter(typeof(EditorWindow))]
+        [SerializedTypeFilter(typeof(EditorWindow), false)]
         [SerializeField]
         SerializedType m_EditorWindowType = new SerializedType(null);
 
@@ -19,11 +19,6 @@ namespace Unity.Tutorials.Core.Editor
 
         [SerializeField]
         bool m_CloseIfAlreadyOpen;
-
-        /// <summary>
-        /// TODO 2.0 unused, remove?
-        /// </summary>
-        public bool CloseIfAlreadyOpen { get => m_CloseIfAlreadyOpen; set => m_CloseIfAlreadyOpen = value; }
 
         EditorWindow m_WindowInstance;
 

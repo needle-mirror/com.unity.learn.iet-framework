@@ -4,17 +4,76 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0-pre.3] - 2021-03-02
+## Added
+- UI: Added **Show simplified type names** preference which affects the appearance of `SerializedType` fields.
+This preference can be found under **Preferences** > **In-Editor Tutorials**.
+- Rich text parser: Added word wrapping support for CJK characters.
+- Rich text parser: Added support for `<wordwrap>` tag that can be used to force word wrapping even when Chinese, Japanese or Korean is detected.
+- Rich text parser: leading whitespace can be used as indentation.
+- Documentation: package documentation/manual added.
 
-## [2.0.0] - 2020-11-17
+### Changed
+- Breaking change: `TutorialContainer`'s `ProjectName` renamed to `Title`, old `Title` renamed to `Subtitle`.
+- Breaking change: `TutorialContainer.Section`'s `AuthorizedUrl` removed, `LinkText` renamed to `Metadata`, `SessionStateKey` made `internal`.
+- Breaking change: Renamed `SceneObjectGUIDComponent` to `SceneObjectGuid` and `SceneObjectGUIDManager` to `SceneObjectGuidManager`.
+- Dependencies: Settings Manager dependency updated to 1.0.3.
+- UX: Show a warning in the Console if the user is not signed in.
+- UX: **Show Tutorials** menu item simply focuses **Tutorials** window in all cases, also when a tutorial is in progress.
+- UX: If `TutorialContainer.ProjectLayout` has a layout without **Tutorials** window, the window is now shown as a free-floating window instead of not showing it at all.
+- UI: `SerializedType` fields can now be edited using a searchable menu. This affects the following tutorial page settings:
+  - The **Editor Window Type** setting of **Unmasked Views** when its Selector Type is set to **Editor Window**
+  - The **View Type** setting of **Unmasked Views** when its Selector Type is set to **GUI View**
+  - The **Type** setting of **Completion Criteria**
+- UI: Abstract `Criterion` classes, which cause errors when selected, are no longer shown in the Inspector.
+- Documentation: updated _Known issues_ section.
+
+### Removed
+- Breaking change: `TutorialProjectSettings.UseLegacyStartupBehavior` field removed.
+- Breaking change: `ParagraphType` enumeration's `UnorderedList`, `OrderedList`, and `Icons` removed.
+- Breaking change: `Tutorial.ExitBehavior` removed as obsolete.
+- Breaking change: Removed `TriggerTaskCriterion`, `*CollisionBroadcaster*`, `IPlayerAvatar`, and `SelectionRoot` classes.
+- Dependencies: Removed Physics and Physics2D dependencies from the package.
+
+### Fixed
+- Initialize `TutorialPage`'s `NextButton` and `DoneButton` to "Next" and "Done" respectively.
+- Fixed null reference exception and **Tutorials** window being broken when updating the package.
+- Fixed having **Auto Advance** option enabled on the last page of a tutorial making the first page of the tutorial to be skipped upon a rerun.
+- Fixed **Scene(s) Have Been Modified** dialog being shown multiple times when **Cancel** or **Don't Save** was chosen.
+- Fixed **Scene(s) Have Been Modified** dialog not being shown while having unsaved changes and quitting a tutorial.
+- Fixed null reference exception when tutorial ended by auto-advancing while having unsaved changes.
+- Fixed null reference exception when **Inspector** was docked as a child of another view and **Tutorials** window was shown using the auto-docking mechanism.
+- Authoring: Fixed window layouts not being preprocessed until the project is restarted.
+- Authoring: Fixed **Tutorials** > **Genesis** > **Clear all statuses** to clear the tutorial cards' completion markers correctly.
+- Authoring: Fixed "HTTP/1.1 401 Unauthorized" warning spam in the Console when the tutorial author was not signed in.
+- UI: Fixed tutorial cards' completion markers not showing the correct state when the project was just opened while having **Tutorials** window visible.
+- UI: Fixed tutorial card not being marked as completed when a completed tutorial was quit by clicking the **Close** (**X**) button.
+
+## [2.0.0-pre.1] - 2020-11-17
+## Added
+- Documentation: All public APIs documented.
 
 ### Changed
 - Breaking change: all public APIs reviewed; many APIs made internal and some new public APIs added.
+- Breaking change: all public APIs are now PascalCase instead a mix of camelCase and PascalCase.
 - Breaking change: `Unity.InteractiveTutorials` namespace rename to `Unity.Tutorials.Core(.Editor)`.
 - Breaking change: `Unity.InteractiveTutorials.Core` assembly renamed to to `Unity.Tutorials.Core.Editor`.
 - Breaking change: `Unity.InteractiveTutorials.Core.Scripts` assembly renamed to to `Unity.Tutorials.Core`.
 
-## Added
-- All public APIs documented.
+## [1.2.2] - 2021-01-15
+### Fixed
+- Null reference exception when starting a project which shows the Tutorials window by using the new window docking mechanism.
+- Don't show Tutorials window when starting a project if there are no tutorials configured to be ran in the project (no `TutorialContainer` asset).
+- Tutorial not auto-advancing when a tutorial instruction involved exiting Play Mode.
+- Null reference exception upon returning to a tutorial page with video when the same tutorial page was exited earlier by choosing _Show Tutorials_ menu item.
+
+## [1.2.1] - 2020-11-17
+### Fixed
+ - Tutorial pages without completion criteria were auto-advanced even if not configured to do so if the previous page was set to auto-advance.
+ - UI: Fix the layout to make cards 100% wide when used with less content.
+
+### Added
+- Localization: added translations for CJK languages.
 
 ## [1.2.0] - 2020-11-10
 ### Added

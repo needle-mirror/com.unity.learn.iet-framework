@@ -12,6 +12,11 @@ namespace Unity.Tutorials.Core.Editor
         /// Base type.
         /// </summary>
         public Type BaseType { get; protected set; }
+
+        /// <summary>
+        /// Should abstract types be hidden by the filter?
+        /// </summary>
+        public bool HideAbstractTypes { get; protected set; }
     }
 
     /// <summary>
@@ -23,10 +28,12 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Constructs with a type.
         /// </summary>
-        /// <param name="baseType"></param>
-        public SerializedTypeFilterAttribute(Type baseType)
+        /// <param name="baseType">Base type.</param>
+        /// <param name="hideAbstractTypes">Should abstract types be hidden by the filter?</param>
+        public SerializedTypeFilterAttribute(Type baseType, bool hideAbstractTypes)
         {
             BaseType = baseType;
+            HideAbstractTypes = hideAbstractTypes;
         }
     }
 
@@ -42,6 +49,7 @@ namespace Unity.Tutorials.Core.Editor
         public SerializedTypeGuiViewFilterAttribute()
         {
             BaseType = GUIViewProxy.GuiViewType;
+            HideAbstractTypes = false;
         }
     }
 }

@@ -3,6 +3,8 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using System.Xml.Linq;
 using System.Text.RegularExpressions;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Unity.Tutorials.Core.Editor
 {
@@ -38,17 +40,76 @@ namespace Unity.Tutorials.Core.Editor
             }
             return previousLongestString;
         }
+
         /// <summary>
-        /// Used to extract the string after the closing tag
-        /// Example: "</a>hello" -> "hello"
+        /// Preprocess rich text - add space around tags.
         /// </summary>
-        /// <param name="tagString"></param>
-        /// <returns>String with the closing tag removed from the beginning. Returns empty if there's no closing tag.</returns>
-        static string GetPostTagString(string tagString)
+        /// <param name="inputText">Text with tags</param>
+        /// <returns>Text with space around tags</returns>
+        static string PreProcessRichText(string inputText)
         {
-            string tagRemoved = Regex.Replace(tagString, "^[^</]+</[^>]+>", "");
-            if (tagRemoved == tagString) tagRemoved = "";
-            return tagRemoved;
+            string processed = inputText;
+            processed = processed.Replace("<b>", " <b>");
+            processed = processed.Replace("<i>", " <i>");
+            processed = processed.Replace("<a ", " <a ");
+            processed = processed.Replace("<br", " <br");
+            processed = processed.Replace("<wordwrap>", " <wordwrap>");
+
+            processed = processed.Replace("</b>", "</b> ");
+            processed = processed.Replace("</i>", "</i> ");
+            processed = processed.Replace("</a>", "</a> ");
+            processed = processed.Replace("</wordwrap>", " </wordwrap> ");
+
+            return processed;
+        }
+
+        /// <summary>
+        /// Helper function to detect if the string contains any characters in
+        /// the Unicode range reserved for Chinese, Japanese and Korean characters.
+        /// </summary>
+        /// <param name="textLine">String to check for CJK letters.</param>
+        /// <returns>True if it contains Chinese, Japanese or Korean characters.</returns>
+        static bool NeedSymbolWrapping(string textLine)
+        {
+            // Unicode range for CJK letters.
+            // Range chosen from StackOverflow: https://stackoverflow.com/a/42411925
+            // Validated from sources:
+            // https://www.unicode.org/faq/han_cjk.html
+            // https://en.wikipedia.org/wiki/CJK_Unified_Ideographs_(Unicode_block)
+            return textLine.Any(c => (uint)c >= 0x4E00 && (uint)c <= 0x2FA1F);
+        }
+
+        /// <summary>
+        /// Adds a new wrapping word Label to the target visualElement. Type can be BoldLabel, ItalicLabel or Label
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="textToAdd">The text inside the word label.</param>
+        /// <param name="elementList">Redundant storage, mostly used for automated testing.</param>
+        /// <param name="addToVisualElement">Parent container for the word Label.</param>
+        static void AddLabel<T>(string textToAdd, List<VisualElement> elementList, VisualElement addToVisualElement)
+            where T : Label
+        {
+            Label wordLabel = null;
+            Type LabelType = typeof(T);
+            if (LabelType == typeof(ItalicLabel))
+            {
+                wordLabel = new ItalicLabel(textToAdd);
+            }
+            else if (LabelType == typeof(BoldLabel))
+            {
+                wordLabel = new BoldLabel(textToAdd);
+            }
+            else if (LabelType == typeof(TextLabel))
+            {
+                wordLabel = new TextLabel(textToAdd);
+            }
+            if (wordLabel == null)
+            {
+                Debug.LogError("Error: Unsupported Label type used. Use TextLabel, BoldLabel or ItalicLabel.");
+                return;
+            }
+            elementList.Add(wordLabel);
+            addToVisualElement.Add(wordLabel);
         }
 
         /// <summary>
@@ -60,10 +121,12 @@ namespace Unity.Tutorials.Core.Editor
         /// flex-direction: row;
         /// flex-wrap: wrap;
         /// </param>
-        public static void RichTextToVisualElements(string htmlText, VisualElement targetContainer)
+        /// <returns>List of VisualElements made from the parsed text.</returns>
+        public static List<VisualElement> RichTextToVisualElements(string htmlText, VisualElement targetContainer)
         {
             bool addError = false;
             string errorText = "";
+            
             try
             {
                 XDocument.Parse("<content>" + htmlText + "</content>");
@@ -75,13 +138,12 @@ namespace Unity.Tutorials.Core.Editor
                 htmlText = ShowContentWithError(htmlText);
                 addError = true;
             }
-
-            // TODO should translation be a responsibility of the caller of this function instead?
-            htmlText = Localization.Tr(htmlText);
+            List<VisualElement> elements = new List<VisualElement>();
 
             targetContainer.Clear();
             bool boldOn = false; // <b> sets this on </b> sets off
             bool italicOn = false; // <i> </i>
+            bool forceWordWrap = false;
             bool linkOn = false;
             string linkURL = "";
             bool firstLine = true;
@@ -90,30 +152,66 @@ namespace Unity.Tutorials.Core.Editor
             string[] lines = htmlText.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
 
             foreach (string line in lines)
-            {
-                string[] words = line.Split(new[] { " " }, StringSplitOptions.None);
-
-                if (!firstLine && !lastLineHadText)
+            {   
+                // Check if the line begins with whitespace and turn that into corresponding Label
+                string initialWhiteSpaces = "";
+                foreach(char singleCharacter in line)
                 {
-                    AddParagraphToElement(targetContainer);
+                    if (singleCharacter == ' ' || singleCharacter == '\t' )
+                    {
+                        initialWhiteSpaces += singleCharacter;
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
+
+                string processedLine = PreProcessRichText(line);
+
+                // Separate the line into words
+                string[] words = processedLine.Split(new[] { " ", "\t" }, StringSplitOptions.RemoveEmptyEntries);
+
+                if (!lastLineHadText)
+                {
+                    if (!firstLine)
+                        elements.Add(AddParagraphToElement(targetContainer));
+
+                    if (initialWhiteSpaces.Length > 0)
+                    {
+                        WhiteSpaceLabel indentationLabel = new WhiteSpaceLabel(initialWhiteSpaces);
+                        targetContainer.Add(indentationLabel);
+                        elements.Add(indentationLabel);
+                    }
+                }
+
                 if (!firstLine && lastLineHadText)
                 {
-                    AddLinebreakToElement(targetContainer);
-                    //AddParagraphToElement(targetContainer);
+                    elements.Add(AddLinebreakToElement(targetContainer));
                     lastLineHadText = false;
+                    if (initialWhiteSpaces.Length > 0)
+                    {
+                        WhiteSpaceLabel indentationLabel = new WhiteSpaceLabel(initialWhiteSpaces);
+                        targetContainer.Add(indentationLabel);
+                        elements.Add(indentationLabel);
+                    }
                 }
 
                 foreach (string word in words)
                 {
+                    // Wrap every character instead of word in case of Chinese and Japanese
+                    // Note: override with <wordwrap>Force word wrapping here</wordwrap>
+
                     if (word == "" || word == " " || word == "   ") continue;
                     lastLineHadText = true;
                     string strippedWord = word;
-                    string textAfterTag = "";
                     bool removeBold = false;
                     bool removeItalic = false;
                     bool addParagraph = false;
                     bool removeLink = false;
+                    bool removeWordWrap = false;
+
+                    strippedWord = strippedWord.Trim();
 
                     if (strippedWord.Contains("<b>"))
                     {
@@ -125,11 +223,17 @@ namespace Unity.Tutorials.Core.Editor
                         strippedWord = strippedWord.Replace("<i>", "");
                         italicOn = true;
                     }
+                    if (strippedWord.Contains("<wordwrap>"))
+                    {
+                        strippedWord = strippedWord.Replace("<wordwrap>", "");
+                        forceWordWrap = true;
+                    }
                     if (strippedWord.Contains("<a"))
                     {
                         strippedWord = strippedWord.Replace("<a", "");
                         linkOn = true;
                     }
+                    bool wrapCharacters = !forceWordWrap && NeedSymbolWrapping(word);
                     if (linkOn && strippedWord.Contains("href="))
                     {
                         strippedWord = strippedWord.Replace("href=", "");
@@ -139,7 +243,6 @@ namespace Unity.Tutorials.Core.Editor
                         strippedWord = strippedWord.Substring(linkTo + 2, (strippedWord.Length - 2) - linkTo);
                         strippedWord.Replace("\">", "");
                     }
-                    textAfterTag = GetPostTagString(strippedWord);
 
                     if (strippedWord.Contains("</a>"))
                     {   
@@ -161,27 +264,42 @@ namespace Unity.Tutorials.Core.Editor
                         strippedWord = strippedWord.Replace("</i>", "");
                         removeItalic = true;
                     }
-
-                    if (textAfterTag != "")
+                    if (strippedWord.Contains("</wordwrap>"))
                     {
-                        strippedWord = strippedWord.Replace(textAfterTag, "");
+                        strippedWord = strippedWord.Replace("</wordwrap>", "");
+                        removeWordWrap = true;
                     }
-
-                    if (boldOn)
+                    if (boldOn && strippedWord != "")
                     {
-                        Label wordLabel = new Label(strippedWord);
-                        wordLabel.style.unityFontStyleAndWeight = new StyleEnum<FontStyle>(FontStyle.Bold);
-                        targetContainer.Add(wordLabel);
+                        if (wrapCharacters)
+                        {
+                            foreach(char character in strippedWord)
+                            {
+                                AddLabel<BoldLabel>(character.ToString(), elements, targetContainer);
+                            }
+                        }
+                        else
+                        {
+                            AddLabel<BoldLabel>(strippedWord, elements, targetContainer);
+                        }
                     }
-                    else if (italicOn)
+                    else if (italicOn && strippedWord != "")
                     {
-                        Label wordLabel = new Label(strippedWord);
-                        wordLabel.style.unityFontStyleAndWeight = new StyleEnum<FontStyle>(FontStyle.Italic);
-                        targetContainer.Add(wordLabel);
+                        if (wrapCharacters)
+                        {
+                            foreach(char character in strippedWord)
+                            {
+                                AddLabel<ItalicLabel>(character.ToString(), elements, targetContainer);
+                            }
+                        }
+                        else
+                        {
+                            AddLabel<ItalicLabel>(strippedWord, elements, targetContainer);
+                        }
                     }
                     else if (addParagraph)
                     {
-                        AddParagraphToElement(targetContainer);
+                        elements.Add(AddParagraphToElement(targetContainer));
                     }
                     else if (linkOn && !string.IsNullOrEmpty(linkURL))
                     {
@@ -199,17 +317,26 @@ namespace Unity.Tutorials.Core.Editor
                         );
 
                         targetContainer.Add(label);
+                        elements.Add(label);
                     }
                     else
                     {
-                        Label newlabel = new Label(strippedWord);
-                        targetContainer.Add(newlabel);
+                        if (strippedWord != "")
+                        {
+                            if (wrapCharacters)
+                            {
+                                foreach (char character in strippedWord)
+                                {
+                                    AddLabel<TextLabel>(character.ToString(), elements, targetContainer);
+                                }
+                            }
+                            else
+                            {
+                                AddLabel<TextLabel>(strippedWord, elements, targetContainer);
+                            }
+                        }
                     }
-                    if (textAfterTag != "")
-                    {
-                        Label afterTagLabel = new Label(textAfterTag);
-                        targetContainer.Add(afterTagLabel);
-                    }
+
                     if (removeBold) boldOn = false;
                     if (removeItalic) italicOn = false;
                     if (removeLink)
@@ -217,6 +344,7 @@ namespace Unity.Tutorials.Core.Editor
                         linkOn = false;
                         linkURL = "";
                     }
+                    if (removeWordWrap) forceWordWrap = false;
                 }
                 firstLine = false;
             }
@@ -230,10 +358,12 @@ namespace Unity.Tutorials.Core.Editor
                 };
                 label.RegisterCallback<MouseUpEvent>((e) => Debug.LogError(errorText));
                 targetContainer.Add(label);
+                elements.Add(label);
             }
+            return elements;
         }
 
-        static void AddLinebreakToElement(VisualElement elementTo)
+        static VisualElement AddLinebreakToElement(VisualElement elementTo)
         {
             Label wordLabel = new Label(" ");
             wordLabel.style.flexDirection = FlexDirection.Row;
@@ -241,19 +371,86 @@ namespace Unity.Tutorials.Core.Editor
             wordLabel.style.width = 3000f;
             wordLabel.style.height = 0f;
             elementTo.Add(wordLabel);
+            return wordLabel;
         }
 
-        static void AddParagraphToElement(VisualElement elementTo)
+        static VisualElement AddParagraphToElement(VisualElement elementTo)
         {
             Label wordLabel = new Label(" ");
             wordLabel.style.flexDirection = FlexDirection.Row;
             wordLabel.style.flexGrow = 1f;
             wordLabel.style.width = 3000f;
             elementTo.Add(wordLabel);
+            return wordLabel;
         }
 
         // Dummy classes so that we can customize the styles from a USS file.
-        class ParseErrorLabel : Label {}
-        class HyperlinkLabel : Label {}
+
+        /// <summary>
+        /// Label for the red parser error displayed where the parsing fails
+        /// </summary>
+        public class ParseErrorLabel : Label {}
+
+        /// <summary>
+        /// Text label for links
+        /// </summary>
+        public class HyperlinkLabel : Label {}
+
+        /// <summary>
+        /// Text label for text that wraps per word
+        /// </summary>
+        public class TextLabel : Label
+        {
+            /// <summary>
+            /// Constructs with text.
+            /// </summary>
+            /// <param name="text"></param>
+            public TextLabel(string text) : base(text)
+            {
+            }
+        }
+
+        /// <summary>
+        /// Text label for white space used to indent lines
+        /// </summary>
+        public class WhiteSpaceLabel : Label
+        {
+            /// <summary>
+            /// Constructs with text.
+            /// </summary>
+            /// <param name="text"></param>
+            public WhiteSpaceLabel(string text) : base(text)
+            {
+            }
+        }
+
+        /// <summary>
+        /// Text label with bold style
+        /// </summary>
+        public class BoldLabel : Label
+        {
+            /// <summary>
+            /// Constructs with text.
+            /// </summary>
+            /// <param name="text"></param>
+            public BoldLabel(string text) : base(text)
+            {
+            }
+        }
+
+        /// <summary>
+        /// Text label with italic style
+        /// </summary>
+        public class ItalicLabel : Label
+        {
+            /// <summary>
+            /// Constructs with text.
+            /// </summary>
+            /// <param name="text"></param>
+            public ItalicLabel(string text) : base(text)
+            {
+            }
+        }
+
     }
 }

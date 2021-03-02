@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -10,6 +10,9 @@ namespace Unity.Tutorials.Core.Editor
     [Serializable]
     public class LocalizableString : ISerializationCallbackReceiver
     {
+        internal const string PropertyPath = "m_Untranslated";
+        internal const string OldPropertyPath = "<Untranslated>k__BackingField";
+
         /// <summary>
         /// Setting Untranslated string overwrites Translated so make sure to translate again.
         /// </summary>
@@ -53,11 +56,6 @@ namespace Unity.Tutorials.Core.Editor
         /// <param name="str"></param>
         /// <returns></returns>
         public static implicit operator string(LocalizableString str) => str.Value;
-
-        /// <summary> TODO 2.0 make internal </summary>
-        public const string PropertyPath = "m_Untranslated";
-        /// <summary> TODO 2.0 make internal </summary>
-        public const string OldPropertyPath = "<Untranslated>k__BackingField";
 
         /// <summary>
         /// UnityEngine.ISerializationCallbackReceiver override, do not call.

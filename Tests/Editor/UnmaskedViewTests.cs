@@ -43,16 +43,16 @@ namespace Unity.Tutorials.Core.Editor.Tests
                 UnmaskedView.CreateInstanceForGUIView<Toolbar>(
                     new[]
                     {
-                        new GUIControlSelector() { SelectorMode = GUIControlSelector.Mode.NamedControl, ControlName = "ToolbarPersistentToolsPan" },
-                        new GUIControlSelector() { SelectorMode = GUIControlSelector.Mode.NamedControl, ControlName = "ToolbarPersistentToolsTranslate" },
-                        new GUIControlSelector() { SelectorMode = GUIControlSelector.Mode.NamedControl, ControlName = "ToolbarPersistentToolsRotate" },
-                        new GUIControlSelector() { SelectorMode = GUIControlSelector.Mode.NamedControl, ControlName = "ToolbarPersistentToolsScale" },
-                        new GUIControlSelector() { SelectorMode = GUIControlSelector.Mode.NamedControl, ControlName = "ToolbarPersistentToolsRect" },
-                        new GUIControlSelector() { SelectorMode = GUIControlSelector.Mode.NamedControl, ControlName = "ToolbarToolPivotPositionButton" },
-                        new GUIControlSelector() { SelectorMode = GUIControlSelector.Mode.NamedControl, ControlName = "ToolbarToolPivotOrientationButton" },
-                        new GUIControlSelector() { SelectorMode = GUIControlSelector.Mode.NamedControl, ControlName = "ToolbarPlayModePlayButton" },
-                        new GUIControlSelector() { SelectorMode = GUIControlSelector.Mode.NamedControl, ControlName = "ToolbarPlayModePauseButton" },
-                        new GUIControlSelector() { SelectorMode = GUIControlSelector.Mode.NamedControl, ControlName = "ToolbarPlayModeStepButton" },
+                        new GuiControlSelector() { SelectorMode = GuiControlSelector.Mode.NamedControl, ControlName = "ToolbarPersistentToolsPan" },
+                        new GuiControlSelector() { SelectorMode = GuiControlSelector.Mode.NamedControl, ControlName = "ToolbarPersistentToolsTranslate" },
+                        new GuiControlSelector() { SelectorMode = GuiControlSelector.Mode.NamedControl, ControlName = "ToolbarPersistentToolsRotate" },
+                        new GuiControlSelector() { SelectorMode = GuiControlSelector.Mode.NamedControl, ControlName = "ToolbarPersistentToolsScale" },
+                        new GuiControlSelector() { SelectorMode = GuiControlSelector.Mode.NamedControl, ControlName = "ToolbarPersistentToolsRect" },
+                        new GuiControlSelector() { SelectorMode = GuiControlSelector.Mode.NamedControl, ControlName = "ToolbarToolPivotPositionButton" },
+                        new GuiControlSelector() { SelectorMode = GuiControlSelector.Mode.NamedControl, ControlName = "ToolbarToolPivotOrientationButton" },
+                        new GuiControlSelector() { SelectorMode = GuiControlSelector.Mode.NamedControl, ControlName = "ToolbarPlayModePlayButton" },
+                        new GuiControlSelector() { SelectorMode = GuiControlSelector.Mode.NamedControl, ControlName = "ToolbarPlayModePauseButton" },
+                        new GuiControlSelector() { SelectorMode = GuiControlSelector.Mode.NamedControl, ControlName = "ToolbarPlayModeStepButton" },
                     }
                 )
             };
@@ -78,7 +78,7 @@ namespace Unity.Tutorials.Core.Editor.Tests
                     UnmaskedView.CreateInstanceForEditorWindow<InspectorWindow>(
                         new[]
                         {
-                            new GUIControlSelector() { SelectorMode = GUIControlSelector.Mode.Property, TargetType = typeof(Transform), PropertyPath = "m_LocalPosition" }
+                            new GuiControlSelector() { SelectorMode = GuiControlSelector.Mode.Property, TargetType = typeof(Transform), PropertyPath = "m_LocalPosition" }
                         }
                     )
                 };
@@ -112,7 +112,7 @@ namespace Unity.Tutorials.Core.Editor.Tests
                     UnmaskedView.CreateInstanceForEditorWindow<InspectorWindow>(
                         new[]
                         {
-                            new GUIControlSelector() { SelectorMode = GUIControlSelector.Mode.Property, TargetType = typeof(SpriteRenderer), PropertyPath = "m_Color" }
+                            new GuiControlSelector() { SelectorMode = GuiControlSelector.Mode.Property, TargetType = typeof(SpriteRenderer), PropertyPath = "m_Color" }
                         }
                     )
                 };
@@ -182,9 +182,9 @@ namespace Unity.Tutorials.Core.Editor.Tests
                     UnmaskedView.CreateInstanceForEditorWindow<InspectorWindow>(
                         new[]
                         {
-                            new GUIControlSelector()
+                            new GuiControlSelector()
                             {
-                                SelectorMode = GUIControlSelector.Mode.Property,
+                                SelectorMode = GuiControlSelector.Mode.Property,
                                 TargetType = typeof(TestComponents.ComponentWithNestedValues),
                                 PropertyPath = "componentWithNestedValuesFieldA.componentWithNestedValuesFieldB"
                             }

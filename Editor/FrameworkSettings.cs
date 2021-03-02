@@ -28,6 +28,7 @@ namespace Unity.Tutorials.Core.Editor
             {
                 "iet",
                 MaskingManager.MaskingEnabled.Name,
+                SerializedTypeDrawer.ShowSimplifiedTypeNames.Name,
             };
             var userSettings = new SettingsProvider("Preferences/" + k_Category, SettingsScope.User, keywords)
             {
@@ -58,6 +59,7 @@ namespace Unity.Tutorials.Core.Editor
             using (new SettingsGUILayout.IndentedGroup())
             {
                 MaskingManager.MaskingEnabled.value = DrawToggle(MaskingManager.MaskingEnabled, searchContext);
+                SerializedTypeDrawer.ShowSimplifiedTypeNames.value = DrawToggle(SerializedTypeDrawer.ShowSimplifiedTypeNames, searchContext);
             }
 
             RestoreOriginalLabelWidth();

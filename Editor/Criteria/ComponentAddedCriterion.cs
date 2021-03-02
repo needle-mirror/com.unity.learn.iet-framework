@@ -183,7 +183,7 @@ namespace Unity.Tutorials.Core.Editor
             /// <summary>
             /// The SerializedType.
             /// </summary>
-            [SerializedTypeFilter(typeof(Component)), FormerlySerializedAs("serializedType")]
+            [SerializedTypeFilter(typeof(Component), false), FormerlySerializedAs("serializedType")]
             public SerializedType SerializedType;
 
             /// <summary>

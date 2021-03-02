@@ -298,7 +298,6 @@ namespace Unity.Tutorials.Core.Editor
             Instance.currentParagraphIndex = -1;
         }
 
-        #region New analytics, using EditorAnalytics instead of UsabilityAnalytics
         /// <summary>
         /// Use for external references/links, documentation, assets, etc.
         /// https://docs.google.com/spreadsheets/d/1vftlkO4yps3qUoPgM2wnbJu4YwRO3fZ4cS7IELk4Gww/edit#gid=1343103808
@@ -468,7 +467,5 @@ namespace Unity.Tutorials.Core.Editor
             }
             return result;
         }
-
-        #endregion
     }
 }

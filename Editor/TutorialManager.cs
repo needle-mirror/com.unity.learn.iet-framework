@@ -65,6 +65,8 @@ namespace Unity.Tutorials.Core.Editor
 
         Tutorial m_Tutorial;
 
+        public bool IsTransitioningBetweenTutorials { get; internal set; }
+
         public static bool IsLoadingLayout { get; private set; }
 
         public static event Action aboutToLoadLayout;
@@ -75,6 +77,7 @@ namespace Unity.Tutorials.Core.Editor
             return Resources.FindObjectsOfTypeAll<TutorialWindow>().FirstOrDefault();
         }
 
+        bool m_SkipSceneSaveDialog;
         public void StartTutorial(Tutorial tutorial)
         {
             if (tutorial == null)
@@ -84,19 +87,12 @@ namespace Unity.Tutorials.Core.Editor
             }
 
             // Early-out if user decides to cancel. Otherwise the user can get reset to the
-            // main tutorial selection screen in cases where the user was about to swtich to
+            // main tutorial selection screen in cases where the user was about to switch to
             // another tutorial while finishing up another (typical use case would be having a
             // "start next tutorial" button at the last page of a tutorial).
-            if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+            m_SkipSceneSaveDialog = true;
+            if (!EditorApplication.isPlaying && !EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
                 return;
-
-            // NOTE maximizeOnPlay=true was causing problems at some point
-            // (tutorial was closed for some reason) but that problem seems to be gone.
-            // Keeping this here in case the problem returns.
-            //GameViewProxy.maximizeOnPlay = false;
-
-            // Prevent Game view flashing briefly when starting tutorial.
-            EditorWindow.GetWindow<SceneView>().Focus();
 
             // Is the previous tutorial finished? Make sure to record the progress.
             // by trying to progress to the next page which will take care of it.
@@ -112,7 +108,7 @@ namespace Unity.Tutorials.Core.Editor
                 EditorApplication.playModeStateChanged += PostponeStartTutorialToEditMode;
             }
             else
-                StartTutorialImmediateEditMode();
+                StartTutorialInEditMode();
         }
 
         void PostponeStartTutorialToEditMode(PlayModeStateChange playModeStateChange)
@@ -120,70 +116,45 @@ namespace Unity.Tutorials.Core.Editor
             if (playModeStateChange == PlayModeStateChange.EnteredEditMode)
             {
                 EditorApplication.playModeStateChanged -= PostponeStartTutorialToEditMode;
-                StartTutorialImmediateEditMode();
+                StartTutorialInEditMode();
             }
         }
 
-        void StartTutorialImmediateEditMode()
+        void StartTutorialInEditMode()
         {
-            if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
-                return;
+            Debug.Assert(!EditorApplication.isPlaying);
+            if (!m_SkipSceneSaveDialog)
+            {
+                if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
+                    return;
+            }
+
+            // NOTE maximizeOnPlay=true was causing problems at some point
+            // (tutorial was closed for some reason) but that problem seems to be gone.
+            // Keeping this here in case the problem returns.
+            //GameViewProxy.maximizeOnPlay = false;
 
             // Prevent Game view flashing briefly when starting tutorial.
             EditorWindow.GetWindow<SceneView>().Focus();
 
-            SaveOriginalScenes();
-            SaveOriginalWindowLayout();
-            SaveSceneViewState();
+            if (!IsTransitioningBetweenTutorials)
+            {
+                SaveOriginalScenes();
+                SaveOriginalWindowLayout();
+                SaveSceneViewState();
+            }
 
+            UserStartupCode.PrepareWindowLayouts();
             m_Tutorial.LoadWindowLayout();
 
             // Ensure TutorialWindow is open and set the current tutorial
             var tutorialWindow = EditorWindow.GetWindow<TutorialWindow>();
-            tutorialWindow.SetTutorial(m_Tutorial, false);
-
-            m_Tutorial.ResetProgress();
+            tutorialWindow.SetTutorial(m_Tutorial, true);
 
             // Do not overwrite workspace in authoring mode, use version control instead.
             if (!ProjectMode.IsAuthoringMode())
                 LoadTutorialDefaultsIntoAssetsFolder();
         }
-
-        // TODO unused code, is this still required for pointers for some refactoring?
-        /*
-        void StartTutorialInEditMode()
-        {
-            // TODO HACK double delay to resolve various issue (e.g. black screen during save modifications dialog
-            // Revisit and fix properly.
-            EditorApplication.delayCall += delegate
-            {
-                EditorApplication.delayCall += delegate
-                {
-                    if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
-                        return;
-
-                    // Prevent Game view flashing briefly when starting tutorial.
-                    EditorWindow.GetWindow<SceneView>().Focus();
-
-                    SaveOriginalScenes();
-                    SaveOriginalWindowLayout();
-                    SaveSceneViewState();
-
-                    m_Tutorial.LoadWindowLayout();
-
-                    // Ensure TutorialWindow is open and set the current tutorial
-                    var tutorialWindow = EditorWindow.GetWindow<TutorialWindow>();
-                    tutorialWindow.SetTutorial(m_Tutorial, false);
-
-                    m_Tutorial.ResetProgress();
-
-                    // Do not overwrite workspace in authoring mode, use version control instead.
-                    if (!ProjectMode.IsAuthoringMode())
-                        LoadTutorialDefaultsIntoAssetsFolder();
-                };
-            };
-        }
-        */
 
         public void RestoreOriginalState()
         {
@@ -207,7 +178,7 @@ namespace Unity.Tutorials.Core.Editor
                 EditorApplication.playModeStateChanged += PostponeResetTutorialToEditMode;
             }
             else
-                StartTutorialImmediateEditMode();
+                ResetTutorialInEditMode(); // TODO This used to be StartTutorialInEditMode() but it did not make sense to me
         }
 
         void PostponeResetTutorialToEditMode(PlayModeStateChange playModeStateChange)
@@ -221,6 +192,7 @@ namespace Unity.Tutorials.Core.Editor
 
         void ResetTutorialInEditMode()
         {
+            Debug.Assert(!EditorApplication.isPlaying);
             if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
                 return;
 
@@ -351,13 +323,26 @@ namespace Unity.Tutorials.Core.Editor
             // Don't restore scene state if we didn't save it in the first place
             if (string.IsNullOrEmpty(m_OriginalActiveSceneAssetPath)) { yield break; }
 
-            // Exit play mode so we can open scenes (without necessarily loading them)
-            EditorApplication.isPlaying = false;
-
-            int currentFrameCount = Time.frameCount;
-            while (currentFrameCount == Time.frameCount)
+            if (EditorApplication.isPlaying)
             {
-                yield return null; //going out of play mode requires a frame
+                // Exit play mode so we can open scenes (without necessarily loading them)
+                EditorApplication.isPlaying = false;
+
+                int currentFrameCount = Time.frameCount;
+                while (currentFrameCount == Time.frameCount)
+                {
+                    yield return null; //going out of play mode requires a frame
+                }
+            }
+            else
+            {
+                yield return null;
+            }
+
+            if (IsTransitioningBetweenTutorials)
+            {
+                IsTransitioningBetweenTutorials = false;
+                yield break;
             }
 
             foreach (var sceneInfo in m_OriginalScenes)

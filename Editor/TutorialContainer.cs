@@ -1,6 +1,7 @@
 using System;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Unity.Tutorials.Core.Editor
 {
@@ -28,23 +29,21 @@ namespace Unity.Tutorials.Core.Editor
         public Texture2D HeaderBackground;
 
         /// <summary>
-        /// Subtitle shown in the header area.
+        /// Title shown in the header area.
         /// </summary>
-        // TODO 2.0 rename to Subtitle.
-        [Tooltip("Subtitle shown in the header area.")]
+        [Tooltip("Title shown in the header area.")]
         public LocalizableString Title;
 
         /// <summary>
-        /// Title shown in the header area.
+        /// Subtitle shown in the header area.
         /// </summary>
-        // TODO 2.0 rename to Title
-        [Tooltip("Title shown in the header area.")]
-        public LocalizableString ProjectName;
+        [Tooltip("Subtitle shown in the header area.")]
+        public LocalizableString Subtitle;
 
         /// <summary>
-        /// TODO 2.0 deprecated currently but might be used when we implement tutorial categories.
+        /// Obsolete currently but might be used when we implement tutorial categories.
         /// </summary>
-        [Obsolete]
+        [Obsolete, Tooltip("Not applicable currently.")]
         public LocalizableString Description;
 
         /// <summary>
@@ -78,7 +77,7 @@ namespace Unity.Tutorials.Core.Editor
             /// <summary>
             /// Order the the view. Use 0, 2, 4, and so on.
             /// </summary>
-            public int OrderInView; // TODO I wonder what's the original purpose of this. Try to get rid of this.
+            public int OrderInView; // used to reorder Sections as it's not currently implement as ReorderableList.
 
             /// <summary>
             /// Title of the card.
@@ -90,12 +89,11 @@ namespace Unity.Tutorials.Core.Editor
             /// </summary>
             public LocalizableString Text;
 
-            // TODO Rename
             /// <summary>
             /// Used as content type metadata for external references/URLs
             /// </summary>
-            [Tooltip("Used as content type metadata for external references/URLs")]
-            public string LinkText;
+            [Tooltip("Used as content type metadata for external references/URLs"), FormerlySerializedAs("LinkText")]
+            public string Metadata;
 
             /// <summary>
             /// The URL of this section.
@@ -103,13 +101,6 @@ namespace Unity.Tutorials.Core.Editor
             /// </summary>
             [Tooltip("Setting the URL will take precedence and make the card act as a link card instead of a tutorial card")]
             public string Url;
-
-            /// <summary>
-            /// Use for Unity Connect auto-login, shortened URLs do not work
-            /// </summary>
-            [Tooltip("Use for Unity Connect auto-login, shortened URLs do not work")]
-            [HideInInspector, System.Obsolete("todo: No longer used, remove in 2.0")]
-            public bool AuthorizedUrl;
 
             /// <summary>
             /// Image for the card.
@@ -136,10 +127,7 @@ namespace Unity.Tutorials.Core.Editor
             /// </summary>
             public string TutorialId => Tutorial?.LessonId.AsEmptyIfNull();
 
-            /// <summary>
-            /// TODO 2.0 make internal.
-            /// </summary>
-            public string SessionStateKey => $"Unity.Tutorials.Core.Editor.lesson{TutorialId}";
+            internal string SessionStateKey => $"Unity.Tutorials.Core.Editor.lesson{TutorialId}";
 
             /// <summary>
             /// Starts the tutorial of the section
@@ -155,7 +143,7 @@ namespace Unity.Tutorials.Core.Editor
             public void OpenUrl()
             {
                 TutorialEditorUtils.OpenUrl(Url);
-                AnalyticsHelper.SendExternalReferenceEvent(Url, Heading.Untranslated, LinkText, Tutorial?.LessonId);
+                AnalyticsHelper.SendExternalReferenceEvent(Url, Heading.Untranslated, Metadata, Tutorial?.LessonId);
             }
 
             /// <summary>

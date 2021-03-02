@@ -1,4 +1,4 @@
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
 
 namespace Unity.Tutorials.Core.Editor
@@ -81,34 +81,10 @@ namespace Unity.Tutorials.Core.Editor
         [Tooltip("If enabled, the original assets of the project are restored when a tutorial starts.")]
         bool m_RestoreDefaultAssetsOnTutorialReload = default;
 
-        // TODO 2.0 remove
-        [SerializeField]
-        [Tooltip("If enabled, disregard startup tutorial and start the first tutorial found in the project.")]
-        bool m_UseLegacyStartupBehavior = default;
-
         /// <summary>
         /// The tutorial to run at startup, from the Welcome page
         /// </summary>
-        public Tutorial StartupTutorial
-        {
-            get
-            {
-                if (m_UseLegacyStartupBehavior)
-                {
-                    var guids = AssetDatabase.FindAssets($"t:{typeof(Tutorial).FullName}");
-                    if (guids.Length > 0)
-                    {
-                        var assetPath = AssetDatabase.GUIDToAssetPath(guids[0]);
-                        return AssetDatabase.LoadAssetAtPath<Tutorial>(assetPath);
-                    }
-
-                    return null;
-                }
-
-                return m_StartupTutorial;
-            }
-            set { m_StartupTutorial = value; }
-        }
+        public Tutorial StartupTutorial { get => m_StartupTutorial; set => m_StartupTutorial = value; }
         [SerializeField]
         [Tooltip("If set, this is the tutorial that can be started from the welcome dialog.")]
         Tutorial m_StartupTutorial = default;

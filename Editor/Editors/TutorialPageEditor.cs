@@ -463,6 +463,7 @@ namespace Unity.Tutorials.Core.Editor
         /// Template file name, must exist in "Packages/com.unity.learn.iet-framework.authoring/.TemplateAssets" folder.
         /// </param>
         /// <param name="targetDir">Use null to open a dialog for choosing the destination.</param>
+        // TODO Need unit tests to ensure that the template assets are compiling OK
         internal static void CreateCallbackHandlerScript(string templateFile, string targetDir = null)
         {
             // TODO preferably these template assets should reside in the authoring package

@@ -7,7 +7,6 @@ namespace Unity.Tutorials.Core.Editor
     /// <summary>
     /// Utility function for creating ScriptableObjects.
     /// </summary>
-    // TODO 2.0: unused, remove?
     public class ScriptableObjectUtils
     {
         /// <summary>
@@ -67,6 +66,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <param name="asset"></param>
         /// <param name="fileName"></param>
         /// <returns>The newly created asset or its existing instance (and its path)</returns>
+        // TODO Unused, remove?
         public static (T, string) GetOrSaveUniqueAsset<T>(T asset, string fileName) where T : ScriptableObject
         {
             string path = AssetDatabase.GetAssetPath(Selection.activeObject);

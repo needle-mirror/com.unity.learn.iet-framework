@@ -107,14 +107,14 @@ namespace Unity.Tutorials.Core.Editor
         {
             foreach (var mask in s_Masks)
             {
-                if (mask != null && UIElementsHelper.GetParent(mask) != null)
-                    UIElementsHelper.Remove(UIElementsHelper.GetParent(mask), mask);
+                if (mask != null && mask.parent != null)
+                    mask.parent.Remove(mask);
             }
             s_Masks.Clear();
             foreach (var highlighter in s_Highlighters)
             {
-                if (highlighter != null && UIElementsHelper.GetParent(highlighter) != null)
-                    UIElementsHelper.Remove(UIElementsHelper.GetParent(highlighter), highlighter);
+                if (highlighter != null && highlighter.parent != null)
+                    highlighter.parent.Remove(highlighter);
             }
             s_Highlighters.Clear();
         }
@@ -156,7 +156,7 @@ namespace Unity.Tutorials.Core.Editor
 
             if (view.IsDockedToEditor())
             {
-                UIElementsHelper.Add(UIElementsHelper.GetVisualTree(view), child);
+                UIElementsHelper.GetVisualTree(view).Add(child);
             }
             else
             {
@@ -172,7 +172,7 @@ namespace Unity.Tutorials.Core.Editor
                 {
                     if (!(visualElement is IMGUIContainer))
                     {
-                        UIElementsHelper.Add(visualElement, child);
+                        visualElement.Add(child);
                         break;
                     }
                 }
@@ -283,7 +283,7 @@ namespace Unity.Tutorials.Core.Editor
                             layout.yMax += highlightThickness;
                         }
                         highlighter.SetLayout(layout);
-                        UIElementsHelper.Add(UIElementsHelper.GetVisualTree(view), highlighter);
+                        UIElementsHelper.GetVisualTree(view).Add(highlighter);
                         s_Highlighters.Add(highlighter);
                     }
                 }

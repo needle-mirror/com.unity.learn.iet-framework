@@ -6,11 +6,7 @@
 
 namespace Unity.Tutorials.Core.Editor
 {
-    /// <summary>
-    /// A helper class for Localization.
-    /// </summary>
-    // TODO 2.0 make private
-    public static class Localization
+    static class Localization
     {
         /// <summary>
         /// Routes the call to the correct, or none, Tr() implementation, depending on the used Unity version.

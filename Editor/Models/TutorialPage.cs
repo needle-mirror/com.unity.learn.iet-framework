@@ -94,13 +94,13 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         [Header("Button Labels")]
         [Tooltip("The text shown on the next button on all pages except the last page.")]
-        public LocalizableString NextButton;
+        public LocalizableString NextButton = "Next";
 
         /// <summary>
         /// The text shown on the next button on the last page.
         /// </summary>
         [Tooltip("The text shown on the Next button on the last page.")]
-        public LocalizableString DoneButton;
+        public LocalizableString DoneButton = "Done";
 
         // Backwards-compatibility for < 1.2
         [SerializeField, HideInInspector]

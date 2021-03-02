@@ -90,6 +90,65 @@ namespace Unity.Tutorials.Core.Editor.Tests
         }
 
         [Test]
+        [TestCase("<b>asdf</b>asdf and some non bold words. <i>These are italic</i>", 1, 3, 6)]
+        [TestCase("<b>bold words</b> and some non bold words. <i>These are italic</i>",2,3,5)]
+        [TestCase("<b>bold words</b>and some non bold words. <i>These are italic</i>", 2, 3, 5)]
+        // [TestCase("<b>bold words</b>and some non bold words.<i>These are italic</i>", 2, 3, 5)] This fails. Todo: split anything from before <i> from the italic tag
+        public void CanRenderRichTextPrecisely(string testRichText, int boldWords, int italicWords, int normalWords)
+        {
+            Reset();
+            var visualElements = RichTextToVisualElements(testRichText,m_Window.rootVisualElement);
+            Assert.AreEqual(visualElements.FindAll(elem => elem is BoldLabel).Count, boldWords);
+            Assert.AreEqual(visualElements.FindAll(elem => elem is ItalicLabel).Count, italicWords);
+            Assert.AreEqual(visualElements.FindAll(elem => !(elem is ItalicLabel) && !(elem is BoldLabel)).Count, normalWords);
+        }
+
+        [Test]
+        [TestCase("<b>asdf</b>asdf", 1, 1, "asdf")]
+        [TestCase("asdf<b>asdf</b>asdf", 1, 2, "asdf")]
+        public void TestForTagParsingError(string testRichText, int boldWords, int normalWords, string wordToLookFor)
+        {
+            Reset();
+            var visualElements = RichTextToVisualElements(testRichText, m_Window.rootVisualElement);
+            foreach (VisualElement elem in visualElements)
+            {
+                Label label = (Label)elem;
+                Assert.AreEqual(wordToLookFor, label.text);
+            }
+            Assert.AreEqual(boldWords + normalWords, visualElements.Count);
+            Assert.AreEqual(boldWords, visualElements.FindAll(elem => elem is BoldLabel).Count);
+            Assert.AreEqual(normalWords, visualElements.FindAll(elem => elem is TextLabel).Count);
+        }
+
+        [Test]
+        [TestCase("      <b>bold words</b>and some non bold words. <i>These are italic</i>", 2, 3, 5, 6)]
+        [TestCase("   Here are five normal words <i>And the next six are italic</i>", 0, 6, 5, 3)]
+        public void LeadingWhiteSpaceIsPreserved(string testRichText, int boldWords, int italicWords, int normalWords, int whiteSpaceAmount)
+        {
+            Reset();
+            var visualElements = RichTextToVisualElements(testRichText, m_Window.rootVisualElement);
+            Assert.AreEqual(boldWords, visualElements.FindAll(elem => elem is BoldLabel).Count );
+            Assert.AreEqual(italicWords, visualElements.FindAll(elem => elem is ItalicLabel).Count);
+            Assert.AreEqual(normalWords, visualElements.FindAll(elem => elem is TextLabel).Count);
+            WhiteSpaceLabel whitespacelabel = (WhiteSpaceLabel)visualElements.Find(elem => elem is WhiteSpaceLabel);
+            Assert.AreEqual(whiteSpaceAmount, whitespacelabel.text.Length );
+        }
+
+        [Test]
+        [TestCase("      <b>bold words</b>and some non bold words.<i>These are italic</i>         \n  a aa<b>a</b>                            ", 3, 3, 7, 6)]
+        [TestCase("      <b>bold words</b>and some non bold words.<i>These are italic</i>         \n  a aa<b>a</b>", 3, 3, 7, 6)]
+        public void TrailingWhiteSpaceIsRemoved(string testRichText, int boldWords, int italicWords, int normalWords, int whiteSpaceAmount)
+        {
+            Reset();
+            var visualElements = RichTextToVisualElements(testRichText, m_Window.rootVisualElement);
+            Assert.AreEqual(boldWords, visualElements.FindAll(elem => elem is BoldLabel).Count);
+            Assert.AreEqual(italicWords, visualElements.FindAll(elem => elem is ItalicLabel).Count);
+            Assert.AreEqual(normalWords, visualElements.FindAll(elem => elem is TextLabel).Count);
+            WhiteSpaceLabel whitespacelabel = (WhiteSpaceLabel)visualElements.Find(elem => elem is WhiteSpaceLabel);
+            Assert.AreEqual(whiteSpaceAmount, whitespacelabel.text.Length);
+        }
+
+        [Test]
         public void CanCreateParagraphsOfRichText()
         {
             Reset();
@@ -104,8 +163,8 @@ namespace Unity.Tutorials.Core.Editor.Tests
 
         bool DoStylesMatch()
         {
-            int boldFound = CountStyles(FontStyle.Bold);
-            int italicFound = CountStyles(FontStyle.Italic);
+            int boldFound = CountStyles(typeof(BoldLabel));
+            int italicFound = CountStyles(typeof(ItalicLabel));
 
             if (boldFound != m_BoldUsed)
             {
@@ -126,13 +185,15 @@ namespace Unity.Tutorials.Core.Editor.Tests
             return m_Window.rootVisualElement.childCount;
         }
 
-        int CountStyles(StyleEnum<FontStyle> style)
+        int CountStyles(System.Type styleType)
         {
             var root = m_Window.rootVisualElement;
             int styledWords = 0;
             for (int i = 0; i < root.childCount; i++)
             {
-                if (root.ElementAt(i).style.unityFontStyleAndWeight == style)
+                VisualElement element = root.ElementAt(i);
+                
+                if (element.GetType() == styleType)
                 {
                     styledWords++;
                 }

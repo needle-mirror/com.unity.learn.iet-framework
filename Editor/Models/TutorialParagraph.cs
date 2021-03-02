@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Video;
@@ -23,22 +23,16 @@ namespace Unity.Tutorials.Core.Editor
         /// A button for switching to another tutorial.
         /// </summary>
         SwitchTutorial,
-        /// <summary>
-        /// TODO 2.0 deprecated, remove.
-        /// </summary>
-        UnorderedList,
-        /// <summary>
-        /// TODO 2.0 deprecated, remove.
-        /// </summary>
-        OrderedList,
-        /// <summary>
-        /// TODO 2.0 deprecated, remove.
-        /// </summary>
-        Icons,
+
+        // NOTE: backwards-compatibility by leaving holes for deprecated values
+        // UnorderedList = 3,
+        // OrderedList = 4,
+        // Icons = 5,
+
         /// <summary>
         /// An image.
         /// </summary>
-        Image,
+        Image = 6,
         /// <summary>
         /// A video clip.
         /// </summary>

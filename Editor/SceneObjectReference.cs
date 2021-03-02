@@ -155,7 +155,7 @@ namespace Unity.Tutorials.Core.Editor
                 return;
             }
 
-            var guidComponent = SceneObjectGUIDManager.Instance.GetComponent(m_GameObjectGuid);
+            var guidComponent = SceneObjectGuidManager.Instance.GetComponent(m_GameObjectGuid);
             if (guidComponent == null)
             {
                 return;
@@ -215,14 +215,14 @@ namespace Unity.Tutorials.Core.Editor
                 return;
             }
 
-            SceneObjectGUIDComponent guidComponent;
+            SceneObjectGuid guidComponent;
 
             GameObject go;
             if (newObject is Component)
             {
                 Component component = newObject as Component;
                 go = component.gameObject;
-                guidComponent = go.GetComponent<SceneObjectGUIDComponent>();
+                guidComponent = go.GetComponent<SceneObjectGuid>();
                 m_SerializedComponentType = new SerializedType(component.GetType());
                 m_ComponentIndex = Array.IndexOf(go.GetComponents(component.GetType()), component);
             }
@@ -235,7 +235,7 @@ namespace Unity.Tutorials.Core.Editor
                     SaveProperties();
                     return;
                 }
-                guidComponent = go.GetComponent<SceneObjectGUIDComponent>();
+                guidComponent = go.GetComponent<SceneObjectGuid>();
             }
             else
             {
@@ -246,7 +246,7 @@ namespace Unity.Tutorials.Core.Editor
 
             if (guidComponent == null)
             {
-                guidComponent = go.AddComponent<SceneObjectGUIDComponent>();
+                guidComponent = go.AddComponent<SceneObjectGuid>();
                 Undo.RegisterCreatedObjectUndo(guidComponent, "Created GUID component");
             }
 
