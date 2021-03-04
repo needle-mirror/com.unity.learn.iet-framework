@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -21,6 +22,7 @@ namespace Unity.InteractiveTutorials
             new Dictionary<String, SerializedObject>();
 
         Rect m_CriterionPropertyRect;
+        bool m_InspectorRedrawn = false;
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
@@ -36,6 +38,7 @@ namespace Unity.InteractiveTutorials
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
+            m_InspectorRedrawn = true;
             EditorGUI.BeginChangeCheck();
             Rect typeFieldPosition = position;
             typeFieldPosition.height = EditorGUIUtility.singleLineHeight;
@@ -121,8 +124,14 @@ namespace Unity.InteractiveTutorials
 
                 AssetDatabase.AddObjectToAsset(criterion, parentProperty.serializedObject.targetObject);
                 string parentAssetPath = AssetDatabase.GetAssetPath(parentProperty.serializedObject.targetObject);
-                AssetDatabase.ImportAsset(parentAssetPath);
 
+                // Work around "NullReferenceException: SerializedObject of SerializedProperty has been Disposed.",
+                // https://fogbugz.unity3d.com/f/cases/1318338/
+#if UNITY_2020_2_6 || UNITY_2020_2_7 || (UNITY_2020_3_OR_NEWER && !UNITY_2021)
+                EditorCoroutines.Editor.EditorCoroutineUtility.StartCoroutineOwnerless(ImportCriterionParentAssetWhenReady(criterionProperty, criterion, parentAssetPath));
+#else
+                AssetDatabase.ImportAsset(parentAssetPath);
+#endif
                 criterionProperty.objectReferenceValue = criterion;
 
                 m_PerPropertyCriterionSerializedObjects.Clear();
@@ -131,6 +140,24 @@ namespace Unity.InteractiveTutorials
             {
                 criterionProperty.objectReferenceValue = null;
             }
+        }
+
+        IEnumerator ImportCriterionParentAssetWhenReady(SerializedProperty criterionProperty, ScriptableObject criterion, string parentAssetPath)
+        {
+            do
+            {
+                yield return null;
+            } while (criterionProperty.objectReferenceValue != criterion);
+
+            //this seems to be necessary in order to prevent errors when multiple criteria are on the same tutorial page
+            m_InspectorRedrawn = false;
+
+            do
+            {
+                yield return null;
+            } while (!m_InspectorRedrawn);
+
+            AssetDatabase.ImportAsset(parentAssetPath);
         }
     }
 }
