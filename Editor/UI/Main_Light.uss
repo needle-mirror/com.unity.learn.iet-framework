@@ -70,7 +70,7 @@
 }
 
 .image--close {
-    background-image: resource('Icons/Close');
+    background-image: url('Images/Icons/Close.png');
     width: 24px;
     height: 24px;
     margin-left: 0px;
@@ -139,6 +139,7 @@
 .image--tutorial-icon {
     height: 64px;
     width: 64px;
+
 }
 
 .icon--tutorial-checkmark {
@@ -147,7 +148,7 @@
     top: 2px;
     right: 2px;
     position: absolute;
-    background-image: resource('Icons/Checkmark')
+    background-image: url('Images/Icons/Checkmark.png');
 }
 
 .card--tutorial-group .image--tutorial-icon {
@@ -298,7 +299,7 @@ WrapCharLabel {
 }
 
 .image--instruction-checkmark {
-    background-image: resource('Icons/Checkmark');
+    background-image: url('Images/Icons/Checkmark.png');
     width: 16px;
     height: 16px;
     position: absolute;

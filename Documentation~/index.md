@@ -1,5 +1,7 @@
 # About Tutorial Framework
 
+![](images/hero.png)
+
 This package is used to display interactive in-Editor tutorials (IET) in tutorial projects and project templates.
 
 ## Package contents
@@ -18,7 +20,7 @@ The following table describes the package folder structure:
 ## Installation
 
 This package is not currently discoverable. To install this package, add the following line to `Packages/manifest.json`:  
-`"com.unity.learn.iet-framework": "2.0.0-pre"`
+`"com.unity.learn.iet-framework": "2.0.0-pre.4"`
 
 ## Requirements
 
@@ -40,5 +42,5 @@ if upgrading a tutorial project from Unity 2019 to Unity 2020. Look for **Editor
 # Using Tutorial Framework
 
 To actually develop any tutorials, the Tutorial Authoring Tools package is needed. Install it by adding the following line to `Packages/manifest.json`:  
-`"com.unity.learn.iet-framework.authoring": "1.0.0-pre"`  
+`"com.unity.learn.iet-framework.authoring": "1.0.0-pre.4"`  
 After the installation, refer to the Tutorial Authoring Tools' documentation for more information.

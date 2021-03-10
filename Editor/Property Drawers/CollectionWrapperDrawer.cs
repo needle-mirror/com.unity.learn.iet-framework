@@ -14,14 +14,12 @@ namespace Unity.Tutorials.Core.Editor
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            var list = GetListWidget(property, label);
-            return list.GetHeight();
+            return GetListWidget(property, label).GetHeight();
         }
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            var list = GetListWidget(property, label);
-            list.DoList(position);
+             GetListWidget(property, label).DoList(position);
         }
 
         protected virtual void OnReorderableListCreated(ReorderableList list)

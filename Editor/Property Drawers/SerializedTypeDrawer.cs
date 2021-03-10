@@ -11,7 +11,7 @@ using static Unity.Tutorials.Core.Editor.Localization;
 namespace Unity.Tutorials.Core.Editor
 {
     [CustomPropertyDrawer(typeof(SerializedType))]
-    class SerializedTypeDrawer : PropertyDrawer
+    class SerializedTypeDrawer : PropertyDrawerExtended<SerializedTypeDrawerData>
     {
         const string k_TypeNamePath = "m_TypeName";
 
@@ -38,14 +38,10 @@ namespace Unity.Tutorials.Core.Editor
         static GUIStyle s_PreDropGlow;
 
 
+        //NOTE: for lists, class fields' data is shared between all instances drawed
+
         Dictionary<string, Options> m_PropertyPathToOptions = new Dictionary<string, Options>();
 
-        /// <summary>
-        /// Cache of the hash to use to resolve the ID for the drawer.
-        /// </summary>
-        int m_IdHash;
-        int m_SelectedIndex;
-        bool m_ValueChanged;
         // Cached value for triggering renegeneration of the Options.
         bool m_ShowSimplifiedNames = ShowSimplifiedTypeNames;
 
@@ -54,16 +50,18 @@ namespace Unity.Tutorials.Core.Editor
             return EditorGUIUtility.singleLineHeight;
         }
 
-        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        public override void OnGUI(SerializedTypeDrawerData data, Rect position, SerializedProperty property, GUIContent label)
         {
+            int idHash = 0;
+
             // By manually creating the control ID, we can keep the ID for the
             // label and button the same. This lets them be selected together
             // with the keyboard in the inspector, much like a normal popup.
-            if (m_IdHash == 0)
+            if (idHash == 0)
             {
-                m_IdHash = "SerializedTypeDrawer".GetHashCode();
+                idHash = "SerializedTypeDrawer".GetHashCode();
             }
-            int id = GUIUtility.GetControlID(m_IdHash, FocusType.Keyboard, position);
+            int id = GUIUtility.GetControlID(idHash, FocusType.Keyboard, position);
 
             if (m_ShowSimplifiedNames != ShowSimplifiedTypeNames)
             {
@@ -81,44 +79,51 @@ namespace Unity.Tutorials.Core.Editor
             }
 
             var typeNameProperty = property.FindPropertyRelative(k_TypeNamePath);
-            m_SelectedIndex = ArrayUtility.IndexOf(options.assemblyQualifiedNames, typeNameProperty.stringValue);
+            int selectedIndex = ArrayUtility.IndexOf(options.assemblyQualifiedNames, typeNameProperty.stringValue);
 
             label = EditorGUI.BeginProperty(position, label, property);
             position = EditorGUI.PrefixLabel(position, id, label);
 
             GUIContent buttonText;
-            if (m_SelectedIndex <= 0 || m_SelectedIndex >= options.assemblyQualifiedNames.Length)
+            if (selectedIndex <= 0 || selectedIndex >= options.assemblyQualifiedNames.Length)
             {
                 buttonText = options.displayedOptions[0]; //"None"
             }
             else
             {
-                buttonText = options.displayedOptions[m_SelectedIndex];
+                buttonText = options.displayedOptions[selectedIndex];
             }
-
 
             if (DropdownButton(id, position, buttonText))
             {
-                Action<int> onItemSelected = i =>
-                {
-                    HandleDraggingToPopup(position, options, ref i, property, typeNameProperty);
-                    m_SelectedIndex = i;
-                    typeNameProperty.stringValue = options.assemblyQualifiedNames[i];
-                    property.serializedObject.ApplyModifiedProperties();
-                    m_ValueChanged = true;
-                };
-
-                m_ValueChanged = false;
-                SearchablePopup.Show(position, options.displayedOptions, m_SelectedIndex, onItemSelected);
+                Action<int> onItemSelected = (i) => OnItemSelected(i, position, options, property, typeNameProperty);
+                SearchablePopup.Show(position, options.displayedOptions, selectedIndex, onItemSelected);
             }
 
-            if (m_ValueChanged)
+            if (data.HasChanged)
             {
-                m_ValueChanged = false;
-                GUI.changed = true; //IMGUI doesn't detect the change frm the popup, so we need to manually trigger it
+                /* HACK: removing those EndChangeCheck() will make ImGUI unable to detect changes in the SerializedTypes 
+                 * edited through the popup. There's probably something internal happening here, as
+                 * in the rest of the code there seems to already be an EndChangeCheck() for each BeginChangeCheck */
+                EditorGUI.EndChangeCheck();
+                EditorGUI.EndChangeCheck();
+
+                data.HasChanged = false;
+                SetDataForProperty(property, data);
+                typeNameProperty.stringValue = options.assemblyQualifiedNames[data.NewTypeIndex];
             }
 
             EditorGUI.EndProperty();
+        }
+
+        void OnItemSelected(int indexInOptions, Rect position, Options options, SerializedProperty property, SerializedProperty typeNameProperty)
+        {
+            HandleDraggingToPopup(position, options, ref indexInOptions, property, typeNameProperty);
+
+            SerializedTypeDrawerData data = GetDataForProperty(property);
+            data.HasChanged = true;
+            data.NewTypeIndex = indexInOptions;
+            SetDataForProperty(property, data);
         }
 
         /// <summary>
@@ -220,6 +225,16 @@ namespace Unity.Tutorials.Core.Editor
                 GUI.Box(dropPosition, "", preDropGlow);
             }
         }
+
+        public override SerializedTypeDrawerData CreatePropertyData(SerializedProperty property)
+        {
+            return new SerializedTypeDrawerData() { HasChanged = false, NewTypeIndex = -1 };
+        }
+
+        public override float GetPropertyHeight(SerializedTypeDrawerData hasChanged, SerializedProperty property, GUIContent label)
+        {
+            return EditorGUIUtility.singleLineHeight;
+        }
     }
 
     class Options
@@ -275,4 +290,61 @@ namespace Unity.Tutorials.Core.Editor
         }
     }
 
+    /// <summary>
+    /// Instance-specific data of elements redered by the drawer
+    /// </summary>
+    struct SerializedTypeDrawerData
+    {
+        public bool HasChanged;
+        public int NewTypeIndex;
+    }
+
+    /// <summary>
+    /// Supports drawing properties for lists.
+    /// </summary>
+    /// <typeparam name="TData"></typeparam>
+    abstract class PropertyDrawerExtended<TData> : PropertyDrawer
+    {
+        Dictionary<string, TData> m_PropertyData = new Dictionary<string, TData>();
+
+        protected TData GetDataForProperty(SerializedProperty property)
+        {
+            var propertyKey = GetPropertyId(property);
+            if (!m_PropertyData.TryGetValue(propertyKey, out var propertyData))
+            {
+                propertyData = CreatePropertyData(property);
+                m_PropertyData.Add(propertyKey, propertyData);
+            }
+            return propertyData;
+        }
+
+        protected void SetDataForProperty(SerializedProperty property, TData data)
+        {
+            var propertyKey = GetPropertyId(property);
+            if (!m_PropertyData.ContainsKey(propertyKey)) { return; }
+            m_PropertyData[propertyKey] = data;
+        }
+
+        static string GetPropertyId(SerializedProperty property)
+        {
+            // We use both the property name and the serialized object hash for the key as its possible the serialized object may have been disposed.
+            return property.serializedObject.GetHashCode() + property.propertyPath;
+        }
+
+        public abstract TData CreatePropertyData(SerializedProperty property);
+        public abstract void OnGUI(TData data, Rect position, SerializedProperty property, GUIContent label);
+        public abstract float GetPropertyHeight(TData data, SerializedProperty property, GUIContent label);
+
+        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        {
+            var data = GetDataForProperty(property);
+            OnGUI(data, position, property, label);
+        }
+
+        public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
+        {
+            var data = GetDataForProperty(property);
+            return GetPropertyHeight(data, property, label);
+        }
+    }
 }

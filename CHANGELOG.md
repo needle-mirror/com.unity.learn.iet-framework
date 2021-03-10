@@ -4,6 +4,14 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0-pre.4] - 2021-03-10
+### Changed
+- Moved UI image files from `Editor/Resources` to `Editor/UI/Images`.
+
+### Fixed
+- Fixed addition of a new tutorial page completion criterion resetting all existing completion criteria on the same page.
+- Documentation: Fixed all installation instructions to use "-pre.X" postfix.
+
 ## [2.0.0-pre.3] - 2021-03-02
 ## Added
 - UI: Added **Show simplified type names** preference which affects the appearance of `SerializedType` fields.
@@ -59,6 +67,10 @@ This preference can be found under **Preferences** > **In-Editor Tutorials**.
 - Breaking change: `Unity.InteractiveTutorials` namespace rename to `Unity.Tutorials.Core(.Editor)`.
 - Breaking change: `Unity.InteractiveTutorials.Core` assembly renamed to to `Unity.Tutorials.Core.Editor`.
 - Breaking change: `Unity.InteractiveTutorials.Core.Scripts` assembly renamed to to `Unity.Tutorials.Core`.
+
+## [1.2.3] - 2021-03-04
+### Fixed
+- Fixed null reference exception on Unity 2020.2.6 and newer (2021 does not have the problem) when editing the **Type** of **Completion Criteria**.
 
 ## [1.2.2] - 2021-01-15
 ### Fixed

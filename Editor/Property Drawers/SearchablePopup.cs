@@ -127,7 +127,7 @@ namespace Unity.Tutorials.Core.Editor
             /// <param name="filter">String to use to filter the list.</param>
             /// <returns>
             /// True if the filter is updated, false if newFilter is the same
-            /// as the current Filter and no update is necessary.
+            /// as the current Filter and no update is necessary. 
             /// </returns>
             public bool UpdateFilter(string filter)
             {
@@ -299,7 +299,6 @@ namespace Unity.Tutorials.Core.Editor
 
         void DrawSelectionArea(Rect scrollRect)
         {
-            EditorGUI.BeginChangeCheck();
             Rect contentRect = new Rect(0, 0,
                 scrollRect.width - GUI.skin.verticalScrollbar.fixedWidth,
                 m_List.Entries.Count * k_RowHeight);

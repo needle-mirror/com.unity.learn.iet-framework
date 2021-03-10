@@ -36,11 +36,18 @@ namespace Unity.Tutorials.Core.Editor
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             m_InspectorRedrawn = true;
-            EditorGUI.BeginChangeCheck();
+
             Rect typeFieldPosition = position;
             typeFieldPosition.height = EditorGUIUtility.singleLineHeight;
+
+            property.serializedObject.Update();
+
+            EditorGUI.BeginChangeCheck();
             EditorGUI.PropertyField(typeFieldPosition, property.FindPropertyRelative(k_TypeField));
-            if (EditorGUI.EndChangeCheck() || GUI.changed)
+
+            property.serializedObject.ApplyModifiedProperties();
+
+            if (EditorGUI.EndChangeCheck())
             {
                 OnCriterionTypeChanged(property);
             }
