@@ -29,12 +29,12 @@ namespace Unity.Tutorials.Core.Editor
 
         void OnUndoRedoPerformed()
         {
-            Target.RaiseModifiedEvent();
+            Target.RaiseModified();
         }
 
         UndoPropertyModification[] OnPostprocessModifications(UndoPropertyModification[] modifications)
         {
-            Target.RaiseModifiedEvent();
+            Target.RaiseModified();
             return modifications;
         }
 

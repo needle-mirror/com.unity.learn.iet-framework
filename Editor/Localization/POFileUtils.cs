@@ -10,7 +10,7 @@ namespace Unity.Tutorials.Core.Editor
     /// <summary>
     /// Good info on PO: http://pology.nedohodnik.net/doc/user/en_US/ch-poformat.html
     /// </summary>
-    public static class POFileUtils
+    internal static class POFileUtils
     {
         /// <summary>
         /// Currently supported languages, in addition to English.
@@ -196,7 +196,7 @@ msgstr """"
                         if (line.StartsWith(ecomment)) entry.ExtractedComments = line.Substring(ecomment.Length).Trim();
                         if (line.StartsWith(tcomment)) entry.TranslatorComments = line.Substring(tcomment.Length).Trim();
 
-                        if (line.IsNullOrWhitespace() && entry.IsValid())
+                        if (line.IsNullOrWhiteSpace() && entry.IsValid())
                         {
                             ret.Add(entry);
                             entry = new POEntry();

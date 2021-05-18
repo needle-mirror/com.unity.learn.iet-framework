@@ -10,7 +10,10 @@ using UnityEngine.SceneManagement;
 
 namespace Unity.Tutorials.Core.Editor
 {
-    class TutorialManager : ScriptableObject
+    /// <summary>
+    /// Manages the startup and transitions of tutorials.
+    /// </summary>
+    public class TutorialManager : ScriptableObject
     {
         [Serializable]
         struct SceneViewState
@@ -29,7 +32,6 @@ namespace Unity.Tutorials.Core.Editor
             public bool WasLoaded;
         }
 
-
         [SerializeField]
         SceneViewState m_OriginalSceneView;
 
@@ -44,8 +46,10 @@ namespace Unity.Tutorials.Core.Editor
         internal static readonly string k_OriginalLayoutPath = $"{k_UserLayoutDirectory}/OriginalLayout.dwlt";
         const string k_DefaultsFolder = "Tutorial Defaults";
 
-        static TutorialManager s_TutorialManager;
-        public static TutorialManager instance
+        /// <summary>
+        /// The singleton instance.
+        /// </summary>
+        public static TutorialManager Instance
         {
             get
             {
@@ -62,22 +66,54 @@ namespace Unity.Tutorials.Core.Editor
                 return s_TutorialManager;
             }
         }
+        static TutorialManager s_TutorialManager;
 
+        /// <summary>
+        /// The currently active tutorial, if any.
+        /// </summary>
+        public Tutorial ActiveTutorial { get => m_Tutorial; }
         Tutorial m_Tutorial;
 
+        /// <summary>
+        /// Are we currently (during this frame) transitioning from one tutorial to another.
+        /// </summary>
+        /// <remarks>
+        /// This transition typically happens when using a Switch Tutorial button on a tutorial page.
+        /// </remarks>
         public bool IsTransitioningBetweenTutorials { get; internal set; }
 
+        /// <summary>
+        /// Are we currently loading a window layout.
+        /// </summary>
+        /// <remarks>
+        /// A window layout load typically happens when the project is started for the first time
+        /// and the project's startup settings specify a window layout for the project, or when entering
+        /// or exiting a tutorial with a window layout specified.
+        /// </remarks>
         public static bool IsLoadingLayout { get; private set; }
 
-        public static event Action aboutToLoadLayout;
-        public static event Action<bool> layoutLoaded; // bool == successful
+        internal static event Action AboutToLoadLayout;
+        internal static event Action<bool> LayoutLoaded; // bool == successful
+
+        bool m_SkipSceneSaveDialog;
 
         internal static TutorialWindow GetTutorialWindow()
         {
-            return Resources.FindObjectsOfTypeAll<TutorialWindow>().FirstOrDefault();
+            return EditorWindowUtils.FindOpenInstance<TutorialWindow>();
         }
 
-        bool m_SkipSceneSaveDialog;
+        /// <summary>
+        /// Starts a tutorial.
+        /// </summary>
+        /// <param name="tutorial">The tutorial to be started.</param>
+        /// <remarks>
+        /// The caller of the funtion is responsible for positioning the TutorialWindow for the tutorials.
+        /// If no TutorialWindow is visible, it is created and shown as a free-floating window.
+        /// If the currently active scene has unsaved changes, the user is asked to save them.
+        /// If we are in Play Mode, it is exited.
+        /// Note that currently there is no explicit way to quit a tutorial. Instead, a tutorial should be quit either
+        /// by user interaction or by closing the TutorialWindow programmatically.
+        /// </remarks>
         public void StartTutorial(Tutorial tutorial)
         {
             if (tutorial == null)
@@ -94,11 +130,15 @@ namespace Unity.Tutorials.Core.Editor
             if (!EditorApplication.isPlaying && !EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
                 return;
 
-            // Is the previous tutorial finished? Make sure to record the progress.
-            // by trying to progress to the next page which will take care of it.
-            if (m_Tutorial && m_Tutorial.Completed)
-                m_Tutorial.TryGoToNextPage();
+            if (m_Tutorial)
+            {
+                // Is the previous tutorial finished? Make sure to record the progress
+                // by trying to progress to the next page which will take care of it.
+                if (m_Tutorial.IsCompleted)
+                    m_Tutorial.TryGoToNextPage(); // TODO this might be unnecessary now, double-check
 
+                m_Tutorial.RaiseQuit();
+            }
             m_Tutorial = tutorial;
 
             // Ensure we are in edit mode
@@ -144,32 +184,36 @@ namespace Unity.Tutorials.Core.Editor
                 SaveSceneViewState();
             }
 
+            // Make sure the active container persist through potential window layout load.
+            var activeContainer = GetTutorialWindow()?.ActiveContainer;
+
             UserStartupCode.PrepareWindowLayouts();
             m_Tutorial.LoadWindowLayout();
 
             // Ensure TutorialWindow is open and set the current tutorial
-            var tutorialWindow = EditorWindow.GetWindow<TutorialWindow>();
-            tutorialWindow.SetTutorial(m_Tutorial, true);
+            var tutorialWindow = TutorialWindow.GetOrCreateWindow();
+            tutorialWindow.ActiveContainer = activeContainer;
+            tutorialWindow.SetTutorial(m_Tutorial);
 
             // Do not overwrite workspace in authoring mode, use version control instead.
             if (!ProjectMode.IsAuthoringMode())
                 LoadTutorialDefaultsIntoAssetsFolder();
         }
 
-        public void RestoreOriginalState()
+        internal void RestoreOriginalState()
         {
             EditorCoroutines.Editor.EditorCoroutineUtility.StartCoroutineOwnerless(RestoreOriginalScenes());
-            RestoreOriginalWindowLayout();
+            // Restore layout only if the tutorial used window layout, meaning, the new auto-docking mechanism was not used.
+            if (m_Tutorial?.WindowLayout)
+                RestoreOriginalWindowLayout();
             RestoreSceneViewState();
         }
 
-        public void ResetTutorial()
+        internal void ResetTutorial()
         {
-            var tutorialWindow = GetTutorialWindow();
-            if (tutorialWindow == null || tutorialWindow.currentTutorial == null)
-                return;
-
-            m_Tutorial = tutorialWindow.currentTutorial;
+            m_Tutorial = GetTutorialWindow()?.currentTutorial;
+            if (m_Tutorial == null)
+                return; // tutorial has been quit
 
             // Ensure we are in edit mode
             if (EditorApplication.isPlaying)
@@ -178,7 +222,7 @@ namespace Unity.Tutorials.Core.Editor
                 EditorApplication.playModeStateChanged += PostponeResetTutorialToEditMode;
             }
             else
-                ResetTutorialInEditMode(); // TODO This used to be StartTutorialInEditMode() but it did not make sense to me
+                ResetTutorialInEditMode();
         }
 
         void PostponeResetTutorialToEditMode(PlayModeStateChange playModeStateChange)
@@ -241,26 +285,26 @@ namespace Unity.Tutorials.Core.Editor
             );
         }
 
-        public static bool LoadWindowLayout(string path)
+        internal static bool LoadWindowLayout(string path)
         {
             IsLoadingLayout = true;
-            aboutToLoadLayout?.Invoke();
+            AboutToLoadLayout?.Invoke();
             bool successful = EditorUtility.LoadWindowLayout(path); // will log an error if fails
-            layoutLoaded?.Invoke(successful);
+            LayoutLoaded?.Invoke(successful);
             IsLoadingLayout = false;
             return successful;
         }
 
-        public static bool LoadWindowLayoutWorkingCopy(string path) =>
+        internal static bool LoadWindowLayoutWorkingCopy(string path) =>
             LoadWindowLayout(GetWorkingCopyWindowLayoutPath(path));
 
-        public static string GetWorkingCopyWindowLayoutPath(string layoutPath) =>
+        internal static string GetWorkingCopyWindowLayoutPath(string layoutPath) =>
             $"{k_UserLayoutDirectory}/{new FileInfo(layoutPath).Name}";
 
         // Makes a copy of the window layout file and replaces LastProjectPaths in the window layout
         // so that pre-saved Project window states work correctly. Also resets TutorialWindow's readme in the layout.
         // Returns path to the new layout file.
-        public static string PrepareWindowLayout(string layoutPath)
+        internal static string PrepareWindowLayout(string layoutPath)
         {
             try
             {

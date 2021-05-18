@@ -54,6 +54,9 @@
 
         <!-- Empty container where tutorial step content and tutorial card list content is populated -->
         <ui:VisualElement name="TutorialEmptyContents" class="container">
+            <ui:VisualElement name="SelectTutorialsContainer" class="container--select-tutorials">
+                <ui:Label text="Select Tutorials:" name="SelectTutorialsLabel" class="label--tutorial-name" />
+            </ui:VisualElement>
             <ui:ScrollView>
                 <ui:VisualElement name="TutorialEmptyCardContainer" class="container--card-list" />
             </ui:ScrollView>

@@ -50,6 +50,64 @@ namespace Unity.Tutorials.Core.Editor
             return EditorGUIUtility.singleLineHeight;
         }
 
+
+#if UNITY_2019
+        /*
+         * This implementation of OnGUI differs from the other one by the fact that this uses Unity's built-in EditorGUI.Popup,
+         * which has limited functionalities but has no serialization issues in 2019. The other version of OnGUI ("modern one") uses a custom, 
+         * searchable Popup with improved UX but OnGUI changes detections problem that only appear in Unity 2019.
+         * 
+         * The reason behind this are that:
+         * 1. SearchablePopup seems to not trigger any EditorGUI.changed event when an option is selected, 
+         * menaning that EditorGUI.EndChangeCheck() will return false, but only in Unity 2019.
+         * The OnItemSeleted callback works like a charm and the property value is correctly edited.
+         * 
+         * 2. The use of DropdownButton() in the modern one seems to not make EditorGUI.EndChangeCheck() work, but only in Unity 2019.
+         * Removing SearchablePopup.Show and changing the call to DropdownButton with GUI.Button(position, buttonText) will 
+         * have the curious effect of criteria changes being ignored once or twice before they are applied. (you'll need to invoke
+         * onItemSelected manually to see this)
+         * 
+         * My assumption is that there's either a bug in 2019.X that has been fixed in 2020.X and prevents these features from working,
+         * or the opposite.
+         */
+        public override void OnGUI(SerializedTypeDrawerData data, Rect position, SerializedProperty property, GUIContent label)
+        {
+            if (m_ShowSimplifiedNames != ShowSimplifiedTypeNames)
+            {
+                m_ShowSimplifiedNames = ShowSimplifiedTypeNames;
+                // NOTE Ideally UserSetting.ValueChanged event would exist and we would react to its changes.
+                m_PropertyPathToOptions.Clear();
+            }
+
+            Options options;
+            if (!m_PropertyPathToOptions.TryGetValue(property.propertyPath, out options))
+            {
+                var filterAttribute = Attribute.GetCustomAttribute(fieldInfo, typeof(SerializedTypeFilterAttributeBase), true) as SerializedTypeFilterAttributeBase;
+                options = new Options(filterAttribute.BaseType, filterAttribute.HideAbstractTypes);
+                m_PropertyPathToOptions[property.propertyPath] = options;
+            }
+
+            var typeNameProperty = property.FindPropertyRelative(k_TypeNamePath);
+            var selectedIndex = ArrayUtility.IndexOf(options.assemblyQualifiedNames, typeNameProperty.stringValue);
+
+            if (selectedIndex == -1 || selectedIndex >= options.assemblyQualifiedNames.Length)
+            {
+                selectedIndex = 0;
+            }
+
+            EditorGUI.BeginProperty(position, label, property);
+
+            EditorGUI.BeginChangeCheck();
+            var newIndex = EditorGUI.Popup(position, label, selectedIndex, options.displayedOptions);
+            HandleDraggingToPopup(position, options, ref newIndex, property, typeNameProperty);
+            if (EditorGUI.EndChangeCheck())
+            {
+                typeNameProperty.stringValue = options.assemblyQualifiedNames[newIndex];
+            }
+
+            EditorGUI.EndProperty();
+        }
+#else
         public override void OnGUI(SerializedTypeDrawerData data, Rect position, SerializedProperty property, GUIContent label)
         {
             int idHash = 0;
@@ -115,6 +173,7 @@ namespace Unity.Tutorials.Core.Editor
 
             EditorGUI.EndProperty();
         }
+#endif
 
         void OnItemSelected(int indexInOptions, Rect position, Options options, SerializedProperty property, SerializedProperty typeNameProperty)
         {

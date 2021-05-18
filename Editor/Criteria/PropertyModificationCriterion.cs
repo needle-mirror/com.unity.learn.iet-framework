@@ -62,7 +62,7 @@ namespace Unity.Tutorials.Core.Editor
         {
             var target = m_Target.SceneObjectReference.ReferencedObject;
             if (m_TargetValueMode == ValueMode.TargetValue)
-                Completed = PropertyFulfillCriterion(target, m_PropertyPath);
+                IsCompleted = PropertyFulfillCriterion(target, m_PropertyPath);
             else
             {
                 var so = new SerializedObject(target);
@@ -103,7 +103,7 @@ namespace Unity.Tutorials.Core.Editor
             var modificationsToTest = GetPropertiesToTest(modifications, targetObject);
             if (modificationsToTest.Any())
             {
-                Completed = modificationsToTest.Any(m => PropertyFulfillCriterion(m.target, m.propertyPath));
+                IsCompleted = modificationsToTest.Any(m => PropertyFulfillCriterion(m.target, m.propertyPath));
             }
 
             return modifications;

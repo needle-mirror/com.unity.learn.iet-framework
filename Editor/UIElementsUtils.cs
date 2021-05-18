@@ -1,41 +1,61 @@
 using System;
+using UnityEditor;
 using UnityEngine.UIElements;
 
 namespace Unity.Tutorials.Core.Editor
 {
-    // TODO Unused, utilise or remove.
+    using UnityObject = UnityEngine.Object;
+
     static class UIElementsUtils
     {
-        public static void SetupButton(string buttonName, Action onClickAction, bool isEnabled, VisualElement parent, string tooltip = "", bool showIfEnabled = true)
+        internal const string k_UIAssetPath = "Packages/com.unity.learn.iet-framework/Editor/UI";
+
+        /// <summary>
+        /// Sets up a button.
+        /// </summary>
+        /// <param name="onClick">The method that will be called when the button is clicked.</param>
+        /// <param name="text">The text for the butto, if any.</param>
+        /// <param name="tooltip">The tooltip for the button, if any.</param>
+        public static void SetupButton(Button button, Action onClick, string text = null, string tooltip = null)
         {
-            Button button = parent.Query<Button>(buttonName);
-            button.SetEnabled(isEnabled);
-            button.clickable = new Clickable(() => onClickAction.Invoke());
-            button.tooltip = string.IsNullOrEmpty(tooltip) ? button.text : tooltip;
-            if (!showIfEnabled || !isEnabled) { return; }
-            Show(button);
+            button.clickable = new Clickable(() => onClick.Invoke());
+            if (text != null)
+                button.text = text;
+            if (tooltip != null)
+                button.tooltip = tooltip;
         }
 
-        public static void SetupLabel(string labelName, string text, VisualElement parent, Manipulator manipulator = null)
-        {
-            Label label = parent.Query<Label>(labelName);
-            label.text = text;
-            if (manipulator == null) { return; }
+        /// <summary>
+        /// Hides a visual element.
+        /// </summary>
+        /// <param name="element">The element to hide</param>
+        public static void Hide(VisualElement element) { SetVisible(element, false); }
 
-            label.AddManipulator(manipulator);
+        /// <summary>
+        /// Shows a visual element.
+        /// </summary>
+        /// <param name="element">The element to show</param>
+        public static void Show(VisualElement element) { SetVisible(element, true); }
+
+        /// <summary>
+        /// Sets visibility of a visual element.
+        /// </summary>
+        /// <param name="element">The element to show</param>
+        /// <param name="visible">the wanted visibility.</param>
+        public static void SetVisible(VisualElement element, bool visible)
+        {
+            if (element == null)
+                return; // TODO hides programming errors silently, preferably remove
+            element.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
-        public static void Hide(string elementName, VisualElement parent) { Hide(parent.Query<VisualElement>(elementName)); }
-        public static void Show(string elementName, VisualElement parent) { Show(parent.Query<VisualElement>(elementName)); }
-        public static void Hide(VisualElement element) { element.style.display = DisplayStyle.None; }
-        public static void Show(VisualElement element) { element.style.display = DisplayStyle.Flex; }
-        public static bool IsVisible(VisualElement element) { return (element == null) ? false : element.style.display != DisplayStyle.None; }
-
-        public static void RemoveStyleSheet(StyleSheet styleSheet, VisualElement target)
-        {
-            if (!styleSheet) { return; }
-            if (!target.styleSheets.Contains(styleSheet)) { return; }
-            target.styleSheets.Remove(styleSheet);
-        }
+        /// <summary>
+        /// Loads an asset from the common UI resource folder.
+        /// </summary>
+        /// <typeparam name="T">type fo the file to load</typeparam>
+        /// <param name="filename">name of the file</param>
+        /// <returns>A reference to the loaded file</returns>
+        internal static T LoadUIAsset<T>(string filename) where T : UnityObject =>
+            AssetDatabase.LoadAssetAtPath<T>($"{k_UIAssetPath}/{filename}");
     }
 }

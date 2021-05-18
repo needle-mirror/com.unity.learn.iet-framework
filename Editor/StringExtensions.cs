@@ -23,20 +23,20 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         /// <param name="self"></param>
         /// <returns></returns>
-        public static bool IsNullOrWhitespace(this string self) => string.IsNullOrWhiteSpace(self);
+        public static bool IsNullOrWhiteSpace(this string self) => string.IsNullOrWhiteSpace(self);
         /// <summary>
         /// Indicates whether this string is not null, empty, or consists only of white-space characters.
         /// </summary>
         /// <param name="self"></param>
         /// <returns></returns>
-        public static bool IsNotNullOrWhitespace(this string self) => !self.IsNullOrWhitespace();
+        public static bool IsNotNullOrWhiteSpace(this string self) => !self.IsNullOrWhiteSpace();
 
         /// <summary>
         /// Returns null if this string is not null, empty, or consists only of white-space characters.
         /// </summary>
         /// <param name="self"></param>
         /// <returns></returns>
-        public static string AsNullIfWhitespace(this string self) => string.IsNullOrWhiteSpace(self) ? null : self;
+        public static string AsNullIfWhiteSpace(this string self) => string.IsNullOrWhiteSpace(self) ? null : self;
         /// <summary>
         /// Returns null if this string is null or an empty string ("").
         /// </summary>
@@ -69,6 +69,6 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         /// <param name="str"></param>
         /// <returns></returns>
-        public static bool IsNotNullOrWhitespace(string str) => !string.IsNullOrWhiteSpace(str);
+        public static bool IsNotNullOrWhiteSpace(string str) => !string.IsNullOrWhiteSpace(str);
     }
 }

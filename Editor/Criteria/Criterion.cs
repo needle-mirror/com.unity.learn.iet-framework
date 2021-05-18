@@ -3,9 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace Unity.Tutorials.Core.Editor
 {
+    /// <summary>
+    /// A generic event for signaling changes in a criterion.
+    /// Parameters: sender.
+    /// </summary>
+    [Serializable]
+    public class CriterionEvent : UnityEvent<Criterion>
+    {
+    }
+
     /// <summary>
     /// Base class for Criterion implementations.
     /// </summary>
@@ -14,31 +24,48 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Raised when any Criterion is completed.
         /// </summary>
-        public static event Action<Criterion> CriterionCompleted;
+        public static CriterionEvent CriterionCompleted = new CriterionEvent();
 
         /// <summary>
         /// Raised when any Criterion is invalidated.
         /// </summary>
-        public static event Action<Criterion> CriterionInvalidated;
+        public static CriterionEvent CriterionInvalidated = new CriterionEvent();
+
+        /// <summary>
+        /// Raised when this criterion is completed.
+        /// </summary>
+        [Header("Events")]
+        public CriterionEvent Completed;
+
+        /// <summary>
+        /// Raised when this criterion is invalidated.
+        /// </summary>
+        public CriterionEvent Invalidated;
 
         bool m_Completed;
 
         /// <summary>
         /// Is the Criterion completed. Setting this raises CriterionCompleted/CriterionInvalidated.
         /// </summary>
-        public bool Completed
+        public bool IsCompleted
         {
             get { return m_Completed; }
-            protected set
+            internal set
             {
                 if (value == m_Completed)
                     return;
 
                 m_Completed = value;
                 if (m_Completed)
+                {
+                    Completed?.Invoke(this);
                     CriterionCompleted?.Invoke(this);
+                }
                 else
+                {
+                    Invalidated?.Invoke(this);
                     CriterionInvalidated?.Invoke(this);
+                }
             }
         }
 
@@ -69,7 +96,7 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         public virtual void UpdateCompletion()
         {
-            Completed = EvaluateCompletion();
+            IsCompleted = EvaluateCompletion();
         }
 
         /// <summary>

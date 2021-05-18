@@ -84,7 +84,7 @@ namespace Unity.Tutorials.Core.Editor
                         return;
                 }
 
-                Completed = true;
+                IsCompleted = true;
             }
         }
 

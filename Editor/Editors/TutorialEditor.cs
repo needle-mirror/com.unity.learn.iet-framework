@@ -17,6 +17,7 @@ namespace Unity.Tutorials.Core.Editor
             public static GUIContent stopAutoCompletion = new GUIContent(Tr("Stop Auto Completion"));
         }
 
+        private readonly string[] k_PropsToIgnore = { "m_Script", "m_LessonId" };
         private const string k_PagesPropertyPath = "m_Pages.m_Items";
 
         private static readonly Regex s_MatchPagesPropertyPath =
@@ -53,8 +54,7 @@ namespace Unity.Tutorials.Core.Editor
         {
             if (tutorial != null)
             {
-                tutorial.RaiseTutorialModifiedEvent();
-                tutorial.RaiseTutorialPagesModified();
+                tutorial.RaiseModified();
             }
         }
 
@@ -63,7 +63,7 @@ namespace Unity.Tutorials.Core.Editor
             if (tutorial == null)
                 return modifications;
 
-            tutorial.RaiseTutorialModifiedEvent();
+            tutorial.RaiseModified();
 
             var pagesChanged = false;
 
@@ -81,7 +81,7 @@ namespace Unity.Tutorials.Core.Editor
             }
 
             if (pagesChanged)
-                tutorial.RaiseTutorialPagesModified();
+                tutorial.RaiseModified();
 
             return modifications;
         }
@@ -91,11 +91,12 @@ namespace Unity.Tutorials.Core.Editor
             if (!string.IsNullOrEmpty(m_WarningMessage))
                 EditorGUILayout.HelpBox(m_WarningMessage, MessageType.Warning);
 
-            base.OnInspectorGUI();
+            DrawPropertiesExcluding(serializedObject, k_PropsToIgnore);
+            serializedObject.ApplyModifiedProperties();
 
             // Auto completion
             GUILayout.Label(Contents.autoCompletion, EditorStyles.boldLabel);
-            using (new EditorGUI.DisabledScope(tutorial.Completed))
+            using (new EditorGUI.DisabledScope(tutorial.IsCompleted))
             {
                 if (GUILayout.Button(tutorial.IsAutoCompleting ? Contents.stopAutoCompletion : Contents.startAutoCompletion))
                 {

@@ -12,9 +12,8 @@ namespace Unity.Tutorials.Core.Editor
     [InitializeOnLoad]
     public static class UserStartupCode
     {
-        internal static void RunStartupCode()
+        internal static void RunStartupCode(TutorialProjectSettings projectSettings)
         {
-            var projectSettings = TutorialProjectSettings.Instance;
             if (projectSettings.InitialScene != null)
                 EditorSceneManager.OpenScene(AssetDatabase.GetAssetPath(projectSettings.InitialScene));
 
@@ -24,9 +23,11 @@ namespace Unity.Tutorials.Core.Editor
             EditorPrefs.SetString("ComponentSearchString", string.Empty);
             Tools.current = Tool.Move;
 
-            var readme = TutorialWindow.FindReadme();
-            if (readme != null)
+            if (TutorialEditorUtils.FindAssets<TutorialContainer>().Any())
             {
+                var existingWindow = EditorWindowUtils.FindOpenInstance<TutorialWindow>();
+                if (existingWindow)
+                    existingWindow.Close();
                 ShowTutorialWindow();
             }
 
@@ -39,21 +40,48 @@ namespace Unity.Tutorials.Core.Editor
         }
 
         /// <summary>
-        /// Shows Tutorials window using the currently specified behaviour:
-        /// 1. if TutorialContainer exists and TutorialContainer.ProjectLayout is specified,
-        ///    the window is loaded and shown using the specified project window layout (old behaviour), or
-        /// 2. the window is shown by anchoring and docking next to the Inspector (new behaviour), or
-        /// 3. if the Inspector is not available or the project layout does not contain Tutorials window,
-        ///    the window is shown an as free-floating window.
-        /// If Tutorials window is already created, it is simply brought to the foreground and focused.
+        /// Shows Tutorials window using the currently specified behaviour.
         /// </summary>
-        public static void ShowTutorialWindow()
+        /// <remarks>
+        /// Different behaviors:
+        /// 1. If a single TutorialContainer asset that has TutorialContainer.ProjectLayout specified exists,
+        ///    the window is loaded and shown using the specified project window layout (old behaviour).
+        ///    If the project layout does not contain Tutorials window, the window is shown an as free-floating window.
+        /// 2. If no TutorialContainer assets exist, or TutorialContainer.ProjectLayout is not specified, the window is shown
+        ///     by anchoring and docking it next to the Inspector (new behaviour). If the Inspector is not available,
+        ///     the window is shown an as free-floating window.
+        /// 3. If there is more than one TutorialContainer asset with different Project Layout setting in the project,
+        ///    one asset is chosen randomly to specify the behavior.
+        /// 4. If Tutorials window is already created, it is simply brought to the foreground and focused.
+        /// </remarks>
+        /// <returns>The the created, or aleady existing, window instance.</returns>
+        public static TutorialWindow ShowTutorialWindow()
         {
-            var readme = TutorialWindow.FindReadme();
-            if (readme == null || readme.ProjectLayout == null)
-                TutorialWindow.CreateNextToInspector();
-            else if (readme.ProjectLayout != null)
-                TutorialWindow.CreateWindowAndLoadLayout();
+            var containers = TutorialEditorUtils.FindAssets<TutorialContainer>();
+            var defaultContainer = containers.FirstOrDefault();
+            var projectLayout = defaultContainer?.ProjectLayout;
+            if (containers.Any(container => container.ProjectLayout != projectLayout))
+            {
+                Debug.LogWarningFormat(
+                    "There is more than one TutorialContainers asset with different Project Layout setting in the project. " +
+                    "Using asset at path {0} for the window behavior settings.",
+                    AssetDatabase.GetAssetPath(defaultContainer)
+                );
+            }
+
+            TutorialWindow window = null;
+            if (!containers.Any() || defaultContainer.ProjectLayout == null)
+                window = TutorialWindow.CreateNextToInspector();
+            else if (defaultContainer.ProjectLayout != null)
+                window = TutorialWindow.CreateWindowAndLoadLayout(defaultContainer);
+
+            window.SetContainers(containers);
+
+            // If we have only one tutorial container, we set it active immediately
+            if (containers.Count() == 1)
+                window.ActiveContainer = defaultContainer;
+
+            return window;
         }
 
         internal static readonly string initFileMarkerPath = "InitCodeMarker";
@@ -106,23 +134,21 @@ namespace Unity.Tutorials.Core.Editor
                 return;
 
             SetInitialized();
-            RunStartupCode();
+            RunStartupCode(TutorialProjectSettings.Instance);
         }
 
         /// <summary>
         /// Has the IET project initialization been performed?
-        /// TODO 2.0 make private
         /// </summary>
         /// <returns></returns>
-        public static bool IsInitialized() => File.Exists(initFileMarkerPath);
+        static bool IsInitialized() => File.Exists(initFileMarkerPath);
 
         static bool IsDontRunInitCodeMarkerSet() => Directory.Exists(dontRunInitCodeMarker);
 
         /// <summary>
         /// Marks the IET project initialization to be done.
-        /// TODO 2.0 Make internal/private
         /// </summary>
-        public static void SetInitialized() => File.CreateText(initFileMarkerPath).Close();
+        static void SetInitialized() => File.CreateText(initFileMarkerPath).Close();
 
         static bool IsLanguageInitialized() => SessionState.GetBool("EditorLanguageInitialized", false);
 
@@ -157,8 +183,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Restart the Editor.
         /// </summary>
-        // TODO Make internal?
-        public static void RestartEditor()
+        internal static void RestartEditor()
         {
             // In older versions, calling EditorApplication.OpenProject() while having unsaved modifications
             // can cause us to get stuck in a dialog loop. This seems to be fixed in 2020.1 (and newer?).

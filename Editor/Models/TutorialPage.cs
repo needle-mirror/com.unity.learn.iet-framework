@@ -8,6 +8,15 @@ using UnityEngine.Events;
 namespace Unity.Tutorials.Core.Editor
 {
     /// <summary>
+    /// A generic event for signaling changes in a tutorial page.
+    /// Parameters: sender.
+    /// </summary>
+    [Serializable]
+    public class TutorialPageEvent : UnityEvent<TutorialPage>
+    {
+    }
+
+    /// <summary>
     /// A TutorialPage consists of TutorialParagraphs which define the content of the page.
     /// </summary>
     public class TutorialPage : ScriptableObject, ISerializationCallbackReceiver
@@ -15,19 +24,17 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Raised when any page's criteria are tested for completion.
         /// </summary>
-        public static event Action<TutorialPage> CriteriaCompletionStateTested;
-
-        // TODO 2.0 merge these two events and provide event data which tells which type of change we had?
+        public static TutorialPageEvent CriteriaCompletionStateTested = new TutorialPageEvent();
 
         /// <summary>
         /// Raised when any page's masking settings are changed.
         /// </summary>
-        public static event Action<TutorialPage> TutorialPageMaskingSettingsChanged;
+        public static TutorialPageEvent TutorialPageMaskingSettingsChanged = new TutorialPageEvent();
 
         /// <summary>
         /// Raised when any page's non-masking settings are changed.
         /// </summary>
-        public static event Action<TutorialPage> TutorialPageNonMaskingSettingsChanged;
+        public static TutorialPageEvent TutorialPageNonMaskingSettingsChanged = new TutorialPageEvent();
 
         internal event Action<TutorialPage> m_PlayedCompletionSound;
 
@@ -125,35 +132,60 @@ namespace Unity.Tutorials.Core.Editor
         [SerializeField]
         bool m_autoAdvance;
 
-        // TODO 2.0 check the naming of these events
+        // TODO 2.0 check the naming of these 4 events
+        // TODO Use TutorialPageEvent for all of these so that we can pass the sender as parameter.
         [Header("Callbacks")]
         [SerializeField]
-        [Tooltip("These methods will be called right before the page is displayed (even when going back)")]
+        [Tooltip("Raised before this page is displayed (even when going back).")]
         internal UnityEvent m_OnBeforePageShown = default;
 
-        [Tooltip("These methods will be called right after the page is displayed (even when going back)")]
+        [Tooltip("Raised after this page is displayed (even when going back).")]
         [SerializeField]
         internal UnityEvent m_OnAfterPageShown = default;
 
-        [Tooltip("These methods will be called when the user force-quits the tutorial from this tutorial page, before quitting the tutorial")]
+        [Tooltip("Raised when the user quits the current tutorial from this tutorial page while not having completed the tutorial.")]
         [SerializeField]
         internal UnityEvent m_OnBeforeTutorialQuit = default;
 
-        [Tooltip("These methods will be called while the user is reading this tutorial page, every editor frame")]
+        [Tooltip("Raised while the user is staying on this tutorial page, every editor frame.")]
         [SerializeField]
         internal UnityEvent m_OnTutorialPageStay = default;
 
+        /// <summary>
+        /// Raised when this page's criteria are tested for completion.
+        /// </summary>
+        [Tooltip("Raised when this page's criteria are tested for completion.")]
+        public TutorialPageEvent CriteriaValidated;
+
+        /// <summary>
+        /// Raised when this page's masking settings are changed.
+        /// </summary>
+        [Tooltip("Raised when this page's masking settings are changed.")]
+        public TutorialPageEvent MaskingSettingsChanged;
+
+        /// <summary>
+        /// Raised when this page's non-masking settings are changed.
+        /// </summary>
+        [Tooltip("Raised when this page's non-masking settings are changed.")]
+        public TutorialPageEvent NonMaskingSettingsChanged;
+
         static Queue<WeakReference<TutorialPage>> s_DeferedValidationQueue = new Queue<WeakReference<TutorialPage>>();
 
-        /// <summary> TODO 2.0 Make internal. </summary>
-        public void RaiseTutorialPageMaskingSettingsChangedEvent()
+        /// <summary>
+        /// Raises TutorialPageMaskingSettingsChanged event.
+        /// </summary>
+        public void RaiseMaskingSettingsChanged()
         {
+            MaskingSettingsChanged?.Invoke(this);
             TutorialPageMaskingSettingsChanged?.Invoke(this);
         }
 
-        /// <summary> TODO 2.0 Make internal. </summary>
-        public void RaiseTutorialPageNonMaskingSettingsChangedEvent()
+        /// <summary>
+        /// Raises TutorialPageNonMaskingSettingsChanged event.
+        /// </summary>
+        public void RaiseNonMaskingSettingsChanged()
         {
+            NonMaskingSettingsChanged?.Invoke(this);
             TutorialPageNonMaskingSettingsChanged?.Invoke(this);
         }
 
@@ -227,15 +259,9 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
-        /// <summary>
-        /// TODO 2.0 Make internal.
-        /// </summary>
-        /// <param name="futureReference"></param>
-        public void UpdateFutureObjectReferenceName(FutureObjectReference futureReference)
+        internal void UpdateFutureObjectReferenceName(FutureObjectReference futureReference)
         {
-            int paragraphIndex;
-            int criterionIndex;
-            if (GetIndicesForCriterion(futureReference.Criterion, out paragraphIndex, out criterionIndex))
+            if (GetIndicesForCriterion(futureReference.Criterion, out int paragraphIndex, out int criterionIndex))
             {
                 futureReference.name = string.Format("Paragraph {0}, Criterion {1}, {2}",
                     paragraphIndex + 1, criterionIndex + 1, futureReference.ReferenceName);
@@ -272,8 +298,7 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
-        /// <summary> TODO 2.0 Make internal. </summary>
-        public void ResetUserProgress()
+        internal void ResetUserProgress()
         {
             RemoveCompletionRequirements();
             foreach (var paragraph in Paragraphs)
@@ -300,8 +325,8 @@ namespace Unity.Tutorials.Core.Editor
             if (HasMovedToNextPage)
                 return;
 
-            Criterion.CriterionCompleted += OnCriterionCompleted;
-            Criterion.CriterionInvalidated += OnCriterionInvalidated;
+            Criterion.CriterionCompleted.AddListener(OnCriterionCompleted);
+            Criterion.CriterionInvalidated.AddListener(OnCriterionInvalidated);
 
             foreach (var paragraph in Paragraphs)
             {
@@ -318,8 +343,8 @@ namespace Unity.Tutorials.Core.Editor
 
         internal void RemoveCompletionRequirements()
         {
-            Criterion.CriterionCompleted -= OnCriterionCompleted;
-            Criterion.CriterionInvalidated -= OnCriterionInvalidated;
+            Criterion.CriterionCompleted.RemoveListener(OnCriterionCompleted);
+            Criterion.CriterionInvalidated.RemoveListener(OnCriterionInvalidated);
 
             foreach (var paragraph in Paragraphs)
             {
@@ -341,7 +366,7 @@ namespace Unity.Tutorials.Core.Editor
             if (!m_Paragraphs.Any(p => p.Criteria.Any(c => c.Criterion == sender)))
                 return;
 
-            if (sender.Completed)
+            if (sender.IsCompleted)
             {
                 int paragraphIndex, criterionIndex;
                 if (GetIndicesForCriterion(sender, out paragraphIndex, out criterionIndex))
@@ -350,7 +375,7 @@ namespace Unity.Tutorials.Core.Editor
                     var playSoundEffect = true;
                     for (int i = 0; i < paragraphIndex; ++i)
                     {
-                        if (!m_Paragraphs[i].Criteria.All(c => c.Criterion.Completed))
+                        if (!m_Paragraphs[i].Criteria.All(c => c.Criterion.IsCompleted))
                         {
                             playSoundEffect = false;
                             break;
@@ -393,11 +418,11 @@ namespace Unity.Tutorials.Core.Editor
                     break;
             }
 
+            CriteriaValidated?.Invoke(this);
             CriteriaCompletionStateTested?.Invoke(this);
         }
 
-        /// <summary> TODO 2.0 Make internal. </summary>
-        public void OnPageCompleted()
+        internal void OnPageCompleted()
         {
             RemoveCompletionRequirements();
             HasMovedToNextPage = true;
@@ -405,18 +430,16 @@ namespace Unity.Tutorials.Core.Editor
 
         /// <summary>
         /// Called when the frontend of the page has not been displayed yet to the user
-        /// TODO 2.0 Make internal.
         /// </summary>
-        public void RaiseOnBeforePageShownEvent()
+        internal void RaiseOnBeforePageShown()
         {
             m_OnBeforePageShown?.Invoke();
         }
 
         /// <summary>
         /// Called right after the frontend of the page is displayed to the user
-        /// TODO 2.0 Make internal.
         /// </summary>
-        public void RaiseOnAfterPageShownEvent()
+        internal void RaiseOnAfterPageShown()
         {
             m_OnAfterPageShown?.Invoke();
         }
@@ -424,7 +447,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Called when the user force-quits the tutorial from this tutorial page, before quitting the tutorial
         /// </summary>
-        internal void RaiseOnBeforeQuitTutorialEvent()
+        internal void RaiseOnBeforeQuitTutorial()
         {
             m_OnBeforeTutorialQuit?.Invoke();
         }
@@ -432,7 +455,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Called while the user is reading this tutorial page, every editor frame
         /// </summary>
-        internal void RaiseOnTutorialPageStayEvent()
+        internal void RaiseOnTutorialPageStay()
         {
             m_OnTutorialPageStay?.Invoke();
         }

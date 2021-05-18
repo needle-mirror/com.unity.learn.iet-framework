@@ -1,9 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace Unity.Tutorials.Core.Editor
 {
@@ -13,12 +16,27 @@ namespace Unity.Tutorials.Core.Editor
     class TutorialPageEditor : UnityEditor.Editor
     {
         static readonly bool k_IsAuthoringMode = ProjectMode.IsAuthoringMode();
-        const string k_OnBeforeShownEventPropertyPath = "m_OnBeforePageShown";
-        const string k_OnAfterShownEventPropertyPath = "m_OnAfterPageShown";
-        const string k_OnBeforeTutorialQuitEventPropertyPath = "m_OnBeforeTutorialQuit";
-        const string k_OnTutorialPageStayEventPropertyPath = "m_OnTutorialPageStay";
+        static readonly string[] k_EventPropertyPaths = 
+        {
+            nameof(TutorialPage.m_OnBeforePageShown),
+            nameof(TutorialPage.m_OnAfterPageShown),
+            nameof(TutorialPage.m_OnBeforeTutorialQuit),
+            nameof(TutorialPage.m_OnTutorialPageStay),
+            nameof(TutorialPage.CriteriaValidated),
+            // MaskingSettingsChanged & NonMaskingSettingsChanged exist but are hidden in the simplified view
+        };
 
-        const string k_ParagraphPropertyPath = "m_Paragraphs.m_Items";
+        static readonly string[] k_PropertiesToHide = new[]
+            {
+                "m_Script",
+                nameof(TutorialPage.m_Paragraphs),
+                nameof(TutorialPage.MaskingSettingsChanged),
+                nameof(TutorialPage.NonMaskingSettingsChanged),
+            }
+            .Concat(k_EventPropertyPaths)
+            .ToArray();
+
+        const string k_ParagraphPropertyPath = nameof(TutorialPage.m_Paragraphs) + ".m_Items";
         const string k_ParagraphMaskingSettingsRelativeProperty = "m_MaskingSettings";
         const string k_ParagraphVideoRelativeProperty = "m_Video";
         const string k_ParagraphImageRelativeProperty = "m_Image";
@@ -46,18 +64,18 @@ namespace Unity.Tutorials.Core.Editor
             );
 
         static GUIContent s_EventsSectionTitle;
-        static GUIContent s_OnBeforeEventsTitle;
-        static GUIContent s_OnAfterEventsTitle;
-        static GUIContent s_OnBeforeTutorialQuitEventsTitle;
-        static GUIContent s_OnTutorialPageStayEventsTitle;
         // Enable to display the old, not simplified, inspector
         static bool s_ForceOldInspector;
-        static bool s_ShowEvents;
-        // True if we have created a callback script and waiting for a scriptable object instance to be created for it.
-        static bool IsCreatingScriptableObject
+        static bool ShowEvents
         {
-            get { return SessionState.GetBool("iet_creating_SO", false); }
-            set { SessionState.SetBool("iet_creating_SO", value); }
+            get => SessionState.GetBool("TutorialPageEditor.ShowEvents", false);
+            set => SessionState.SetBool("TutorialPageEditor.ShowEvents", value);
+        }
+        // Non-null/empty if we have created a callback script and waiting for a scriptable object instance to be created for it.
+        static string CallbackAssetPath
+        {
+            get { return SessionState.GetString("iet_creating_SO", string.Empty); }
+            set { SessionState.SetString("iet_creating_SO", value); }
         }
 
         TutorialPage tutorialPage { get { return (TutorialPage)target; } }
@@ -65,16 +83,13 @@ namespace Unity.Tutorials.Core.Editor
         [NonSerialized]
         string m_WarningMessage;
 
-        readonly string[] k_PropertiesToHide =
+        class EventPropertyData
         {
-            "m_SectionTitle", "m_Paragraphs", "m_Script",
-            k_OnBeforeShownEventPropertyPath, k_OnAfterShownEventPropertyPath, k_OnBeforeTutorialQuitEventPropertyPath,
-            k_OnTutorialPageStayEventPropertyPath
-        };
-        SerializedProperty m_OnBeforePageShown;
-        SerializedProperty m_OnAfterPageShown;
-        SerializedProperty m_OnBeforeTutorialQuit;
-        SerializedProperty m_OnTutorialPageStay;
+            public SerializedProperty Property;
+            public GUIContent Content;
+        }
+
+        List<EventPropertyData> m_Events = new List<EventPropertyData>();
 
         SerializedProperty m_MaskingSettings;
         SerializedProperty m_Type;
@@ -100,36 +115,15 @@ namespace Unity.Tutorials.Core.Editor
             Video = ParagraphType.Video
         }
 
+        Texture s_HelpIcon;
+
         protected virtual void OnEnable()
         {
-            InitializeTooltips();
+            s_HelpIcon = EditorGUIUtility.IconContent("console.infoicon.sml").image;
             InitializeSerializedProperties();
 
             Undo.postprocessModifications += OnPostprocessModifications;
             Undo.undoRedoPerformed += OnUndoRedoPerformed;
-        }
-
-        void InitializeTooltips()
-        {
-            //todo: what if the anguage changes? Are those localized again? Delete thsi comment if so
-            Texture helpIcon = EditorGUIUtility.IconContent("console.infoicon.sml").image;
-            string tooltip = Tr(
-                "You can only assign public, non-static methods here. It is recommended that you define a ScriptableObject class " +
-                "that exposes all the methods you'd like to call, create an instance of that and assign it to these events in order to access the callbacks."
-            );
-            s_EventsSectionTitle = new GUIContent(Tr("Custom Callbacks"), helpIcon, tooltip);
-
-            tooltip = Tr("These methods will be called right before the page is displayed (even when going back)");
-            s_OnBeforeEventsTitle = new GUIContent(Tr("OnBeforePageShown"), helpIcon, tooltip);
-
-            tooltip = Tr("These methods will be called right after the page is displayed (even when going back)");
-            s_OnAfterEventsTitle = new GUIContent(Tr("OnAfterPageShown"), helpIcon, tooltip);
-
-            tooltip = Tr("These methods will be called when the user force-quits the tutorial from this tutorial page, before quitting the tutorial");
-            s_OnBeforeTutorialQuitEventsTitle = new GUIContent(Tr("OnBeforeTutorialQuit"), helpIcon, tooltip);
-
-            tooltip = Tr("These methods will be called while the user is reading this tutorial page, every editor frame");
-            s_OnTutorialPageStayEventsTitle = new GUIContent(Tr("OnTutorialPageStay"), helpIcon, tooltip);
         }
 
         protected virtual void OnDisable()
@@ -141,7 +135,7 @@ namespace Unity.Tutorials.Core.Editor
         void OnUndoRedoPerformed()
         {
             if (tutorialPage == null) { return; }
-            tutorialPage.RaiseTutorialPageMaskingSettingsChangedEvent();
+            tutorialPage.RaiseMaskingSettingsChanged();
         }
 
         UndoPropertyModification[] OnPostprocessModifications(UndoPropertyModification[] modifications)
@@ -166,26 +160,25 @@ namespace Unity.Tutorials.Core.Editor
 
             if (maskingChanged)
             {
-                tutorialPage.RaiseTutorialPageMaskingSettingsChangedEvent();
+                tutorialPage.RaiseMaskingSettingsChanged();
             }
             else if (targetModified)
             {
-                tutorialPage.RaiseTutorialPageNonMaskingSettingsChangedEvent();
+                tutorialPage.RaiseNonMaskingSettingsChanged();
             }
             return modifications;
         }
 
         void InitializeSerializedProperties()
         {
-            m_OnBeforePageShown = serializedObject.FindProperty(k_OnBeforeShownEventPropertyPath);
-            /* [NOTE] this would force the callbacks to be "editor + runtime" every time the tutorial page is selected
-             * (but not when the callback is added for the first time),
-             * but this might go against the will of the user */
-            //ForceCallbacksListenerState(m_OnBeforePageShown, UnityEngine.Events.UnityEventCallState.EditorAndRuntime);
+            // TODO: confirm that localization works for these
+            string tooltip = Tr(
+                "You can only assign public, non-static methods here. It is recommended that you define a ScriptableObject class " +
+                "that exposes all the methods you'd like to call, create an instance of that and assign it to these events in order to access the callbacks."
+            );
+            s_EventsSectionTitle = new GUIContent(Tr("Custom Callbacks"), s_HelpIcon, tooltip);
 
-            m_OnAfterPageShown = serializedObject.FindProperty(k_OnAfterShownEventPropertyPath);
-            m_OnBeforeTutorialQuit = serializedObject.FindProperty(k_OnBeforeTutorialQuitEventPropertyPath);
-            m_OnTutorialPageStay = serializedObject.FindProperty(k_OnTutorialPageStayEventPropertyPath);
+            k_EventPropertyPaths.ToList().ForEach(prop => CreateEventProperty(prop));
 
             SerializedProperty paragraphs = serializedObject.FindProperty(k_ParagraphPropertyPath);
             if (paragraphs == null)
@@ -228,6 +221,31 @@ namespace Unity.Tutorials.Core.Editor
                         SetupNarrativeAndInstructivePage(paragraphs); break;
                 }
             }
+        }
+
+        void CreateEventProperty(string propertyPath)
+        {
+            // TODO: confirm that localization works for these
+            var property = serializedObject.FindProperty(propertyPath);
+            Debug.Assert(property != null, $"Property path {propertyPath} not valid.");
+            if (property == null)
+                return;
+
+            string tooltip = GetSerializedPropertyTooltip<TutorialPage>(property);
+            var eventData = new EventPropertyData
+            {
+                Property = property,
+                Content = new GUIContent(Tr(property.displayName), Tr(tooltip))
+            };
+            m_Events.Add(eventData);
+        }
+
+        static string GetSerializedPropertyTooltip<Type>(SerializedProperty serializedProperty)
+        {
+            const BindingFlags bindedTypes = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+            var field = typeof(Type).GetField(serializedProperty.name, bindedTypes);
+            var attributes = field.GetCustomAttributes(typeof(TooltipAttribute), inherit: true) as TooltipAttribute[];
+            return attributes.Length > 0 ? attributes[0].tooltip : string.Empty;
         }
 
         void SetupNarrativeParagraph(SerializedProperty paragraphs)
@@ -353,29 +371,30 @@ namespace Unity.Tutorials.Core.Editor
 
             EditorStyles.label.wordWrap = true;
 
-            //DrawLabelWithImage(Localization.Tr("Custom Callbacks");
+            EditorGUILayout.Space(10);
+
             EditorGUILayout.BeginHorizontal();
 
-            s_ShowEvents = EditorGUILayout.Foldout(s_ShowEvents, s_EventsSectionTitle);
+            ShowEvents = EditorGUILayout.Foldout(ShowEvents, s_EventsSectionTitle);
             if (k_IsAuthoringMode && GUILayout.Button(Tr("Create Callback Handler")))
             {
                 CreateCallbackHandlerScript("TutorialCallbacks.cs");
-                InitializeEventWithDefaultData(m_OnBeforePageShown);
-                InitializeEventWithDefaultData(m_OnAfterPageShown);
-                InitializeEventWithDefaultData(m_OnBeforeTutorialQuit);
-                InitializeEventWithDefaultData(m_OnTutorialPageStay);
+                m_Events.ForEach(data => InitializeEventWithDefaultData(data.Property));
                 GUIUtility.ExitGUI();
             }
             EditorGUILayout.EndHorizontal();
 
-
             EditorGUILayout.Space(10);
-            if (s_ShowEvents)
+
+            if (ShowEvents)
             {
-                RenderEventProperty(s_OnBeforeEventsTitle, m_OnBeforePageShown, 5);
-                RenderEventProperty(s_OnAfterEventsTitle, m_OnAfterPageShown, 5);
-                RenderEventProperty(s_OnTutorialPageStayEventsTitle, m_OnTutorialPageStay, 5);
-                RenderEventProperty(s_OnBeforeTutorialQuitEventsTitle, m_OnBeforeTutorialQuit, 10);
+                if (m_Events.Any(e => TutorialEditorUtils.EventIsNotInState(e.Property, UnityEventCallState.EditorAndRuntime)))
+                {
+                    TutorialEditorUtils.RenderEventStateWarning();
+                }
+
+                // TODO unwanted "Callbacks" header is shown here
+                m_Events.ForEach(data => RenderEventProperty(data.Content, data.Property));
             }
 
             RenderProperty(Tr("Enable Masking"), m_MaskingSettings);
@@ -405,22 +424,11 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Renders an event property in the inspector
         /// </summary>
-        /// <param name="nameAndTooltip"></param>
+        /// <param name="headerContent">Content shown in the header area.</param>
         /// <param name="property">The property to render</param>
-        /// <param name="spaceAfterProperty">The amount of EditorGUILayout Space to render after the property field</param>
-        static void RenderEventProperty(GUIContent nameAndTooltip, SerializedProperty property, float spaceAfterProperty)
+        static void RenderEventProperty(GUIContent headerContent, SerializedProperty property)
         {
-            if (property == null) { return; }
-            if (TutorialEditorUtils.EventIsNotInState(property, UnityEngine.Events.UnityEventCallState.EditorAndRuntime))
-            {
-                TutorialEditorUtils.RenderEventStateWarning();
-                EditorGUILayout.Space(8);
-            }
-
-            EditorGUILayout.LabelField(nameAndTooltip);
-            EditorGUILayout.Space(5);
-            EditorGUILayout.PropertyField(property);
-            EditorGUILayout.Space(spaceAfterProperty);
+            EditorGUILayout.PropertyField(property, headerContent);
         }
 
         void InitializeEventWithDefaultData(SerializedProperty eventProperty)
@@ -428,7 +436,7 @@ namespace Unity.Tutorials.Core.Editor
             var so = AssetDatabase.LoadAssetAtPath<ScriptableObject>("Assets/IET/TutorialCallbacks.asset"); // TODO check this
             //[TODO] Add listeners here if they are empty (?)
             ForceCallbacksListenerTarget(eventProperty, so);
-            ForceCallbacksListenerState(eventProperty, UnityEngine.Events.UnityEventCallState.EditorAndRuntime);
+            ForceCallbacksListenerState(eventProperty, UnityEventCallState.EditorAndRuntime);
         }
 
         /// <summary>
@@ -436,7 +444,7 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         /// <param name="eventProperty">A UnityEvent (or derived class) property</param>
         /// <param name="state"></param>
-        void ForceCallbacksListenerState(SerializedProperty eventProperty, UnityEngine.Events.UnityEventCallState state)
+        void ForceCallbacksListenerState(SerializedProperty eventProperty, UnityEventCallState state)
         {
             SerializedProperty persistentCalls = eventProperty.FindPropertyRelative("m_PersistentCalls.m_Calls");
             for (int i = 0; i < persistentCalls.arraySize; i++)
@@ -463,7 +471,6 @@ namespace Unity.Tutorials.Core.Editor
         /// Template file name, must exist in "Packages/com.unity.learn.iet-framework.authoring/.TemplateAssets" folder.
         /// </param>
         /// <param name="targetDir">Use null to open a dialog for choosing the destination.</param>
-        // TODO Need unit tests to ensure that the template assets are compiling OK
         internal static void CreateCallbackHandlerScript(string templateFile, string targetDir = null)
         {
             // TODO preferably these template assets should reside in the authoring package
@@ -474,56 +481,70 @@ namespace Unity.Tutorials.Core.Editor
                 return;
             }
 
-            targetDir = targetDir ??
-                EditorUtility.OpenFolderPanel(
-                Tr("Choose Folder for the Callback Handler Files"),
-                Application.dataPath,
-                string.Empty
+            if (targetDir == null)
+            {
+                targetDir =  EditorUtility.OpenFolderPanel(
+                    Tr("Choose Folder for the Callback Handler Files"),
+                    Application.dataPath,
+                    string.Empty
                 );
+                if (targetDir.IsNullOrEmpty())
+                    return; // user cancelled
+            }
 
             try
             {
                 if (!Directory.Exists(targetDir))
                     Directory.CreateDirectory(targetDir);
 
-                IsCreatingScriptableObject = true;
+                var destFileName = Path.Combine(targetDir, templateFile);
+                CallbackAssetPath = Path.ChangeExtension(destFileName, ".asset")
+                    .Replace(@"\", "/")
+                    .Replace(Application.dataPath, "Assets");
 
                 // TODO preferably use the following which would allow renaming the file immediately to user's liking
                 // and utilising template script features.
                 //ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, templateFile);
-                File.Copy(templatePath, Path.Combine(targetDir, templateFile));
+                File.Copy(templatePath, destFileName);
                 AssetDatabase.Refresh();
             }
             catch (Exception e)
             {
                 Debug.LogException(e);
-                IsCreatingScriptableObject = false;
+                CallbackAssetPath = string.Empty;
             }
         }
 
         [UnityEditor.Callbacks.DidReloadScripts]
         static void OnScriptsReloaded()
         {
-            if (!IsCreatingScriptableObject)
+            if (CallbackAssetPath.IsNullOrEmpty())
                 return;
 
-            IsCreatingScriptableObject = false;
+            var destFileName = CallbackAssetPath;
+            CallbackAssetPath = string.Empty;
+
+            const string errorMsg1 = "Could not create TutorialCallbacks instance automatically";
+            const string errorMsg2 = "Create the instance using Assets > Create > Tutorials > TutorialCallbacks Instance";
+
+            // TODO If the user creates the asset/script to a folder with asmdef this doesn't work.
             const string className = "TutorialCallbacks";
-            const string methodName = "CreateInstance";
             var type = Assembly.Load("Assembly-CSharp").GetType(className);
             if (type == null)
             {
-                Debug.LogError($"{className} not found from Assembly-CSharp.");
-                return;
-            }
-            var method = type.GetMethod("CreateInstance");
-            if (method == null)
-            {
-                Debug.LogError($"{methodName} not found from {className}.");
+                Debug.LogError($"{errorMsg1}: {className} class not found from Assembly-CSharp. {errorMsg2}.");
                 return;
             }
 
-            method.Invoke(null, null);
+            const string methodName = "CreateAndShowAsset";
+            var method = type.GetMethod(methodName);
+            if (method == null)
+            {
+                Debug.LogError($"{errorMsg1}: {methodName} not found from {className} class. {errorMsg2}.");
+                return;
+            }
+
+            method.Invoke(null, new [] { destFileName });
         }
     }
 }

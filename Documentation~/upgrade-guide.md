@@ -5,6 +5,7 @@ To upgrade to Tutorial Framework package version 2.0.0 from earlier versions, yo
 - [Check your use of renamed namespaces](#check-your-use-of-renamed-namespaces)
 - [Check your use of renamed assemblies](#check-your-use-of-renamed-assemblies)
 - [Make sure your API calls are converted from camelCase to PascalCase](#make-sure-your-api-calls-are-converted-from-camelcase-to-pascalcase)
+- [Use AddListener and RemoveListener functions to subscribe to tutorial assets' events](#use-addlistener-and-removelistener-functions-to-subscribe-to-tutorial-assets-events)
 - Recommended: [upgrade all tutorial assets in the project](#upgrade-all-tutorial-assets-in-the-project)
 
 ## Check your use of renamed namespaces
@@ -17,6 +18,10 @@ Make sure your console shows no errors and if it does, adjust your assembly defi
 
 ## Make sure your API calls are converted from camelCase to PascalCase
 Again, make sure your console shows no errors. If you see camelCase in your code accessing this package, change them to PascalCase and you should see the errors disappear.
+
+## Use AddListener and RemoveListener functions to subscribe to tutorial assets' events
+Tutorial assets' events were changed to use the `UnityEvent` class instead of the standard C# `event` implementation. Again, make sure your console shows no errors.
+If you see code using the `+=` and `-=` operators to subscribe to tutorial assets' events, use `AddListener` and `RemoveListener` functions instead.
 
 ## Upgrade all tutorial assets in the project
 It's recommended to to reserialize and save all of your tutorial assets. To do this, select all of your tutorial assets, right-click and select **Set Dirty**.

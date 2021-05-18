@@ -67,7 +67,7 @@ namespace Unity.Tutorials.Core.Editor
 
         void Initialize()
         {
-            var windowAsset = TutorialWindow.LoadUIAsset<VisualTreeAsset>("WelcomeDialog.uxml");
+            var windowAsset = UIElementsUtils.LoadUIAsset<VisualTreeAsset>("WelcomeDialog.uxml");
             var mainContainer = windowAsset.CloneTree().Q("MainContainer");
 
             // TODO OnGuiToolbar is functional, uncomment if/when we reintroduce masking for welcome dialog.
@@ -133,6 +133,7 @@ namespace Unity.Tutorials.Core.Editor
                 .ForEach(button => buttonContainer.Add(button));
         }
 
+        // NOTE if re-enabling this, check that the style is consistent with TutorialWindow's toolbar.
         void OnGuiToolbar()
         {
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar, GUILayout.ExpandWidth(true));
@@ -142,7 +143,7 @@ namespace Unity.Tutorials.Core.Editor
             EditorGUI.BeginChangeCheck();
             MaskingEnabled = GUILayout.Toggle(
                 MaskingEnabled, "Masking", EditorStyles.toolbarButton,
-                GUILayout.MaxWidth(TutorialWindow.s_AuthoringModeToolbarButtonWidth)
+                GUILayout.MaxWidth(115)
             );
             if (EditorGUI.EndChangeCheck())
             {

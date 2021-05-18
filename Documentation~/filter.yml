@@ -1,0 +1,7 @@
+apiRules:
+  - exclude:
+      uidRegex: SerializableCallback
+      type: Namespace
+  - exclude:
+      uidRegex: Tests$
+      type: Namespace

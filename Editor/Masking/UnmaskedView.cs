@@ -503,24 +503,27 @@ namespace Unity.Tutorials.Core.Editor
 
         protected UnmaskedView() {}
 
-        internal static UnmaskedView CreateInstanceForGUIView<T>(IList<GuiControlSelector> unmaskedControls = null)
+        internal static UnmaskedView CreateInstanceForGUIView(Type type, IList<GuiControlSelector> unmaskedControls = null)
         {
-            if (!GUIViewProxy.IsAssignableFrom(typeof(T)))
+            if (!GUIViewProxy.IsAssignableFrom(type))
                 throw new InvalidOperationException("Type must be assignable to GUIView");
 
             UnmaskedView result = new UnmaskedView();
             result.m_SelectorType = SelectorType.GUIView;
-            result.m_ViewType.Type = typeof(T);
+            result.m_ViewType.Type = type;
             if (unmaskedControls != null)
                 result.m_UnmaskedControls.AddRange(unmaskedControls);
             return result;
         }
 
-        public static UnmaskedView CreateInstanceForEditorWindow<T>(IList<GuiControlSelector> unmaskedControls = null) where T : EditorWindow
+        public static UnmaskedView CreateInstanceForEditorWindow(Type type, IList<GuiControlSelector> unmaskedControls = null)
         {
+            if (!typeof(EditorWindow).IsAssignableFrom(type))
+                throw new InvalidOperationException("Type must be assignable to EditorWindow");
+
             UnmaskedView result = new UnmaskedView();
             result.m_SelectorType = SelectorType.EditorWindow;
-            result.m_EditorWindowType.Type = typeof(T);
+            result.m_EditorWindowType.Type = type;
             if (unmaskedControls != null)
                 result.m_UnmaskedControls.AddRange(unmaskedControls);
             return result;

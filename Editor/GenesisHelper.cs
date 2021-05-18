@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using UnityEditor;
 using UnityEngine;
@@ -37,6 +38,11 @@ namespace Unity.Tutorials.Core.Editor
                 }
             }
             return false;
+        }
+
+        static string GetVersion()
+        {
+            return UnityEditor.PackageManager.PackageInfo.FindForAssembly(Assembly.GetExecutingAssembly()).version;
         }
 
         static GenesisHelper()
@@ -170,6 +176,7 @@ namespace Unity.Tutorials.Core.Editor
             req.uploadHandler = new UploadHandlerRaw(data);
 
             req.SetRequestHeader("Content-Type", "application/json");
+            req.SetRequestHeader("X-IET-Version", GetVersion());
             req.SetRequestHeader("Authorization", "Bearer " + UnityConnectProxy.GetAccessToken());
 
             SendWebRequest(req, r =>
@@ -211,6 +218,7 @@ namespace Unity.Tutorials.Core.Editor
 
             var req = UnityWebRequest.Post(address, new WWWForm());
             req.SetRequestHeader("Content-Type", "application/json");
+            req.SetRequestHeader("X-IET-Version", GetVersion());
             req.SetRequestHeader("Authorization", "Bearer " + UnityConnectProxy.GetAccessToken());
             req.method = "GET";
             return req;

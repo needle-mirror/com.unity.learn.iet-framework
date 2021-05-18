@@ -59,30 +59,15 @@ namespace Unity.Tutorials.Core.Editor
 
         StyleSheet m_LastCommonStyleSheet;
 
-        #region TODO Will be deprecated and deleted
         /// <summary>
         /// The default style sheet file used when the Personal Editor Theme is chosen. Deprecated.
         /// </summary>
-        public static readonly string DefaultLightStyleFile = $"{TutorialWindow.k_UIAssetPath}/Main_Light.uss";
+        public static readonly string DefaultLightStyleFile = $"{UIElementsUtils.k_UIAssetPath}/Main_Light.uss";
 
         /// <summary>
         /// The default style sheet file used when the Professional Editor Theme is chosen. Deprecated.
         /// </summary>
-        public static readonly string DefaultDarkStyleFile = $"{TutorialWindow.k_UIAssetPath}/Main_Dark.uss";
-
-        /// <summary>
-        /// Deprecated.
-        /// </summary>
-        public string OrderedListDelimiter => m_OrderedListDelimiter;
-        [SerializeField, HideInInspector]
-        string m_OrderedListDelimiter = ".";
-        /// <summary>
-        /// Deprecated.
-        /// </summary>
-        public string UnorderedListBullet => m_UnorderedListBullet;
-        [SerializeField, HideInInspector]
-        string m_UnorderedListBullet = "\u2022";
-        #endregion
+        public static readonly string DefaultDarkStyleFile = $"{UIElementsUtils.k_UIAssetPath}/Main_Dark.uss";
 
         void OnEnable()
         {
@@ -132,7 +117,7 @@ namespace Unity.Tutorials.Core.Editor
             if (!m_LastCommonStyleSheet)
             {
                 string theme = EditorGUIUtility.isProSkin ? "_Dark" : "_Light";
-                m_LastCommonStyleSheet = TutorialWindow.LoadUIAsset<StyleSheet>(string.Format("Main{0}.uss", theme));
+                m_LastCommonStyleSheet = UIElementsUtils.LoadUIAsset<StyleSheet>(string.Format("Main{0}.uss", theme));
                 if (!m_LastCommonStyleSheet)
                 {
                     Debug.LogErrorFormat("Default Stylesheet for theme {0} is null", theme);

@@ -198,14 +198,14 @@ namespace Unity.Tutorials.Core.Editor
             {
                 PageShown(Instance.lastPage, Instance.lastPageIndex + 1);  // "Show" a dummy page to get the last page to report
             }
-
-            SendTutorialEvent
-            (
-                Instance.currentTutorial.name, Instance.currentTutorial.Version, conclusion,
-                Instance.currentTutorial.LessonId, Instance.currentTutorialStartTime,
-                DateTime.UtcNow - Instance.currentTutorialStartTime, false
-            );
-
+            if (Instance.currentTutorial.ProgressTrackingEnabled)
+            {
+                SendTutorialEvent(
+                    Instance.currentTutorial.name, Instance.currentTutorial.Version, conclusion,
+                    Instance.currentTutorial.LessonId, Instance.currentTutorialStartTime,
+                    DateTime.UtcNow - Instance.currentTutorialStartTime, false
+                );
+            }
             DebugLog("Tutorial Ended");
             Instance.currentTutorial = null;
         }

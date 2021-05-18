@@ -84,7 +84,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Raises the Modified events for this asset.
         /// </summary>
-        public void RaiseModifiedEvent()
+        public void RaiseModified()
         {
             TutorialWelcomePageModified?.Invoke(this);
             Modified?.Invoke();
@@ -103,7 +103,7 @@ namespace Unity.Tutorials.Core.Editor
             return data;
         }
 
-        // Providing functionality for three default behaviours of the welcome dialog.
+        // Providing functionality for some default behaviours of the welcome dialog.
 
         /// <summary>
         /// Closes the an open instance of TutorialModalWindow.
@@ -121,16 +121,6 @@ namespace Unity.Tutorials.Core.Editor
         public void ExitEditor()
         {
             EditorApplication.Exit(0);
-        }
-
-        /// <summary>
-        /// Starts the tutorial specified as the start-up tutorial for the project.
-        /// </summary>
-        public void StartTutorial()
-        {
-            var projectSettings = TutorialProjectSettings.Instance;
-            if (projectSettings.StartupTutorial)
-                TutorialManager.instance.StartTutorial(projectSettings.StartupTutorial);
         }
     }
 }

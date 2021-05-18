@@ -139,8 +139,7 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         /// <param name="view"></param>
         /// <param name="child"></param>
-        // TODO 2.0 used only internally, make private/internal?
-        public static void AddMaskToView(GUIViewProxy view, VisualElement child)
+        static void AddMaskToView(GUIViewProxy view, VisualElement child)
         {
             // Since 2019.3(?), we must suppress input to the elements behind masks.
             // TODO Doesn't suppress everything, e.g. tooltips are shown still.

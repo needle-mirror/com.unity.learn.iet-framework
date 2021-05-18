@@ -7,6 +7,11 @@ namespace Unity.Tutorials.Core.Editor
     class TutorialContainerEditor : UnityEditor.Editor
     {
         static readonly bool k_IsAuthoringMode = ProjectMode.IsAuthoringMode();
+        readonly string[] k_PropertiesToHide =
+        {
+            "m_Script",
+             nameof(TutorialContainer.Modified) // this is not not something tutorial authors should subscribe to typically
+        };
 
         TutorialContainer Target => (TutorialContainer)target;
 
@@ -24,22 +29,33 @@ namespace Unity.Tutorials.Core.Editor
 
         void OnUndoRedoPerformed()
         {
-            Target.RaiseModifiedEvent();
+            Target.RaiseModified();
         }
 
         UndoPropertyModification[] OnPostprocessModifications(UndoPropertyModification[] modifications)
         {
-            Target.RaiseModifiedEvent();
+            Target.RaiseModified();
             return modifications;
         }
 
         public override void OnInspectorGUI()
         {
-            if (GUILayout.Button(TutorialWindowMenuItem.Item))
-                UserStartupCode.ShowTutorialWindow();
+            if (GUILayout.Button(Localization.Tr(MenuItems.ShowTutorials)))
+            {
+                // Make sure we will display 'this' container in the window.
+                var window = Target.ProjectLayout != null
+                    ? TutorialWindow.CreateWindowAndLoadLayout(Target)
+                    : TutorialWindow.CreateNextToInspector();
+
+                window.ActiveContainer = Target;
+            }
 
             if (k_IsAuthoringMode)
-                base.OnInspectorGUI();
+            {
+                EditorGUILayout.Space(10);
+                DrawPropertiesExcluding(serializedObject, k_PropertiesToHide);
+                serializedObject.ApplyModifiedProperties();
+            }
         }
     }
 }

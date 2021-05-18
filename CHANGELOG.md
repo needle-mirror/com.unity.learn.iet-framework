@@ -4,6 +4,59 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0-pre.5] - 2021-05-18
+### Added
+- Added support for multiple `TutorialContainer` assets within a project, allowing multiple set of tutorials ("tutorial projects") for the user to choose from.
+- Checkbox to enable progress tracking in tutorials. Enabling progress tracking generates a GUID for the tutorial's **Lesson Id** automatically.
+- UI: Added **Select Container** button to the authoring toolbar. This button selects the currently effective tutorial container in the project.
+- UI: Added **Tutorials** > **Welcome Dialog** menu item for accessing the possible welcome dialog of the project conveniently at all times.
+- UI: Added custom editor views for `TutorialProjectSettings` and `TutorialStyles` assets.
+- `Tutorial`: Added `Quit` event.
+- `Criterion`: Added `Completed` and `Invalidated` events.
+- `TutorialPage`: Added `CriteriaValidated`, `MaskingSettingsChanged`, and `NonMaskingSettingsChanged` events.
+
+### Changed
+- Tutorial logic: Tutorials are not shown as completed until the criteria of its last page are completed.
+- UI: Tutorial cards do not have completion markers unless progress tracking is enabled.
+- UI: Improved tutorial page's **Custom Callbacks** authoring view by making it more compact.
+- UI: Cleaned up and restructured the **Tutorials** menu, authoring-related items can be now found under the **Tutorials** > **Authoring** submenu.
+- UI: Changed authoring toolbar's buttons to use icons instead of text labels.
+- Scripting API: Made `TutorialManager` part of the public API of the package.
+- **Breaking change**: Split `UnityEngine.InteractiveTutorialsFramework` assembly into `Unity.InternalAPIEditorBridge.007` and `Unity.InternalAPIEngineBridge.007`.
+Note that these assemblies are only for internal use and they should not be depended on.
+- **Breaking change**: Made `LocalizationDatabaseProxy`, `GUIViewProxy`, and `POFileUtils` classes internal.
+- **Breaking change**: Renamed `Whitespace` to `WhiteSpace` in `StringExtensions` and `StringExt` function names.
+- **Breaking change**: Changed tutorial assets' events to use the `UnityEvent` class instead of the standard C# `event` implementation. 
+- **Breaking change**: Made the following functions internal or private:
+  - `Tutorial`: constructor
+  - `TutorialPage`: `OnPageCompleted`, `RaiseOnBeforePageShownEvent`, `RaiseOnAfterPageShownEvent`, `UpdateFutureObjectReferenceName`, and `ResetUserProgress`
+  - `UserStartupCode`: `IsInitialized` and `SetInitialized`
+- **Breaking change**: Renamed `Tutorial` class's `TutorialInitiated` to `Initiated` (event), `TutorialCompleted` to `Completed` (event), and `Completed` to `IsCompleted` (get-property).
+- **Breaking change**: Renamed `Criterion` class's `Completed` property to `IsCompleted`.
+- **Breaking change**: Renamed the following event-raising functions:
+  - `Tutorial.RaiseTutorialModifiedEvent` to `RaiseTutorialModified`
+  - `TutorialPage.RaiseTutorialPageMaskingSettingsChangedEvent` to `RaiseMaskingSettingsChanged`
+  - `TutorialPage.RaiseTutorialPageNonMaskingSettingsChangedEvent` to `RaiseNonMaskingSettingsChanged`
+  - `TutorialWelcomePage.RaiseModifiedEvent` to `RaiseModified`
+  - `TutorialContainer.RaiseModifiedEvent` to `RaiseModified`
+- **Breaking change**: Renamed `TutorialWindowMenuItem` to `MenuItems`.
+
+### Removed
+- Omitted tests from the package.
+- Documentation: Excluded `*.Tests` and `SerializableCallback` namespaces from the Scripting API documentation.
+- UI: Removed the searchable menu that was added in 2.0.0-pre.3 in Unity 2019, as the menu implementation was causing serialization issues for the tutorial assets.
+- **Breaking change**: Removed `ScriptableObjectUtils` class.
+- **Breaking change**: Removed `Tutorial.TutorialPagesModified` event and `RaiseTutorialPagesModified` function, superseded by the `Modified` event.
+- **Breaking change**: Removed `Tutorial.SkipTutorialBehavior`.
+- **Breaking change**: Removed `TutorialProjectSettings.StartupTutorial`. This functionality can be now implemented by using `TutorialManager.StartTutorial()` if wanted.
+
+### Fixed
+- Authoring: Fixed `TutorialCallbacks.asset` not being guaranteed to be created in the same folder as `TutorialCallbacks.cs` when using the **Create Callback Handler** button.
+- UI: Fixed the **Next** button's state (enabled/disabled) to match the completion criteria of a tutorial page in cases where the criteria are invalidated after the initial completion.
+- UX: Fixed unnecessary window layout restoring when when quitting a tutorial which did not have a window layout set.
+- Fixed "Editing of Tutorial Pages no longer works on pages that have a Criterion" (case [1332176](https://fogbugz.unity3d.com/f/cases/1332176/))
+- Fixed `OnBeforePageShown` and `OnAfterPageShown` events not being raised for the first page of a tutorial when starting the tutorial.
+
 ## [2.0.0-pre.4] - 2021-03-10
 ### Changed
 - Moved UI image files from `Editor/Resources` to `Editor/UI/Images`.
@@ -11,6 +64,7 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fixed addition of a new tutorial page completion criterion resetting all existing completion criteria on the same page.
 - Documentation: Fixed all installation instructions to use "-pre.X" postfix.
+- UI: Fixed unwanted horizontal scroll bar appearing on tutorial pages on Unity 2021 by disabling the horizontal scroll bar altogether.
 
 ## [2.0.0-pre.3] - 2021-03-02
 ## Added
@@ -22,9 +76,9 @@ This preference can be found under **Preferences** > **In-Editor Tutorials**.
 - Documentation: package documentation/manual added.
 
 ### Changed
-- Breaking change: `TutorialContainer`'s `ProjectName` renamed to `Title`, old `Title` renamed to `Subtitle`.
-- Breaking change: `TutorialContainer.Section`'s `AuthorizedUrl` removed, `LinkText` renamed to `Metadata`, `SessionStateKey` made `internal`.
-- Breaking change: Renamed `SceneObjectGUIDComponent` to `SceneObjectGuid` and `SceneObjectGUIDManager` to `SceneObjectGuidManager`.
+- **Breaking change**: `TutorialContainer`'s `ProjectName` renamed to `Title`, old `Title` renamed to `Subtitle`.
+- **Breaking change**: `TutorialContainer.Section`'s `AuthorizedUrl` removed, `LinkText` renamed to `Metadata`, `SessionStateKey` made `internal`.
+- **Breaking change**: Renamed `SceneObjectGUIDComponent` to `SceneObjectGuid` and `SceneObjectGUIDManager` to `SceneObjectGuidManager`.
 - Dependencies: Settings Manager dependency updated to 1.0.3.
 - UX: Show a warning in the Console if the user is not signed in.
 - UX: **Show Tutorials** menu item simply focuses **Tutorials** window in all cases, also when a tutorial is in progress.
@@ -37,10 +91,10 @@ This preference can be found under **Preferences** > **In-Editor Tutorials**.
 - Documentation: updated _Known issues_ section.
 
 ### Removed
-- Breaking change: `TutorialProjectSettings.UseLegacyStartupBehavior` field removed.
-- Breaking change: `ParagraphType` enumeration's `UnorderedList`, `OrderedList`, and `Icons` removed.
-- Breaking change: `Tutorial.ExitBehavior` removed as obsolete.
-- Breaking change: Removed `TriggerTaskCriterion`, `*CollisionBroadcaster*`, `IPlayerAvatar`, and `SelectionRoot` classes.
+- **Breaking change**: `TutorialProjectSettings.UseLegacyStartupBehavior` field removed.
+- **Breaking change**: `ParagraphType` enumeration's `UnorderedList`, `OrderedList`, and `Icons` removed.
+- **Breaking change**: `Tutorial.ExitBehavior` removed as obsolete.
+- **Breaking change**: Removed `TriggerTaskCriterion`, `*CollisionBroadcaster*`, `IPlayerAvatar`, and `SelectionRoot` classes.
 - Dependencies: Removed Physics and Physics2D dependencies from the package.
 
 ### Fixed
@@ -62,11 +116,11 @@ This preference can be found under **Preferences** > **In-Editor Tutorials**.
 - Documentation: All public APIs documented.
 
 ### Changed
-- Breaking change: all public APIs reviewed; many APIs made internal and some new public APIs added.
-- Breaking change: all public APIs are now PascalCase instead a mix of camelCase and PascalCase.
-- Breaking change: `Unity.InteractiveTutorials` namespace rename to `Unity.Tutorials.Core(.Editor)`.
-- Breaking change: `Unity.InteractiveTutorials.Core` assembly renamed to to `Unity.Tutorials.Core.Editor`.
-- Breaking change: `Unity.InteractiveTutorials.Core.Scripts` assembly renamed to to `Unity.Tutorials.Core`.
+- **Breaking change**: all public APIs reviewed; many APIs made internal and some new public APIs added.
+- **Breaking change**: all public APIs are now PascalCase instead a mix of camelCase and PascalCase.
+- **Breaking change**: `Unity.InteractiveTutorials` namespace rename to `Unity.Tutorials.Core(.Editor)`.
+- **Breaking change**: `Unity.InteractiveTutorials.Core` assembly renamed to to `Unity.Tutorials.Core.Editor`.
+- **Breaking change**: `Unity.InteractiveTutorials.Core.Scripts` assembly renamed to to `Unity.Tutorials.Core`.
 
 ## [1.2.3] - 2021-03-04
 ### Fixed

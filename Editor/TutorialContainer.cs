@@ -2,9 +2,19 @@ using System;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Serialization;
+using UnityEngine.Events;
 
 namespace Unity.Tutorials.Core.Editor
 {
+    /// <summary>
+    /// A generic event for signaling changes in a tutorial container.
+    /// Parameters: sender.
+    /// </summary>
+    [Serializable]
+    public class TutorialContainerEvent : UnityEvent<TutorialContainer>
+    {
+    }
+
     /// <summary>
     /// An index for the tutorials in the project.
     /// </summary>
@@ -16,40 +26,41 @@ namespace Unity.Tutorials.Core.Editor
         /// <remarks>
         /// Raised before Modified event.
         /// </remarks>
-        public static event Action<TutorialContainer> TutorialContainerModified;  // TODO 2.0 merge the two Modified events?
+        public static TutorialContainerEvent TutorialContainerModified = new TutorialContainerEvent();
 
         /// <summary>
         /// Raised when any field of this container is modified.
         /// </summary>
-        public event Action Modified;
+        public TutorialContainerEvent Modified;
 
         /// <summary>
         /// Background texture for the header area that is used to display Title and Subtitle.
         /// </summary>
-        public Texture2D HeaderBackground;
+        [FormerlySerializedAs("HeaderBackground")]
+        public Texture2D BackgroundImage;
 
         /// <summary>
-        /// Title shown in the header area.
+        /// Title shown in the container card and header area.
         /// </summary>
-        [Tooltip("Title shown in the header area.")]
+        [Tooltip("Title shown in the container card and header area.")]
         public LocalizableString Title;
 
         /// <summary>
-        /// Subtitle shown in the header area.
+        /// Subtitle shown in the container card and header area.
         /// </summary>
-        [Tooltip("Subtitle shown in the header area.")]
+        [Tooltip("Subtitle shown in the container card and header area.")]
         public LocalizableString Subtitle;
 
         /// <summary>
-        /// Obsolete currently but might be used when we implement tutorial categories.
+        /// Used as the tooltip for the container card.
         /// </summary>
-        [Obsolete, Tooltip("Not applicable currently.")]
+        [Tooltip("Used as the tooltip for the container card.")]
         public LocalizableString Description;
 
         /// <summary>
-        /// Can be used to override or disable the default layout specified by the Tutorial Framework.
+        /// Can be used to override or disable (the default behavior) the default project layout specified by the Tutorial Framework.
         /// </summary>
-        [Tooltip("Can be used to override or disable the default layout specified by the Tutorial Framework.")]
+        [Tooltip("Can be used to override or disable (the default behavior) the default project layout specified by the Tutorial Framework.")]
         public UnityEngine.Object ProjectLayout;
 
         /// <summary>
@@ -64,7 +75,7 @@ namespace Unity.Tutorials.Core.Editor
         public string ProjectLayoutPath =>
             ProjectLayout != null ? AssetDatabase.GetAssetPath(ProjectLayout) : k_DefaultLayoutPath;
 
-        // The default layout used when a project is started for the first time.
+        // The default layout used when a project is started for the first time, if project layout is used.
         internal static readonly string k_DefaultLayoutPath =
             "Packages/com.unity.learn.iet-framework/Editor/Layouts/DefaultLayout.wlt";
 
@@ -134,7 +145,7 @@ namespace Unity.Tutorials.Core.Editor
             /// </summary>
             public void StartTutorial()
             {
-                TutorialManager.instance.StartTutorial(Tutorial);
+                TutorialManager.Instance.StartTutorial(Tutorial);
             }
 
             /// <summary>
@@ -199,10 +210,10 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Raises the Modified events for this asset.
         /// </summary>
-        public void RaiseModifiedEvent()
+        public void RaiseModified()
         {
             TutorialContainerModified?.Invoke(this);
-            Modified?.Invoke();
+            Modified?.Invoke(this);
         }
     }
 }

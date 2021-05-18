@@ -2,6 +2,7 @@ using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace Unity.Tutorials.Core.Editor
 {
@@ -30,6 +31,16 @@ namespace Unity.Tutorials.Core.Editor
                 .AsNullIfEmpty()
                 ?? "Assets";
         }
+
+        /// <summary>
+        /// Find assets of type T in the project.
+        /// </summary>
+        /// <typeparam name="T">Type of assets to look for.</typeparam>
+        /// <returns>Assets of type T found in the project.</returns>
+        public static IEnumerable<T> FindAssets<T>() where T : UnityEngine.Object =>
+            AssetDatabase.FindAssets($"t:{typeof(T).FullName}")
+                .Select(AssetDatabase.GUIDToAssetPath)
+                .Select(AssetDatabase.LoadAssetAtPath<T>);
 
         /// <summary>
         /// Checks if a UnityEvent property is not in a specific execution state

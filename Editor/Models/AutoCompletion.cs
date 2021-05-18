@@ -26,12 +26,12 @@ namespace Unity.Tutorials.Core.Editor
         {
             if (m_Running)
             {
-                if (m_Tutorial.Completed)
+                if (m_Tutorial.IsCompleted)
                     Stop();
                 else
                 {
                     EditorApplication.update += OnUpdate;
-                    Criterion.CriterionCompleted += OnCriterionCompleted;
+                    Criterion.CriterionCompleted.AddListener(OnCriterionCompleted);
                 }
             }
         }
@@ -41,13 +41,13 @@ namespace Unity.Tutorials.Core.Editor
             if (m_Running)
             {
                 EditorApplication.update -= OnUpdate;
-                Criterion.CriterionCompleted -= OnCriterionCompleted;
+                Criterion.CriterionCompleted.RemoveListener(OnCriterionCompleted);
             }
         }
 
         public void Start()
         {
-            if (m_Running || m_Tutorial.Completed)
+            if (m_Running || m_Tutorial.IsCompleted)
                 return;
 
             m_Running = true;
@@ -55,7 +55,7 @@ namespace Unity.Tutorials.Core.Editor
             m_CompletionDeadline = 0f;
 
             EditorApplication.update += OnUpdate;
-            Criterion.CriterionCompleted += OnCriterionCompleted;
+            Criterion.CriterionCompleted.AddListener(OnCriterionCompleted);
         }
 
         public void Stop()
@@ -66,9 +66,9 @@ namespace Unity.Tutorials.Core.Editor
             m_Running = false;
 
             EditorApplication.update -= OnUpdate;
-            Criterion.CriterionCompleted -= OnCriterionCompleted;
+            Criterion.CriterionCompleted.RemoveListener(OnCriterionCompleted);
 
-            if (m_Tutorial.Completed)
+            if (m_Tutorial.IsCompleted)
                 Debug.Log("Tutorial was completed automatically.");
             else
                 Debug.Log("Tutorial was did not complete automatically.");
@@ -124,7 +124,7 @@ namespace Unity.Tutorials.Core.Editor
                     foreach (var typedCriterion in paragraph.Criteria)
                     {
                         var criterion = typedCriterion.Criterion;
-                        if (!criterion.Completed)
+                        if (!criterion.IsCompleted)
                             return criterion;
                     }
                 }

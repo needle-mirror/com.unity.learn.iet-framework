@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Video;
@@ -129,13 +129,13 @@ namespace Unity.Tutorials.Core.Editor
                     var criterion = typedCriterion.Criterion;
                     if (criterion != null)
                     {
-                        if (!allMandatory && criterion.Completed)
+                        if (!allMandatory && criterion.IsCompleted)
                         {
                             result = true;
                             break;
                         }
 
-                        if (allMandatory && !criterion.Completed)
+                        if (allMandatory && !criterion.IsCompleted)
                         {
                             result = false;
                             break;

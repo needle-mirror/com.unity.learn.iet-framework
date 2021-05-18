@@ -8,6 +8,26 @@
         <!-- This is the card element -->
         <ui:VisualElement name="TutorialsContainer" class="container">
 
+            <!-- Tutorial Container Card -->
+            <!-- Stylistically a combination of tutorial card and tutorial header area -->
+            <ui:VisualElement name="CategoryCardContainer" class="container--card">
+                <ui:VisualElement name="TutorialImage" class="containercard">
+                    <ui:VisualElement name="ContentContainer" class="container--tutorialcontainer">
+                        <ui:VisualElement name="CardTextContainer">
+                            <!-- Dummy image so that we can match the layout of the header exactly -->
+                            <ui:VisualElement name="" class="image--base" />
+                            <ui:Label text="" name="TutorialName" class="label--header label--header-large" />
+                            <ui:Label text="" name="TutorialDescription" class="label--header-subtitle" />
+                        </ui:VisualElement>
+                        <ui:VisualElement name="HorizontalFlexibleSpace" class="flexiblespace"/>
+                        <ui:VisualElement name="ForwardArrowContainer" class="label--header-subtitle">
+                            <ui:VisualElement name="FlexibleSpace" class="flexiblespace"/>
+                            <ui:VisualElement name="EnterTutorials" class="image--forward" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+
             <!-- Tutorial Card -->
             <ui:VisualElement name="CardContainer" class="container--card">
                 <ui:VisualElement name="Card" class="card">
@@ -56,6 +76,7 @@
 
         <!-- Tutorial header -->
         <ui:VisualElement name="TitleHeader" class="container--header-large">
+            <ui:VisualElement name="BackToContainers" class="image--back" />
             <ui:Label text="In-Editor Tutorials" name="TitleLabel" class="label--header label--header-large" />
             <ui:Label text="" name="ContextLabel" class="label--header-subtitle" />
         </ui:VisualElement>

@@ -169,7 +169,7 @@ namespace Unity.Tutorials.Core.Editor
 
             Selection.selectionChanged += OnSelectionChanged;
 
-            if (Completed)
+            if (IsCompleted)
                 EditorApplication.update += OnUpdateWhenCompleted;
 
             UpdateCompletion();
@@ -188,7 +188,7 @@ namespace Unity.Tutorials.Core.Editor
 
         void OnSelectionChanged()
         {
-            if (Completed)
+            if (IsCompleted)
                 return;
 
             foreach (var gameObject in Selection.gameObjects)
@@ -225,7 +225,7 @@ namespace Unity.Tutorials.Core.Editor
 
         void OnUpdateWhenCompleted()
         {
-            if (!Completed)
+            if (!IsCompleted)
             {
                 EditorApplication.update -= OnUpdateWhenCompleted;
                 return;
@@ -258,7 +258,7 @@ namespace Unity.Tutorials.Core.Editor
         protected override bool EvaluateCompletion()
         {
             var willBeCompleted = EvaluateCompletionInternal();
-            if (!Completed && willBeCompleted)
+            if (!IsCompleted && willBeCompleted)
                 EditorApplication.update += OnUpdateWhenCompleted;
 
             return willBeCompleted;

@@ -12,11 +12,18 @@ namespace Unity.Tutorials.Core.Editor
         // criterionProperty is a SerializedProperty on the SerializedObject for the Criterion
         delegate void PropertyIteratorCallback(SerializedProperty criterionProperty);
 
-        const string k_TypeField = "Type";
-        const string k_CriterionField = "Criterion";
+        const string k_TypeField = nameof(TypedCriterion.Type);
+        const string k_CriterionField = nameof(TypedCriterion.Criterion);
+        // Base class properties we want to draw after the derived class properties
+        static readonly List<string> k_BaseClassProperties = new List<string>
+        {
+            nameof(Criterion.Completed),
+            nameof(Criterion.Invalidated),
+        };
+        static readonly List<string> k_PropertiesToIgnore = new List<string> { "m_Script" };
 
-        Dictionary<String, SerializedObject> m_PerPropertyCriterionSerializedObjects =
-            new Dictionary<String, SerializedObject>();
+        Dictionary<string, SerializedObject> m_PerPropertyCriterionSerializedObjects =
+            new Dictionary<string, SerializedObject>();
 
         Rect m_CriterionPropertyRect;
         bool m_InspectorRedrawn = false;
@@ -40,6 +47,7 @@ namespace Unity.Tutorials.Core.Editor
             Rect typeFieldPosition = position;
             typeFieldPosition.height = EditorGUIUtility.singleLineHeight;
 
+            property.serializedObject.ApplyModifiedProperties(); //otherwise the Update() will remove all changes that happened on the object before this property was drawn
             property.serializedObject.Update();
 
             EditorGUI.BeginChangeCheck();
@@ -84,14 +92,26 @@ namespace Unity.Tutorials.Core.Editor
             if (serializedObject == null)
                 return;
 
+            // First pass: draw properties of the derived class.
             var childProperty = serializedObject.GetIterator();
             childProperty.NextVisible(true);
             while (childProperty.NextVisible(childProperty.isExpanded))
             {
-                if (string.Equals(childProperty.propertyPath, "m_Script", StringComparison.Ordinal))
+                if (k_PropertiesToIgnore.Contains(childProperty.propertyPath))
+                    continue;
+                if (k_BaseClassProperties.Contains(childProperty.propertyPath))
                     continue;
 
                 onIterateChildProperty(childProperty);
+            }
+
+            // Second pass: draw properties of the base class.
+            childProperty = serializedObject.GetIterator();
+            childProperty.NextVisible(true);
+            while (childProperty.NextVisible(childProperty.isExpanded))
+            {
+                if (k_BaseClassProperties.Contains(childProperty.propertyPath))
+                    onIterateChildProperty(childProperty);
             }
         }
 

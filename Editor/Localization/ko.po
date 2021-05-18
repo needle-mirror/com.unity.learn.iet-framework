@@ -29,16 +29,6 @@ msgstr "튜토리얼:"
 msgid "COMPLETED"
 msgstr "완료"
 
-#. 23301990
-#: iet-framework.pot:5
-msgid "Yes"
-msgstr "예"
-
-#. 23301991
-#: iet-framework.pot:6
-msgid "No"
-msgstr "아니요"
-
 #. 23301992
 #: iet-framework.pot:7
 msgid "OK"
@@ -63,16 +53,6 @@ msgstr "튜토리얼"
 #: iet-framework.pot:11
 msgid "Show Tutorials"
 msgstr "튜토리얼 보기"
-
-#. 23301997
-#: iet-framework.pot:12
-msgid "Return to Tutorials?"
-msgstr "튜토리얼로 돌아가기"
-
-#. 23301998
-#: iet-framework.pot:13
-msgid "Returning to the Tutorial Selection means exiting the tutorial and losing all of your progress\nDo you wish to continue?"
-msgstr "튜토리얼 선택으로 돌아가면 현재 튜토리얼이 종료되고 지금까지 진행한 모든 내용을 잃게 됩니다.\n계속 하시겠습니까?"
 
 #. 23301999
 #: iet-framework.pot:14
@@ -168,4 +148,16 @@ msgid "Show simplified type names"
 msgstr ""
 
 msgid "Show simplified names instead of fully qualified names for SerializedTypes shown in the Inspector"
+msgstr ""
+
+msgid "Select Container"
+msgstr ""
+
+msgid "Welcome Dialog"
+msgstr ""
+
+msgid "Select Tutorials:"
+msgstr ""
+
+msgid "Back to the tutorial project selection"
 msgstr ""
