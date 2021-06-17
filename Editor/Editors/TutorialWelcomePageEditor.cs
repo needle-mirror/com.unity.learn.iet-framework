@@ -6,7 +6,6 @@ namespace Unity.Tutorials.Core.Editor
     [CustomEditor(typeof(TutorialWelcomePage))]
     class TutorialWelcomePageEditor : UnityEditor.Editor
     {
-        static readonly bool k_IsAuthoringMode = ProjectMode.IsAuthoringMode();
         readonly string[] k_PropsToIgnore = { "m_Script" };
         TutorialWelcomePage Target => (TutorialWelcomePage)target;
         SerializedProperty m_Buttons;
@@ -45,32 +44,36 @@ namespace Unity.Tutorials.Core.Editor
 
         public override void OnInspectorGUI()
         {
-            serializedObject.Update();
-
             if (GUILayout.Button(Localization.Tr("Show Welcome Dialog")))
                 TutorialModalWindow.TryToShow(Target, null);
 
-            if (k_IsAuthoringMode)
+            GUILayout.Space(10);
+
+            if (SerializedTypeDrawer.UseDefaultEditors)
             {
-                GUILayout.Space(10);
-                //base.OnInspectorGUI();
+                base.OnInspectorGUI();
+            }
+            else
+            {
+                serializedObject.Update();
+
                 DrawPropertiesExcluding(serializedObject, k_PropsToIgnore);
-            }
 
-            bool eventOffOrRuntimeOnlyExists = false;
-            for (int i = 0; i < m_Buttons.arraySize; i++)
-            {
-                m_CurrentEvent = m_Buttons.GetArrayElementAtIndex(i).FindPropertyRelative(k_OnClickEventPropertyPath);
-                if (!TutorialEditorUtils.EventIsNotInState(m_CurrentEvent, UnityEngine.Events.UnityEventCallState.EditorAndRuntime)) { continue; }
+                bool eventOffOrRuntimeOnlyExists = false;
+                for (int i = 0; i < m_Buttons.arraySize; i++)
+                {
+                    m_CurrentEvent = m_Buttons.GetArrayElementAtIndex(i).FindPropertyRelative(k_OnClickEventPropertyPath);
+                    if (!TutorialEditorUtils.EventIsNotInState(m_CurrentEvent, UnityEngine.Events.UnityEventCallState.EditorAndRuntime)) { continue; }
 
-                eventOffOrRuntimeOnlyExists = true;
-                break;
+                    eventOffOrRuntimeOnlyExists = true;
+                    break;
+                }
+                if (eventOffOrRuntimeOnlyExists)
+                {
+                    TutorialEditorUtils.RenderEventStateWarning();
+                }
+                serializedObject.ApplyModifiedProperties();
             }
-            if (eventOffOrRuntimeOnlyExists)
-            {
-                TutorialEditorUtils.RenderEventStateWarning();
-            }
-            serializedObject.ApplyModifiedProperties();
         }
     }
 }

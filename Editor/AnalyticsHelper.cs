@@ -206,8 +206,9 @@ namespace Unity.Tutorials.Core.Editor
                     DateTime.UtcNow - Instance.currentTutorialStartTime, false
                 );
             }
-            DebugLog("Tutorial Ended");
-            Instance.currentTutorial = null;
+            DebugLog("Tutorial Ended: " + conclusion);
+            if (conclusion == TutorialConclusion.Quit)
+                Instance.currentTutorial = null;
         }
 
         internal static void PageShown(TutorialPage page, int pageIndex)
@@ -217,13 +218,18 @@ namespace Unity.Tutorials.Core.Editor
                 DebugWarning("PageShown Ignored because no tutorial is set");
                 return;
             }
+
+            Instance.currentPageIndex = pageIndex;
+            Instance.currentPage = page;
+            Instance.currentPageStartTime = DateTime.UtcNow;
+
             if (Instance.lastPage != null)
             {
                 if (Instance.currentPageIndex < Instance.lastPageIndex)
                 {
                     SendTutorialPageEvent
                     (
-                        Instance.currentTutorial.name, Instance.currentPageIndex, Instance.currentPage.Guid,
+                        Instance.currentTutorial.name, Instance.currentPageIndex, GetAssetGuid(Instance.currentPage),
                         TutorialPageConclusion.Reviewed, Instance.currentPageStartTime,
                         DateTime.UtcNow - Instance.currentPageStartTime, false
                     );
@@ -234,7 +240,7 @@ namespace Unity.Tutorials.Core.Editor
                 {
                     SendTutorialPageEvent
                     (
-                        Instance.currentTutorial.name, Instance.lastPageIndex, Instance.lastPage.Guid,
+                        Instance.currentTutorial.name, Instance.lastPageIndex, GetAssetGuid(Instance.lastPage),
                         TutorialPageConclusion.Completed, Instance.lastPageStartTime,
                         DateTime.UtcNow - Instance.lastPageStartTime, false
                     );
@@ -242,13 +248,11 @@ namespace Unity.Tutorials.Core.Editor
                     DebugLog("Page Completed: {0}", Instance.lastPageIndex);
                 }
             }
-            Instance.currentPageIndex = pageIndex;
-            Instance.currentPage = page;
-            Instance.currentPageStartTime = DateTime.UtcNow;
+
             if (Instance.currentPageIndex <= Instance.lastPageIndex) { return; }
 
-            Instance.lastPageIndex = pageIndex;
-            Instance.lastPage = page;
+            Instance.lastPageIndex = Instance.currentPageIndex;
+            Instance.lastPage = Instance.currentPage;
             Instance.lastPageStartTime = DateTime.UtcNow;
             Instance.currentParagraphIndex = -1;
         }
@@ -297,6 +301,8 @@ namespace Unity.Tutorials.Core.Editor
 
             Instance.currentParagraphIndex = -1;
         }
+
+        static string GetAssetGuid(ScriptableObject asset) => AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(asset));
 
         /// <summary>
         /// Use for external references/links, documentation, assets, etc.

@@ -93,7 +93,7 @@ namespace Unity.Tutorials.Core.Editor
         TutorialStyles m_TutorialStyle;
 
         internal static readonly string k_DefaultStyleAsset =
-            "Packages/com.unity.learn.iet-framework/Editor/UI/Tutorial Styles.asset";
+            "Packages/com.unity.learn.iet-framework/Editor/DefaultAssets/Tutorial Styles.asset";
 
         /// <summary>
         /// If enabled, the original assets of the project are restored when a tutorial starts.

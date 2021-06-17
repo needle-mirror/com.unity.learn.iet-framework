@@ -9,11 +9,6 @@ msgstr ""
 "Language: ja\n"
 "Project-Id-Version: 436\n"
 
-#. 23301986
-#: iet-framework.pot:1
-msgid "All Tutorials"
-msgstr "すべてのチュートリアル"
-
 #. 23301987
 #: iet-framework.pot:2
 msgid "Back"
@@ -159,5 +154,11 @@ msgstr ""
 msgid "Select Tutorials:"
 msgstr ""
 
-msgid "Back to the tutorial project selection"
+msgid "Back to the previous view"
+msgstr ""
+
+msgid "Use default editors for editing tutorial assets"
+msgstr ""
+
+msgid "View the tutorial asset contents using default editor views instead of custom editors"
 msgstr ""

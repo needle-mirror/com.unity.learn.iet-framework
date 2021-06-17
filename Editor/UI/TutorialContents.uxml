@@ -8,6 +8,7 @@
             <ui:VisualElement name="Header" class="container--header">
                 <ui:VisualElement name="HeaderLabels" class="container--header-labels">
                     <ui:Label text="" name="HeaderLabel" class="label--header" />
+                    <ui:VisualElement name="FlexibleSpace" class="flexiblespace"/>
                     <ui:Label text="" name="StepCount" class="label--step-count" />
                     <ui:VisualElement name="Close" class="image--close" />
                 </ui:VisualElement>

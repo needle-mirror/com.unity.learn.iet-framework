@@ -9,8 +9,15 @@ namespace Unity.Tutorials.Core.Editor
 
         public override void OnInspectorGUI()
         {
-            DrawPropertiesExcluding(serializedObject, k_PropertiesToHide);
-            serializedObject.ApplyModifiedProperties();
+            if (SerializedTypeDrawer.UseDefaultEditors)
+            {
+                base.OnInspectorGUI();
+            }
+            else
+            {
+                DrawPropertiesExcluding(serializedObject, k_PropertiesToHide);
+                serializedObject.ApplyModifiedProperties();
+            }
         }
     }
 }

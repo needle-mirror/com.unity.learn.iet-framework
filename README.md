@@ -1,18 +1,13 @@
 # Tutorial Framework
 ---------
-This package is needed to have In-Editor Tutorials working. **This package relies heavily on Unity internals.**
+This package is needed to have In-Editor Tutorials working.
 
 ## Setup
-Follow those steps to add support for in-Editor tutorials to your project/template:
+For Unity 2021.2 and newer, simply search for "Tutorial Framework" in the Package Manager. For older Unity versions, this package is not currently discoverable,
+and you need to add the following line to the `dependencies` list of `Packages/manifest.json`:  
+`"com.unity.learn.iet-framework": "2.0.0-pre.6"`
 
-- Add `com.unity.learn.iet-framework` to your `dependencies` list to your project `manifest.json`
-- To add authoring tools check the readme of [com.unity.learn.iet-framework.authoring](../com.unity.learn.iet-framework.authoring)
+Make sure to update to the latest version of the package.
 
-Example:
-
-    {
-        "dependencies": {
-            "com.unity.learn.iet-framework": "2.0.0-pre.4"
-        }
-    }
-Make sure to use the latest version available of the package.
+## Authoring tools
+For instructions on how to add authoring tools, see the [Tutorial Authoring Tools documenation](https://docs.unity3d.com/Packages/com.unity.learn.iet-framework.authoring@1.0/manual/index.html).

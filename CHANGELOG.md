@@ -4,6 +4,32 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0-pre.6] - 2021-06-17
+### Added
+- Added support for tutorial categories by making it possible for `TutorialContainer` assets to refer to each other.
+- `TutorialContainer`: Added **Order In View** and **Parent Container** fields, allowing creation and ordering of tutorial categories.
+- Added **Use default editors for editing tutorial assets** preference, disabled by default.
+- `TutorialPage`: Added `Showing`, `Shown`, and `Staying` events.
+- Added `CommonTutorialCallbacks` assets from the Tutorial Authoring Tools package.
+
+### Changed
+- Disallowed dragging of **Sections** of a tutorial container freely on Unity 2020.2 and newer; use the **Order In View** to reorder the sections.
+- UI: Clarified tutorial page's completion criteria settings by moving **Auto Advance** field next to other completion criteria settings.
+- Tutorial project cards are now sorted using **Order In View** values instead of **Title**.
+- **Order In View** values of tutorial container sections are no longer reassigned automatically, allowing users to mix sections and tutorial categories easily.
+- UI: Renamed **All Tutorials** button to **Back to overview**.
+- Removed tutorial page editor's **Force default Inspector** option, superseded by the **Use default editors for editing tutorial assets** preference.
+- All tutorial assets can be edited without having Tutorial Authoring Tools present.
+- `TutorialPage`: Deprecated `OnBeforePageShown`, `OnAfterPageShown`, `OnTutorialPageStay`, and `OnBeforeTutorialQuit` events.
+These events are superseded by the new `Showing`, `Shown`, `Staying` and `Tutorial.Quit` (added in 2.0.0-pre.5) events.
+- **Breaking change**: Made `TutorialContainer.Section.TutorialCompleted`, `LoadState()`, and `SaveState()` internal.
+
+### Removed
+- **Breaking change**: Removed `TutorialPage.Guid()` function.
+
+### Fixed
+- Fixed tutorial cards to immediately reflect to changes of tutorial's **Progress Tracking Enabled** field.
+
 ## [2.0.0-pre.5] - 2021-05-18
 ### Added
 - Added support for multiple `TutorialContainer` assets within a project, allowing multiple set of tutorials ("tutorial projects") for the user to choose from.

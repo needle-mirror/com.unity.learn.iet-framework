@@ -16,8 +16,13 @@ namespace Unity.Tutorials.Core.Editor
     }
 
     /// <summary>
-    /// An index for the tutorials in the project.
+    /// A tutorial container is a collection of tutorial content, and is used to access the actual tutorials in the project.
     /// </summary>
+    /// <remarks>
+    /// A tutorial container can be two things:
+    /// 1. Tutorial project (null Parent): a root container which is the entry point for tutorial content in the project.
+    /// 2. Tutorial category (non-null Parent): a set of tutorials that are a part of some other container
+    /// </remarks>
     public class TutorialContainer : ScriptableObject
     {
         /// <summary>
@@ -31,30 +36,45 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Raised when any field of this container is modified.
         /// </summary>
+        /// <remarks>
+        /// If 'this' container is parented, we consider modifications to 'this' container also to be modifications of the parent.
+        /// </remarks>
         public TutorialContainerEvent Modified;
 
         /// <summary>
-        /// Background texture for the header area that is used to display Title and Subtitle.
+        /// By setting another container as a parent, this container becomes a tutorial category in the parent container.
+        /// </summary>
+        [Tooltip("By setting another container as a parent, this container becomes a tutorial category in the parent container.")]
+        public TutorialContainer ParentContainer;
+
+        /// <summary>
+        /// This value determines the position of a container / container card within a container, if this container is shown as a card.
+        /// </summary>
+        [Tooltip("This value determines the position of a container / container card within a container, if this container is shown as a card.")]
+        public int OrderInView;
+
+        /// <summary>
+        /// Background texture for the card/header.
         /// </summary>
         [FormerlySerializedAs("HeaderBackground")]
         public Texture2D BackgroundImage;
 
         /// <summary>
-        /// Title shown in the container card and header area.
+        /// Title shown in the card/header.
         /// </summary>
-        [Tooltip("Title shown in the container card and header area.")]
+        [Tooltip("Title shown in the card/header.")]
         public LocalizableString Title;
 
         /// <summary>
         /// Subtitle shown in the container card and header area.
         /// </summary>
-        [Tooltip("Subtitle shown in the container card and header area.")]
+        [Tooltip("Subtitle shown in the card/header.")]
         public LocalizableString Subtitle;
 
         /// <summary>
         /// Used as the tooltip for the container card.
         /// </summary>
-        [Tooltip("Used as the tooltip for the container card.")]
+        [Tooltip("Used as the tooltip for the card.")]
         public LocalizableString Description;
 
         /// <summary>
@@ -64,8 +84,11 @@ namespace Unity.Tutorials.Core.Editor
         public UnityEngine.Object ProjectLayout;
 
         /// <summary>
-        /// Sections/cards of this container.
+        /// Sections (tutorial or link card) of this container.
         /// </summary>
+#if UNITY_2020_2_OR_NEWER
+        [NonReorderable] // reordering freely would be problematic and is disallowed for now
+#endif
         public Section[] Sections = {};
 
         /// <summary>
@@ -77,7 +100,7 @@ namespace Unity.Tutorials.Core.Editor
 
         // The default layout used when a project is started for the first time, if project layout is used.
         internal static readonly string k_DefaultLayoutPath =
-            "Packages/com.unity.learn.iet-framework/Editor/Layouts/DefaultLayout.wlt";
+            "Packages/com.unity.learn.iet-framework/Editor/DefaultAssets/DefaultLayout.wlt";
 
         /// <summary>
         /// A section/card for starting a tutorial or opening a web page.
@@ -86,9 +109,10 @@ namespace Unity.Tutorials.Core.Editor
         public class Section
         {
             /// <summary>
-            /// Order the the view. Use 0, 2, 4, and so on.
+            /// This value determines the position of a section / section card within a container.
             /// </summary>
-            public int OrderInView; // used to reorder Sections as it's not currently implement as ReorderableList.
+            [Tooltip("This value determines the position of a section / section card within a container.")]
+            public int OrderInView;
 
             /// <summary>
             /// Title of the card.
@@ -124,11 +148,6 @@ namespace Unity.Tutorials.Core.Editor
             public Tutorial Tutorial;
 
             /// <summary>
-            /// Has the tutorial been already completed?
-            /// </summary>
-            public bool TutorialCompleted { get; set; }
-
-            /// <summary>
             /// Does this represent a tutorial?
             /// </summary>
             public bool IsTutorial => Url.IsNullOrEmpty();
@@ -137,8 +156,6 @@ namespace Unity.Tutorials.Core.Editor
             /// The ID of the represented tutorial, if any
             /// </summary>
             public string TutorialId => Tutorial?.LessonId.AsEmptyIfNull();
-
-            internal string SessionStateKey => $"Unity.Tutorials.Core.Editor.lesson{TutorialId}";
 
             /// <summary>
             /// Starts the tutorial of the section
@@ -153,15 +170,25 @@ namespace Unity.Tutorials.Core.Editor
             /// </summary>
             public void OpenUrl()
             {
+                // TODO by making a static OpenUrl(string url) utility function we can easily track rich text hyperlink clicks also
                 TutorialEditorUtils.OpenUrl(Url);
                 AnalyticsHelper.SendExternalReferenceEvent(Url, Heading.Untranslated, Metadata, Tutorial?.LessonId);
             }
+
+            // TODO Managing tutorials' completion states feels something that Tutorial and TutorialManager classes should be responsible of.
+
+            /// <summary>
+            /// Has the tutorial already been completed?
+            /// </summary>
+            internal bool TutorialCompleted { get; set; }
+
+            internal string SessionStateKey => $"Unity.Tutorials.Core.Editor.lesson{TutorialId}";
 
             /// <summary>
             /// Loads the state of the section from SessionState.
             /// </summary>
             /// <returns>returns true if the state was found from EditorPrefs</returns>
-            public bool LoadState()
+            internal bool LoadState()
             {
                 const string nonexisting = "NONEXISTING";
                 var state = SessionState.GetString(SessionStateKey, nonexisting);
@@ -179,22 +206,13 @@ namespace Unity.Tutorials.Core.Editor
             /// <summary>
             /// Saves the state of the section from SessionState.
             /// </summary>
-            public void SaveState()
+            internal void SaveState()
             {
                 SessionState.SetString(SessionStateKey, TutorialCompleted ? "Finished" : "");
             }
         }
 
         void OnValidate()
-        {
-            SortSections();
-            for (int i = 0; i < Sections.Length; ++i)
-            {
-                Sections[i].OrderInView = i * 2;
-            }
-        }
-
-        void SortSections()
         {
             Array.Sort(Sections, (x, y) => x.OrderInView.CompareTo(y.OrderInView));
         }

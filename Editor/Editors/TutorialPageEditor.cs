@@ -16,12 +16,14 @@ namespace Unity.Tutorials.Core.Editor
     class TutorialPageEditor : UnityEditor.Editor
     {
         static readonly bool k_IsAuthoringMode = ProjectMode.IsAuthoringMode();
-        static readonly string[] k_EventPropertyPaths = 
+
+        // NOTE: the order here will be used for the UI
+        static readonly string[] k_EventPropertyPaths =
         {
-            nameof(TutorialPage.m_OnBeforePageShown),
-            nameof(TutorialPage.m_OnAfterPageShown),
-            nameof(TutorialPage.m_OnBeforeTutorialQuit),
-            nameof(TutorialPage.m_OnTutorialPageStay),
+            nameof(TutorialPage.Showing),
+            nameof(TutorialPage.Shown),
+            nameof(TutorialPage.Staying),
+            nameof(TutorialPage.m_OnBeforeTutorialQuit), // This deprecated event cannot be migrated automatically so display it for the user
             nameof(TutorialPage.CriteriaValidated),
             // MaskingSettingsChanged & NonMaskingSettingsChanged exist but are hidden in the simplified view
         };
@@ -30,6 +32,7 @@ namespace Unity.Tutorials.Core.Editor
             {
                 "m_Script",
                 nameof(TutorialPage.m_Paragraphs),
+                k_AutoAdvancePropertyPath,
                 nameof(TutorialPage.MaskingSettingsChanged),
                 nameof(TutorialPage.NonMaskingSettingsChanged),
             }
@@ -50,6 +53,7 @@ namespace Unity.Tutorials.Core.Editor
 
         const string k_ParagraphCriteriaTypePropertyPath = "m_CriteriaCompletion";
         const string k_ParagraphCriteriaPropertyPath = "m_Criteria";
+        const string k_AutoAdvancePropertyPath = nameof(TutorialPage.m_AutoAdvance);
 
         // NOTE TutorialSwitch doesn't have title yet, body used for the button text.
         const string k_ParagraphNextTutorialButtonTextPropertyPath = "Text.m_Untranslated";
@@ -64,8 +68,7 @@ namespace Unity.Tutorials.Core.Editor
             );
 
         static GUIContent s_EventsSectionTitle;
-        // Enable to display the old, not simplified, inspector
-        static bool s_ForceOldInspector;
+
         static bool ShowEvents
         {
             get => SessionState.GetBool("TutorialPageEditor.ShowEvents", false);
@@ -103,6 +106,7 @@ namespace Unity.Tutorials.Core.Editor
 
         SerializedProperty m_CriteriaCompletion;
         SerializedProperty m_Criteria;
+        SerializedProperty m_AutoAdvance;
 
         SerializedProperty m_TutorialButtonText;
         SerializedProperty m_NextTutorial;
@@ -280,12 +284,14 @@ namespace Unity.Tutorials.Core.Editor
                 m_InstructionDescription = instructionParagraph.FindPropertyRelative(k_ParagraphInstructionDescriptionProperty);
                 m_CriteriaCompletion = instructionParagraph.FindPropertyRelative(k_ParagraphCriteriaTypePropertyPath);
                 m_Criteria = instructionParagraph.FindPropertyRelative(k_ParagraphCriteriaPropertyPath);
+                m_AutoAdvance = serializedObject.FindProperty(k_AutoAdvancePropertyPath);
                 return;
             }
             m_InstructionTitle = null;
             m_InstructionDescription = null;
             m_CriteriaCompletion = null;
             m_Criteria = null;
+            m_AutoAdvance = null;
         }
 
         void SetupSwitchTutorialPage(SerializedProperty paragraphs)
@@ -311,9 +317,7 @@ namespace Unity.Tutorials.Core.Editor
                 EditorGUILayout.HelpBox(m_WarningMessage, MessageType.Warning);
             }
 
-            s_ForceOldInspector = EditorGUILayout.Toggle(Tr("Force default Inspector"), s_ForceOldInspector);
-            EditorGUILayout.Space(10);
-            if (s_ForceOldInspector)
+            if (SerializedTypeDrawer.UseDefaultEditors)
             {
                 base.OnInspectorGUI();
             }
@@ -357,9 +361,10 @@ namespace Unity.Tutorials.Core.Editor
             if (m_CriteriaCompletion != null)
             {
                 EditorGUILayout.Space(10);
-                EditorGUILayout.LabelField(Tr("Completion Criteria"));
-                EditorGUILayout.PropertyField(m_CriteriaCompletion, GUIContent.none);
-                EditorGUILayout.PropertyField(m_Criteria, GUIContent.none);
+                EditorGUILayout.LabelField(Tr("Completion Criteria"), EditorStyles.boldLabel);
+                EditorGUILayout.PropertyField(m_AutoAdvance);
+                EditorGUILayout.PropertyField(m_CriteriaCompletion, new GUIContent(Tr("Completion Type")));
+                EditorGUILayout.PropertyField(m_Criteria, new GUIContent(Tr("Criteria")));
             }
 
             if (m_NextTutorial != null)

@@ -44,23 +44,24 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         /// <remarks>
         /// Different behaviors:
-        /// 1. If a single TutorialContainer asset that has TutorialContainer.ProjectLayout specified exists,
+        /// 1. If a single root tutorial container (TutorialContainer.ParentContainer is null) that has Project Layout specified exists,
         ///    the window is loaded and shown using the specified project window layout (old behaviour).
-        ///    If the project layout does not contain Tutorials window, the window is shown an as free-floating window.
-        /// 2. If no TutorialContainer assets exist, or TutorialContainer.ProjectLayout is not specified, the window is shown
+        ///    If the project layout does not contain Tutorials window, the window is shown an as a free-floating window.
+        /// 2. If no root tutorial containers exist, or a root container's Project Layout is not specified, the window is shown
         ///     by anchoring and docking it next to the Inspector (new behaviour). If the Inspector is not available,
-        ///     the window is shown an as free-floating window.
-        /// 3. If there is more than one TutorialContainer asset with different Project Layout setting in the project,
+        ///     the window is shown an as a free-floating window.
+        /// 3. If there is more than one root tutorial container with different Project Layout setting in the project,
         ///    one asset is chosen randomly to specify the behavior.
         /// 4. If Tutorials window is already created, it is simply brought to the foreground and focused.
         /// </remarks>
         /// <returns>The the created, or aleady existing, window instance.</returns>
         public static TutorialWindow ShowTutorialWindow()
         {
-            var containers = TutorialEditorUtils.FindAssets<TutorialContainer>();
-            var defaultContainer = containers.FirstOrDefault();
+            var rootContainers = TutorialEditorUtils.FindAssets<TutorialContainer>()
+                .Where(container => container.ParentContainer is null);
+            var defaultContainer = rootContainers.FirstOrDefault();
             var projectLayout = defaultContainer?.ProjectLayout;
-            if (containers.Any(container => container.ProjectLayout != projectLayout))
+            if (rootContainers.Any(container => container.ProjectLayout != projectLayout))
             {
                 Debug.LogWarningFormat(
                     "There is more than one TutorialContainers asset with different Project Layout setting in the project. " +
@@ -70,15 +71,16 @@ namespace Unity.Tutorials.Core.Editor
             }
 
             TutorialWindow window = null;
-            if (!containers.Any() || defaultContainer.ProjectLayout == null)
-                window = TutorialWindow.CreateNextToInspector();
+            if (!rootContainers.Any() || defaultContainer.ProjectLayout == null)
+                window = TutorialWindow.GetOrCreateWindowNextToInspector();
             else if (defaultContainer.ProjectLayout != null)
-                window = TutorialWindow.CreateWindowAndLoadLayout(defaultContainer);
+                window = TutorialWindow.GetOrCreateWindowAndLoadLayout(defaultContainer);
 
-            window.SetContainers(containers);
-
-            // If we have only one tutorial container, we set it active immediately
-            if (containers.Count() == 1)
+            // If we have more than one root container, we show a selection view. Exactly one (or zero) container
+            // is set active immediately without possibility to return to the the selection view.
+            if (rootContainers.Count() > 1 )
+                window.SetContainers(rootContainers);
+            else
                 window.ActiveContainer = defaultContainer;
 
             return window;

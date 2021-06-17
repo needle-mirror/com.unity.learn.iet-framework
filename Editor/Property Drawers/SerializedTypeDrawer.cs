@@ -22,6 +22,13 @@ namespace Unity.Tutorials.Core.Editor
             Tr("Show simplified names instead of fully qualified names for SerializedTypes shown in the Inspector")
         );
 
+        internal static UserSetting<bool> UseDefaultEditors = new UserSetting<bool>(
+            "IET.UseDefaultEditors",
+            Tr("Use default editors for editing tutorial assets"),
+            false,
+            Tr("View the tutorial asset contents using default editor views instead of custom editors")
+        );
+
         static GUIStyle preDropGlow
         {
             get

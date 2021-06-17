@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using UnityEditor;
+using UnityEditor.Events;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Serialization;
 
 namespace Unity.Tutorials.Core.Editor
 {
@@ -109,17 +112,6 @@ namespace Unity.Tutorials.Core.Editor
         [Tooltip("The text shown on the Next button on the last page.")]
         public LocalizableString DoneButton = "Done";
 
-        // Backwards-compatibility for < 1.2
-        [SerializeField, HideInInspector]
-        string m_NextButton = "Next";
-        [SerializeField, HideInInspector]
-        string m_DoneButton = "Done";
-
-        /// <summary>
-        /// Returns the asset database GUID of this asset.
-        /// </summary>
-        public string Guid => AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(this));
-
         [Header("Sounds")]
         [SerializeField]
         AudioClip m_CompletedSound = null;
@@ -127,29 +119,29 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Should we auto-advance upon completion.
         /// </summary>
-        public bool AutoAdvanceOnComplete { get => m_autoAdvance; set => m_autoAdvance = value; }
-        [Header("Auto advance on complete?")]
-        [SerializeField]
-        bool m_autoAdvance;
+        public bool AutoAdvanceOnComplete { get => m_AutoAdvance; set => m_AutoAdvance = value; }
+        [SerializeField, FormerlySerializedAs("m_autoAdvance")]
+        [Tooltip("Should we auto-advance upon completion.")]
+        internal bool m_AutoAdvance;
 
-        // TODO 2.0 check the naming of these 4 events
-        // TODO Use TutorialPageEvent for all of these so that we can pass the sender as parameter.
-        [Header("Callbacks")]
-        [SerializeField]
+        /// <summary>
+        /// Raised before this page is displayed (even when going back).
+        /// </summary>
+        [Header("Events")]
         [Tooltip("Raised before this page is displayed (even when going back).")]
-        internal UnityEvent m_OnBeforePageShown = default;
+        public TutorialPageEvent Showing;
 
+        /// <summary>
+        /// Raised after this page is displayed (even when going back).
+        /// </summary>
         [Tooltip("Raised after this page is displayed (even when going back).")]
-        [SerializeField]
-        internal UnityEvent m_OnAfterPageShown = default;
+        public TutorialPageEvent Shown;
 
-        [Tooltip("Raised when the user quits the current tutorial from this tutorial page while not having completed the tutorial.")]
-        [SerializeField]
-        internal UnityEvent m_OnBeforeTutorialQuit = default;
-
-        [Tooltip("Raised while the user is staying on this tutorial page, every editor frame.")]
-        [SerializeField]
-        internal UnityEvent m_OnTutorialPageStay = default;
+        /// <summary>
+        /// Raised while the user is staying on this tutorial page, every Editor frame.
+        /// </summary>
+        [Tooltip("Raised while the user is staying on this tutorial page, every Editor frame.")]
+        public TutorialPageEvent Staying;
 
         /// <summary>
         /// Raised when this page's criteria are tested for completion.
@@ -170,6 +162,16 @@ namespace Unity.Tutorials.Core.Editor
         public TutorialPageEvent NonMaskingSettingsChanged;
 
         static Queue<WeakReference<TutorialPage>> s_DeferedValidationQueue = new Queue<WeakReference<TutorialPage>>();
+
+        // Backwards-compatibility for < 2.0.0-pre.6
+        [SerializeField, HideInInspector] internal UnityEvent m_OnBeforePageShown = default;
+        [SerializeField, HideInInspector] internal UnityEvent m_OnAfterPageShown = default;
+        [SerializeField, HideInInspector] internal UnityEvent m_OnTutorialPageStay = default;
+        [SerializeField, Tooltip("This event will be deprecated, please migrate to use Tutorial's Quit event instead.")]
+        internal UnityEvent m_OnBeforeTutorialQuit = default;
+        // Backwards-compatibility for < 1.2
+        [SerializeField, HideInInspector] string m_NextButton = "Next";
+        [SerializeField, HideInInspector] string m_DoneButton = "Done";
 
         /// <summary>
         /// Raises TutorialPageMaskingSettingsChanged event.
@@ -207,6 +209,37 @@ namespace Unity.Tutorials.Core.Editor
                         page.SyncCriteriaAndFutureReferences();
                     }
                 }
+            }
+        }
+
+        void OnEnable()
+        {
+            // Migrate content from < 2.0.0-pre.6
+            // NOTE events are migrated in OnEnable() instead of OnAfterDeserialize() due to the use of SerializedObject:
+            // "UnityException: InternalCreate is not allowed to be called during serialization,
+            // call it from OnEnable instead. Called from ScriptableObject 'TutorialPage'."
+            if (m_OnBeforePageShown != null && m_OnBeforePageShown.GetPersistentEventCount() > 0)
+            {
+                TransferPersistentCalls(this, nameof(m_OnBeforePageShown), nameof(Showing));
+                Debug.Log($"{AssetDatabase.GetAssetPath(this)}: OnBeforePageShown event is deprecated, migrated to use Showing automatically.");
+            }
+
+            if (m_OnAfterPageShown != null && m_OnAfterPageShown.GetPersistentEventCount() > 0)
+            {
+                TransferPersistentCalls(this, nameof(m_OnBeforePageShown), nameof(Shown));
+                Debug.Log($"{AssetDatabase.GetAssetPath(this)}: OnAfterPageShown event is be deprecated, migrated to use Shown automatically.");
+            }
+
+            if (m_OnBeforeTutorialQuit != null && m_OnBeforeTutorialQuit.GetPersistentEventCount() > 0)
+            {
+                // A page doesn't have an explicit parent tutorial, and page can be in multiple tutorials; the users must migrate this event on their own.
+                Debug.LogWarning($"{AssetDatabase.GetAssetPath(this)}: OnBeforeTutorialQuit event is deprecated, please migrate to use Tutorial's Quit event instead.");
+            }
+
+            if (m_OnTutorialPageStay != null && m_OnTutorialPageStay.GetPersistentEventCount() > 0)
+            {
+                TransferPersistentCalls(this, nameof(m_OnTutorialPageStay), nameof(Staying));
+                Debug.Log($"{AssetDatabase.GetAssetPath(this)}: OnTutorialPageStay event is deprecated, asset migrated to use Staying automatically.");
             }
         }
 
@@ -422,41 +455,33 @@ namespace Unity.Tutorials.Core.Editor
             CriteriaCompletionStateTested?.Invoke(this);
         }
 
+        // TODO not an event handler: rename to Complete()
         internal void OnPageCompleted()
         {
             RemoveCompletionRequirements();
             HasMovedToNextPage = true;
         }
 
-        /// <summary>
-        /// Called when the frontend of the page has not been displayed yet to the user
-        /// </summary>
-        internal void RaiseOnBeforePageShown()
+        internal void RaiseShowing()
         {
+            Showing?.Invoke(this);
             m_OnBeforePageShown?.Invoke();
         }
 
-        /// <summary>
-        /// Called right after the frontend of the page is displayed to the user
-        /// </summary>
-        internal void RaiseOnAfterPageShown()
+        internal void RaiseShown()
         {
+            Shown?.Invoke(this);
             m_OnAfterPageShown?.Invoke();
         }
 
-        /// <summary>
-        /// Called when the user force-quits the tutorial from this tutorial page, before quitting the tutorial
-        /// </summary>
-        internal void RaiseOnBeforeQuitTutorial()
+        internal void RaiseOnBeforeTutorialQuit()
         {
             m_OnBeforeTutorialQuit?.Invoke();
         }
 
-        /// <summary>
-        /// Called while the user is reading this tutorial page, every editor frame
-        /// </summary>
-        internal void RaiseOnTutorialPageStay()
+        internal void RaiseStaying()
         {
+            Staying?.Invoke(this);
             m_OnTutorialPageStay?.Invoke();
         }
 
@@ -475,6 +500,98 @@ namespace Unity.Tutorials.Core.Editor
             // Migrate content from < 1.2.
             TutorialParagraph.MigrateStringToLocalizableString(ref m_NextButton, ref NextButton);
             TutorialParagraph.MigrateStringToLocalizableString(ref m_DoneButton, ref DoneButton);
+        }
+
+        // Based on https://gist.github.com/wesleywh/1c56d880c0289371ea2dc47661a0cdaf
+        static void TransferPersistentCalls(UnityEngine.Object obj, in string srcEventName, in string dstEventName)
+        {
+            var so = new SerializedObject(obj);
+            const string CallsPropertyPathFormat = "{0}.m_PersistentCalls.m_Calls";
+            var srcCalls = so.FindProperty(string.Format(CallsPropertyPathFormat, GetValidFieldName(srcEventName.Trim())));
+            var dstCalls = so.FindProperty(string.Format(CallsPropertyPathFormat, GetValidFieldName(dstEventName.Trim())));
+            var dstOffset = dstCalls.arraySize;
+
+            for (var srcIndex = 0; srcIndex < srcCalls.arraySize; srcIndex++)
+            {
+                var srcCall = srcCalls.GetArrayElementAtIndex(srcIndex);
+                var srcTarget = GetCallTarget(srcCall);
+                var srcMethodName = GetCallMethodName(srcCall);
+                var srcMode = GetCallMode(srcCall);
+                var srcCallState = GetCallState(srcCall);
+                var srcArgs = GetCallArgs(srcCall);
+                var srcObjectArg = GetCallObjectArg(srcArgs);
+                var srcObjectArgType = GetCallObjectArgType(srcArgs);
+                var srcIntArg = GetCallIntArg(srcArgs);
+                var srcFloatArg = GetCallFloatArg(srcArgs);
+                var srcStringArg = GetCallStringArg(srcArgs);
+                var srcBoolArg = GetCallBoolArg(srcArgs);
+
+                SerializedProperty dstCall;
+                if (dstOffset > 0)
+                {
+                    dstCall = dstCalls.GetArrayElementAtIndex(srcIndex);
+                    // If we are satisfied that the call is exactly the same, skip ahead.
+                    if (SerializedProperty.DataEquals(srcCall, dstCall))
+                        continue;
+                }
+
+                // Only unique properties beyond this point. Append with care.
+                // Copy Properties from Source to Destination
+                dstCalls.InsertArrayElementAtIndex(dstOffset + srcIndex);
+                dstCall = dstCalls.GetArrayElementAtIndex(dstOffset + srcIndex);
+
+                SerializedProperty dstTarget = GetCallTarget(dstCall);
+                SerializedProperty dstMethodName = GetCallMethodName(dstCall);
+                SerializedProperty dstMode = GetCallMode(dstCall);
+                SerializedProperty dstCallState = GetCallState(dstCall);
+                SerializedProperty dstArgs = GetCallArgs(dstCall);
+                SerializedProperty dstObjectArg = GetCallObjectArg(dstArgs);
+                SerializedProperty dstObjectArgType = GetCallObjectArgType(dstArgs);
+                SerializedProperty dstIntArg = GetCallIntArg(dstArgs);
+                SerializedProperty dstFloatArg = GetCallFloatArg(dstArgs);
+                SerializedProperty dstStringArg = GetCallStringArg(dstArgs);
+                SerializedProperty dstBoolArg = GetCallBoolArg(dstArgs);
+
+                dstTarget.objectReferenceValue = srcTarget.objectReferenceValue;
+                dstMethodName.stringValue = srcMethodName.stringValue;
+                dstMode.enumValueIndex = srcMode.enumValueIndex;
+                dstCallState.enumValueIndex = srcCallState.enumValueIndex;
+
+                dstObjectArg.objectReferenceValue = srcObjectArg.objectReferenceValue;
+                dstObjectArgType.stringValue = srcObjectArgType.stringValue;
+                dstIntArg.intValue = srcIntArg.intValue;
+                dstFloatArg.floatValue = srcFloatArg.floatValue;
+                dstStringArg.stringValue = srcStringArg.stringValue;
+                dstBoolArg.boolValue = srcBoolArg.boolValue;
+            }
+
+            srcCalls.ClearArray();
+ 
+            so.ApplyModifiedProperties();
+
+            string GetValidFieldName(in string name)
+            {
+                const BindingFlags bindedTypes = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
+                var field = obj.GetType().GetField(name, bindedTypes);
+                var value = field?.GetValue(obj);
+                if (value is UnityEventBase)
+                    return name;
+
+                throw new FieldAccessException("Incorrect event name.");
+            }
+
+            SerializedProperty GetCallTarget(in SerializedProperty sp) => sp?.FindPropertyRelative("m_Target");
+            SerializedProperty GetCallMethodName(in SerializedProperty sp) => sp?.FindPropertyRelative("m_MethodName");
+            SerializedProperty GetCallMode(in SerializedProperty sp) => sp?.FindPropertyRelative("m_Mode");
+            SerializedProperty GetCallState(in SerializedProperty sp) => sp?.FindPropertyRelative("m_CallState");
+
+            SerializedProperty GetCallArgs(in SerializedProperty sp) => sp?.FindPropertyRelative("m_Arguments");
+            SerializedProperty GetCallObjectArg(in SerializedProperty sp) => sp?.FindPropertyRelative("m_ObjectArgument");
+            SerializedProperty GetCallObjectArgType(in SerializedProperty sp) => sp?.FindPropertyRelative("m_ObjectArgumentAssemblyTypeName");
+            SerializedProperty GetCallIntArg(in SerializedProperty sp) => sp?.FindPropertyRelative("m_IntArgument");
+            SerializedProperty GetCallFloatArg(in SerializedProperty sp) => sp?.FindPropertyRelative("m_FloatArgument");
+            SerializedProperty GetCallStringArg(in SerializedProperty sp) => sp?.FindPropertyRelative("m_StringArgument");
+            SerializedProperty GetCallBoolArg(in SerializedProperty sp) => sp?.FindPropertyRelative("m_BoolArgument");
         }
     }
 }

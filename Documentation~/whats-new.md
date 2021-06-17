@@ -6,7 +6,10 @@ The main updates in this release include:
 
 ## Added
 - Added support for multiple `TutorialContainer` assets within a project, allowing multiple set of tutorials ("tutorial projects") for the user to choose from.
+- Added support for tutorial categories by making it possible for `TutorialContainer` assets to refer to each other.
 - Checkbox to enable progress tracking in tutorials. Enabling progress tracking generates a GUID for the tutorial's **Lesson Id** automatically.
+- Added **Use default editors for editing tutorial assets** preference, disabled by default.
+- Added `CommonTutorialCallbacks` assets from the Tutorial Authoring Tools package.
 - UI: Added **Select Container** button to the authoring toolbar. This button selects the currently effective tutorial container in the project.
 - UI: Added **Tutorials** > **Welcome Dialog** menu item for accessing the possible welcome dialog of the project conveniently at all times.
 - UI: Added **Show simplified type names** preference which affects the appearance of `SerializedType` fields.
@@ -18,6 +21,12 @@ This preference can be found under **Preferences** > **In-Editor Tutorials**.
 - Documentation: All public APIs documented.
 
 ### Changed
+- **Order In View** values of tutorial container sections are no longer reassigned automatically, allowing users to mix sections and tutorial categories easily.
+- UI: Renamed **All Tutorials** button to **Back to overview**.
+- Removed tutorial page editor's **Force default Inspector** option, superseded by the **Use default editors for editing tutorial assets** preference.
+- All tutorial assets can be edited without having Tutorial Authoring Tools present.
+- `TutorialPage`: Deprecated `OnBeforePageShown`, `OnAfterPageShown`, `OnTutorialPageStay`, and `OnBeforeTutorialQuit` events.
+These events are superseded by the new `Showing`, `Shown`, `Staying` and `Tutorial.Quit` (added in 2.0.0-pre.5) events.
 - Tutorial logic: Tutorials are not shown as completed until the criteria of its last page are completed.
 - UI: Tutorial cards do not have completion markers unless progress tracking is enabled.
 - UI: Improved tutorial page's **Custom Callbacks** authoring view by making it more compact.

@@ -1,6 +1,6 @@
 ﻿# Tutorial Framework Documentation
 
-The purpose of this documentation is to provide additional details about the features of the Tutorial Framework. The following section used to be part of the IET Framework Documentation and may contain some outdated information.
+The purpose of this documentation is to provide additional details about the features of the Tutorial Framework.
 
 ## Editing narrative and instruction descriptions
 
@@ -32,18 +32,25 @@ To use rich text, include some of the tags below on either of the **Description*
 
 If you forget to e.g. close tags or have any parsing issues in your text content, the tutorial will display a <style>error {color:red} </style><error>PARSE ERROR</error>. To fix this, edit the content and make sure you have no unclosed tags, wrong tags or improper tag nesting. Please refer to HTML 4.0 documentation for additional information on how to apply HTML tags.
 
+## Tutorial media
+
+You can choose to show image or video at the top of a tutorial page by choosing an appropriate **Header Media Type**. The specifications and recommended properties for the media are:
+- tutorial page image/video: 300 x 150 (width x height)
+- welcome dialog image: 700 x 200
+- in your texture asset's Import Settings, make sure you have chosen **Editor GUI and Legacy GUI** as the **Texture Type**.
+- for video, WebM VP8 is recommended ([read more](https://docs.unity3d.com/Manual/VideoSources-FileCompatibility.html))
 
 ## Masking 
 
 We can mask and unmask any part of the Unity Editor to prevent unnecessary interactions. It's also a good way to teach users where certain actions take place.
 
-For each paragraph within a tutorial page, there's an **Enabled** checkbox, which means that masking can be done per paragraph. This is especially useful for multiple instructions within one tutorial page.  
+For each tutorial page, there's an **Enable Masking** checkbox.
 
 ![](images/index046.png)
 
-Tick the Enabled checkbox to enable the masking settings.  
+Tick the checkbox to enable the masking settings.  
 
-This will immediately mask out the entire Editor except for the Tutorial window. You can't click or interact with anything that's masked. Fortunately, the authoring tools provide a masking preview. Clicking the **Preview Masking** button within the Tutorials window will temporarily hide the masking settings: 
+This will immediately mask out the entire Editor except for the Tutorial window. You can't click or interact with anything that's masked. Fortunately, the authoring tools provide a masking preview toggle: click the **Preview Masking** button within the Tutorials window to either hide or preview the masking.: 
 
 ![](images/index047.png)
 
@@ -51,17 +58,19 @@ Now that you can interact with the rest of the Editor again, return to the newly
 
 ![](images/index048.png)
 
-The "+" button lets you add multiple windows you'd like to unmask. 
+The **Add** (**+**) button lets you add multiple windows you'd like to unmask. 
 
-Click the "+" and change the **Selector Type** to **Editor Window.** This will let you select a window type from a list of options. 
+Click the **Add** (**+**) button and change the **Selector Type** to **Editor Window.** This will let you select a window type from a list of options.
 
-In the now available **Editor Window Type** select **UnityEditor.ProjectBrowser.** This will add the Project Browser to the list of unmasked views. All windows within Unity can be found and accessed through this list. 
+In the now available **Editor Window Type** select **ProjectBrowser.** This will add the Project window to the list of unmasked views. All windows within Unity can be found and accessed through this list. 
 
-(If you click the Preview Masking button again now you will see that the Editor is masked except for the Project Browser)  
+Note: the names of the options displayed are simplified by default. You can change this settings from **Edit** > **Preferences** > **In-Editor Tutorials**.
+
+(If you click the Preview Masking button again now you will see that the Editor is masked except for the Project window)  
 
 You can also set the **Mask Type** to change the functionality of the masking. By default, **Fully Unmasked** means the user can interact freely within this window. Any functionality within a Fully Unmasked window will be accessible to the user. On the other hand, **Block Interactions** will make the window easier to look at, but prevent a user from interacting with it. 
 
-Keep in mind that you can unmask multiple windows in this way. The "+" lets you add other Editor windows or GUI views. 
+Keep in mind that you can unmask multiple windows in this way. The **Add** (**+**) button lets you add other Editor windows or GUI views. 
 
 The **GUI View selector type** changes the options available in View Type. It allows you to mask out specific controls in the upper toolbar of the Editor, e.g., to mask out everything aside from the Play button.
 
@@ -81,13 +90,13 @@ Note: this will work on whichever GameObject is currently active within the Insp
 
 ## Future Prefabs and Criteria 
 
-A good way to review many of the concepts within this guide is to create a "Future Prefab Instance". This is when the framework asks the user to spawn a prefab in the scene, and then modify values of said prefab within the scene. However, since the prefab doesn't exist in the scene until it's initialized, it requires some work, as follows.
+A good way to review many of the concepts within this guide is to create a "Future Prefab Instance". This is useful for tutorials that ask the user to spawn a prefab in the scene, and then modify values of said prefab within the scene. However, since the prefab doesn't exist in the scene until it's initialized, it requires some work, as follows.
 
-First, let's create a new Tutorial with at least two tutorial pages attached to it: 
+First, let's create a new scene and a new Tutorial with at least two **Narrative with Instructions** tutorial pages, and the scene, attached to it: 
 
 ![](images/index050.png)
 
-For this tutorial, you can use any script with any property. This example features a simple Cube Prefab with a Prefab script attached. The script only contains a public int called magicNumber.
+And assign it to the list of tutorials in the Tutorials file. For this tutorial, you can use any script with any property. This example features a simple Cube Prefab with a Prefab script attached. The script only contains a public int called magicNumber.
 
 ![](images/index051.png)
 
@@ -95,73 +104,60 @@ Make sure the prefab isn't currently spawned in the scene (you can have multiple
 
 ![](images/index052.png)
 
-You can include **Narrative Paragraphs** beforehand or afterwards. The criterion used is Unity.InteractiveTutorials.InstantiatePrefabCriterion. For the Prefab Parent, drag in the Prefab from the Project browser. Click the "+" next to "Future Prefab Instances: List is Empty". This will create a new slot: None (Object) 
+With the following masking settings:
 
 ![](images/index053.png)
 
-Now drag in the prefab from the Project browser into the Scene view.  
-
-From the Scene View, drag the instantiated prefab into this new empty Future Prefab Instance slot. Delete the spawned prefab from your scene and save the scene. You should now see a new child object appear in the tutorial page in the Project browser.  
-
-This whole process can be seen in the following gif: 
+The criterion used is Unity.InteractiveTutorials.InstantiatePrefabCriterion. For the Prefab Parent, drag in the Prefab from the Project window. Click the **Add** (**+**) button next to "Future Prefab Instances: List is Empty" twice. This will create two new slots: None (Object) 
 
 ![](images/index054.png)
 
-The newly created child of the tutorial page is the Future Prefab Instance reference. The name depends on where it was created (Paragraph 1, Criterion 1, 1: Prefab (GameObject). Depending on which paragraph, how many criteria, or what the object is, these might change. Avoid changing this name, to ensure that it works correctly. You will need to use this object in the next tutorial page.  
+Now select the prefab from the Project window.
+With the Prefab instance open in the Inspector, click on the lock in the upper right to lock the Inspector and make sure it won't change focus when you select another Asset or GameObject.
+
+Open another Inspector window, and select the asset representing the first Tutorial Page.
+From the Project window, drag the instantiated prefab into this first empty Future Prefab Instance slot.
+Then drag the **PrefabComponent** script from the Inspector to the second one and save the scene.
+
+![](images/index055.png)
+
+You should now see two new children object appear in the tutorial page in the Project window, the first one being the reference to the GameObject, the second being a reference to the Prefab script. 
+
+The newly created children of the tutorial page are the Future Prefab Instance's references. The names depends on where they were created (Paragraph 1, Criterion 1, 1: Prefab (GameObject). Depending on which paragraph, how many criteria, or what the object is, these might change. Avoid changing the names, to ensure that they work correctly. You will need to use these object in the next tutorial page.  
 
 In the 2nd tutorial page, let's add another instruction paragraph. We want the user to modify the magicNumber property on our prefab, so we'll add a PropertyModificationCriterion as criteria. Within this criteria are a couple of options we need to modify.  
 
 Firstly, the **Property Path** is the name of the property. In the current prefab, it's named "magicNumber". If the property is derived from a different script, you can still access it: Otherscript.magicNumber for instance (Tip: If you're ever unsure what the property path is - for internal properties for instance - you can set your Editor to Debug mode and alt-left click on the name of the property).
 
-![](images/index055.png)
+![](images/index056.png)
 
 Next, the **Target Value Mode** can either be set to **Target Value** or to **Different Than Initial**. This setting is fairly self-explanatory - if you want a user to set a property to a specific value, enter the desired value in the **Target Value** property. If you just want the user to change a property without anything specific in mind, set it to **Different Than Initial** and you can ignore the Target Value property below. Remember to set a Target Value if you're using Target Value in Target Value Mode. 
 
 In combination with that, you must set the **Target Value Type**. This denotes what type of property the user is changing. This has to be set correctly so make sure the type matches the property. In case of our magicNumber this would be an int, so set Target Value Type to integer.  
 
-Lastly and most importantly is the **Target**, where a reference needs to be set. Try to drag the criteria created earlier to the Target: 
-
-![](images/index056.png)
-
-Now, if you try to run through the two steps of the tutorial (with spawning a prefab in step 1 and changing the magic number to 50), you'll notice that it doesn't work and the checkbox isn't enabled.  
-
-This is an important lesson to learn, as the IET Framework relies on assigning the component as target rather than the GameObject. We need to set PrefabScript as a Future Prefab Instance and use the created criteria as as the Target instead. 
-
-Return to page one, FuturePrefab005.  
-
-In the Criteria section of our InstantiatePrefabCriterion, add another Future Prefab Instance by clicking the "+".
+Lastly and most importantly is the **Target**, where a reference needs to be set. Try to drag the component reference created earlier to the Target: 
 
 ![](images/index057.png)
 
-Drag the prefab from the Project browser into the empty Hierarchy. Now with the FuturePrefab005 tutorial page open in the Inspector, click on the lock in the upper right to lock the Inspector and make sure it won't change focus when you select another GameObject.  
+It is worth noting that for this type of Criteria, the IET Framework relies on assigning the component as target rather than the GameObject. If you simply assigned the GameObject, the system would not be able to detect changes on the **PrefabComponent** component.
 
-Now we'll need to open another Inspector window. Open one where your scene view is: 
+You can now close the second Inspector window we opened and unlock the original Inspector on the right.  
 
-![](images/index058.png)
-
-Now, select the prefab in the Hierarchy. You'll see all of its components on the left, with the FuturePrefab005 page at the right of the Inspector. We now need to drag the Prefab script (Script) component into the new Future Prefab Instance you created:
-
-![](images/index059.png)
-
-Delete the Prefab from the Hierarchy and save the scene. You can now close the second Inspector window we opened and unlock the original Inspector on the right.  
-
-As soon as you save the scene, you should see that there are now two criteria objects as children of the FuturePrefab005 Page in the Project browser. The first one being the reference to the GameObject, the second being a reference to the Prefab script. 
-
-Open up your FuturePrefab010 Page and assign the new PrefabScript criteria as the Target in our Instruction Paragraph.
-
-![](images/index060.png)
-
-Make sure your scene is saved. You can now click the "refresh" arrow in the upper right of the Tutorial window to restart the tutorial. This resets the tutorial progress, displays the first page, and reloads the scene.  
+Make sure your scene is saved. If you're running the tutorial, you can now click the "refresh" arrow in the upper right of the Tutorial window to restart the tutorial. This resets the tutorial progress, displays the first page, and reloads the scene.  
 
 If you go through the tutorial now, you'll be able to set the magicNumber to 50 and see that this results in successful completion of the task.  
 
 To finish, let's set up masking for this 2nd page so that it only lets the user edit the property. 
 
-Enable Masking on the second Tutorial page. Set **Selector Type** to Editor Window, **Editor Window Type** to UnityEditor.InspectorWindow, **Mask Type** to Fully Unmasked and **Mask Size Modifier** to No Modifications. We also need to add an "Unmasked Controls", so click the "+". 
+Enable Masking on the second Tutorial page. Set **Selector Type** to Editor Window, **Editor Window Type** to InspectorWindow, **Mask Type** to Fully Unmasked and **Mask Size Modifier** to No Modifications. We also need to add an "Unmasked Controls", so click the **Add** (**+**) button. 
 
 Within the Unmasked Controls, set **Selector Mode** to Property. The next step is to correctly set up the **Target Type**.  
 
+![](images/index058.png)
+
 The Target Type within this Unmasked Controls lists every single script that exists within Unity and any packages in your project. Your custom-created scripts should be towards the top of this list, unless you have Cinemachine installed, in which case they'll be below those. Note that your scripts don't include any inheritance - so your PrefabScript will be listed as just that, as opposed to other scripts which are listed as UnityEngine.Something.  Select the PrefabScript from this list of Target Types. Lastly, set the **Property Path** to magicNumber.  
+
+![](images/index059.png)
 
 Restart the Tutorial - but make sure you don't save! Saving the scene would mean that the tutorial would start with a Prefab already existing in the Hierarchy and therefore in the scene.
 
@@ -173,7 +169,7 @@ Remember that it's a best practice to have these two instructions on the same pa
 
 Here's a list of all other criteria with brief descriptions of what they do.  
 
-Remember to save the scene any time that you assign an object reference from the scene. This adds a hidden component to the scene that holds the reference required for this framework to work correctly.
+Remember to save the scene any time that you assign an object reference from the scene. This adds a hidden component ([SceneObjectGuid]) to the scene that holds the reference required for this framework to work correctly.
 
 **ActiveToolCriterion** 
 
@@ -205,7 +201,7 @@ As described above, you can check if a user has instantiated an object, and also
 
 **MaterialPropertyModifiedCriterion** 
 
-Assigns a Material in the Target Slot and sets Material Property Path to \_Color to check whether a user has changed the color of a material.
+Assigns a Material in the Target Slot and sets Material Property Path to "_Color" to check whether a user has changed the color of a material.
 
 **PlayModeStateCriterion** 
 
@@ -229,7 +225,7 @@ Target Value Type has to be set appropriately (Integer, Decimal, Text, Boolean o
 
 **RequiredSelectionCriterion** 
 
-Checks to ensure the user has selected the correct GameObject/asset. This can be an object in the Hierarchy or an asset from the Project browser. Especially helpful to appear ahead of ModifyProperty criteria, etc. 
+Checks to ensure the user has selected the correct GameObject/asset. This can be an object in the Hierarchy or an asset from the Project window. Especially helpful to appear ahead of ModifyProperty criteria, etc. 
 
 **SceneAddedToBuildCriterion** 
 
@@ -261,7 +257,7 @@ GUI Content allows you to enter a text, tooltip text, or image via reference. GU
 
 ![](images/index061.png)
 
-For example, in the above screenshot, "Build And Run" is entered in the "Text" property of the Unmasked Controls and everything aside from that button is masked out. This is contextual depending on which Editor window you have selected. You could use this to unmask specific Assets within the Project browser or GameObjects within the Hierarchy.
+For example, in the above screenshot, "Build And Run" is entered in the "Text" property of the Unmasked Controls and everything aside from that button is masked out. This is contextual depending on which Editor window you have selected. You could use this to unmask specific Assets within the Project window or GameObjects within the Hierarchy.
 
 **Named Control** 
 
@@ -292,7 +288,7 @@ This is any property existing within the Unity Editor or custom-created within a
 
 ## Tutorial Styles
 
-The Tutorial Styles asset can be created within the Project browser by right-clicking and going to **Create** > **Tutorials** > **Tutorial Styles**. This asset allows you to modify everything visual about the walkthrough:
+The Tutorial Styles asset can be created within the Project window by right-clicking and going to **Create** > **Tutorials** > **Tutorial Styles**. This asset allows you to modify everything visual about the walkthrough:
 
 ![](images/index062.png)
 
@@ -304,33 +300,27 @@ Tutorial Style Sheets can be used to fully customize the style of the Tutorials 
 
 ## Tutorial Project Settings
 
-Tutorial Project Settings is another asset that you can create within the Project browser, by right-clicking and going to **Create** > **Tutorials** > **Tutorial Project Settings**. The settings in this asset are automatically applied to the entire project as soon as this asset is created.
+Tutorial Project Settings is another asset that you can create within the Project window, by right-clicking and going to **Create** > **Tutorials** > **Tutorial Project Settings**. The settings in this asset are automatically applied to the entire project as soon as this asset is created.
 
 ![](images/index063.png)
 
 The settings allow you to modify the following:
 
-<!--TODO
 **Welcome Page**
 
-TODO
+If set, this page is shown in the welcome dialog when the project is started for the first time.
 
 **Initial Scene**
 
-TODO
+If set, this scene will be loaded when the project is started for the first time.
 
 **Initial Camera Settings**
 
-TODO
--->
+If enabled, allows for tweaking of the position/rotation of the camera of the Initial Scene
 
 **Restore Default Assets On Tutorial Reload** 
 
-When enabled, everything in Assets is copied into Tutorial Defaults, and upon the Tutorial being finished, it's copied back into Assets. This means that every asset will be reset upon the restart of the tutorial. With this option disabled, changes to assets will remain. If your project includes several tutorials that build upon each other, you should have this option disabled to prevent errors!
-
-**Startup Tutorial** 
-
-Selects which tutorial is loaded when the project is loaded. This means that if a tutorial is assigned as a reference here, whenever the user opens this project, it will automatically open with that tutorial, with all relevant styles and layout. However, if this is left blank, no tutorial will be loaded upon start, unless Use Legacy Startup Behavior is enabled.
+When enabled, everything in Assets is copied into Tutorial Defaults, and upon the Tutorial being finished, it's copied back into Assets. This means that every asset will be reset upon the restart of the tutorial, and that the size of your project will double. With this option disabled, changes to assets will remain. If your project has lot of large assets or includes several tutorials that build upon each other, you should have this option disabled to prevent errors!
 
 **Tutorial Style**
 
@@ -339,3 +329,5 @@ This is where you assign your Tutorial Styles asset. This changes the visuals of
 ## Tips
 
 To trigger the tutorial project initialization code, you can delete the `InitCodeMarker` file in the project's root and reopen the project. Also, you can create a folder in `Assets/DontRunInitCodeMarker` to prevent the initialization code from being run, if necessary.
+
+[SceneObjectGuid]: https://docs.unity3d.com/Packages/com.unity.learn.iet-framework@2.0/api/Unity.Tutorials.Core.SceneObjectGuid.html

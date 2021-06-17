@@ -45,8 +45,8 @@ namespace Unity.Tutorials.Core.Editor
 
         static readonly bool s_AuthoringMode = ProjectMode.IsAuthoringMode();
 
-        string m_NextButtonText = "";
-        string m_BackButtonText = "";
+        string m_NextButtonText;
+        string m_BackButtonText;
         string m_WindowTitleContent;
         string m_PromptOk;
         string m_MenuPathGuide;
@@ -107,13 +107,18 @@ namespace Unity.Tutorials.Core.Editor
             }
             set
             {
-                m_CurrentTutorial?.Modified?.RemoveListener(OnTutorialModified);
+                m_CurrentTutorial?.Modified?.RemoveListener(OnCurrentTutorialModified);
                 m_CurrentTutorial = value;
                 if (m_CurrentTutorial != null)
-                    m_CurrentTutorial.Modified.AddListener(OnTutorialModified);
+                    m_CurrentTutorial.Modified.AddListener(OnCurrentTutorialModified);
             }
         }
         Tutorial m_CurrentTutorial;
+
+        /// <summary>
+        /// Only true when assembly is about to be reloaded or reloading
+        /// </summary>
+        static bool s_IsAssemblyReloading;
 
         /// <summary>
         /// Creates the window if it does not exist, anchoring it as a tab next to the first found Inspector.
@@ -124,7 +129,7 @@ namespace Unity.Tutorials.Core.Editor
         /// This is the new and preferred way to show the Tutorials window.
         /// </remarks>
         /// <returns></returns>
-        internal static TutorialWindow CreateNextToInspector()
+        internal static TutorialWindow GetOrCreateWindowNextToInspector()
         {
             var inspectorWindow = Resources.FindObjectsOfTypeAll<EditorWindow>()
                 .FirstOrDefault(wnd => wnd.GetType().Name == "InspectorWindow");
@@ -154,7 +159,7 @@ namespace Unity.Tutorials.Core.Editor
         /// </remarks>
         /// <param name="container">The container used for the project layout setting.</param>
         /// <returns></returns>
-        internal static TutorialWindow CreateWindowAndLoadLayout(TutorialContainer container)
+        internal static TutorialWindow GetOrCreateWindowAndLoadLayout(TutorialContainer container)
         {
             var tutorialWindow = EditorWindowUtils.FindOpenInstance<TutorialWindow>();
             if (tutorialWindow != null)
@@ -180,6 +185,7 @@ namespace Unity.Tutorials.Core.Editor
         internal static TutorialWindow GetOrCreateWindow(Type windowToAnchorTo = null)
         {
             var window = GetWindow<TutorialWindow>(windowToAnchorTo);
+            // NOTE minSize has not effect on docked windows on 2021.2 and newer
             window.minSize = new Vector2(k_MinWidth, k_MinHeight);
             window.titleContent.text = Tr("Tutorials");
             return window;
@@ -188,14 +194,27 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Active container of which tutorials we are viewing.
         /// </summary>
-        /// <remarks>
-        /// </remarks>
         public TutorialContainer ActiveContainer
         {
             get { return m_ActiveContainer; }
             set
             {
+                m_VisibleContainers.ForEach(UnsubscribeFromContainer);
+                m_VisibleContainers.Clear();
+
                 m_ActiveContainer = value;
+
+                if (m_ActiveContainer)
+                {
+                    m_VisibleContainers.Add(ActiveContainer);
+                    m_ChildContainers = FindChildContainers(ActiveContainer).ToList();
+                    m_VisibleContainers.AddRange(m_ChildContainers);
+                }
+                else
+                {
+                    m_VisibleContainers.AddRange(m_TutorialProjects);
+                }
+
                 InitializeUI();
             }
         }
@@ -203,7 +222,7 @@ namespace Unity.Tutorials.Core.Editor
         TutorialContainer m_ActiveContainer;
 
         /// <summary>
-        /// Sets the containers, "tutorial projects", available for selection.
+        /// Sets the containers as available for selection as tutorial projects.
         /// </summary>
         /// <param name="containers">Container selection.</param>
         /// <remarks>
@@ -214,26 +233,33 @@ namespace Unity.Tutorials.Core.Editor
             ClearContainers();
             foreach(var container in containers)
             {
-                if (!m_Containers.Contains(container))
-                    m_Containers.Add(container);
+                if (!m_TutorialProjects.Contains(container))
+                    m_TutorialProjects.Add(container);
             }
         }
 
         /// <summary>
-        /// Clears any containers the window might be showing as available.
+        /// Clears any containers this window might be showing as available tutorial projects.
         /// </summary>
         /// <remarks>
         /// If we were viewing the container selection, the window is cleared.
         /// </remarks>
         public void ClearContainers()
         {
-            m_Containers.ForEach(UnsubscribeFromContainer);
-            m_Containers.Clear();
+            m_TutorialProjects.Clear();
             InitializeUI();
         }
 
+        // Root tutorial containers
         [SerializeField]
-        List<TutorialContainer> m_Containers = new List<TutorialContainer>();
+        List<TutorialContainer> m_TutorialProjects = new List<TutorialContainer>();
+
+        // All the containers of which data is visible in the window currently
+        [SerializeField]
+        List<TutorialContainer> m_VisibleContainers = new List<TutorialContainer>();
+        // Child containers of currently active container
+        [SerializeField]
+        List<TutorialContainer> m_ChildContainers = new List<TutorialContainer>();
 
         [SerializeField]
         Card[] m_Cards = { };
@@ -275,6 +301,30 @@ namespace Unity.Tutorials.Core.Editor
         double m_LastTimeSinceStartup = 0f;
         EditorCoroutine m_WaitForStylesRoutine;
 
+        /// <summary>
+        /// Makes sure we remove dead references to tutorial assets.
+        /// </summary>
+        void PruneDeadAssetReferences()
+        {
+            for (int i = 0; i < m_TutorialProjects.Count; ++i)
+            {
+                if (m_TutorialProjects[i] == null)
+                    m_TutorialProjects.RemoveAt(i);
+            }
+
+            for (int i = 0; i < m_VisibleContainers.Count; ++i)
+            {
+                if (m_VisibleContainers[i] == null)
+                    m_VisibleContainers.RemoveAt(i);
+            }
+
+            for (int i = 0; i < m_ChildContainers.Count; ++i)
+            {
+                if (m_ChildContainers[i] == null)
+                    m_ChildContainers.RemoveAt(i);
+            }
+        }
+
         void SubscribeToContainer(TutorialContainer container)
         {
             container.Modified.AddListener(OnTutorialContainerModified);
@@ -287,7 +337,20 @@ namespace Unity.Tutorials.Core.Editor
 
         void OnTutorialContainerModified(TutorialContainer container)
         {
-            Debug.Assert(m_Containers.Contains(container) || ActiveContainer == container);
+            Debug.Assert(m_VisibleContainers.Contains(container));
+
+            // We might have added a new category to the container, or removed  a category from the container.
+            // Make sure it's added immediately to the view.
+            if (container == m_ActiveContainer || m_ChildContainers.Contains(container))
+            {
+                m_ChildContainers = FindChildContainers(m_ActiveContainer).ToList();
+
+                m_VisibleContainers.ForEach(UnsubscribeFromContainer);
+                m_VisibleContainers.Clear();
+
+                m_VisibleContainers.Add(ActiveContainer);
+                m_VisibleContainers.AddRange(m_ChildContainers);
+            }
 
             if (currentTutorial == null)
                 InitializeUI();
@@ -513,26 +576,51 @@ namespace Unity.Tutorials.Core.Editor
 
         void CreateTutorialMenuCards(VisualTreeAsset vistree, VisualElement cardContainer)
         {
-            // If we have active container, use its sections, else we are viewing containers (or nothing).
-            m_Cards = ActiveContainer != null
-                ? ActiveContainer.Sections
-                    .OrderBy(section => section.OrderInView)
-                    .Select(section => section.IsTutorial
-                        ? (Card)new TutorialCard { Target = section }  // cast required to work around CS0173
-                        : (Card)new LinkCard { Target = section }
-                    )
-                    .ToArray()
-                : m_Containers
-                    .OrderBy(container => container.Title.Untranslated) // simply ordering containers alphabetically for now
+            foreach (var card in m_Cards.OfType<TutorialCard>())
+            {
+                card.Section.Tutorial?.Modified.RemoveListener(OnTutorialModified);
+            }
+
+            if (ActiveContainer == null) // viewing root container, i.e. tutorial project, selection, if any
+            {
+                m_Cards = m_TutorialProjects
+                    .OrderBy(container => container.OrderInView)
                     .Select(container => new ContainerCard { Target = container })
                     .ToArray();
+            }
+            else // viewing container's sections and potential child containers, i.e. tutorial categories, it might refer to
+            {
+                var sections = ActiveContainer.Sections
+                    .Select(section => new
+                    {
+                        Order = section.OrderInView,
+                        Card = section.IsTutorial
+                            ? new TutorialCard { Target = section }
+                            : (Card)new LinkCard { Target = section } // cast required to prevent CS0173
+                    });
 
-            if (m_Cards.OfType<TutorialCard>().Any(card => card.Section.Tutorial?.ProgressTrackingEnabled ?? false))
+                var categories = m_ChildContainers
+                    .Select(category => new
+                    {
+                        Order = category.OrderInView,
+                        Card = (Card)new ContainerCard { Target = category }
+                    });
+
+                // Combine in order
+                m_Cards = sections.Concat(categories)
+                    .OrderBy(oc => oc.Order)
+                    .Select(oc => oc.Card)
+                    .ToArray();
+            }
+
+            var tutorialCards = m_Cards.OfType<TutorialCard>().ToList();
+            tutorialCards.ForEach(card => card.Section.Tutorial?.Modified.AddListener(OnTutorialModified));
+            if (tutorialCards.Any(card => card.Section.Tutorial?.ProgressTrackingEnabled ?? false))
             {
                 // Viewing tutorials which at least some have progress tracking enabled: make sure to fetch the statuses.
-                // // For the time being, load the cached states so that for example a tutorial we just completed is shown
+                // For the time being, load the cached states so that for example a tutorial we just completed is shown
                 // as completed as the up-to-date information might not have arrived just yet from the backend.
-                ActiveContainer.Sections.ToList().ForEach(s => s.LoadState());
+                tutorialCards.ForEach(card => card.Section.LoadState());
                 FetchAllTutorialStates();
                 EditorCoroutineUtility.StartCoroutineOwnerless(UpdateCheckmarksWhenStatesFetched());
             }
@@ -550,8 +638,6 @@ namespace Unity.Tutorials.Core.Editor
 
                     case LinkCard linkCard:
                         card.Element = vistree.CloneTree().Q("TutorialsContainer").Q("LinkCardContainer");
-                        // Make sure link cards don't have completion markers
-                        UpdateCheckmark(linkCard);
                         card.Element.RegisterCallback((MouseUpEvent evt) => linkCard.Section.OpenUrl());
                         break;
 
@@ -571,6 +657,9 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
+        static IEnumerable<TutorialContainer> FindChildContainers(TutorialContainer container) =>
+            TutorialEditorUtils.FindAssets<TutorialContainer>().Where(c => c.ParentContainer == container);
+
         IEnumerator UpdateCheckmarksWhenStatesFetched()
         {
             while (!m_DoneFetchingTutorialStates)
@@ -584,11 +673,12 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
-        void UpdateCheckmark(SectionCard card)
+        void UpdateCheckmark(TutorialCard card)
         {
-            bool progresstracking = (card.Section.Tutorial != null && card.Section.Tutorial.ProgressTrackingEnabled);
-            card.Element.Q<Label>("CompletionStatus").text = (card.Section.TutorialCompleted && progresstracking) ? Tr("COMPLETED") : "";
-            UIElementsUtils.SetVisible(card.Element.Q("TutorialCheckmark"), progresstracking && card.Section.TutorialCompleted);
+            bool progressTracking = (card.Section.Tutorial != null && card.Section.Tutorial.ProgressTrackingEnabled);
+            bool completed = progressTracking && card.Section.TutorialCompleted;
+            card.Element.Q<Label>("CompletionStatus").text = completed ? Tr("COMPLETED") : "";
+            UIElementsUtils.SetVisible(card.Element.Q("TutorialCheckmark"), completed);
         }
 
         void RenderMediaIfPossible()
@@ -619,10 +709,23 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
+        void OnBeforeAssemblyReload ()
+        {
+            s_IsAssemblyReloading = true;
+        }
+
+        void OnAfterAssemblyReload()
+        {
+            s_IsAssemblyReloading = false;
+        }
+
         void OnEnable()
         {
+            PruneDeadAssetReferences();
+            AssemblyReloadEvents.beforeAssemblyReload += OnBeforeAssemblyReload;
+            AssemblyReloadEvents.afterAssemblyReload += OnAfterAssemblyReload;
             EditorCoroutineUtility.StartCoroutineOwnerless(DeferredOnEnable());
-            m_Containers.ForEach(SubscribeToContainer);
+            m_VisibleContainers.ForEach(SubscribeToContainer);
         }
 
         IEnumerator DeferredOnEnable()
@@ -689,6 +792,7 @@ namespace Unity.Tutorials.Core.Editor
             m_TabClosedDialogTitle = Tr("Close Tutorials");
             m_TabClosedDialogText = string.Format(Tr("You can find Tutorials later by choosing {0} in the top menu."), m_MenuPathGuide);
             m_SelectTutorialsText = Tr("Select Tutorials:");
+            m_BackButtonText = Tr("Back");
 
             rootVisualElement.Clear();
 
@@ -699,7 +803,7 @@ namespace Unity.Tutorials.Core.Editor
             var windowState = currentTutorial != null
                 ? State.TutorialInProgress
                 : (ActiveContainer != null ? State.TutorialSelection : State.ContainerSelection);
-            if (windowState == State.ContainerSelection && !m_Containers.Any())
+            if (windowState == State.ContainerSelection && !m_TutorialProjects.Any())
             {
                 // UI will be empty
                 return;
@@ -737,7 +841,6 @@ namespace Unity.Tutorials.Core.Editor
 
             TextElement titleElement = topBarVisElement.Q<TextElement>("TitleLabel");
             TextElement contextTextElement = topBarVisElement.Q<TextElement>("ContextLabel");
-
             UpdateHeader(contextTextElement, titleElement, topBarVisElement);
 
             var root = rootVisualElement;
@@ -745,6 +848,12 @@ namespace Unity.Tutorials.Core.Editor
             root.Add(videoBox);
             root.Add(topBarVisElement);
             root.Add(tutorialContents);
+
+            var backButton = rootVisualElement.Q("BackToContainers");
+            backButton.tooltip = Tr("Back to the previous view");
+            backButton.RegisterCallback<MouseUpEvent>(_ => GoBackInContainerHierachy());
+
+            tutorialTopBar.Q("Close").RegisterCallback<MouseUpEvent>(_ => ExitTutorial());
 
             Styles.ApplyThemeStyleSheetTo(root);
 
@@ -770,26 +879,28 @@ namespace Unity.Tutorials.Core.Editor
             SetWindowState(windowState);
         }
 
-        void OnCloseClicked(MouseUpEvent mouseup)
+        void GoBackInContainerHierachy()
         {
-            ExitTutorial();
-        }
-
-        void GoBackToContainerSelection()
-        {
-            ActiveContainer = null;
+            if (ActiveContainer && ActiveContainer.ParentContainer)
+                ActiveContainer = ActiveContainer.ParentContainer;
+            else
+                ActiveContainer = null;
         }
 
         void SetWindowState(State state)
         {
-            if (ActiveContainer)
-                UnsubscribeFromContainer(ActiveContainer);
-            m_Containers.ForEach(UnsubscribeFromContainer);
+            m_VisibleContainers.ForEach(UnsubscribeFromContainer);
+
+            // Possible to go back to the parent or back to the tutorial project selection?
+            // Note that when tutorial is in progress, a separate Close button acts as "Back" button.
+            var backButton = rootVisualElement.Q("BackToContainers");
+            bool canGoBack = (state == State.TutorialSelection &&
+                (ActiveContainer.ParentContainer != null || m_TutorialProjects.Contains(ActiveContainer)));
+            UIElementsUtils.SetVisible(backButton, canGoBack);
 
             if (state == State.ContainerSelection)
             {
-                // Viewing all containers: events of all containers are of interest
-                m_Containers.ForEach(SubscribeToContainer);
+                m_VisibleContainers.ForEach(SubscribeToContainer);
 
                 HideElement("TitleHeader");
                 HideElement("TutorialActions");
@@ -800,18 +911,8 @@ namespace Unity.Tutorials.Core.Editor
             }
             else if (state == State.TutorialSelection)
             {
-                Debug.Assert(ActiveContainer != null);
-                // Viewing a single containers: only its events are of interest
-                SubscribeToContainer(ActiveContainer);
+                m_VisibleContainers.ForEach(SubscribeToContainer);
 
-                var backButton = rootVisualElement.Q("BackToContainers");
-                bool hasMultipleContainers = m_Containers.Count() > 1;
-                if (hasMultipleContainers)
-                {
-                    backButton.tooltip = Tr("Back to the tutorial project selection");
-                    backButton.RegisterCallback<MouseUpEvent>(_ => GoBackToContainerSelection());
-                }
-                UIElementsUtils.SetVisible(backButton, hasMultipleContainers);
                 ShowElement("TitleHeader");
                 HideElement("TutorialActions");
                 HideElement("Header");
@@ -826,9 +927,7 @@ namespace Unity.Tutorials.Core.Editor
 
                 HideElement("TitleHeader");
                 ShowElement("TutorialActions");
-                VisualElement headerElement = rootVisualElement.Q("Header");
-                UIElementsUtils.Show(headerElement);
-                headerElement.Q("Close").RegisterCallback<MouseUpEvent>(OnCloseClicked);
+                ShowElement("Header");
                 HideElement("TutorialEmptyContents");
                 ShowElement("TutorialContainer");
                 HideElement("SelectTutorialsContainer");
@@ -844,19 +943,22 @@ namespace Unity.Tutorials.Core.Editor
             // Make sure the proper exit procedures are executed if user closes the window while
             // running tutorials; typically the user does not close the window, only exists tutorials
             // by clicking X or Done buttons.
-            if (currentTutorial && !TutorialManager.Instance.IsTransitioningBetweenTutorials)
+            if (currentTutorial && !TutorialManager.Instance.IsTransitioningBetweenTutorials && !s_IsAssemblyReloading)
                 ExitTutorial();
         }
 
         void OnDisable()
         {
+            AssemblyReloadEvents.beforeAssemblyReload -= OnBeforeAssemblyReload;
+            AssemblyReloadEvents.afterAssemblyReload -= OnAfterAssemblyReload;
+
             if (m_WaitForStylesRoutine != null)
             {
                 EditorCoroutineUtility.StopCoroutine(m_WaitForStylesRoutine);
                 m_WaitForStylesRoutine = null;
             }
 
-            if (!m_PlayModeChanging)
+            if (!m_PlayModeChanging && !s_IsAssemblyReloading && currentTutorial != null)
             {
                 AnalyticsHelper.TutorialEnded(TutorialConclusion.Quit);
             }
@@ -873,7 +975,7 @@ namespace Unity.Tutorials.Core.Editor
             TutorialPage.TutorialPageNonMaskingSettingsChanged.RemoveListener(OnTutorialPageNonMaskingSettingsChanged);
             GUIViewProxy.PositionChanged -= OnGUIViewPositionChanged;
             HostViewProxy.actualViewChanged -= OnHostViewActualViewChanged;
-            m_Containers.ForEach(UnsubscribeFromContainer);
+            m_VisibleContainers.ForEach(UnsubscribeFromContainer);
 
             VideoPlaybackManager.OnDisable();
 
@@ -993,7 +1095,7 @@ namespace Unity.Tutorials.Core.Editor
 
             currentTutorial.RaiseQuit();
             if (!currentTutorial.IsCompleted)
-                currentTutorial.CurrentPage.RaiseOnBeforeQuitTutorial();
+                currentTutorial.CurrentPage.RaiseOnBeforeTutorialQuit();
 
             SetTutorial(null);
             if (!TutorialManager.Instance.IsTransitioningBetweenTutorials)
@@ -1002,6 +1104,7 @@ namespace Unity.Tutorials.Core.Editor
             // If auto-docking mechanism is used, the recreation of TutorialWindow is not triggered as is done
             // with layout loading mechanism.
             InitializeUI();
+            AnalyticsHelper.TutorialEnded(TutorialConclusion.Quit);
         }
 
         void OnTutorialInitiated(Tutorial sender)
@@ -1083,7 +1186,6 @@ namespace Unity.Tutorials.Core.Editor
                     ? currentTutorial.CurrentPage.DoneButton
                     : currentTutorial.CurrentPage.NextButton;
             }
-            m_BackButtonText = IsFirstPage() ? Tr("All Tutorials") : Tr("Back");
 
             m_Paragraphs = GetCurrentParagraph();
 
@@ -1125,7 +1227,7 @@ namespace Unity.Tutorials.Core.Editor
         {
             tutorial.Initiated.RemoveListener(OnTutorialInitiated);
             tutorial.Completed.RemoveListener(OnTutorialCompleted);
-            tutorial.PageInitiated.RemoveListener(OnShowPage);
+            tutorial.PageInitiated.RemoveListener(OnPageInitiated);
         }
 
         internal void SetTutorial(Tutorial tutorial)
@@ -1160,7 +1262,7 @@ namespace Unity.Tutorials.Core.Editor
 
             currentTutorial.Initiated.AddListener(OnTutorialInitiated);
             currentTutorial.Completed.AddListener(OnTutorialCompleted);
-            currentTutorial.PageInitiated.AddListener(OnShowPage);
+            currentTutorial.PageInitiated.AddListener(OnPageInitiated);
 
             if (m_AllParagraphs.Any())
             {
@@ -1296,14 +1398,23 @@ namespace Unity.Tutorials.Core.Editor
             EditorGUILayout.EndHorizontal();
         }
 
-        void OnTutorialModified(Tutorial sender)
+        void OnCurrentTutorialModified(Tutorial sender)
         {
-            if (currentTutorial == null || currentTutorial != sender) { return; }
+            Debug.Assert(sender == currentTutorial);
 
             CreateTutorialViews();
             ShowCurrentTutorialContent();
 
             ApplyMaskingSettings(true);
+        }
+
+        void OnTutorialModified(Tutorial sender)
+        {
+            // Make sure completion markers are shown accordingly in case ProgressTrackingEnabled was changed.
+            m_Cards.OfType<TutorialCard>()
+                .Where(card => card.Section.Tutorial == sender)
+                .ToList()
+                .ForEach(card => UpdateCheckmark(card));
         }
 
         void OnTutorialPageMaskingSettingsChanged(TutorialPage sender)
@@ -1320,9 +1431,15 @@ namespace Unity.Tutorials.Core.Editor
             ShowCurrentTutorialContent();
         }
 
-        void OnShowPage(Tutorial sender, TutorialPage page, int index)
+        /// <summary>
+        /// Shows page's content after the page is initiated.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="page"></param>
+        /// <param name="index"></param>
+        void OnPageInitiated(Tutorial sender, TutorialPage page, int index)
         {
-            page.RaiseOnBeforePageShown();
+            page.RaiseShowing();
             m_FarthestPageCompleted = Mathf.Max(m_FarthestPageCompleted, index - 1);
             ApplyMaskingSettings(true);
 
@@ -1330,7 +1447,10 @@ namespace Unity.Tutorials.Core.Editor
             PrepareNewPage();
 
             VideoPlaybackManager.ClearCache();
-            page.RaiseOnAfterPageShown();
+            // TODO We raise Shown event before the actual content is shown:
+            // PrepareNewPage() calls DelayedShowCurrentTutorialContent() which is causes at least one-frame delay
+            // before ShowCurrentTutorialContent() is executed for real.
+            page.RaiseShown();
         }
 
         void OnGUIViewPositionChanged(UnityObject sender)
@@ -1469,7 +1589,7 @@ namespace Unity.Tutorials.Core.Editor
             m_BlinkTick += m_EditorDeltaTime;
             m_CheckLanguageTick += m_EditorDeltaTime;
 
-            currentTutorial?.CurrentPage?.RaiseOnTutorialPageStay();
+            currentTutorial?.CurrentPage?.RaiseStaying();
 
             if (m_BlinkTick >= 1f)
             {
@@ -1535,7 +1655,9 @@ namespace Unity.Tutorials.Core.Editor
 
             // NOTE Could consider caching Sections by Lesson Id but as we have only
             // have very few of them doesn't really matter too much for now.
-            m_Containers
+            m_TutorialProjects
+                .Concat(new [] { ActiveContainer })
+                .Distinct()
                 .SelectMany(container => container.Sections)
                 .Where(section => section.TutorialId == lessonId)
                 .ToList()

@@ -91,8 +91,15 @@ namespace Unity.Tutorials.Core.Editor
             if (!string.IsNullOrEmpty(m_WarningMessage))
                 EditorGUILayout.HelpBox(m_WarningMessage, MessageType.Warning);
 
-            DrawPropertiesExcluding(serializedObject, k_PropsToIgnore);
-            serializedObject.ApplyModifiedProperties();
+            if (SerializedTypeDrawer.UseDefaultEditors)
+            {
+                base.OnInspectorGUI();
+            }
+            else
+            {
+                DrawPropertiesExcluding(serializedObject, k_PropsToIgnore);
+                serializedObject.ApplyModifiedProperties();
+            }
 
             // Auto completion
             GUILayout.Label(Contents.autoCompletion, EditorStyles.boldLabel);

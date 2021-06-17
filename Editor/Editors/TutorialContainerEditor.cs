@@ -6,7 +6,6 @@ namespace Unity.Tutorials.Core.Editor
     [CustomEditor(typeof(TutorialContainer))]
     class TutorialContainerEditor : UnityEditor.Editor
     {
-        static readonly bool k_IsAuthoringMode = ProjectMode.IsAuthoringMode();
         readonly string[] k_PropertiesToHide =
         {
             "m_Script",
@@ -35,6 +34,10 @@ namespace Unity.Tutorials.Core.Editor
         UndoPropertyModification[] OnPostprocessModifications(UndoPropertyModification[] modifications)
         {
             Target.RaiseModified();
+            // If this container is parented, we consider modifications to 'this'
+            // container also to be modifications of the parent.
+            if (Target.ParentContainer != null)
+                Target.ParentContainer.RaiseModified();
             return modifications;
         }
 
@@ -44,15 +47,20 @@ namespace Unity.Tutorials.Core.Editor
             {
                 // Make sure we will display 'this' container in the window.
                 var window = Target.ProjectLayout != null
-                    ? TutorialWindow.CreateWindowAndLoadLayout(Target)
-                    : TutorialWindow.CreateNextToInspector();
+                    ? TutorialWindow.GetOrCreateWindowAndLoadLayout(Target)
+                    : TutorialWindow.GetOrCreateWindowNextToInspector();
 
                 window.ActiveContainer = Target;
             }
 
-            if (k_IsAuthoringMode)
+            EditorGUILayout.Space(10);
+
+            if (SerializedTypeDrawer.UseDefaultEditors)
             {
-                EditorGUILayout.Space(10);
+                base.OnInspectorGUI();
+            }
+            else
+            {
                 DrawPropertiesExcluding(serializedObject, k_PropertiesToHide);
                 serializedObject.ApplyModifiedProperties();
             }

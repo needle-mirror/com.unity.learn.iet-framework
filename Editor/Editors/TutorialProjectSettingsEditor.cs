@@ -18,8 +18,16 @@ namespace Unity.Tutorials.Core.Editor
             }
 
             EditorGUILayout.Space(10);
-            DrawPropertiesExcluding(serializedObject, k_PropertiesToHide);
-            serializedObject.ApplyModifiedProperties();
+
+            if (SerializedTypeDrawer.UseDefaultEditors)
+            {
+                base.OnInspectorGUI();
+            }
+            else
+            {
+                DrawPropertiesExcluding(serializedObject, k_PropertiesToHide);
+                serializedObject.ApplyModifiedProperties();
+            }
         }
     }
 }

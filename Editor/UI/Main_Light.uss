@@ -59,7 +59,6 @@
     white-space: normal;
     font-size: 12px;
     color: rgba(255, 255, 255, 0.9);
-    flex-grow: 1;
     margin-top: 9px;
 }
 
@@ -177,6 +176,7 @@
     border-bottom-right-radius: 3px;
     border-bottom-left-radius: 3px;
     border-width: 1px;
+    min-width: 270px;
 }
 
 .card--tutorial-group {

@@ -90,6 +90,7 @@ namespace Unity.Tutorials.Core.Editor
         VideoClip m_Video;
 
         [SerializeField]
+        [Tooltip("The state in which the criteria of the page are be considered as completed")]
         internal CompletionType m_CriteriaCompletion = CompletionType.CompletedWhenAllAreTrue;
 
         [SerializeField] internal TypedCriterionCollection m_Criteria = new TypedCriterionCollection();
