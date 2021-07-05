@@ -376,7 +376,10 @@ namespace Unity.Tutorials.Core.Editor
             }
             CurrentPageIndex = 0;
             Skipped = false;
+        }
 
+        internal void Initiate()
+        {
             LoadScene();
             RaiseTutorialInitiated();
             if (PageCount > 0)

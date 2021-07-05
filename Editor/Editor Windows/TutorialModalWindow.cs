@@ -22,11 +22,11 @@ namespace Unity.Tutorials.Core.Editor
             set
             {
                 if (m_WelcomePage)
-                    m_WelcomePage.Modified -= OnWelcomePageModified;
+                    m_WelcomePage.Modified.RemoveListener(OnWelcomePageModified);
 
                 m_WelcomePage = value;
                 if (m_WelcomePage)
-                    m_WelcomePage.Modified += OnWelcomePageModified;
+                    m_WelcomePage.Modified.AddListener(OnWelcomePageModified);
             }
         }
         [SerializeField]
@@ -187,7 +187,7 @@ namespace Unity.Tutorials.Core.Editor
             MaskingEnabled = false;
         }
 
-        void OnWelcomePageModified()
+        void OnWelcomePageModified(TutorialWelcomePage sender)
         {
             s_IsBeingModified = true;
 

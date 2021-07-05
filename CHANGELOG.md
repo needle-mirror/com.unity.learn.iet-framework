@@ -4,6 +4,18 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2021-07-05
+### Added
+- Added setters for `TutorialWelcomePage` class's properties.
+
+### Changed
+- **Breaking change**: Changed `TutorialWelcomePage` class's events to use `UnityEvent` class instead of the standard C# `event` implementation.
+- UI: Disabled horizontal scrollbars in the **Tutorials** windows altogether.
+
+### Fixed
+- Fixed masking and highlighting on Unity 2021.2.0b.
+- Fixed occasionally appearing half-window-sized vertical scrollbar in **Tutorials** windows on Unity 2021.2.
+
 ## [2.0.0-pre.6] - 2021-06-17
 ### Added
 - Added support for tutorial categories by making it possible for `TutorialContainer` assets to refer to each other.
@@ -29,6 +41,7 @@ These events are superseded by the new `Showing`, `Shown`, `Staying` and `Tutori
 
 ### Fixed
 - Fixed tutorial cards to immediately reflect to changes of tutorial's **Progress Tracking Enabled** field.
+- UI: Fixed disappearing back-arrow when having too much text in the tutorial container header.
 
 ## [2.0.0-pre.5] - 2021-05-18
 ### Added

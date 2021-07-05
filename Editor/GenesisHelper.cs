@@ -73,17 +73,9 @@ namespace Unity.Tutorials.Core.Editor
             {
                 return;
             }
-            GetTutorial(lessonId, (list) =>
-            {
-                var lesson = list.FirstOrDefault(s => s.lessonId == lessonId);
-                if (lesson == null || lesson.status != TutorialProgressStatus.Status.Finished.ToString())
-                {
-                    // We only set the status to Finished if:
-                    // there was no entry (which should not happen)
-                    // the current status is Started
-                    LogTutorialStatusUpdate(lessonId, TutorialProgressStatus.Status.Finished.ToString());
-                }
-            });
+            // Always set the status to Finished: if we just began a tutorial and completed it very fast
+            // we might not have received the up-to-date (Started) state from the backend if querying it here.
+            LogTutorialStatusUpdate(lessonId, TutorialProgressStatus.Status.Finished.ToString());
         }
 
         private static bool IsLessonIdValid(string lessonId)

@@ -9,6 +9,7 @@ namespace Unity.Tutorials.Core.Editor
 {
     // Handle difference in UIElements/UIToolkit APIs between different Unity versions.
     // Initialize on load to surface potential reflection issues immediately.
+    // TODO unit tests for these would be good to have
     [InitializeOnLoad]
     internal static class UIElementsHelper
     {
@@ -16,19 +17,28 @@ namespace Unity.Tutorials.Core.Editor
 
         static UIElementsHelper()
         {
-            s_VisualTreeProperty = GetProperty<GUIView>("visualTree", typeof(VisualElement))
-                ?? GetProperty<GUIView>("visualTree", typeof(VisualElement))
-#if UNITY_2020_1_OR_NEWER
-                ?? GetProperty<IWindowBackend>("visualTree", typeof(object))
+#if UNITY_2021_2_OR_NEWER
+            // Somewhere between 2021.2.0a and 2021.2.0b the internals changed.
+            // Make sure to get the type from UnityEditor assemblies, not from UnityEngine.
+            var uiElementsModule = typeof(UnityEditor.UIElements.ColorField).Assembly;
+            // DefaultWindowBackend is a private class so cannot access the type directly.
+            var defaultWindowBackendType = uiElementsModule.GetType("UnityEditor.UIElements.DefaultWindowBackend");
+            s_VisualTreeProperty = GetProperty(defaultWindowBackendType, "visualTree", typeof(object));
 #endif
-                ;
+#if UNITY_2020_1_OR_NEWER
+            // We might end up here on 2021.2.0a
+            s_VisualTreeProperty = s_VisualTreeProperty ?? GetProperty<IWindowBackend>("visualTree", typeof(object));
+#else
+            s_VisualTreeProperty = GetProperty<GUIView>("visualTree", typeof(VisualElement))
+                ?? GetProperty<GUIView>("visualTree", typeof(VisualElement));
+#endif
             if (s_VisualTreeProperty == null)
                 Debug.LogError("Cannot find property GUIView/IWindowBackend.visualTree");
         }
 
-        static PropertyInfo GetProperty<T>(string name, Type returnType)
+        static PropertyInfo GetProperty(Type type, string name, Type returnType)
         {
-            return typeof(T).GetProperty(
+            return type.GetProperty(
                 name,
                 BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance,
                 null,
@@ -37,6 +47,9 @@ namespace Unity.Tutorials.Core.Editor
                 null
             );
         }
+
+        static PropertyInfo GetProperty<T>(string name, Type returnType) =>
+            GetProperty(typeof(T), name, returnType);
 
         public static void Add(GUIViewProxy view, VisualElement child)
         {

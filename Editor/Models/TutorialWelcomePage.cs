@@ -7,10 +7,21 @@ using UnityEngine.Events;
 namespace Unity.Tutorials.Core.Editor
 {
     /// <summary>
+    /// A generic event for signaling changes in a tutorial welcome page.
+    /// Parameters: sender.
+    /// </summary>
+    [Serializable]
+    public class TutorialWelcomePageEvent : UnityEvent<TutorialWelcomePage>
+    {
+    }
+
+    /// <summary>
     /// Welcome page/dialog for a project shown using TutorialModalWindow.
+    /// </summary>
+    /// <remarks>
     /// In addition of window title, header image, title, and description,
     /// a welcome page/dialog contains a fully customizable button row.
-    /// </summary>
+    /// </remarks>
     public class TutorialWelcomePage : ScriptableObject
     {
         /// <summary>
@@ -39,47 +50,47 @@ namespace Unity.Tutorials.Core.Editor
         /// <remarks>
         /// Raised before Modified event.
         /// </remarks>
-        public static event Action<TutorialWelcomePage> TutorialWelcomePageModified;  // TODO 2.0 merge the two Modified events?
+        public static TutorialWelcomePageEvent TutorialWelcomePageModified = new TutorialWelcomePageEvent();
 
         /// <summary>
         /// Raised when any field of the welcome page is modified.
         /// </summary>
-        public event Action Modified;
+        public TutorialWelcomePageEvent Modified;
 
         /// <summary>
         /// Header image of the welcome dialog.
         /// </summary>
-        public Texture2D Image => m_Image;
+        public Texture2D Image { get => m_Image; set => m_Image = value; }
         [SerializeField]
-        Texture2D m_Image = default;
+        Texture2D m_Image;
 
         /// <summary>
         /// Window title of the welcome dialog.
         /// </summary>
-        public LocalizableString WindowTitle => m_WindowTitle;
+        public LocalizableString WindowTitle { get => m_WindowTitle; set => m_WindowTitle = value; }
         [SerializeField]
-        internal LocalizableString m_WindowTitle = default;
+        internal LocalizableString m_WindowTitle;
 
         /// <summary>
         /// Title of the welcome dialog.
         /// </summary>
-        public LocalizableString Title => m_Title;
+        public LocalizableString Title { get => m_Title; set => m_Title = value; }
         [SerializeField]
-        internal LocalizableString m_Title = default;
+        internal LocalizableString m_Title;
 
         /// <summary>
         /// Description of the welcome dialog.
         /// </summary>
-        public LocalizableString Description => m_Description;
+        public LocalizableString Description { get => m_Description; set => m_Description = value; }
         [SerializeField, LocalizableTextArea(1, 10)]
         internal LocalizableString m_Description;
 
         /// <summary>
         /// Buttons specified for the welcome page.
         /// </summary>
-        public ButtonData[] Buttons => m_Buttons;
+        public ButtonData[] Buttons { get => m_Buttons; set => m_Buttons = value; }
         [SerializeField]
-        internal ButtonData[] m_Buttons = default;
+        internal ButtonData[] m_Buttons;
 
         /// <summary>
         /// Raises the Modified events for this asset.
@@ -87,7 +98,7 @@ namespace Unity.Tutorials.Core.Editor
         public void RaiseModified()
         {
             TutorialWelcomePageModified?.Invoke(this);
-            Modified?.Invoke();
+            Modified?.Invoke(this);
         }
 
         /// <summary>

@@ -870,7 +870,7 @@ namespace Unity.Tutorials.Core.Editor
             HostViewProxy.actualViewChanged += OnHostViewActualViewChanged;
 
             root.Add(footerBar);
-            SetUpTutorial();
+            SetUpTutorial(currentTutorial);
 
             MaskingEnabled = true;
 
@@ -970,6 +970,7 @@ namespace Unity.Tutorials.Core.Editor
                 ClearTutorialListener(currentTutorial);
                 currentTutorial.StopTutorial();
             }
+
             TutorialPage.CriteriaCompletionStateTested.RemoveListener(OnTutorialPageCriteriaCompletionStateTested);
             TutorialPage.TutorialPageMaskingSettingsChanged.RemoveListener(OnTutorialPageMaskingSettingsChanged);
             TutorialPage.TutorialPageNonMaskingSettingsChanged.RemoveListener(OnTutorialPageNonMaskingSettingsChanged);
@@ -1234,35 +1235,40 @@ namespace Unity.Tutorials.Core.Editor
         {
             if (currentTutorial)
             {
-                currentTutorial.StopTutorial();
                 ClearTutorialListener(currentTutorial);
+                currentTutorial.StopTutorial();
+                currentTutorial.ResetProgress();
             }
 
             TutorialManager.Instance.IsTransitioningBetweenTutorials = false;
             currentTutorial = tutorial;
-            // "set up" before resetting: resetting raises event we are interested in
-            SetUpTutorial();
             if (currentTutorial)
-                currentTutorial.ResetProgress();
+            {
+                SetUpTutorial(currentTutorial);
+                tutorial.ResetProgress();
+                tutorial.Initiate(); // raises both Initiated and PageInitiated
+            }
 
             ApplyMaskingSettings(currentTutorial != null);
         }
 
-        void SetUpTutorial()
+        /// <summary>
+        /// Sets up but does not initiate the tutorial, initiates only the page.
+        /// </summary>
+        /// <param name="tutorial"></param>
+        void SetUpTutorial(Tutorial tutorial)
         {
             // bail out if this instance no longer exists such as when e.g., loading a new window layout
-            if (this == null || currentTutorial == null || currentTutorial.CurrentPage == null) { return; }
+            if (this == null || tutorial  == null || tutorial.CurrentPage == null)
+                return;
 
-            if (currentTutorial.CurrentPage != null)
-            {
-                currentTutorial.CurrentPage.Initiate();
-            }
+            tutorial.CurrentPage.Initiate();
 
-            ClearTutorialListener(currentTutorial);
+            ClearTutorialListener(tutorial);
 
-            currentTutorial.Initiated.AddListener(OnTutorialInitiated);
-            currentTutorial.Completed.AddListener(OnTutorialCompleted);
-            currentTutorial.PageInitiated.AddListener(OnPageInitiated);
+            tutorial.Initiated.AddListener(OnTutorialInitiated);
+            tutorial.Completed.AddListener(OnTutorialCompleted);
+            tutorial.PageInitiated.AddListener(OnPageInitiated);
 
             if (m_AllParagraphs.Any())
             {
@@ -1455,7 +1461,8 @@ namespace Unity.Tutorials.Core.Editor
 
         void OnGUIViewPositionChanged(UnityObject sender)
         {
-            if (TutorialManager.IsLoadingLayout || sender.GetType().Name == "TooltipView") { return; }
+            if (currentTutorial == null || TutorialManager.IsLoadingLayout || sender.GetType() == GUIViewProxy.TooltipViewType)
+                return;
 
             ApplyMaskingSettings(true);
         }
@@ -1657,6 +1664,7 @@ namespace Unity.Tutorials.Core.Editor
             // have very few of them doesn't really matter too much for now.
             m_TutorialProjects
                 .Concat(new [] { ActiveContainer })
+                .Where(container => container != null)
                 .Distinct()
                 .SelectMany(container => container.Sections)
                 .Where(section => section.TutorialId == lessonId)

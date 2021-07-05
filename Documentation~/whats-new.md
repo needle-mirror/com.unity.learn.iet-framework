@@ -33,13 +33,13 @@ These events are superseded by the new `Showing`, `Shown`, `Staying` and `Tutori
 - UI: Cleaned up and restructured the **Tutorials** menu, authoring-related items can be now found under the **Tutorials** > **Authoring** submenu.
 - UI: Changed authoring toolbar's buttons to use icons instead of text labels.
 - Scripting API: Made `TutorialManager` part of the public API of the package.
-- Breaking change: All public APIs reviewed; many APIs made internal and some new public APIs added.
-- Breaking change: All public APIs are now PascalCase instead a mix of camelCase and PascalCase.
-- Breaking change: `Unity.InteractiveTutorials` namespace rename to `Unity.Tutorials.Core(.Editor)`.
-- Breaking change: `Unity.InteractiveTutorials.Core` assembly renamed to to `Unity.Tutorials.Core.Editor`.
-- Breaking change: `Unity.InteractiveTutorials.Core.Scripts` assembly renamed to to `Unity.Tutorials.Core`.
-- Breaking change: `TutorialContainer`'s `ProjectName` renamed to `Title`, old `Title` renamed to `Subtitle`.
-- Breaking change: Renamed `SceneObjectGUIDComponent` to `SceneObjectGuid` and `SceneObjectGUIDManager` to `SceneObjectGuidManager`.
+- **Breaking change**: All public APIs reviewed; many APIs made internal and some new public APIs added.
+- **Breaking change**: All public APIs are now PascalCase instead a mix of camelCase and PascalCase.
+- **Breaking change**: `Unity.InteractiveTutorials` namespace rename to `Unity.Tutorials.Core(.Editor)`.
+- **Breaking change**: `Unity.InteractiveTutorials.Core` assembly renamed to to `Unity.Tutorials.Core.Editor`.
+- **Breaking change**: `Unity.InteractiveTutorials.Core.Scripts` assembly renamed to to `Unity.Tutorials.Core`.
+- **Breaking change**: `TutorialContainer`'s `ProjectName` renamed to `Title`, old `Title` renamed to `Subtitle`.
+- **Breaking change**: Renamed `SceneObjectGUIDComponent` to `SceneObjectGuid` and `SceneObjectGUIDManager` to `SceneObjectGuidManager`.
 - **Breaking change**: Changed tutorial assets' events to use the `UnityEvent` class instead of the standard C# `event` implementation. 
 - UX: Show a warning in the Console if the user is not signed in.
 - UX: **Show Tutorials** menu item simply focuses **Tutorials** window in all cases, also when a tutorial is in progress.
@@ -52,7 +52,7 @@ These events are superseded by the new `Showing`, `Shown`, `Staying` and `Tutori
 - **Breaking change**: Removed `Tutorial.TutorialPagesModified` event and `RaiseTutorialPagesModified` function, superseded by the `Modified` event.
 - **Breaking change**: Removed `Tutorial.SkipTutorialBehavior`.
 - **Breaking change**: Removed `TutorialProjectSettings.StartupTutorial`. This functionality can be now implemented by using `TutorialManager.StartTutorial()` if wanted.
-- Breaking change: Removed `TriggerTaskCriterion`, `*CollisionBroadcaster*`, `IPlayerAvatar`, and `SelectionRoot` classes.
+- **Breaking change**: Removed `TriggerTaskCriterion`, `*CollisionBroadcaster*`, `IPlayerAvatar`, and `SelectionRoot` classes.
 - Dependencies: Removed Physics and Physics2D dependencies from the package.
 
 ### Fixed

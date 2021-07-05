@@ -110,9 +110,10 @@
     background-image: url('Images/Icons/Back.png');
     width: 24px;
     height: 24px;
-    margin-left: 0px;
+    margin-left: 5px;
     margin-top: 5px;
     opacity: 0.6;
+    position: absolute;
 }
 
 .image--back:hover {
@@ -142,6 +143,10 @@
 
 .scrollview--tutorial-list .unity-scroll-view__content-viewport {
     width: 100%;
+}
+
+.scrollview--tutorial-list {
+    flex-grow: 1;
 }
 
 .container--select-tutorials{
