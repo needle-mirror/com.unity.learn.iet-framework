@@ -16,7 +16,7 @@ namespace Unity.Tutorials.Core.Editor
             return Type.GetType(
                 "Unity.Tutorials.Authoring.Editor.TutorialExporterWindow, " +
                 "Unity.Tutorials.Authoring.Editor, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"
-            ) != null;
+                ) != null;
         }
     }
 }

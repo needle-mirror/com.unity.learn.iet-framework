@@ -173,7 +173,8 @@ namespace Unity.Tutorials.Core.Editor
             do
             {
                 yield return null;
-            } while (criterionProperty.objectReferenceValue != criterion);
+            }
+            while (criterionProperty.objectReferenceValue != criterion);
 
             //this seems to be necessary in order to prevent errors when multiple criteria are on the same tutorial page
             m_InspectorRedrawn = false;
@@ -181,7 +182,8 @@ namespace Unity.Tutorials.Core.Editor
             do
             {
                 yield return null;
-            } while (!m_InspectorRedrawn);
+            }
+            while (!m_InspectorRedrawn);
 
             AssetDatabase.ImportAsset(parentAssetPath);
         }

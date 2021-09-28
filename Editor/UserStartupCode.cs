@@ -36,7 +36,7 @@ namespace Unity.Tutorials.Core.Editor
                 projectSettings.InitialCameraSettings.Apply();
 
             if (projectSettings.WelcomePage)
-                TutorialModalWindow.TryToShow(projectSettings.WelcomePage, () => {});
+                TutorialModalWindow.Show(projectSettings.WelcomePage);
         }
 
         /// <summary>
@@ -78,7 +78,7 @@ namespace Unity.Tutorials.Core.Editor
 
             // If we have more than one root container, we show a selection view. Exactly one (or zero) container
             // is set active immediately without possibility to return to the the selection view.
-            if (rootContainers.Count() > 1 )
+            if (rootContainers.Count() > 1)
                 window.SetContainers(rootContainers);
             else
                 window.ActiveContainer = defaultContainer;

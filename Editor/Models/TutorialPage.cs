@@ -85,7 +85,8 @@ namespace Unity.Tutorials.Core.Editor
                 MaskingSettings result = null;
                 for (int i = 0, count = m_Paragraphs.Count; i < count; ++i)
                 {
-                    if (!m_Paragraphs[i].MaskingSettings.Enabled) { continue; }
+                    if (!m_Paragraphs[i].MaskingSettings.Enabled)
+                        continue;
 
                     result = m_Paragraphs[i].MaskingSettings;
                     if (!m_Paragraphs[i].Completed)
@@ -245,6 +246,12 @@ namespace Unity.Tutorials.Core.Editor
 
         void OnValidate()
         {
+            foreach (var paragraph in Paragraphs)
+            {
+                paragraph.Text = POFileUtils.SanitizeString(paragraph.Text);
+                paragraph.Title = POFileUtils.SanitizeString(paragraph.Title);
+            }
+
             // Defer synchronization of sub-assets to next editor update due to AssetDatabase interactions
 
             // Retaining a reference to this instance in OnValidate/OnEnable can cause issues on project load
@@ -566,7 +573,7 @@ namespace Unity.Tutorials.Core.Editor
             }
 
             srcCalls.ClearArray();
- 
+
             so.ApplyModifiedProperties();
 
             string GetValidFieldName(in string name)

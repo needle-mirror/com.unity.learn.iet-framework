@@ -9,12 +9,15 @@ namespace Unity.Tutorials.Core.Editor
 
         public override void OnInspectorGUI()
         {
+            TutorialProjectSettings.DrawDefaultAssetRestoreWarning();
+
             if (SerializedTypeDrawer.UseDefaultEditors)
             {
                 base.OnInspectorGUI();
             }
             else
             {
+                serializedObject.Update();
                 DrawPropertiesExcluding(serializedObject, k_PropertiesToHide);
                 serializedObject.ApplyModifiedProperties();
             }

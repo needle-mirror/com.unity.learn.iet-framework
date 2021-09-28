@@ -162,3 +162,14 @@ msgstr ""
 
 msgid "View the tutorial asset contents using default editor views instead of custom editors"
 msgstr ""
+
+msgid "Pick Visual Element"
+msgstr ""
+
+msgid "Pick the wanted visual element by clicking it. Press Esc key to cancel picking."
+msgstr ""
+
+msgid ""
+"TutorialProjectSettings.RestoreDefaultAssetsOnTutorialReload is enabled and "
+"Tutorial Authoring Tools are not present: the project's content might be overwritten."
+msgstr ""

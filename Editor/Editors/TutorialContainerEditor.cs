@@ -9,7 +9,7 @@ namespace Unity.Tutorials.Core.Editor
         readonly string[] k_PropertiesToHide =
         {
             "m_Script",
-             nameof(TutorialContainer.Modified) // this is not not something tutorial authors should subscribe to typically
+            nameof(TutorialContainer.Modified)  // this is not not something tutorial authors should subscribe to typically
         };
 
         TutorialContainer Target => (TutorialContainer)target;
@@ -43,6 +43,8 @@ namespace Unity.Tutorials.Core.Editor
 
         public override void OnInspectorGUI()
         {
+            TutorialProjectSettings.DrawDefaultAssetRestoreWarning();
+
             if (GUILayout.Button(Localization.Tr(MenuItems.ShowTutorials)))
             {
                 // Make sure we will display 'this' container in the window.
@@ -61,6 +63,7 @@ namespace Unity.Tutorials.Core.Editor
             }
             else
             {
+                serializedObject.Update();
                 DrawPropertiesExcluding(serializedObject, k_PropertiesToHide);
                 serializedObject.ApplyModifiedProperties();
             }

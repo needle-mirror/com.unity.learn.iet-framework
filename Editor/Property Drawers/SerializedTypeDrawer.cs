@@ -57,23 +57,22 @@ namespace Unity.Tutorials.Core.Editor
             return EditorGUIUtility.singleLineHeight;
         }
 
-
 #if UNITY_2019
         /*
          * This implementation of OnGUI differs from the other one by the fact that this uses Unity's built-in EditorGUI.Popup,
-         * which has limited functionalities but has no serialization issues in 2019. The other version of OnGUI ("modern one") uses a custom, 
+         * which has limited functionalities but has no serialization issues in 2019. The other version of OnGUI ("modern one") uses a custom,
          * searchable Popup with improved UX but OnGUI changes detections problem that only appear in Unity 2019.
-         * 
+         *
          * The reason behind this are that:
-         * 1. SearchablePopup seems to not trigger any EditorGUI.changed event when an option is selected, 
+         * 1. SearchablePopup seems to not trigger any EditorGUI.changed event when an option is selected,
          * menaning that EditorGUI.EndChangeCheck() will return false, but only in Unity 2019.
          * The OnItemSeleted callback works like a charm and the property value is correctly edited.
-         * 
+         *
          * 2. The use of DropdownButton() in the modern one seems to not make EditorGUI.EndChangeCheck() work, but only in Unity 2019.
-         * Removing SearchablePopup.Show and changing the call to DropdownButton with GUI.Button(position, buttonText) will 
+         * Removing SearchablePopup.Show and changing the call to DropdownButton with GUI.Button(position, buttonText) will
          * have the curious effect of criteria changes being ignored once or twice before they are applied. (you'll need to invoke
          * onItemSelected manually to see this)
-         * 
+         *
          * My assumption is that there's either a bug in 2019.X that has been fixed in 2020.X and prevents these features from working,
          * or the opposite.
          */
@@ -114,6 +113,7 @@ namespace Unity.Tutorials.Core.Editor
 
             EditorGUI.EndProperty();
         }
+
 #else
         public override void OnGUI(SerializedTypeDrawerData data, Rect position, SerializedProperty property, GUIContent label)
         {
@@ -167,7 +167,7 @@ namespace Unity.Tutorials.Core.Editor
 
             if (data.HasChanged)
             {
-                /* HACK: removing those EndChangeCheck() will make ImGUI unable to detect changes in the SerializedTypes 
+                /* HACK: removing those EndChangeCheck() will make ImGUI unable to detect changes in the SerializedTypes
                  * edited through the popup. There's probably something internal happening here, as
                  * in the rest of the code there seems to already be an EndChangeCheck() for each BeginChangeCheck */
                 EditorGUI.EndChangeCheck();
@@ -180,6 +180,7 @@ namespace Unity.Tutorials.Core.Editor
 
             EditorGUI.EndProperty();
         }
+
 #endif
 
         void OnItemSelected(int indexInOptions, Rect position, Options options, SerializedProperty property, SerializedProperty typeNameProperty)
@@ -314,14 +315,20 @@ namespace Unity.Tutorials.Core.Editor
             var allowedTypes = new HashSet<Type>();
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
-                if (assembly == null) { continue; }
+                if (assembly == null)
+                    continue;
 
                 try
                 {
                     foreach (var type in assembly.GetTypes())
                     {
-                        if (!baseType.IsAssignableFrom(type)) { continue; }
-                        if (ignoreAbstractTypes && type.GetTypeInfo().IsAbstract) { /*Debug.LogFormat("Ignoring type: {0}", type);*/ continue; }
+                        if (!baseType.IsAssignableFrom(type))
+                            continue;
+                        if (ignoreAbstractTypes && type.GetTypeInfo().IsAbstract)
+                        {
+                            /*Debug.LogFormat("Ignoring type: {0}", type);*/
+                            continue;
+                        }
 
                         allowedTypes.Add(type);
                     }
@@ -387,8 +394,8 @@ namespace Unity.Tutorials.Core.Editor
         protected void SetDataForProperty(SerializedProperty property, TData data)
         {
             var propertyKey = GetPropertyId(property);
-            if (!m_PropertyData.ContainsKey(propertyKey)) { return; }
-            m_PropertyData[propertyKey] = data;
+            if (m_PropertyData.ContainsKey(propertyKey))
+                m_PropertyData[propertyKey] = data;
         }
 
         static string GetPropertyId(SerializedProperty property)

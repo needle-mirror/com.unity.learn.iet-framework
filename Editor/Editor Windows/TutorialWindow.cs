@@ -11,11 +11,10 @@ using Unity.EditorCoroutines.Editor;
 using UnityObject = UnityEngine.Object;
 using static Unity.Tutorials.Core.Editor.RichTextParser;
 using UnityEditor.SceneManagement;
+using static Unity.Tutorials.Core.Editor.Localization;
 
 namespace Unity.Tutorials.Core.Editor
 {
-    using static Localization;
-
     /// <summary>
     /// The window used to display all tutorial content.
     /// </summary>
@@ -43,7 +42,8 @@ namespace Unity.Tutorials.Core.Editor
         [SerializeField]
         List<TutorialParagraph> m_AllParagraphs = new List<TutorialParagraph>();
 
-        static readonly bool s_AuthoringMode = ProjectMode.IsAuthoringMode();
+        internal static readonly bool k_AuthoringMode = ProjectMode.IsAuthoringMode();
+        internal const float k_AuthoringButtonWidth = 30f;
 
         string m_NextButtonText;
         string m_BackButtonText;
@@ -107,10 +107,13 @@ namespace Unity.Tutorials.Core.Editor
             }
             set
             {
-                m_CurrentTutorial?.Modified?.RemoveListener(OnCurrentTutorialModified);
-                m_CurrentTutorial = value;
                 if (m_CurrentTutorial != null)
-                    m_CurrentTutorial.Modified.AddListener(OnCurrentTutorialModified);
+                    UnsubscribeFromModifications(m_CurrentTutorial);
+
+                m_CurrentTutorial = value;
+
+                if (m_CurrentTutorial != null)
+                    SubscribeToModifications(m_CurrentTutorial);
             }
         }
         Tutorial m_CurrentTutorial;
@@ -199,7 +202,7 @@ namespace Unity.Tutorials.Core.Editor
             get { return m_ActiveContainer; }
             set
             {
-                m_VisibleContainers.ForEach(UnsubscribeFromContainer);
+                m_VisibleContainers.ForEach(UnsubscribeFromModifications);
                 m_VisibleContainers.Clear();
 
                 m_ActiveContainer = value;
@@ -231,7 +234,7 @@ namespace Unity.Tutorials.Core.Editor
         public void SetContainers(IEnumerable<TutorialContainer> containers)
         {
             ClearContainers();
-            foreach(var container in containers)
+            foreach (var container in containers)
             {
                 if (!m_TutorialProjects.Contains(container))
                     m_TutorialProjects.Add(container);
@@ -262,7 +265,7 @@ namespace Unity.Tutorials.Core.Editor
         List<TutorialContainer> m_ChildContainers = new List<TutorialContainer>();
 
         [SerializeField]
-        Card[] m_Cards = { };
+        Card[] m_Cards = {};
 
         bool CanMoveToNextPage =>
             currentTutorial != null && currentTutorial.CurrentPage != null &&
@@ -273,7 +276,7 @@ namespace Unity.Tutorials.Core.Editor
         {
             get
             {
-                return MaskingManager.MaskingEnabled && (m_MaskingEnabled || !s_AuthoringMode);
+                return MaskingManager.MaskingEnabled && (m_MaskingEnabled || !k_AuthoringMode);
             }
             set { m_MaskingEnabled = value; }
         }
@@ -325,14 +328,24 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
-        void SubscribeToContainer(TutorialContainer container)
+        void SubscribeToModifications(Tutorial asset)
         {
-            container.Modified.AddListener(OnTutorialContainerModified);
+            asset.Modified.AddListener(OnCurrentTutorialModified);
         }
 
-        void UnsubscribeFromContainer(TutorialContainer container)
+        void SubscribeToModifications(TutorialContainer asset)
         {
-            container.Modified.RemoveListener(OnTutorialContainerModified);
+            asset.Modified.AddListener(OnTutorialContainerModified);
+        }
+
+        void UnsubscribeFromModifications(Tutorial asset)
+        {
+            asset.Modified.RemoveListener(OnCurrentTutorialModified);
+        }
+
+        void UnsubscribeFromModifications(TutorialContainer asset)
+        {
+            asset.Modified.RemoveListener(OnTutorialContainerModified);
         }
 
         void OnTutorialContainerModified(TutorialContainer container)
@@ -345,7 +358,7 @@ namespace Unity.Tutorials.Core.Editor
             {
                 m_ChildContainers = FindChildContainers(m_ActiveContainer).ToList();
 
-                m_VisibleContainers.ForEach(UnsubscribeFromContainer);
+                m_VisibleContainers.ForEach(UnsubscribeFromModifications);
                 m_VisibleContainers.Clear();
 
                 m_VisibleContainers.Add(ActiveContainer);
@@ -523,7 +536,9 @@ namespace Unity.Tutorials.Core.Editor
         {
             Debug.Assert(currentTutorial);
             // It's possible to end up here while having an empty window (unit tests for example), abort in that case.
-            if (rootVisualElement.childCount == 0)
+            // Authoring toolbar is an IMGUIContainer and it will appear the first child element always in authoring mode.
+            // so at least 2 elements are required for the window to have actual content.
+            if (rootVisualElement.childCount < 2)
                 return;
 
             rootVisualElement.Q<Label>("HeaderLabel").text = currentTutorial.TutorialTitle;
@@ -596,15 +611,15 @@ namespace Unity.Tutorials.Core.Editor
                         Order = section.OrderInView,
                         Card = section.IsTutorial
                             ? new TutorialCard { Target = section }
-                            : (Card)new LinkCard { Target = section } // cast required to prevent CS0173
+                        : (Card) new LinkCard { Target = section }    // cast required to prevent CS0173
                     });
 
                 var categories = m_ChildContainers
                     .Select(category => new
-                    {
-                        Order = category.OrderInView,
-                        Card = (Card)new ContainerCard { Target = category }
-                    });
+                {
+                    Order = category.OrderInView,
+                    Card = (Card) new ContainerCard { Target = category }
+                });
 
                 // Combine in order
                 m_Cards = sections.Concat(categories)
@@ -685,9 +700,8 @@ namespace Unity.Tutorials.Core.Editor
         {
             // Possible media is always at the first paragraph.
             var paragraph = currentTutorial?.CurrentPage?.Paragraphs.FirstOrDefault();
-
             if (paragraph == null)
-            { return; }
+                return;
 
             switch (paragraph.Type)
             {
@@ -709,7 +723,7 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
-        void OnBeforeAssemblyReload ()
+        void OnBeforeAssemblyReload()
         {
             s_IsAssemblyReloading = true;
         }
@@ -725,7 +739,9 @@ namespace Unity.Tutorials.Core.Editor
             AssemblyReloadEvents.beforeAssemblyReload += OnBeforeAssemblyReload;
             AssemblyReloadEvents.afterAssemblyReload += OnAfterAssemblyReload;
             EditorCoroutineUtility.StartCoroutineOwnerless(DeferredOnEnable());
-            m_VisibleContainers.ForEach(SubscribeToContainer);
+            if (currentTutorial)
+                SubscribeToModifications(currentTutorial);
+            m_VisibleContainers.ForEach(SubscribeToModifications);
         }
 
         IEnumerator DeferredOnEnable()
@@ -762,7 +778,8 @@ namespace Unity.Tutorials.Core.Editor
                 yield return new EditorWaitForSeconds(0.1f);
                 //note: the type of style is meaningless. What we want to check is if they can be loaded or not.
                 darkStyle = UIElementsUtils.LoadUIAsset<StyleSheet>("Main_Dark.uss");
-            } while (!darkStyle);
+            }
+            while (!darkStyle);
 
             m_WaitForStylesRoutine = null;
         }
@@ -797,7 +814,7 @@ namespace Unity.Tutorials.Core.Editor
             rootVisualElement.Clear();
 
             // Draw authoring toolbar always in authoring mode
-            if (s_AuthoringMode)
+            if (k_AuthoringMode)
                 rootVisualElement.Add(new IMGUIContainer(DrawAuthoringToolbar));
 
             var windowState = currentTutorial != null
@@ -889,7 +906,7 @@ namespace Unity.Tutorials.Core.Editor
 
         void SetWindowState(State state)
         {
-            m_VisibleContainers.ForEach(UnsubscribeFromContainer);
+            m_VisibleContainers.ForEach(UnsubscribeFromModifications);
 
             // Possible to go back to the parent or back to the tutorial project selection?
             // Note that when tutorial is in progress, a separate Close button acts as "Back" button.
@@ -900,7 +917,7 @@ namespace Unity.Tutorials.Core.Editor
 
             if (state == State.ContainerSelection)
             {
-                m_VisibleContainers.ForEach(SubscribeToContainer);
+                m_VisibleContainers.ForEach(SubscribeToModifications);
 
                 HideElement("TitleHeader");
                 HideElement("TutorialActions");
@@ -911,7 +928,7 @@ namespace Unity.Tutorials.Core.Editor
             }
             else if (state == State.TutorialSelection)
             {
-                m_VisibleContainers.ForEach(SubscribeToContainer);
+                m_VisibleContainers.ForEach(SubscribeToModifications);
 
                 ShowElement("TitleHeader");
                 HideElement("TutorialActions");
@@ -967,6 +984,7 @@ namespace Unity.Tutorials.Core.Editor
 
             if (currentTutorial)
             {
+                UnsubscribeFromModifications(currentTutorial);
                 ClearTutorialListener(currentTutorial);
                 currentTutorial.StopTutorial();
             }
@@ -976,7 +994,7 @@ namespace Unity.Tutorials.Core.Editor
             TutorialPage.TutorialPageNonMaskingSettingsChanged.RemoveListener(OnTutorialPageNonMaskingSettingsChanged);
             GUIViewProxy.PositionChanged -= OnGUIViewPositionChanged;
             HostViewProxy.actualViewChanged -= OnHostViewActualViewChanged;
-            m_VisibleContainers.ForEach(UnsubscribeFromContainer);
+            m_VisibleContainers.ForEach(UnsubscribeFromModifications);
 
             VideoPlaybackManager.OnDisable();
 
@@ -1009,7 +1027,8 @@ namespace Unity.Tutorials.Core.Editor
         // TODO Review the need for this. Remember to take  welcome dialog's masking into account.
         void OnHostViewActualViewChanged()
         {
-            if (TutorialManager.IsLoadingLayout) { return; }
+            if (TutorialManager.IsLoadingLayout)
+                return;
             // do not mask immediately in case unmasked GUIView doesn't exist yet
             // TODO disabled for now in order to get Welcome dialog masking working
             //QueueMaskUpdate();
@@ -1023,7 +1042,8 @@ namespace Unity.Tutorials.Core.Editor
 
         void OnTutorialPageCriteriaCompletionStateTested(TutorialPage sender)
         {
-            if (currentTutorial == null || currentTutorial.CurrentPage != sender) { return; }
+            if (currentTutorial == null || currentTutorial.CurrentPage != sender)
+                return;
 
             if (sender.AreAllCriteriaSatisfied && sender.AutoAdvanceOnComplete && !sender.HasMovedToNextPage)
             {
@@ -1080,7 +1100,7 @@ namespace Unity.Tutorials.Core.Editor
             if (EditorApplication.isPlaying)
             {
                 /* Note: this requires a frame anyway, so the save dialog won't show
-                 * if we want to support the save dialog even in that case, then we should use "ExitTutorialAndPlaymode" coroutine 
+                 * if we want to support the save dialog even in that case, then we should use "ExitTutorialAndPlaymode" coroutine
                  * instead of directly calling this method.
                  * However, using that coroutine breaks the tutorial switching system due to race conditions.
                  * I'm leaving both that routine and this comment here so we know what to do in the future.
@@ -1110,7 +1130,8 @@ namespace Unity.Tutorials.Core.Editor
 
         void OnTutorialInitiated(Tutorial sender)
         {
-            if (!currentTutorial) { return; }
+            if (!currentTutorial)
+                return;
 
             AnalyticsHelper.TutorialStarted(currentTutorial);
             if (currentTutorial.ProgressTrackingEnabled)
@@ -1280,7 +1301,8 @@ namespace Unity.Tutorials.Core.Editor
 
         void ApplyQueuedMask()
         {
-            if (IsParentNull()) { return; }
+            if (IsParentNull())
+                return;
 
             EditorApplication.update -= ApplyQueuedMask;
             ApplyMaskingSettings(true);
@@ -1339,14 +1361,6 @@ namespace Unity.Tutorials.Core.Editor
 
         void DrawAuthoringToolbar()
         {
-            const float buttonWidth = 30f;
-
-            GUIContent IconContent(string iconName, string tooltip) =>
-                EditorGUIUtility.IconContent(iconName, "|" + tooltip); // "|" needed for text to appear as tooltip
-
-            bool Button(string iconName, string tooltip) =>
-                GUILayout.Button(IconContent(iconName, tooltip), EditorStyles.toolbarButton, GUILayout.Width(buttonWidth));
-
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar, GUILayout.ExpandWidth(true));
 
             using (new EditorGUI.DisabledScope(ActiveContainer == null))
@@ -1386,7 +1400,7 @@ namespace Unity.Tutorials.Core.Editor
                 EditorGUI.BeginChangeCheck();
                 MaskingEnabled = GUILayout.Toggle(
                     MaskingEnabled, IconContent("Mask Icon", Tr("Preview Masking")),
-                    EditorStyles.toolbarButton, GUILayout.Width(buttonWidth)
+                    EditorStyles.toolbarButton, GUILayout.Width(k_AuthoringButtonWidth)
                 );
                 if (EditorGUI.EndChangeCheck())
                 {
@@ -1403,6 +1417,12 @@ namespace Unity.Tutorials.Core.Editor
 
             EditorGUILayout.EndHorizontal();
         }
+
+        internal static GUIContent IconContent(string iconName, string tooltip) =>
+            EditorGUIUtility.IconContent(iconName, "|" + tooltip); // "|" needed for text to appear as tooltip
+
+        internal static bool Button(string iconName, string tooltip) =>
+            GUILayout.Button(IconContent(iconName, tooltip), EditorStyles.toolbarButton, GUILayout.Width(k_AuthoringButtonWidth));
 
         void OnCurrentTutorialModified(Tutorial sender)
         {
@@ -1425,14 +1445,16 @@ namespace Unity.Tutorials.Core.Editor
 
         void OnTutorialPageMaskingSettingsChanged(TutorialPage sender)
         {
-            if (currentTutorial == null || currentTutorial.CurrentPage != sender) { return; }
+            if (currentTutorial == null || currentTutorial.CurrentPage != sender)
+                return;
 
             ApplyMaskingSettings(true);
         }
 
         void OnTutorialPageNonMaskingSettingsChanged(TutorialPage sender)
         {
-            if (currentTutorial == null || currentTutorial.CurrentPage != sender) { return; }
+            if (currentTutorial == null || currentTutorial.CurrentPage != sender)
+                return;
 
             ShowCurrentTutorialContent();
         }
@@ -1541,7 +1563,7 @@ namespace Unity.Tutorials.Core.Editor
             }
             catch (ArgumentException e)
             {
-                if (s_AuthoringMode)
+                if (k_AuthoringMode)
                     Debug.LogException(e, currentTutorial.CurrentPage);
                 else
                     Console.WriteLine(StackTraceUtility.ExtractStringFromException(e));
@@ -1663,7 +1685,7 @@ namespace Unity.Tutorials.Core.Editor
             // NOTE Could consider caching Sections by Lesson Id but as we have only
             // have very few of them doesn't really matter too much for now.
             m_TutorialProjects
-                .Concat(new [] { ActiveContainer })
+                .Concat(new[] { ActiveContainer })
                 .Where(container => container != null)
                 .Distinct()
                 .SelectMany(container => container.Sections)

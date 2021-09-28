@@ -53,7 +53,9 @@ namespace Unity.Tutorials.Core.Editor
             SerializedProperty persistentCalls = eventProperty.FindPropertyRelative("m_PersistentCalls.m_Calls");
             for (int i = 0; i < persistentCalls.arraySize; i++)
             {
-                if (persistentCalls.GetArrayElementAtIndex(i).FindPropertyRelative("m_CallState").intValue == (int)state) { continue; }
+                if (persistentCalls.GetArrayElementAtIndex(i).FindPropertyRelative("m_CallState").intValue == (int)state)
+                    continue;
+
                 return true;
             }
             return false;
@@ -80,7 +82,9 @@ namespace Unity.Tutorials.Core.Editor
         /// <param name="url"></param>
         public static void OpenUrl(string url)
         {
-            if (string.IsNullOrEmpty(url)) { return; }
+            if (string.IsNullOrEmpty(url))
+                return;
+
             string urlWithoutHttpPrefix = RemoveHttpProtocolPrefix(url);
             if (IsUnityUrlRequiringAuthentication(urlWithoutHttpPrefix) && UnityConnectProxy.loggedIn)
             {

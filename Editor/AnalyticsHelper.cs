@@ -249,7 +249,8 @@ namespace Unity.Tutorials.Core.Editor
                 }
             }
 
-            if (Instance.currentPageIndex <= Instance.lastPageIndex) { return; }
+            if (Instance.currentPageIndex <= Instance.lastPageIndex)
+                return;
 
             Instance.lastPageIndex = Instance.currentPageIndex;
             Instance.lastPage = Instance.currentPage;

@@ -19,7 +19,7 @@ namespace Unity.Tutorials.Core.Editor
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-             GetListWidget(property, label).DoList(position);
+            GetListWidget(property, label).DoList(position);
         }
 
         protected virtual void OnReorderableListCreated(ReorderableList list)

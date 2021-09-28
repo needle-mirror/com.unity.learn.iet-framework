@@ -39,7 +39,7 @@ namespace Unity.Tutorials.Core.Editor
     /// - the page we were on before beginning to go back
     /// </summary>
     [Serializable]
-    public class GoingBackEvent : UnityEvent <Tutorial, TutorialPage>
+    public class GoingBackEvent : UnityEvent<Tutorial, TutorialPage>
     {
     }
 
@@ -53,11 +53,9 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         [Header("Content")]
         public LocalizableString TutorialTitle;
-        [SerializeField, HideInInspector]
-        string m_TutorialTitle;
 
         /// <summary>
-        /// Enables progress tracking and completion checkmarks for this tutorial. 
+        /// Enables progress tracking and completion checkmarks for this tutorial.
         /// </summary>
         public bool ProgressTrackingEnabled { get => m_ProgressTrackingEnabled; set => m_ProgressTrackingEnabled = value; }
         [SerializeField]
@@ -69,60 +67,9 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         public string LessonId { get => m_LessonId; set => m_LessonId = value; }
         [SerializeField]
-        string m_LessonId = "";
+        internal string m_LessonId = "";
         // Cache previous value in order to be restore it if tracking is toggled during the session
         string m_PreviousLessonId;
-
-        void ClearLessonId()
-        {
-            m_PreviousLessonId = LessonId;
-            LessonId = string.Empty;
-        }
-
-        void GenerateNewLessonId()
-        {
-            m_PreviousLessonId = LessonId;
-            LessonId = Guid.NewGuid().ToString();
-        }
-
-        void RestorePreviousLessonId()
-        {
-            LessonId = m_PreviousLessonId;
-        }
-
-        void OnValidate()
-        {
-            if (!ProgressTrackingEnabled && LessonId.IsNotNullOrWhiteSpace())
-            {
-                ClearLessonId();
-            }
-            
-            if (ProgressTrackingEnabled && LessonId.IsNullOrWhiteSpace())
-            {
-                if (m_PreviousLessonId.IsNullOrWhiteSpace())
-                {
-                    // Progress Tracking is enabled for the first time
-                    GenerateNewLessonId();
-                }
-                else
-                {
-                    RestorePreviousLessonId();
-                }
-            }
-
-            // Prevent duplicate lesson IDs
-            if (ProgressTrackingEnabled &&
-                TutorialEditorUtils.FindAssets<Tutorial>().Except(new[] { this }).Any(tutorial => tutorial.LessonId == LessonId))
-            {
-                string oldGuid = LessonId;
-                LessonId = Guid.NewGuid().ToString();
-                m_PreviousLessonId = LessonId; // prevent triggering the asset migration code in OnAfterDeserialize()
-                EditorUtility.SetDirty(this);
-                AssetDatabase.SaveAssets();
-                AssetDatabase.Refresh();
-                Debug.Log($"Duplicate LessonId '{oldGuid}' within the project, generated a new one '{LessonId}'.");
-            }
-        }
 
         /// <summary>
         /// Tutorial version, arbitrary string, typically integers are used.
@@ -131,11 +78,48 @@ namespace Unity.Tutorials.Core.Editor
         [SerializeField]
         string m_Version = "0";
 
-        [Header("Scene Data")]
-        [Tooltip("A scene that is loaded for the tutorial. If None, a new scene will be created for the tutorial.")]
-        [SerializeField]
-        internal SceneAsset m_Scene = default;
+        /// <summary>
+        /// Scene management behavior at the start of a tutorial.
+        /// </summary>
+        public enum SceneManagementBehaviorType
+        {
+            /// <summary>
+            /// Create a new scene with default game objects (a light and camera) in the scene.
+            /// </summary>
+            CreateNewScene,
+            /// <summary>
+            /// Do nothing, use the currently active scene(s).
+            /// </summary>
+            UseActiveScene
+        }
 
+        /// <summary>
+        /// Scene management behavior at the start of a tutorial.
+        /// </summary>
+        /// <remarks>
+        /// Applicable when no Scenes are specified.
+        /// </remarks>
+        public SceneManagementBehaviorType SceneManagementBehavior { get => m_SceneManagementBehavior; set => m_SceneManagementBehavior = value; }
+        [Header("Scene Management")]
+        [Tooltip("Applicable when no Scenes are specified.")]
+        [SerializeField]
+        internal SceneManagementBehaviorType m_SceneManagementBehavior;
+
+        /// <summary>
+        /// Scenes to be loaded when the tutorial starts, if any.
+        /// </summary>
+        /// <remarks>
+        /// The first scene is the main scene, the rest are loaded as additive scenes.
+        /// </remarks>
+        public SceneAsset[] Scenes { get => m_Scenes; set => m_Scenes = value; }
+        [Tooltip("The first scene is the main scene, the rest are loaded as additive scenes.")]
+        [SerializeField]
+        internal SceneAsset[] m_Scenes = default;
+
+        /// <summary>
+        /// Scene view camera settings to be applied when the tutorial starts.
+        /// </summary>
+        public SceneViewCameraSettings DefaultSceneCameraSettings { get => m_DefaultSceneCameraSettings; set => m_DefaultSceneCameraSettings = value; }
         [SerializeField]
         SceneViewCameraSettings m_DefaultSceneCameraSettings = default;
 
@@ -143,7 +127,6 @@ namespace Unity.Tutorials.Core.Editor
         /// The layout used by the tutorial
         /// </summary>
         public UnityObject WindowLayout { get => m_WindowLayout; set => m_WindowLayout = value; }
-
         [SerializeField, Tooltip("Saved layouts can be found in the following directories:\n" +
             "Windows: %APPDATA%/Unity/<version>/Preferences/Layouts\n" +
             "macOS: ~/Library/Preferences/Unity/<version>/Layouts\n" +
@@ -158,13 +141,6 @@ namespace Unity.Tutorials.Core.Editor
         public IEnumerable<TutorialPage> Pages => m_Pages;
         [SerializeField, FormerlySerializedAs("m_Steps")]
         internal TutorialPageCollection m_Pages = new TutorialPageCollection();
-
-        AutoCompletion m_AutoCompletion;
-
-        /// <summary>
-        /// Is this tutorial being skipped currently.
-        /// </summary>
-        public bool Skipped { get; private set; }
 
         /// <summary>
         /// Raised when any tutorial is modified.
@@ -208,6 +184,20 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         public TutorialEvent Quit;
 
+        AutoCompletion m_AutoCompletion;
+
+        // Backwards-compatibility for < 2.1
+        [SerializeField, HideInInspector]
+        internal SceneAsset m_Scene = default;
+        // Backwards-compatibility for < 1.2
+        [SerializeField, HideInInspector]
+        string m_TutorialTitle;
+
+        /// <summary>
+        /// Is this tutorial being skipped currently.
+        /// </summary>
+        public bool Skipped { get; private set; }
+
         /// <summary>
         /// The current page index.
         /// </summary>
@@ -217,9 +207,9 @@ namespace Unity.Tutorials.Core.Editor
         /// Returns the current page.
         /// </summary>
         public TutorialPage CurrentPage =>
-             m_Pages.Count == 0
-                ? null
-                : m_Pages[CurrentPageIndex = Mathf.Min(CurrentPageIndex, m_Pages.Count - 1)];
+            m_Pages == null || m_Pages.Count == 0
+            ? null
+            : m_Pages[CurrentPageIndex = Mathf.Min(CurrentPageIndex, m_Pages.Count - 1)];
 
         /// <summary>
         /// The page count of the tutorial.
@@ -249,6 +239,61 @@ namespace Unity.Tutorials.Core.Editor
             /// <summary> Creates a new collection from existing items. </summary>
             /// <param name="items"></param>
             public TutorialPageCollection(IList<TutorialPage> items) : base(items) {}
+        }
+
+        internal bool HasScenes() => m_Scenes?.Length > 0;
+
+        void ClearLessonId()
+        {
+            m_PreviousLessonId = LessonId;
+            LessonId = string.Empty;
+        }
+
+        void GenerateNewLessonId()
+        {
+            m_PreviousLessonId = LessonId;
+            LessonId = Guid.NewGuid().ToString();
+        }
+
+        void RestorePreviousLessonId()
+        {
+            LessonId = m_PreviousLessonId;
+        }
+
+        void OnValidate()
+        {
+            TutorialTitle = POFileUtils.SanitizeString(TutorialTitle);
+
+            if (!ProgressTrackingEnabled && LessonId.IsNotNullOrWhiteSpace())
+            {
+                ClearLessonId();
+            }
+
+            if (ProgressTrackingEnabled && LessonId.IsNullOrWhiteSpace())
+            {
+                if (m_PreviousLessonId.IsNullOrWhiteSpace())
+                {
+                    // Progress Tracking is enabled for the first time
+                    GenerateNewLessonId();
+                }
+                else
+                {
+                    RestorePreviousLessonId();
+                }
+            }
+
+            // Prevent duplicate lesson IDs
+            if (ProgressTrackingEnabled &&
+                TutorialEditorUtils.FindAssets<Tutorial>().Except(new[] { this }).Any(tutorial => tutorial.LessonId == LessonId))
+            {
+                string oldGuid = LessonId;
+                LessonId = Guid.NewGuid().ToString();
+                m_PreviousLessonId = LessonId; // prevent triggering the asset migration code in OnAfterDeserialize()
+                EditorUtility.SetDirty(this);
+                AssetDatabase.SaveAssets();
+                AssetDatabase.Refresh();
+                Debug.Log($"Duplicate LessonId '{oldGuid}' within the project, generated a new one '{LessonId}'.");
+            }
         }
 
         Tutorial()
@@ -348,11 +393,36 @@ namespace Unity.Tutorials.Core.Editor
 
         void LoadScene()
         {
-            // load scene
-            if (m_Scene != null)
-                EditorSceneManager.OpenScene(AssetDatabase.GetAssetPath(m_Scene));
+            if (HasScenes())
+            {
+                int index = 0;
+                try
+                {
+                    // The first scene is the main scene, the rest are additive.
+                    EditorSceneManager.OpenScene(AssetDatabase.GetAssetPath(m_Scenes[index]));
+                    ++index;
+                    for (; index < m_Scenes.Length; ++index)
+                    {
+                        EditorSceneManager.OpenScene(AssetDatabase.GetAssetPath(m_Scenes[index]), OpenSceneMode.Additive);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"Could not load Scenes Element {index}: {e.Message}");
+                }
+            }
             else
-                EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects);
+            {
+                switch (m_SceneManagementBehavior)
+                {
+                    case SceneManagementBehaviorType.CreateNewScene:
+                        EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects);
+                        break;
+                    case SceneManagementBehaviorType.UseActiveScene:
+                        // Do nothing
+                        break;
+                }
+            }
 
             // move scene view camera into place
             if (m_DefaultSceneCameraSettings != null && m_DefaultSceneCameraSettings.Enabled)
@@ -452,6 +522,14 @@ namespace Unity.Tutorials.Core.Editor
             {
                 m_PreviousLessonId = LessonId;
                 ProgressTrackingEnabled = true;
+            }
+
+            // This is for supporting assets made with pre 2.1 -versions of IET
+            if (m_Scene != null)
+            {
+                m_Scenes = new SceneAsset[1];
+                m_Scenes[0] = m_Scene;
+                m_Scene = null;
             }
         }
     }

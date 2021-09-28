@@ -1,8 +1,10 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using UnityObject = UnityEngine.Object;
+using UnityEngine.UIElements;
 
 namespace Unity.Tutorials.Core.Editor
 {
@@ -14,6 +16,11 @@ namespace Unity.Tutorials.Core.Editor
     /// </remarks>
     internal class GUIViewProxy
     {
+        public static List<VisualElement> FindAllGuiViewVisualElements()
+        {
+            return Resources.FindObjectsOfTypeAll<GUIView>().Select(UIElementsHelper.GetVisualTree).ToList();
+        }
+
         /// <summary>
         /// Raised then the position of the underlying GUIView changes.
         /// </summary>

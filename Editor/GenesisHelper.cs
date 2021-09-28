@@ -6,6 +6,8 @@ using System.Text;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Networking;
+using System.Net.Http;
+using System.Net.Http.Headers;
 
 namespace Unity.Tutorials.Core.Editor
 {
@@ -16,6 +18,8 @@ namespace Unity.Tutorials.Core.Editor
         static readonly string stagingHost = @"https://api-staging.unity.com";
 
         private static List<KeyValuePair<UnityWebRequestAsyncOperation, Action<UnityWebRequest>>> m_Requests = new List<KeyValuePair<UnityWebRequestAsyncOperation, Action<UnityWebRequest>>>();
+
+        private static readonly HttpClient s_HttpClient = new HttpClient();
 
         public static bool HasWarnedAboutLogin { get; private set; }
 
@@ -47,6 +51,7 @@ namespace Unity.Tutorials.Core.Editor
 
         static GenesisHelper()
         {
+            s_HttpClient.BaseAddress = new Uri(HostAddress);
             EditorApplication.update += WebRequestProcessor;
         }
 
@@ -155,29 +160,25 @@ namespace Unity.Tutorials.Core.Editor
             });
         }
 
-        public static void LogTutorialStatusUpdate(string lessonId, string lessonStatus)
+        public static async void LogTutorialStatusUpdate(string lessonId, string lessonStatus)
         {
             var userId = UnityConnectProxy.GetUserId();
             if (userId.IsNullOrEmpty()) return;
             var getLink = @"/v1/users/" + userId + @"/lessons";
-            var address = HostAddress + getLink;
 
             var jsonData = RegisterLessonRequest.GetJSONString(lessonStatus, userId, lessonId);
-            var req = UnityWebRequest.Post(address, jsonData);
-            var data = System.Text.Encoding.UTF8.GetBytes(jsonData);
-            req.uploadHandler = new UploadHandlerRaw(data);
 
-            req.SetRequestHeader("Content-Type", "application/json");
-            req.SetRequestHeader("X-IET-Version", GetVersion());
-            req.SetRequestHeader("Authorization", "Bearer " + UnityConnectProxy.GetAccessToken());
-
-            SendWebRequest(req, r =>
+            // UnityWebRequests were causing memory leaks here, so they were replaced with HttpClient
+            using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, getLink))
             {
-                if (!IsRequestSuccess(r))
-                {
-                    return;
-                }
-            });
+                var data = new StringContent(jsonData, Encoding.UTF8, "application/json");
+
+                request.Content = data;
+
+                request.Headers.Add("X-IET-Version", GetVersion());
+                request.Headers.Add("Authorization", "Bearer " + UnityConnectProxy.GetAccessToken());
+                HttpResponseMessage response = await s_HttpClient.SendAsync(request);
+            }
         }
 
         private static void SendWebRequest(UnityWebRequest request, Action<UnityWebRequest> onFinished)

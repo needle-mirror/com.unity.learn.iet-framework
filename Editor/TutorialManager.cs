@@ -28,6 +28,7 @@ namespace Unity.Tutorials.Core.Editor
         [Serializable]
         struct SceneInfo
         {
+            public bool Active;
             public string AssetPath;
             public bool WasLoaded;
         }
@@ -35,11 +36,8 @@ namespace Unity.Tutorials.Core.Editor
         [SerializeField]
         SceneViewState m_OriginalSceneView;
 
-        //TODO [SerializeField] wanted here?
-        string m_OriginalActiveSceneAssetPath;
-
         [SerializeField]
-        SceneInfo[] m_OriginalScenes;
+        List<SceneInfo> m_OriginalScenes = new List<SceneInfo>();
         // The original layout files are copied into this folder for modifications.
         const string k_UserLayoutDirectory = "Temp";
         // The original/previous layout is stored into this when loading new layouts.
@@ -349,23 +347,31 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         void SaveOriginalScenes()
         {
-            m_OriginalActiveSceneAssetPath = SceneManager.GetActiveScene().path;
-            m_OriginalScenes = new SceneInfo[SceneManager.sceneCount];
-            for (var sceneIndex = 0; sceneIndex < m_OriginalScenes.Length; sceneIndex++)
+            m_OriginalScenes = GetCurrentScenes()
+                .Select(scene =>
+                    new SceneInfo
+                    {
+                        Active = scene == SceneManager.GetActiveScene(),
+                        AssetPath = scene.path,
+                        WasLoaded = scene.isLoaded,
+                    })
+                .ToList();
+        }
+
+        static List<Scene> GetCurrentScenes()
+        {
+            var scenes = new List<Scene>();
+            for (int i = 0; i < SceneManager.sceneCount; ++i)
             {
-                var scene = SceneManager.GetSceneAt(sceneIndex);
-                m_OriginalScenes[sceneIndex] = new SceneInfo
-                {
-                    AssetPath = scene.path,
-                    WasLoaded = scene.isLoaded,
-                };
+                scenes.Add(SceneManager.GetSceneAt(i));
             }
+            return scenes;
         }
 
         internal IEnumerator RestoreOriginalScenes()
         {
-            // Don't restore scene state if we didn't save it in the first place
-            if (string.IsNullOrEmpty(m_OriginalActiveSceneAssetPath)) { yield break; }
+            if (!m_OriginalScenes.Any())
+                yield break;
 
             if (EditorApplication.isPlaying)
             {
@@ -389,34 +395,50 @@ namespace Unity.Tutorials.Core.Editor
                 yield break;
             }
 
+            // Close all existing scenes
+            // Closing all scenes allows us to retain the original order of scenes if the original scenes,
+            // would they contain same scenes as the tutorial. As we cannot remove all scenes, and must have
+            // at least one scene open at all times, create a dummy scene for the time being.
+            var dummySceneMode = SceneManager.GetActiveScene().path.IsNullOrEmpty()
+                ? NewSceneMode.Single
+                : NewSceneMode.Additive; // prevents potential "Cannot create a new scene additively with an untitled scene unsaved" error
+            var dummyScene = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, dummySceneMode);
+
+            GetCurrentScenes()
+                .Where(scene => scene != dummyScene)
+                .ToList()
+                .ForEach(scene => EditorSceneManager.CloseScene(scene, true));
+
+            // Load original scenes
             foreach (var sceneInfo in m_OriginalScenes)
             {
-                // Don't open scene if path is empty (this is the case for a new unsaved unmodified scene)
-                if (sceneInfo.AssetPath == string.Empty) { continue; }
+                if (sceneInfo.AssetPath.IsNullOrEmpty())
+                    continue; // Skip new unsaved scenes
 
                 var openSceneMode = sceneInfo.WasLoaded ? OpenSceneMode.Additive : OpenSceneMode.AdditiveWithoutLoading;
-
                 EditorSceneManager.OpenScene(sceneInfo.AssetPath, openSceneMode);
             }
 
-            var originalScenePaths = m_OriginalScenes.Select(sceneInfo => sceneInfo.AssetPath).ToArray();
-            for (var sceneIndex = 0; sceneIndex < SceneManager.sceneCount; sceneIndex++)
-            {
-                var scene = SceneManager.GetSceneAt(sceneIndex);
+            // Set original active scene
+            var originalActiveScenePath = m_OriginalScenes
+                .Where(sceneInfo => sceneInfo.Active)
+                .Select(sceneInfo => sceneInfo.AssetPath)
+                .FirstOrDefault();
 
-                // Set originally active scene
-                if (scene.path == m_OriginalActiveSceneAssetPath)
+            foreach (var scene in GetCurrentScenes())
+            {
+                if (scene.path == originalActiveScenePath)
                 {
                     SceneManager.SetActiveScene(scene);
-                    continue;
+                    break;
                 }
-
-                // Close scene if was not opened originally
-                if (!originalScenePaths.Contains(scene.path))
-                    EditorSceneManager.CloseScene(scene, true);
             }
 
-            m_OriginalActiveSceneAssetPath = null;
+            // Clean up the dummy scene if we have real scenes.
+            if (SceneManager.sceneCount > 1)
+                EditorSceneManager.CloseScene(dummyScene, true);
+
+            m_OriginalScenes.Clear();
         }
 
         static void LoadTutorialDefaultsIntoAssetsFolder()

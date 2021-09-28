@@ -1,4 +1,4 @@
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 // Based on https://github.com/roboryantron/UnityEditorJunkie made by Ryan Hipple
 // ----------------------------------------------------------------------------
 
@@ -12,7 +12,7 @@ namespace Unity.Tutorials.Core.Editor
 {
     /// <summary>
     /// A popup window that displays a list of options and may use a search
-    /// string to filter the displayed content. 
+    /// string to filter the displayed content.
     /// </summary>
     internal class SearchablePopup : PopupWindowContent
     {
@@ -127,7 +127,7 @@ namespace Unity.Tutorials.Core.Editor
             /// <param name="filter">String to use to filter the list.</param>
             /// <returns>
             /// True if the filter is updated, false if newFilter is the same
-            /// as the current Filter and no update is necessary. 
+            /// as the current Filter and no update is necessary.
             /// </returns>
             public bool UpdateFilter(string filter)
             {
@@ -171,7 +171,7 @@ namespace Unity.Tutorials.Core.Editor
 
         /// <summary>
         /// Container for all available options that does the actual string
-        /// filtering of the content.  
+        /// filtering of the content.
         /// </summary>
         readonly FilteredList m_List;
 
@@ -243,7 +243,7 @@ namespace Unity.Tutorials.Core.Editor
         {
             return new Vector2(base.GetWindowSize().x * 2,
                 Mathf.Min(600, m_List.MaxLength * k_RowHeight +
-                EditorStyles.toolbar.fixedHeight));
+                    EditorStyles.toolbar.fixedHeight));
         }
 
         /// <summary>
@@ -310,7 +310,7 @@ namespace Unity.Tutorials.Core.Editor
             for (int i = 0; i < m_List.Entries.Count; i++)
             {
                 if (m_ScrollToIndex == i
-                && (Event.current.type == EventType.Repaint || Event.current.type == EventType.Layout))
+                    && (Event.current.type == EventType.Repaint || Event.current.type == EventType.Layout))
                 {
                     Rect r = new Rect(rowRect);
                     r.y += m_ScrollOffset;
@@ -322,7 +322,7 @@ namespace Unity.Tutorials.Core.Editor
                 if (rowRect.Contains(Event.current.mousePosition))
                 {
                     if (Event.current.type == EventType.MouseMove
-                    || Event.current.type == EventType.ScrollWheel)
+                        || Event.current.type == EventType.ScrollWheel)
                     {
                         m_HoverIndex = i;
                     }
@@ -363,7 +363,9 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         void HandleKeyboard()
         {
-            if (Event.current.type != EventType.KeyDown) { return; }
+            if (Event.current.type != EventType.KeyDown)
+                return;
+
             if (Event.current.keyCode == KeyCode.DownArrow)
             {
                 m_HoverIndex = Mathf.Min(m_List.Entries.Count - 1, m_HoverIndex + 1);

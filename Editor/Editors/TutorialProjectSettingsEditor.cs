@@ -12,6 +12,8 @@ namespace Unity.Tutorials.Core.Editor
 
         public override void OnInspectorGUI()
         {
+            TutorialProjectSettings.DrawDefaultAssetRestoreWarning();
+
             if (GUILayout.Button(Localization.Tr("Run Startup Code")))
             {
                 UserStartupCode.RunStartupCode(Target);
@@ -25,6 +27,7 @@ namespace Unity.Tutorials.Core.Editor
             }
             else
             {
+                serializedObject.Update();
                 DrawPropertiesExcluding(serializedObject, k_PropertiesToHide);
                 serializedObject.ApplyModifiedProperties();
             }

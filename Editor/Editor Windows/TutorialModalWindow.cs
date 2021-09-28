@@ -5,26 +5,35 @@ using UnityEngine;
 using UnityEngine.UIElements;
 
 using static Unity.Tutorials.Core.Editor.RichTextParser;
+using static Unity.Tutorials.Core.Editor.Localization;
 
 namespace Unity.Tutorials.Core.Editor
 {
-    // A modal/utility window. Utilizes masking for the modality.
-    class TutorialModalWindow : EditorWindow
+    /// <summary>
+    /// A modal/utility window that can display TutorialWelcomePage as its content.
+    /// Optionally utilizes masking for modality.
+    /// </summary>
+    public class TutorialModalWindow : EditorWindow
     {
         const int k_Width = 700;
         const int k_Height = 500;
 
+        // Never returns null
         static TutorialStyles Styles => TutorialProjectSettings.Instance.TutorialStyle;
 
+        /// <summary>
+        /// In order to set the welcome page, use the Show() function instead.
+        /// </summary>
         public TutorialWelcomePage WelcomePage
         {
             get => m_WelcomePage;
-            set
+            private set
             {
                 if (m_WelcomePage)
                     m_WelcomePage.Modified.RemoveListener(OnWelcomePageModified);
 
                 m_WelcomePage = value;
+
                 if (m_WelcomePage)
                     m_WelcomePage.Modified.AddListener(OnWelcomePageModified);
             }
@@ -34,17 +43,35 @@ namespace Unity.Tutorials.Core.Editor
 
         Action m_OnClose;
 
+        /// <summary>
+        /// Is the window currently visible.
+        /// </summary>
         public static bool Visible { get; private set; }
 
-        // Remember to set prior to calling TryToShow().
+        /// <summary>
+        /// Does the window utilize masking for modality effect.
+        /// </summary>
+        /// <remarks>
+        /// Remember to set prior to calling TryToShow().
+        /// </remarks>
         public static bool MaskingEnabled { get; set; } = false;
 
-        bool IsInitialized => rootVisualElement.childCount > 0;
+        // Authoring toolbar is an IMGUIContainer and it will appear the first child element always in authoring mode.
+        // so at least 2 elements are required in authoring mode for the window to have actual content.
+        bool IsInitialized => rootVisualElement.childCount > (TutorialWindow.k_AuthoringMode ? 1 : 0);
 
         static bool s_IsBeingModified;
         //string m_PreviousWindowTitle;
 
-        public static void TryToShow(TutorialWelcomePage welcomePage, Action onClose)
+        /// <summary>
+        /// Shows the window using the provided content.
+        /// </summary>
+        /// <remarks>
+        /// Shown as a utility window, https://docs.unity3d.com/ScriptReference/EditorWindow.ShowUtility.html
+        /// </remarks>
+        /// <param name="welcomePage">Content to be shown.</param>
+        /// <param name="onClose">Optional callback to be called when the window is closed.</param>
+        public static void Show(TutorialWelcomePage welcomePage, Action onClose = null)
         {
             var window = EditorWindowUtils.FindOpenInstance<TutorialModalWindow>();
             if (window)
@@ -70,9 +97,8 @@ namespace Unity.Tutorials.Core.Editor
             var windowAsset = UIElementsUtils.LoadUIAsset<VisualTreeAsset>("WelcomeDialog.uxml");
             var mainContainer = windowAsset.CloneTree().Q("MainContainer");
 
-            // TODO OnGuiToolbar is functional, uncomment if/when we reintroduce masking for welcome dialog.
-            //var imguiToolBar = new IMGUIContainer(OnGuiToolbar);
-            //rootVisualElement.Add(imguiToolBar);
+            if (TutorialWindow.k_AuthoringMode)
+                rootVisualElement.Add(new IMGUIContainer(OnGuiToolbar));
             rootVisualElement.Add(mainContainer);
         }
 
@@ -83,11 +109,18 @@ namespace Unity.Tutorials.Core.Editor
                 Initialize();
             }
             Styles.ApplyThemeStyleSheetTo(rootVisualElement);
+
+            if (m_WelcomePage)
+                m_WelcomePage.Modified.AddListener(OnWelcomePageModified);
         }
 
         void OnBecameVisible()
         {
             Visible = true;
+
+            if (!IsInitialized)
+                Initialize();
+
             UpdateContent();
             //Mask();
         }
@@ -95,6 +128,12 @@ namespace Unity.Tutorials.Core.Editor
         // For the teardown callbacks the order of execution is OnBecameInvisible, OnDisable, OnDestroy.
         // NOTE OnBecameInvisible appears to be called never if window was shown as utility window.
         // void OnBecameInvisible() {}
+
+        void OnDisable()
+        {
+            if (m_WelcomePage)
+                m_WelcomePage.Modified.RemoveListener(OnWelcomePageModified);
+        }
 
         void OnDestroy()
         {
@@ -133,7 +172,6 @@ namespace Unity.Tutorials.Core.Editor
                 .ForEach(button => buttonContainer.Add(button));
         }
 
-        // NOTE if re-enabling this, check that the style is consistent with TutorialWindow's toolbar.
         void OnGuiToolbar()
         {
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar, GUILayout.ExpandWidth(true));
@@ -142,8 +180,8 @@ namespace Unity.Tutorials.Core.Editor
 
             EditorGUI.BeginChangeCheck();
             MaskingEnabled = GUILayout.Toggle(
-                MaskingEnabled, "Masking", EditorStyles.toolbarButton,
-                GUILayout.MaxWidth(115)
+                MaskingEnabled, TutorialWindow.IconContent("Mask Icon", Tr("Preview Masking")),
+                EditorStyles.toolbarButton, GUILayout.Width(TutorialWindow.k_AuthoringButtonWidth)
             );
             if (EditorGUI.EndChangeCheck())
             {
@@ -159,23 +197,17 @@ namespace Unity.Tutorials.Core.Editor
 
         void Mask()
         {
-            var styles = Styles;
-            var maskingColor = styles?.MaskingColor ?? Color.magenta * new Color(1f, 1f, 1f, 0.8f);
-            var highlightColor = styles?.HighlightColor ?? Color.cyan * new Color(1f, 1f, 1f, 0.8f);
-            var blockedInteractionColor = styles?.BlockedInteractionColor ?? new Color(1, 1, 1, 0.5f);
-            var highlightThickness = styles?.HighlightThickness ?? 3f;
-
             var unmaskedViews = new UnmaskedView.MaskData();
             unmaskedViews.AddParentFullyUnmasked(this);
             var highlightedViews = new UnmaskedView.MaskData();
 
             MaskingManager.Mask(
                 unmaskedViews,
-                maskingColor,
+                Styles.MaskingColor,
                 highlightedViews,
-                highlightColor,
-                blockedInteractionColor,
-                highlightThickness
+                Styles.HighlightColor,
+                Styles.BlockedInteractionColor,
+                Styles.HighlightThickness
             );
 
             MaskingEnabled = true;

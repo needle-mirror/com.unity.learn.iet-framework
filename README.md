@@ -10,4 +10,4 @@ and you need to add the following line to the `dependencies` list of `Packages/m
 Make sure to update to the latest version of the package.
 
 ## Authoring tools
-For instructions on how to add authoring tools, see the [Tutorial Authoring Tools documenation](https://docs.unity3d.com/Packages/com.unity.learn.iet-framework.authoring@1.0/manual/index.html).
+For instructions on how to add authoring tools, see the [Tutorial Authoring Tools documentation](https://docs.unity3d.com/Packages/com.unity.learn.iet-framework.authoring@latest).

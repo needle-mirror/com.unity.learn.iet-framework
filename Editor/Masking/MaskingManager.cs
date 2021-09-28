@@ -130,7 +130,12 @@ namespace Unity.Tutorials.Core.Editor
                 var unmaskedRegions = maskViewData.rects == null ? new List<Rect>(1) : maskViewData.rects.ToList();
                 if (unmaskedRegions.Count == 0)
                     unmaskedRegions.Add(new Rect(0f, 0f, unmaskedView.Key.Position.width, unmaskedView.Key.Position.height));
-                viewsAndResources[unmaskedView.Key] = new MaskViewData() { maskType = maskViewData.maskType, rects = unmaskedRegions };
+                viewsAndResources[unmaskedView.Key] = new MaskViewData
+                {
+                    maskType = maskViewData.maskType,
+                    rects = unmaskedRegions,
+                    EditorWindowType = maskViewData.EditorWindowType
+                };
             }
         }
 
@@ -212,10 +217,22 @@ namespace Unity.Tutorials.Core.Editor
                 // mask everything except the unmasked view rects
                 if (s_UnmaskedViews.TryGetValue(view, out maskViewData))
                 {
+                    // Beginning from 2021.2 the layout of EditorWindows has changed a bit and now contains
+                    // an offset caused by the tab area which we need to take into account.
+                    EditorWindow parentWindow = null;
+                    if (maskViewData.EditorWindowType != null)
+                        parentWindow = FindOpenEditorWindowInstance(maskViewData.EditorWindowType);
+
                     List<Rect> rects = maskViewData.rects;
                     var maskedRects = GetNegativeSpaceRects(viewRect, rects);
-                    foreach (var rect in maskedRects)
+                    for (var i = 0; i < maskedRects.Count; ++i)
                     {
+                        var rect = maskedRects[i];
+                        if (parentWindow != null)
+                        {
+                            // In theory we could have an X offset also but it seems highgly unlikely.
+                            rect.y -= parentWindow.rootVisualElement.layout.y;
+                        }
                         var mask = new VisualElement();
                         mask.style.backgroundColor = maskColor;
                         mask.SetLayout(rect);
@@ -235,8 +252,7 @@ namespace Unity.Tutorials.Core.Editor
                         }
                     }
                 }
-                // mask the whole view
-                else
+                else // mask the whole view
                 {
                     var mask = new VisualElement();
                     mask.style.backgroundColor = maskColor;
@@ -290,6 +306,9 @@ namespace Unity.Tutorials.Core.Editor
 
             s_LastHighlightTime = EditorApplication.timeSinceStartup;
         }
+
+        static EditorWindow FindOpenEditorWindowInstance(System.Type type) =>
+            Resources.FindObjectsOfTypeAll(type).FirstOrDefault() as EditorWindow;
 
         static readonly HashSet<float> s_YCoords = new HashSet<float>();
         static readonly HashSet<float> s_XCoords = new HashSet<float>();

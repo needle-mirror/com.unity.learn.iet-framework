@@ -101,6 +101,13 @@ namespace Unity.Tutorials.Core.Editor
             Modified?.Invoke(this);
         }
 
+        private void OnValidate()
+        {
+            Title = POFileUtils.SanitizeString(Title);
+            WindowTitle = POFileUtils.SanitizeString(WindowTitle);
+            Description = POFileUtils.SanitizeString(Description);
+        }
+
         /// <summary>
         /// Creates a default Close button.
         /// </summary>

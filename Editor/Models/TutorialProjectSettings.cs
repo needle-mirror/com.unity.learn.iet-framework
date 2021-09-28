@@ -102,5 +102,23 @@ namespace Unity.Tutorials.Core.Editor
         [SerializeField]
         [Tooltip("If enabled, the original assets of the project are restored when a tutorial starts.")]
         bool m_RestoreDefaultAssetsOnTutorialReload;
+
+        /// <summary>
+        /// Call this in the beginning of tutorial asset editors.
+        /// </summary>
+        internal static void DrawDefaultAssetRestoreWarning()
+        {
+            // Check the effective TutorialProjectSettings instance, not 'this' instance.
+            if (Instance.RestoreDefaultAssetsOnTutorialReload && !ProjectMode.IsAuthoringMode())
+            {
+                EditorGUILayout.HelpBox(
+                    Localization.Tr(
+                        "TutorialProjectSettings.RestoreDefaultAssetsOnTutorialReload is enabled and " +
+                        "Tutorial Authoring Tools are not present: the project's content might be overwritten."),
+                    MessageType.Warning
+                );
+                EditorGUILayout.Space(10);
+            }
+        }
     }
 }

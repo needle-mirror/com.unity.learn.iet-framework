@@ -2,7 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using UnityEngine;
 
 namespace Unity.Tutorials.Core.Editor
@@ -36,7 +39,7 @@ namespace Unity.Tutorials.Core.Editor
 // NOTE We don't have POTs so for POT-Creation-Date I just picked something.
 // TODO Value of Plural-Forms not probably true for all languages we support?
 // TODO check if we want to fill something more to the header
-$@"
+            $@"
 msgid """"
 msgstr """"
 ""Project-Id-Version: {name}@{version} \n""
@@ -70,28 +73,43 @@ msgstr """"
             var literal = new StringBuilder(str.Length);
             foreach (var c in str)
             {
-                switch (c)
-                {
-                    case '\"': literal.Append("\\\""); break;
-                    case '\\': literal.Append(@"\\"); break;
-                    case '\0': literal.Append(@"\0"); break;
-                    case '\a': literal.Append(@"\a"); break;
-                    case '\b': literal.Append(@"\b"); break;
-                    case '\f': literal.Append(@"\f"); break;
-                    case '\n': literal.Append(@"\n"); break;
-                    case '\r': literal.Append(@"\r"); break;
-                    case '\t': literal.Append(@"\t"); break;
-                    case '\v': literal.Append(@"\v"); break;
-                    default:
-                        if (char.GetUnicodeCategory(c) == UnicodeCategory.Control)
-                            literal.Append($@"\u{c:x4}");
-                        else
-                            literal.Append(c);
-                        break;
-                }
+                if (k_EscapeMapping.ContainsKey(c))
+                    literal.Append(k_EscapeMapping[c]);
+                else if (char.GetUnicodeCategory(c) == UnicodeCategory.Control)
+                    literal.Append($@"\u{c:x4}");
+                else
+                    literal.Append(c);
             }
             return literal.ToString();
         }
+
+        /// <summary>
+        /// Sanitizes, i.e., removes, problematic control characters, from a string that is used in a PO file.
+        /// </summary>
+        /// <param name="str"></param>
+        /// <returns>String without unprintable control characters.</returns>
+        public static string SanitizeString(string str)
+        {
+            return Regex.Replace(str, k_SanitizeRegexString, "");
+        }
+
+        static readonly Dictionary<char, string> k_EscapeMapping = new Dictionary<char, string>()
+        {
+            { '\"', "\\\"" },   // no need to sanitize
+            { '\\', @"\\"},     // no need to sanitize
+            { '\0', @"\0"},
+            { '\a', @"\a"},
+            { '\b', @"\b"},
+            { '\f', @"\f"},
+            { '\n', @"\n"},     // no need to sanitize
+            { '\r', @"\r"},
+            { '\t', @"\t"},     // no need to sanitize
+            { '\v', @"\v"},
+        };
+
+        // Chars to sanitize are a subset of the chars to escape
+        static readonly string k_SanitizeRegexString =
+            string.Join("|", k_EscapeMapping.Keys.Except(new[] { '\"', '\\', '\n', '\t' }).ToArray());
 
         /// <summary>
         /// https://www.gnu.org/software/gettext/manual/html_node/PO-Files.html

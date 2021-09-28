@@ -74,10 +74,10 @@
 
         <!-- Tutorial header -->
         <ui:VisualElement name="TitleHeader" class="container--header-large">
-            <ui:VisualElement name="BackToContainers" class="image--back" />
             <ui:VisualElement name="FlexibleSpace" class="flexiblespace"/>
             <ui:Label text="In-Editor Tutorials" name="TitleLabel" class="label--header label--header-large" />
             <ui:Label text="" name="ContextLabel" class="label--header-subtitle" />
+            <ui:VisualElement name="BackToContainers" class="image--back" />
         </ui:VisualElement>
 
         <!-- Button displayed at the end of each tutorial to start next tutorial -->

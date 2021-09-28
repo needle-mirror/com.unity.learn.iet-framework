@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Serialization;
+using UnityEngine.UIElements;
 
 namespace Unity.Tutorials.Core.Editor
 {
@@ -24,6 +25,7 @@ namespace Unity.Tutorials.Core.Editor
         internal MaskType maskType;
         internal List<Rect> rects;
         internal MaskSizeModifier maskSizeModifier;
+        public Type EditorWindowType;
 
         internal static MaskViewData CreateEmpty(MaskType type)
         {
@@ -126,7 +128,13 @@ namespace Unity.Tutorials.Core.Editor
                     MaskViewData maskViewData;
                     if (!result.TryGetValue(view, out maskViewData))
                     {
-                        result[view] = new MaskViewData() { rects = new List<Rect>(8), maskType = unmaskedView.m_MaskType, maskSizeModifier = unmaskedView.m_MaskSizeModifier};
+                        result[view] = new MaskViewData
+                        {
+                            rects = new List<Rect>(8),
+                            maskType = unmaskedView.m_MaskType,
+                            maskSizeModifier = unmaskedView.m_MaskSizeModifier,
+                            EditorWindowType = unmaskedView.EditorWindowType
+                        };
                     }
 
                     List<GuiControlSelector> controls;
@@ -259,6 +267,32 @@ namespace Unity.Tutorials.Core.Editor
                                 regionFound = true;
                                 regionRect = instruction.rect;
                                 break;
+                            }
+                            break;
+                        case GuiControlSelector.Mode.VisualElement:
+                            // At least one of the three properties must be specified in order to make a sensible query.
+                            if (controlSelector.VisualElementTypeName.IsNotNullOrWhiteSpace() ||
+                                controlSelector.VisualElementClassName.IsNotNullOrWhiteSpace() ||
+                                controlSelector.VisualElementName.IsNotNullOrWhiteSpace())
+                            {
+                                var visualTree = UIElementsHelper.GetVisualTree(viewRects.Key);
+                                // Passing null as name or class will make the query to consider it as an optional argument.
+                                var queryBuilder = visualTree.Query(
+                                    controlSelector.VisualElementName.AsNullIfWhiteSpace(),
+                                    controlSelector.VisualElementClassName.AsNullIfWhiteSpace()
+                                );
+                                // Apply type, if valid type specified.
+                                if (controlSelector.VisualElementTypeName.IsNotNullOrWhiteSpace())
+                                {
+                                    queryBuilder = queryBuilder.Where(elem => elem.GetType().ToString() == controlSelector.VisualElementTypeName);
+                                }
+                                // Keep behavior consistent with the IMGUI selectors: use the last available element if we have multiple hits.
+                                var element = queryBuilder.Build().Last();
+                                if (element != null)
+                                {
+                                    regionFound = true;
+                                    regionRect = element.worldBound;
+                                }
                             }
                             break;
                         default:
@@ -453,17 +487,19 @@ namespace Unity.Tutorials.Core.Editor
         [SerializeField]
         SelectorType m_SelectorType;
 
+        /// <summary>
+        /// Applicable when SelectorType == GUIView.
+        /// </summary>
         [SerializedTypeGuiViewFilter]
         [SerializeField]
         SerializedType m_ViewType = new SerializedType(null);
 
-        [SerializedTypeFilter(typeof(EditorWindow),false)]
+        /// <summary>
+        /// Applicable when SelectorType == EditorWindow.
+        /// </summary>
+        [SerializedTypeFilter(typeof(EditorWindow), false)]
         [SerializeField]
         SerializedType m_EditorWindowType = new SerializedType(null);
-
-        [SerializeField]
-        EditorWindowTypeCollection m_AlternateEditorWindowTypes = new EditorWindowTypeCollection();
-
         Type EditorWindowType
         {
             get
@@ -484,6 +520,12 @@ namespace Unity.Tutorials.Core.Editor
                 return null;
             }
         }
+
+        /// <summary>
+        /// Applicable when SelectorType == EditorWindow. Used as the back-up type if primary EditorWindowType cannot be resolved.
+        /// </summary>
+        [SerializeField]
+        EditorWindowTypeCollection m_AlternateEditorWindowTypes = new EditorWindowTypeCollection();
 
         [SerializeField]
         MaskType m_MaskType = MaskType.FullyUnmasked;

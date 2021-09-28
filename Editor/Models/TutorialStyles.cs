@@ -100,9 +100,8 @@ namespace Unity.Tutorials.Core.Editor
 
         static void RemoveStyleSheet(StyleSheet styleSheet, VisualElement target)
         {
-            if (!styleSheet) { return; }
-            if (!target.styleSheets.Contains(styleSheet)) { return; }
-            target.styleSheets.Remove(styleSheet);
+            if (styleSheet && target.styleSheets.Contains(styleSheet))
+                target.styleSheets.Remove(styleSheet);
         }
 
         /// <summary>

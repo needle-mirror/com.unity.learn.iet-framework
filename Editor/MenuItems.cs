@@ -30,7 +30,7 @@ namespace Unity.Tutorials.Core.Editor
         {
             var welcomePage = TutorialProjectSettings.Instance.WelcomePage;
             if (welcomePage != null)
-                TutorialModalWindow.TryToShow(welcomePage, () => { });
+                TutorialModalWindow.Show(welcomePage);
             else
                 Debug.LogError("No TutorialProjectSettings.WelcomePage set.");
         }

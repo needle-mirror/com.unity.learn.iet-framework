@@ -214,6 +214,14 @@ namespace Unity.Tutorials.Core.Editor
 
         void OnValidate()
         {
+            Title = POFileUtils.SanitizeString(Title);
+            Subtitle = POFileUtils.SanitizeString(Subtitle);
+            Description = POFileUtils.SanitizeString(Description);
+            foreach (var section in Sections)
+            {
+                section.Heading = POFileUtils.SanitizeString(section.Heading);
+                section.Text = POFileUtils.SanitizeString(section.Text);
+            }
             Array.Sort(Sections, (x, y) => x.OrderInView.CompareTo(y.OrderInView));
         }
 

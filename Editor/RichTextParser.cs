@@ -52,12 +52,14 @@ namespace Unity.Tutorials.Core.Editor
             processed = processed.Replace("<b>", " <b>");
             processed = processed.Replace("<i>", " <i>");
             processed = processed.Replace("<a ", " <a ");
+            processed = processed.Replace("<style ", " <style ");
             processed = processed.Replace("<br", " <br");
             processed = processed.Replace("<wordwrap>", " <wordwrap>");
 
             processed = processed.Replace("</b>", "</b> ");
             processed = processed.Replace("</i>", "</i> ");
             processed = processed.Replace("</a>", "</a> ");
+            processed = processed.Replace("</style>", "</style> ");
             processed = processed.Replace("</wordwrap>", " </wordwrap> ");
 
             return processed;
@@ -86,7 +88,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <param name="textToAdd">The text inside the word label.</param>
         /// <param name="elementList">Redundant storage, mostly used for automated testing.</param>
         /// <param name="addToVisualElement">Parent container for the word Label.</param>
-        static void AddLabel<T>(string textToAdd, List<VisualElement> elementList, VisualElement addToVisualElement)
+        static Label AddLabel<T>(string textToAdd, List<VisualElement> elementList, VisualElement addToVisualElement)
             where T : Label
         {
             Label wordLabel = null;
@@ -106,10 +108,11 @@ namespace Unity.Tutorials.Core.Editor
             if (wordLabel == null)
             {
                 Debug.LogError("Error: Unsupported Label type used. Use TextLabel, BoldLabel or ItalicLabel.");
-                return;
+                return null;
             }
             elementList.Add(wordLabel);
             addToVisualElement.Add(wordLabel);
+            return wordLabel;
         }
 
         /// <summary>
@@ -126,7 +129,7 @@ namespace Unity.Tutorials.Core.Editor
         {
             bool addError = false;
             string errorText = "";
-            
+
             try
             {
                 XDocument.Parse("<content>" + htmlText + "</content>");
@@ -146,18 +149,20 @@ namespace Unity.Tutorials.Core.Editor
             bool forceWordWrap = false;
             bool linkOn = false;
             string linkURL = "";
+            string styleClass = "";
+            bool addStyle = false;
             bool firstLine = true;
             bool lastLineHadText = false;
             // start streaming text per word to elements while retaining current style for each word block
             string[] lines = htmlText.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
 
             foreach (string line in lines)
-            {   
+            {
                 // Check if the line begins with whitespace and turn that into corresponding Label
                 string initialWhiteSpaces = "";
-                foreach(char singleCharacter in line)
+                foreach (char singleCharacter in line)
                 {
-                    if (singleCharacter == ' ' || singleCharacter == '\t' )
+                    if (singleCharacter == ' ' || singleCharacter == '\t')
                     {
                         initialWhiteSpaces += singleCharacter;
                     }
@@ -211,6 +216,8 @@ namespace Unity.Tutorials.Core.Editor
                     bool removeLink = false;
                     bool removeWordWrap = false;
 
+                    bool removeStyle = false;
+
                     strippedWord = strippedWord.Trim();
 
                     if (strippedWord.Contains("<b>"))
@@ -233,6 +240,12 @@ namespace Unity.Tutorials.Core.Editor
                         strippedWord = strippedWord.Replace("<a", "");
                         linkOn = true;
                     }
+                    if (strippedWord.Contains("<style"))
+                    {
+                        strippedWord = strippedWord.Replace("<style", "");
+                        addStyle = true;
+                    }
+
                     bool wrapCharacters = !forceWordWrap && NeedSymbolWrapping(word);
                     if (linkOn && strippedWord.Contains("href="))
                     {
@@ -244,10 +257,25 @@ namespace Unity.Tutorials.Core.Editor
                         strippedWord.Replace("\">", "");
                     }
 
+                    if (addStyle && strippedWord.Contains("class="))
+                    {
+                        strippedWord = strippedWord.Replace("class=", "");
+                        int styleFrom = strippedWord.IndexOf("\"", StringComparison.Ordinal) + 1;
+                        int styleTo = strippedWord.LastIndexOf("\"", StringComparison.Ordinal);
+                        styleClass = strippedWord.Substring(styleFrom, styleTo - styleFrom);
+                        strippedWord = strippedWord.Substring(styleTo + 2, (strippedWord.Length - 2) - styleTo);
+                        strippedWord.Replace("\">", "");
+                    }
+
                     if (strippedWord.Contains("</a>"))
-                    {   
+                    {
                         strippedWord = strippedWord.Replace("</a>", "");
                         removeLink = true;
+                    }
+                    if (strippedWord.Contains("</style>"))
+                    {
+                        strippedWord = strippedWord.Replace("</style>", "");
+                        removeStyle = true;
                     }
                     if (strippedWord.Contains("<br/>"))
                     {
@@ -273,7 +301,7 @@ namespace Unity.Tutorials.Core.Editor
                     {
                         if (wrapCharacters)
                         {
-                            foreach(char character in strippedWord)
+                            foreach (char character in strippedWord)
                             {
                                 AddLabel<BoldLabel>(character.ToString(), elements, targetContainer);
                             }
@@ -287,7 +315,7 @@ namespace Unity.Tutorials.Core.Editor
                     {
                         if (wrapCharacters)
                         {
-                            foreach(char character in strippedWord)
+                            foreach (char character in strippedWord)
                             {
                                 AddLabel<ItalicLabel>(character.ToString(), elements, targetContainer);
                             }
@@ -327,12 +355,20 @@ namespace Unity.Tutorials.Core.Editor
                             {
                                 foreach (char character in strippedWord)
                                 {
-                                    AddLabel<TextLabel>(character.ToString(), elements, targetContainer);
+                                    Label newLabel = AddLabel<TextLabel>(character.ToString(), elements, targetContainer);
+                                    if (addStyle && !string.IsNullOrEmpty(styleClass))
+                                    {
+                                        newLabel.AddToClassList(styleClass);
+                                    }
                                 }
                             }
                             else
                             {
-                                AddLabel<TextLabel>(strippedWord, elements, targetContainer);
+                                Label newLabel = AddLabel<TextLabel>(strippedWord, elements, targetContainer);
+                                if (addStyle && !string.IsNullOrEmpty(styleClass))
+                                {
+                                    newLabel.AddToClassList(styleClass);
+                                }
                             }
                         }
                     }
@@ -344,6 +380,7 @@ namespace Unity.Tutorials.Core.Editor
                         linkOn = false;
                         linkURL = "";
                     }
+                    if (removeStyle) addStyle = false;
                     if (removeWordWrap) forceWordWrap = false;
                 }
                 firstLine = false;
@@ -451,6 +488,5 @@ namespace Unity.Tutorials.Core.Editor
             {
             }
         }
-
     }
 }

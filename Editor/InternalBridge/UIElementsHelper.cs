@@ -66,13 +66,15 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
-        public static VisualElement GetVisualTree(GUIViewProxy guiViewProxy)
+        public static VisualElement GetVisualTree(GUIViewProxy guiViewProxy) => GetVisualTree(guiViewProxy.GuiView);
+
+        public static VisualElement GetVisualTree(GUIView guiView)
         {
             return (VisualElement)s_VisualTreeProperty.GetValue(
 #if UNITY_2020_1_OR_NEWER
-                guiViewProxy.GuiView.windowBackend,
+                guiView.windowBackend,
 #else
-                guiViewProxy.GuiView,
+                guiView,
 #endif
                 new object[0]
             );

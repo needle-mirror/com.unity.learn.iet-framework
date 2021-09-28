@@ -44,8 +44,10 @@ namespace Unity.Tutorials.Core.Editor
 
         public override void OnInspectorGUI()
         {
+            TutorialProjectSettings.DrawDefaultAssetRestoreWarning();
+
             if (GUILayout.Button(Localization.Tr("Show Welcome Dialog")))
-                TutorialModalWindow.TryToShow(Target, null);
+                TutorialModalWindow.Show(Target);
 
             GUILayout.Space(10);
 
@@ -63,7 +65,8 @@ namespace Unity.Tutorials.Core.Editor
                 for (int i = 0; i < m_Buttons.arraySize; i++)
                 {
                     m_CurrentEvent = m_Buttons.GetArrayElementAtIndex(i).FindPropertyRelative(k_OnClickEventPropertyPath);
-                    if (!TutorialEditorUtils.EventIsNotInState(m_CurrentEvent, UnityEngine.Events.UnityEventCallState.EditorAndRuntime)) { continue; }
+                    if (!TutorialEditorUtils.EventIsNotInState(m_CurrentEvent, UnityEngine.Events.UnityEventCallState.EditorAndRuntime))
+                        continue;
 
                     eventOffOrRuntimeOnlyExists = true;
                     break;

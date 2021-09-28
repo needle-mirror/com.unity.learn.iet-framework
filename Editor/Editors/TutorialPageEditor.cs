@@ -29,13 +29,13 @@ namespace Unity.Tutorials.Core.Editor
         };
 
         static readonly string[] k_PropertiesToHide = new[]
-            {
-                "m_Script",
-                nameof(TutorialPage.m_Paragraphs),
-                k_AutoAdvancePropertyPath,
-                nameof(TutorialPage.MaskingSettingsChanged),
-                nameof(TutorialPage.NonMaskingSettingsChanged),
-            }
+        {
+            "m_Script",
+            nameof(TutorialPage.m_Paragraphs),
+            k_AutoAdvancePropertyPath,
+            nameof(TutorialPage.MaskingSettingsChanged),
+            nameof(TutorialPage.NonMaskingSettingsChanged),
+        }
             .Concat(k_EventPropertyPaths)
             .ToArray();
 
@@ -81,7 +81,7 @@ namespace Unity.Tutorials.Core.Editor
             set { SessionState.SetString("iet_creating_SO", value); }
         }
 
-        TutorialPage tutorialPage { get { return (TutorialPage)target; } }
+        TutorialPage Target => (TutorialPage)target;
 
         [NonSerialized]
         string m_WarningMessage;
@@ -138,20 +138,20 @@ namespace Unity.Tutorials.Core.Editor
 
         void OnUndoRedoPerformed()
         {
-            if (tutorialPage == null) { return; }
-            tutorialPage.RaiseMaskingSettingsChanged();
+            // No easy way to know which field changed so simply signal all changes.
+            Target.RaiseMaskingSettingsChanged();
+            Target.RaiseNonMaskingSettingsChanged();
         }
 
         UndoPropertyModification[] OnPostprocessModifications(UndoPropertyModification[] modifications)
         {
-            if (tutorialPage == null) { return modifications; }
-
             bool targetModified = false;
             bool maskingChanged = false;
 
             foreach (var modification in modifications)
             {
-                if (modification.currentValue.target != target) { continue; }
+                if (modification.currentValue.target != target)
+                    continue;
 
                 targetModified = true;
                 var propertyPath = modification.currentValue.propertyPath;
@@ -164,11 +164,11 @@ namespace Unity.Tutorials.Core.Editor
 
             if (maskingChanged)
             {
-                tutorialPage.RaiseMaskingSettingsChanged();
+                Target.RaiseMaskingSettingsChanged();
             }
             else if (targetModified)
             {
-                tutorialPage.RaiseNonMaskingSettingsChanged();
+                Target.RaiseNonMaskingSettingsChanged();
             }
             return modifications;
         }
@@ -312,6 +312,8 @@ namespace Unity.Tutorials.Core.Editor
 
         public override void OnInspectorGUI()
         {
+            TutorialProjectSettings.DrawDefaultAssetRestoreWarning();
+
             if (!string.IsNullOrEmpty(m_WarningMessage))
             {
                 EditorGUILayout.HelpBox(m_WarningMessage, MessageType.Warning);
@@ -329,6 +331,8 @@ namespace Unity.Tutorials.Core.Editor
 
         void DrawSimplifiedInspector()
         {
+            serializedObject.Update();
+
             EditorGUILayout.BeginVertical();
 
             if (m_Type != null)
@@ -413,7 +417,8 @@ namespace Unity.Tutorials.Core.Editor
 
         static void RenderProperty(string name, SerializedProperty property)
         {
-            if (property == null) { return; }
+            if (property == null)
+                return;
             EditorGUILayout.LabelField(name);
             EditorGUILayout.PropertyField(property, GUIContent.none);
         }
@@ -549,7 +554,7 @@ namespace Unity.Tutorials.Core.Editor
                 return;
             }
 
-            method.Invoke(null, new [] { destFileName });
+            method.Invoke(null, new[] { destFileName });
         }
     }
 }

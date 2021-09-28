@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
@@ -17,7 +18,11 @@ namespace Unity.Tutorials.Core.Editor
             public static GUIContent stopAutoCompletion = new GUIContent(Tr("Stop Auto Completion"));
         }
 
-        private readonly string[] k_PropsToIgnore = { "m_Script", "m_LessonId" };
+        static readonly string[] k_PropsToIgnore = { "m_Script", nameof(Tutorial.m_LessonId) };
+        static readonly string[] k_PropsToIgnoreNoScene = k_PropsToIgnore
+            .Concat(new[] { nameof(Tutorial.m_SceneManagementBehavior) })
+            .ToArray();
+
         private const string k_PagesPropertyPath = "m_Pages.m_Items";
 
         private static readonly Regex s_MatchPagesPropertyPath =
@@ -25,7 +30,7 @@ namespace Unity.Tutorials.Core.Editor
                 string.Format("^({0}\\.Array\\.size)|(^({0}\\.Array\\.data\\[\\d+\\]))", Regex.Escape(k_PagesPropertyPath))
             );
 
-        Tutorial tutorial { get { return (Tutorial)target; } }
+        Tutorial Target => (Tutorial)target;
 
         [NonSerialized]
         private string m_WarningMessage;
@@ -52,18 +57,15 @@ namespace Unity.Tutorials.Core.Editor
 
         private void OnUndoRedoPerformed()
         {
-            if (tutorial != null)
+            if (Target != null)
             {
-                tutorial.RaiseModified();
+                Target.RaiseModified();
             }
         }
 
         private UndoPropertyModification[] OnPostprocessModifications(UndoPropertyModification[] modifications)
         {
-            if (tutorial == null)
-                return modifications;
-
-            tutorial.RaiseModified();
+            Target.RaiseModified();
 
             var pagesChanged = false;
 
@@ -81,13 +83,15 @@ namespace Unity.Tutorials.Core.Editor
             }
 
             if (pagesChanged)
-                tutorial.RaiseModified();
+                Target.RaiseModified();
 
             return modifications;
         }
 
         public override void OnInspectorGUI()
         {
+            TutorialProjectSettings.DrawDefaultAssetRestoreWarning();
+
             if (!string.IsNullOrEmpty(m_WarningMessage))
                 EditorGUILayout.HelpBox(m_WarningMessage, MessageType.Warning);
 
@@ -97,20 +101,24 @@ namespace Unity.Tutorials.Core.Editor
             }
             else
             {
-                DrawPropertiesExcluding(serializedObject, k_PropsToIgnore);
+                serializedObject.Update();
+
+                // Scene management options are visible only when we have no scenes specified.
+                DrawPropertiesExcluding(serializedObject, Target.HasScenes() ? k_PropsToIgnoreNoScene : k_PropsToIgnore);
+
                 serializedObject.ApplyModifiedProperties();
             }
 
             // Auto completion
             GUILayout.Label(Contents.autoCompletion, EditorStyles.boldLabel);
-            using (new EditorGUI.DisabledScope(tutorial.IsCompleted))
+            using (new EditorGUI.DisabledScope(Target.IsCompleted))
             {
-                if (GUILayout.Button(tutorial.IsAutoCompleting ? Contents.stopAutoCompletion : Contents.startAutoCompletion))
+                if (GUILayout.Button(Target.IsAutoCompleting ? Contents.stopAutoCompletion : Contents.startAutoCompletion))
                 {
-                    if (tutorial.IsAutoCompleting)
-                        tutorial.StopAutoCompletion();
+                    if (Target.IsAutoCompleting)
+                        Target.StopAutoCompletion();
                     else
-                        tutorial.StartAutoCompletion();
+                        Target.StartAutoCompletion();
                 }
             }
         }

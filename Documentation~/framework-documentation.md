@@ -30,7 +30,7 @@ To use rich text, include some of the tags below on either of the **Description*
 
 ### Possible issues
 
-If you forget to e.g. close tags or have any parsing issues in your text content, the tutorial will display a <style>error {color:red} </style><error>PARSE ERROR</error>. To fix this, edit the content and make sure you have no unclosed tags, wrong tags or improper tag nesting. Please refer to HTML 4.0 documentation for additional information on how to apply HTML tags.
+If, for example, you forget to close tags, or you have parsing issues in your text content, the tutorial will display a <style>error {color:red} </style><error>PARSE ERROR</error>. To fix this, edit the content and make sure you have no unclosed tags, wrong tags or improper tag nesting. Please refer to HTML 4.0 documentation for additional information on how to apply HTML tags.
 
 ## Tutorial media
 
@@ -42,51 +42,55 @@ You can choose to show image or video at the top of a tutorial page by choosing 
 
 ## Masking 
 
-We can mask and unmask any part of the Unity Editor to prevent unnecessary interactions. It's also a good way to teach users where certain actions take place.
+We can mask and unmask any part of the Editor to prevent unwanted interactions. It's also a good way to teach users where certain actions take place.
 
 For each tutorial page, there's an **Enable Masking** checkbox.
 
 ![](images/index046.png)
 
-Tick the checkbox to enable the masking settings.  
-
-This will immediately mask out the entire Editor except for the Tutorial window. You can't click or interact with anything that's masked. Fortunately, the authoring tools provide a masking preview toggle: click the **Preview Masking** button within the Tutorials window to either hide or preview the masking.: 
+Tick the checkbox to enable the masking settings. This will immediately mask out the entire Editor except for the Tutorials window. You can't click or interact with anything that's masked. Fortunately, the authoring tools provide a masking preview toggle: click the **Preview Masking** button in the tutorial authoring toolbar to either disable or preview the masking: 
 
 ![](images/index047.png)
 
-Now that you can interact with the rest of the Editor again, return to the newly enabled masking settings within the Tutorials window.  
+Now that you can interact with the rest of the Editor again, return to the newly enabled masking settings in the Inspector:
 
 ![](images/index048.png)
 
-The **Add** (**+**) button lets you add multiple windows you'd like to unmask. 
+Use the **Add** (**+**) button to specify windows and areas you'd like to unmask. You can unmask multiple windows and areas simply by adding more unmasked views.
 
-Click the **Add** (**+**) button and change the **Selector Type** to **Editor Window.** This will let you select a window type from a list of options.
+### Example: unmasking an editor window
+- Click the **Add** (**+**) button to add an unmasked view.
+- Change the **Selector Type** to **Editor Window**. This will let you select a window type from a list of options. All windows within Unity Editor can be found and accessed through this list.
+- For the now available **Editor Window Type** setting, select **ProjectBrowser** as the value.
+- Enable **Preview Masking** to confirm that the Editor is masked except for the Project window.
 
-In the now available **Editor Window Type** select **ProjectBrowser.** This will add the Project window to the list of unmasked views. All windows within Unity can be found and accessed through this list. 
+Note: the names of the **Editor Window Type** options displayed are simplified by default. You can change a setting from **Edit** > **Preferences** > **In-Editor Tutorials** to show fully qualified names instead.
 
-Note: the names of the options displayed are simplified by default. You can change this settings from **Edit** > **Preferences** > **In-Editor Tutorials**.
+### Example: unmasking elements in the toolbar
+- Click the **Add** (**+**) button to add an unmasked view.
+- Make sure the **Selector Type** is set to **GUI View**. Set the **View Type** to **Toolbar**.
+- Next, add a new **Unmasked Controls** entry. This setting allows us to refine what to mask out within a specific window/Editor area.
+- We want to unmask the Play button which needs to be configured differently depending on the used Unity version:
+  - Unity 2020.3 and older:
+    - Change the **Selector Mode** to **Named Control**
+    - Input "ToolbarPlayModePlayButton" as the **Control Name**.
+  - Unity 2021.1 and newer:
+    - Change the **Selector Mode** to **Visual Element**.
+    - Input "Play" as the **Visual Element Name.**.
+  - If you wish to support both Unity version ranges, simply implement two unmasked views with the appropriate settings.
+- Enable **Preview Masking** again to check that only the Play button is unmasked.
 
-(If you click the Preview Masking button again now you will see that the Editor is masked except for the Project window)  
+Read more about the different configuration needs for the toolbar buttons [here](#configuring-masking-of-scene-view-tools-and-play-mode-buttons).
 
-You can also set the **Mask Type** to change the functionality of the masking. By default, **Fully Unmasked** means the user can interact freely within this window. Any functionality within a Fully Unmasked window will be accessible to the user. On the other hand, **Block Interactions** will make the window easier to look at, but prevent a user from interacting with it. 
 
-Keep in mind that you can unmask multiple windows in this way. The **Add** (**+**) button lets you add other Editor windows or GUI views. 
-
-The **GUI View selector type** changes the options available in View Type. It allows you to mask out specific controls in the upper toolbar of the Editor, e.g., to mask out everything aside from the Play button.
-
-To unmask everything but the Play button, set the Selector Type to GUI View. Set the View Type to UnityEditor.Toolbar (Note: if you turn off Preview Masking now, you'll see that the entire Unity toolbar is unmasked). We want to leave Mask Type as Fully Unmasked and leave Mask Size Modifier as it is.  
-
-Next, add **Unmasked Controls**. This setting allows us to refine what to mask out within a specific window/Editor area. In this case, as we only want to unmask the Play button, we need to add an unmasked control to to UnityEditor.Toolbar setting. 
-
-Change the **Selector Mode** to **Named Control**. The Play button is (as its name implies) a named control within the Unity Editor. The name for the Play button is: ToolbarPlayModePlayButton, which is exactly what needs to be entered into the **Control Name** field.  
-
-Enable Preview Masking again to check that only the Play Button is unmasked now. 
-
-The other common type of unmasking you might want to do is for a Property. Let's say you wanted to unmask the x, y and z positions of a Transform component. These are all properties within a transform component, so we set up our masking settings as follows: 
+### Example: unmasking a property in the Inspector
+Another common unmasking you might want to do is to unmask a property in the Inspector. Let's say you want to unmask the x, y and z positions of a Transform component. These are all properties of a Transform component, so we set up our masking settings as follows: 
 
 ![](images/index049.png)
 
 Note: this will work on whichever GameObject is currently active within the Inspector! It's best practice to make sure that a user has selected whichever GameObject's properties you want the user to modify within the same tutorial page, and to use masking accordingly to ensure no other object will be selected. 
+
+See [Masking settings](#masking-settings) for a full breakdown of the various settings.
 
 ## Future Prefabs and Criteria 
 
@@ -125,9 +129,9 @@ You should now see two new children object appear in the tutorial page in the Pr
 
 The newly created children of the tutorial page are the Future Prefab Instance's references. The names depends on where they were created (Paragraph 1, Criterion 1, 1: Prefab (GameObject). Depending on which paragraph, how many criteria, or what the object is, these might change. Avoid changing the names, to ensure that they work correctly. You will need to use these object in the next tutorial page.  
 
-In the 2nd tutorial page, let's add another instruction paragraph. We want the user to modify the magicNumber property on our prefab, so we'll add a PropertyModificationCriterion as criteria. Within this criteria are a couple of options we need to modify.  
+In the second tutorial page, let's add another instruction paragraph. We want the user to modify the magicNumber property on our prefab, so we'll add a PropertyModificationCriterion as criteria. Within this criteria are a couple of options we need to modify.  
 
-Firstly, the **Property Path** is the name of the property. In the current prefab, it's named "magicNumber". If the property is derived from a different script, you can still access it: Otherscript.magicNumber for instance (Tip: If you're ever unsure what the property path is - for internal properties for instance - you can set your Editor to Debug mode and alt-left click on the name of the property).
+Firstly, the **Property Path** is the name of the property. In the current prefab, it's named "magicNumber". If the property is derived from a different script, you can still access it: Otherscript.magicNumber for instance (Tip: If you're ever unsure what the property path is - for internal properties for instance - you can set your Inspector to Debug mode and alt-left click on the name of the property).
 
 ![](images/index056.png)
 
@@ -143,11 +147,11 @@ It is worth noting that for this type of Criteria, the IET Framework relies on a
 
 You can now close the second Inspector window we opened and unlock the original Inspector on the right.  
 
-Make sure your scene is saved. If you're running the tutorial, you can now click the "refresh" arrow in the upper right of the Tutorial window to restart the tutorial. This resets the tutorial progress, displays the first page, and reloads the scene.  
+Make sure your scene is saved. If you're running the tutorial, you can click the **Run Startup Code** in the tutorial authoring toolbar to restart the tutorial. This resets the tutorial progress, displays the first page, and reloads the scene.  
 
 If you go through the tutorial now, you'll be able to set the magicNumber to 50 and see that this results in successful completion of the task.  
 
-To finish, let's set up masking for this 2nd page so that it only lets the user edit the property. 
+To finish, let's set up masking for this second page so that it only lets the user edit the property. 
 
 Enable Masking on the second Tutorial page. Set **Selector Type** to Editor Window, **Editor Window Type** to InspectorWindow, **Mask Type** to Fully Unmasked and **Mask Size Modifier** to No Modifications. We also need to add an "Unmasked Controls", so click the **Add** (**+**) button. 
 
@@ -169,7 +173,7 @@ Remember that it's a best practice to have these two instructions on the same pa
 
 Here's a list of all other criteria with brief descriptions of what they do.  
 
-Remember to save the scene any time that you assign an object reference from the scene. This adds a hidden component ([SceneObjectGuid]) to the scene that holds the reference required for this framework to work correctly.
+Remember to save the scene any time that you assign an object reference from the scene. This adds a hidden component ([SceneObjectGuid](xref:Unity.Tutorials.Core.SceneObjectGuid)) to the scene that holds the reference required for this framework to work correctly.
 
 **ActiveToolCriterion** 
 
@@ -241,50 +245,110 @@ Checks if the user has moved, zoomed or orbited around within the current scene 
 
 **Editor window**
 
-Within the Editor window, you can set which Editor window you'd like to reveal to the user. Set **Editor Window Type** to add that window to the unmasked views. For instance, the Hierarchy window is UnityEditor.SceneHierarchyWindow - selecting it would unmask it for the user. 
+Within the Editor window, you can set which Editor window you'd like to reveal to the user. Select an **Editor Window Type** to add that window to the unmasked views. For instance, the Hierarchy window is `UnityEditor.SceneHierarchyWindow` - selecting it would unmask it for the user. 
 
 **Mask Type** dictates whether or not the window is fully unmasked and can be interacted with, or if it's revealed and highlighted for the user but not actually interactive.  
+By default, **Fully Unmasked** means the user can interact freely within this window. Any functionality within a fully unmasked window will be accessible to the user. The **Block Interactions** option will make the window easier to look at, but prevent a user from interacting with it. 
 
 **GUI View** 
 
 GUI View is used for specific view types within the Editor. You'll mostly want to use this to access the toolbar, where you can then access the buttons for the various tools and the play/pause/next frame buttons.
+Selecting **GUI View** as the **Selector Type** allows you to specify **View Type** instead of **Editor Window Type**. Use this selector type when you to want to unmask specific controls in the upper toolbar of the Editor, for example, the Play button.
 
 **Unmasked Controls**
 
 **GUI Content**
 
-GUI Content allows you to enter a text, tooltip text, or image via reference. GUI Content with matching properties will not be masked in the Editor.
+GUI Content allows you to enter a text, tooltip text, or image via reference. IMGUI Content with matching properties will not be masked in the Editor.
 
 ![](images/index061.png)
 
-For example, in the above screenshot, "Build And Run" is entered in the "Text" property of the Unmasked Controls and everything aside from that button is masked out. This is contextual depending on which Editor window you have selected. You could use this to unmask specific Assets within the Project window or GameObjects within the Hierarchy.
+For example, in the above screenshot, "Build And Run" is entered in the **Text** property of the **Unmasked Controls**, and everything aside from that button is masked out. This is contextual depending on which Editor window you have selected. You could use this to unmask specific Assets within the Project window or GameObjects within the Hierarchy.
 
 **Named Control** 
 
-Named Control is used for specifically named controls within the Unity Editor. For example, the tools used to navigate the scene have the following Named Controls:
-- "ToolbarPersistentToolsPan" for the Pan tool,
-- "ToolbarPersistentToolsTranslate" for the Move tool,
-- "ToolbarPersistentToolsRotate" for the Rotate tool,
-- "ToolbarPersistentToolsScale" for the Scale tool,
-- "ToolbarPersistentToolsRect" for the Rect tool, and
-- "ToolbarPersistentToolsTransform" for the General Transform tool.
-
-Another important Named Control is the Play Button, "ToolbarPlayModePlayButton".
+Named Control is used for [specifically named IMGUI controls](https://docs.unity3d.com/ScriptReference/GUI.SetNextControlName.html) within the Unity Editor.
+Typically this option is used to [select Scene view tools and Play mode buttons](#configuring-masking-of-scene-view-tools-and-play-mode-buttons).
 
 **GUI Style Name** 
 
-GUI Content allows you to enter a [name of a GUIStyle](https://docs.unity3d.com/ScriptReference/GUIStyle-name.html).
-GUI elements drawn with the style of this name will not be masked.
+GUI Style Name allows you to enter a [name of a GUIStyle](https://docs.unity3d.com/ScriptReference/GUIStyle-name.html).
+IMGUI elements drawn with the specified style will be unmasked.
 
 **Object Reference** 
 
-Allows you to specify a GUI element for a specific Unity object, a scene object or an asset, which will not be unmasked.
+Allows you to specify an IMGUI element for a specific Unity object, a scene object or an asset, which will be unmasked.
 Note that for assets, currently the asset's name must be very short in order for the unmasking to work; if the name is not short
 and appears in a shortened form (ends with ellipsis), the unmasking doesn't work.
 
 **Property** 
 
-This is any property existing within the Unity Editor or custom-created within a script. Remember that you can obtain property names by changing the Editor into debug mode, and alt / option + left-clicking on a property name to show its declaration name.
+This option allows you to specify any serialized object property shown in the Inspector. You can view property names by changing the Inspector into debug mode, holding Alt/Option and clicking on a property name.
+
+**Visual Element**
+
+The **Visual Element** selector mode is used to select [UI Toolkit](https://docs.unity3d.com/Manual/UIElements.html) (formerly known as UIElements) elements, also known as visual elements.
+The wanted element can be specified using the following properties:
+- **Visual Element Type Name**, the fully qualified C# class/type name of the element, for example, "UnityEngine.UIElements.Button"
+- **Visual Element Class Name**, the Unity style sheet class name, for example, "unity-button"
+- **Visual Element Name**, the name of the element, for example, "updateButton"
+
+In many cases, specifying only one of these properties should suffice, but in some cases you will need to specify all three of them.
+
+The easiest way to select the wanted visual element is to use the visual element picker functionality by clicking the **Pick Visual Element** button. 
+After clicking this button, you can click the Editor's UI element you wish to select, and if the clicked element was a visual element, its values are set to the appropriate fields.
+
+### UI Toolkit Debugger
+In all cases it's not possible to pick the wanted visual element using the visual element picker. In these cases you should be able to figure out the names and classes of various visual elements in the Editor by using the UI Toolkit Debugger. The debugger can be accessed using the following methods:
+- Unity 2020 and newer: navigate to **Window** > **UI Toolkit** > **Debugger**.
+- Unity 2019: navigate to **Window** > **Analysis** > **UIElements Debugger**.
+- Each editor window's context menu ("..." button at the top-right corner) should also contain an item to access the debugger.
+- The keyboard shortcut Ctrl + F5 can also be used.
+
+It's recommended to use the **Pick Element** functionality to reveal visual elements and their properties while hovering the mouse cursor on top the UI.
+In the debugger's left-side tree view, you can see the needed properties for each visual element in the following order, from left to right:
+1. The C# class/type name of the element—note that this is not the fully qualified name.
+    - For example, for the name "Button", the fully qualified name would be "UnityEngine.UIElements.Button"
+    - The fully qualified names can be deduced, for example, from the Unity's [Scripting API documentation](https://docs.unity3d.com/ScriptReference/UIElements.Button.html)
+2. The name of the element, if any.
+    - Visual element names begin with a pound sign (#), for example "#viewdiff".
+    - Omit the pound sign when inputting the name as the **Visual Element Name** value, that is, input "viewdiff".
+3. The Unity style sheet class name—usually present but might be missing for some container elements.
+    - Visual element class names begin with a period (.), for example ".unity-button".
+    - Omit the period when inputting the class name as the **Visual Element Class Name** value, that is, use "unity-button".
+
+
+### Configuring masking of Scene view tools and Play mode buttons
+
+For Unity versions below 2021.1, the **Named Control** selector mode needs to be used to configure the masking of common toolbar controls.
+For Unity 2021.1 and newer, the **Visual Element Name** selector mode must be used instead. For reference, the Scene view controls have the following names:
+|Control|Named Control|Visual Element Name|
+|---|---|---|
+|Hand/View|ToolbarPersistentToolsPan|ViewTool|
+|Move|ToolbarPersistentToolsTranslate|MoveTool|
+|Rotate|ToolbarPersistentToolsRotate|RotateTool|
+|Scale|ToolbarPersistentToolsScale|ScaleTool|
+|Rect|ToolbarPersistentToolsRect|RectTool|
+|Transform|ToolbarPersistentToolsTransform|TransformTool|
+|Tool Handle Position|ToolbarToolPivotPositionButton|Pivot Mode|
+|Tool Handle Rotation|ToolbarToolPivotOrientationButton|Pivot Rotation|
+
+The names of the Play mode controls are:
+|Control|Named Control|Visual Element Name|
+|---|---|---|
+|Play|ToolbarPlayModePlayButton|Play|
+|Pause|ToolbarPlayModePauseButton|Pause|
+|Step|ToolbarPlayModeStepButton|Step|
+
+Additionally, the Editor's Scene view tools UI changed significantly between 2020.3 and 2021.1, requiring you to adjust any existing settings as follows:
+|Property|Unity 2020.3 and older |Unity 2021.1 and newer|
+|---|---|---|
+|Selector Type|GUI View|Editor Window
+|View Type|UnityEditor.Toolbar|UnityEditor.SceneView
+|Selector Mode|Named Control|Visual Element Name
+
+For the Play mode controls, simply switch to use the appropriate visual element names seen in the above table. If you want to support both Unity version ranges in your project,
+configure two unmasked views with the appropriate settings.
 
 ## Tutorial Styles
 
@@ -320,7 +384,13 @@ If enabled, allows for tweaking of the position/rotation of the camera of the In
 
 **Restore Default Assets On Tutorial Reload** 
 
-When enabled, everything in Assets is copied into Tutorial Defaults, and upon the Tutorial being finished, it's copied back into Assets. This means that every asset will be reset upon the restart of the tutorial, and that the size of your project will double. With this option disabled, changes to assets will remain. If your project has lot of large assets or includes several tutorials that build upon each other, you should have this option disabled to prevent errors!
+When enabled, a backup of your project's `Assets` folder is made into `Tutorial Defaults` folder when the tutorial project is started for the first time in non-authoring mode, 
+meaning, the Tutorial Authoring Tools package is not present. Every time a tutorial is started, the backup is restored, meaning that any modifications to the original tutorial project assets will be lost.
+With this option disabled (the default), changes made to assets will remain as usual.
+
+Enabling this feature means that the size of your project will double and you should configure your version control software to ignore the `Tutorial Defaults` folder.
+ If your project has lot of large assets or includes several tutorials that build upon each other, you should have this option disabled to prevent errors!
+
 
 **Tutorial Style**
 
@@ -329,5 +399,3 @@ This is where you assign your Tutorial Styles asset. This changes the visuals of
 ## Tips
 
 To trigger the tutorial project initialization code, you can delete the `InitCodeMarker` file in the project's root and reopen the project. Also, you can create a folder in `Assets/DontRunInitCodeMarker` to prevent the initialization code from being run, if necessary.
-
-[SceneObjectGuid]: https://docs.unity3d.com/Packages/com.unity.learn.iet-framework@2.0/api/Unity.Tutorials.Core.SceneObjectGuid.html

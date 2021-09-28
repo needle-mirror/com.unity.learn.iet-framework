@@ -16,25 +16,29 @@ namespace Unity.Tutorials.Core.Editor
         public enum Mode
         {
             /// <summary>
-            /// Select by GUIContent.
+            /// Select by GUIContent (IMGUI).
             /// </summary>
             GuiContent,
             /// <summary>
-            /// Select by Named Control's name (the name used for GUI.SetNextControlName()).
+            /// Select by Named Control's name, the name used for GUI.SetNextControlName() (IMGUI).
             /// </summary>
             NamedControl,
             /// <summary>
-            /// Select by property' path name.
+            /// Select by property's path name (IMGUI).
             /// </summary>
             Property,
             /// <summary>
-            /// Select by GUIStyle's name.
+            /// Select by GUIStyle's name (IMGUI).
             /// </summary>
             GuiStyleName,
             /// <summary>
-            /// Match by the referenced Unity Object.
+            /// Match by the referenced Unity Object (IMGUI).
             /// </summary>
             ObjectReference,
+            /// <summary>
+            /// Select by VisualElement's name and class name (UI Toolkit).
+            /// </summary>
+            VisualElement,
         }
 
         /// <summary>
@@ -90,5 +94,26 @@ namespace Unity.Tutorials.Core.Editor
         public ObjectReference ObjectReference { get => m_ObjectReference; set => m_ObjectReference = value; }
         [SerializeField]
         ObjectReference m_ObjectReference;
+
+        /// <summary>
+        /// Unity style sheet class name. Applicable if Mode.VisualElement used.
+        /// </summary>
+        public string VisualElementClassName { get => m_VisualElementClassName; set => m_VisualElementClassName = value; }
+        [Tooltip("Unity style sheet class name."), SerializeField]
+        internal string m_VisualElementClassName;
+
+        /// <summary>
+        /// The name of the element. Applicable if Mode.VisualElement used.
+        /// </summary>
+        public string VisualElementName { get => m_VisualElementName; set => m_VisualElementName = value; }
+        [Tooltip("The name of the element."), SerializeField]
+        internal string m_VisualElementName;
+
+        /// <summary>
+        /// The fully qualified C# class/type name of the element. Applicable if Mode.VisualElement used.
+        /// </summary>
+        public string VisualElementTypeName { get => m_VisualElementTypeName; set => m_VisualElementTypeName = value; }
+        [Tooltip("The fully qualified C# class/type name of the element."), SerializeField]
+        internal string m_VisualElementTypeName;
     }
 }

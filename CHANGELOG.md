@@ -4,6 +4,29 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0-pre.1] - 2021-09-28
+### Added
+- Added support for UI Toolkit masking and highlighting. **Pick Visual Element** functionality can be used to easily pick the wanted visual elements.
+- Added multiple scene support for tutorials: the first element of **Scenes** list is considered to be the main scene and the rest of scenes are loaded additively.
+- Added tutorial start-up scene management options: as a new option, it's possible to reuse the currently active scene(s).
+- `Tutorial`: Added getters and setters for all serialized fields.
+- Added unit tests back to the package.
+- Rich text parser: Added `<style>` tag support, making it possible to set a text block to any style class.
+- UI: Added drop shadows to title and subtitle of tutorial category/project cards and tutorial window's header.
+- Warn user about `TutorialProjectSettings.RestoreDefaultAssetsOnTutorialReload` behavior in all tutorial asset editors if authoring tools are not present.
+- Added sanitization for tutorial assets' text content so that unprintable control characters, for example, a carriage return, are removed automatically.
+- Scripting API: Made `TutorialModalWindow` part of the public API of the package. This class can be used to implement welcome/closing dialogs for the tutorial project.
+
+### Fixed
+- Fixed misplaced unmasking of UI controls on Unity 2021.2.0.
+- UI: Disabled horizontal scrollbars in all windows.
+- UI: Fixed unwanted offset in the interactable area of **Back to previous view** button.
+- Fixed original scenes not being restored correctly when exiting a tutorial which contained multiple scenes.
+- Fixed original scenes not being restored correctly when exiting a tutorial, when its original state contained multiple scenes.
+- Fixed memory leak errors ("A Native Collection has not been disposed...") that occurred on Unity 2021.
+- Fixed undo/redo of tutorial and tutorial page editing not being reflected in the Inspector and **Tutorials** window immediately.
+- Fixed editing of active tutorial not being reflected in **Tutorials** window after an assembly reload.
+
 ## [2.0.0] - 2021-07-05
 ### Added
 - Added setters for `TutorialWelcomePage` class's properties.
