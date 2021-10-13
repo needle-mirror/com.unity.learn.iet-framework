@@ -70,7 +70,9 @@ namespace Unity.Tutorials.Core.Editor
         /// <returns>True if the auto-completion succeeded.</returns>
         public override bool AutoComplete()
         {
-            SceneView.lastActiveSceneView.camera.transform.position = m_InitialCameraPosition + Vector3.back;
+            // NOTE SceneView.lastActiveSceneView.camera.transform.position should not be used for moving the camera,
+            // must use the SceneView.lastActiveSceneView.pivot instead, https://forum.unity.com/threads/moving-scene-view-camera-from-editor-script.64920/#post-415327
+            SceneView.lastActiveSceneView.pivot = m_InitialCameraPosition + Vector3.back;
             return true;
         }
     }

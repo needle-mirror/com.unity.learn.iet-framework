@@ -68,7 +68,6 @@
     font-size: 14px;
     -unity-font-style: bold;
     color: #fff;
-    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
 }
 
 .label--header-subtitle {
@@ -77,7 +76,6 @@
     font-size: 11px;
     color: rgba(255, 255, 255, 0.7);
     margin-bottom: 15px;
-    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
 }
 
 .image--base {

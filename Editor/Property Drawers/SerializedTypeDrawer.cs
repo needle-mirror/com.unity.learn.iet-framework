@@ -13,7 +13,7 @@ namespace Unity.Tutorials.Core.Editor
     [CustomPropertyDrawer(typeof(SerializedType))]
     class SerializedTypeDrawer : PropertyDrawerExtended<SerializedTypeDrawerData>
     {
-        const string k_TypeNamePath = "m_TypeName";
+        const string k_TypeNamePath = nameof(SerializedType.m_TypeName);
 
         internal static UserSetting<bool> ShowSimplifiedTypeNames = new UserSetting<bool>(
             "IET.ShowSimplifiedTypeNames",
@@ -85,25 +85,36 @@ namespace Unity.Tutorials.Core.Editor
                 m_PropertyPathToOptions.Clear();
             }
 
+            var typeNameProperty = property.FindPropertyRelative(k_TypeNamePath);
+            var assemblyQualifiedName = typeNameProperty.stringValue;
             Options options;
             if (!m_PropertyPathToOptions.TryGetValue(property.propertyPath, out options))
             {
                 var filterAttribute = Attribute.GetCustomAttribute(fieldInfo, typeof(SerializedTypeFilterAttributeBase), true) as SerializedTypeFilterAttributeBase;
-                options = new Options(filterAttribute.BaseType, filterAttribute.HideAbstractTypes);
+                options = new Options(assemblyQualifiedName, filterAttribute.BaseType, filterAttribute.HideAbstractTypes);
                 m_PropertyPathToOptions[property.propertyPath] = options;
             }
 
-            var typeNameProperty = property.FindPropertyRelative(k_TypeNamePath);
-            var selectedIndex = ArrayUtility.IndexOf(options.assemblyQualifiedNames, typeNameProperty.stringValue);
-
-            if (selectedIndex == -1 || selectedIndex >= options.assemblyQualifiedNames.Length)
-            {
-                selectedIndex = 0;
-            }
+            var origBgColor = GUI.backgroundColor;
 
             EditorGUI.BeginProperty(position, label, property);
 
+            var resolvedType = Type.GetType(assemblyQualifiedName);
+            if (resolvedType == null && assemblyQualifiedName.IsNotNullOrEmpty())
+            {
+                GUI.backgroundColor = Color.red;
+            }
+            else if (resolvedType != null && resolvedType.AssemblyQualifiedName != assemblyQualifiedName)
+            {
+                // Resolved type's AQN different than the original AQN: for example, SceneView behaves like this when upgrading from 2019.4
+                // to 2020 or newer (moved from UnityEngine to UnityEngine.CoreModule assembly).
+                GUI.backgroundColor = Color.yellow;
+            }
+
             EditorGUI.BeginChangeCheck();
+            var selectedIndex = ArrayUtility.IndexOf(options.assemblyQualifiedNames, assemblyQualifiedName);
+            if (selectedIndex < 0)
+                selectedIndex = 0; // Not Found
             var newIndex = EditorGUI.Popup(position, label, selectedIndex, options.displayedOptions);
             HandleDraggingToPopup(position, options, ref newIndex, property, typeNameProperty);
             if (EditorGUI.EndChangeCheck())
@@ -112,8 +123,9 @@ namespace Unity.Tutorials.Core.Editor
             }
 
             EditorGUI.EndProperty();
-        }
 
+            GUI.backgroundColor = origBgColor;
+        }
 #else
         public override void OnGUI(SerializedTypeDrawerData data, Rect position, SerializedProperty property, GUIContent label)
         {
@@ -135,30 +147,38 @@ namespace Unity.Tutorials.Core.Editor
                 m_PropertyPathToOptions.Clear();
             }
 
+            var typeNameProperty = property.FindPropertyRelative(k_TypeNamePath);
+            var assemblyQualifiedName = typeNameProperty.stringValue;
+
             Options options;
             if (!m_PropertyPathToOptions.TryGetValue(property.propertyPath, out options))
             {
                 var filterAttribute = Attribute.GetCustomAttribute(fieldInfo, typeof(SerializedTypeFilterAttributeBase), true) as SerializedTypeFilterAttributeBase;
-                options = new Options(filterAttribute.BaseType, filterAttribute.HideAbstractTypes);
+                options = new Options(assemblyQualifiedName, filterAttribute.BaseType, filterAttribute.HideAbstractTypes);
                 m_PropertyPathToOptions[property.propertyPath] = options;
             }
 
-            var typeNameProperty = property.FindPropertyRelative(k_TypeNamePath);
-            int selectedIndex = ArrayUtility.IndexOf(options.assemblyQualifiedNames, typeNameProperty.stringValue);
+            var origBgColor = GUI.backgroundColor;
 
             label = EditorGUI.BeginProperty(position, label, property);
             position = EditorGUI.PrefixLabel(position, id, label);
 
-            GUIContent buttonText;
-            if (selectedIndex <= 0 || selectedIndex >= options.assemblyQualifiedNames.Length)
+            var resolvedType = Type.GetType(assemblyQualifiedName);
+            if (resolvedType == null && assemblyQualifiedName.IsNotNullOrEmpty())
             {
-                buttonText = options.displayedOptions[0]; //"None"
+                GUI.backgroundColor = Color.red;
             }
-            else
+            else if (resolvedType != null && resolvedType.AssemblyQualifiedName != assemblyQualifiedName)
             {
-                buttonText = options.displayedOptions[selectedIndex];
+                // Resolved type's AQN different than the original AQN: for example, SceneView behaves like this when upgrading from 2019.4
+                // to 2020 or newer (moved from UnityEngine to UnityEngine.CoreModule assembly).
+                GUI.backgroundColor = Color.yellow;
             }
 
+            var selectedIndex = ArrayUtility.IndexOf(options.assemblyQualifiedNames, assemblyQualifiedName);
+            if (selectedIndex < 0)
+                selectedIndex = 0; // Not Found
+            GUIContent buttonText = options.displayedOptions[selectedIndex];
             if (DropdownButton(id, position, buttonText))
             {
                 Action<int> onItemSelected = (i) => OnItemSelected(i, position, options, property, typeNameProperty);
@@ -179,10 +199,10 @@ namespace Unity.Tutorials.Core.Editor
             }
 
             EditorGUI.EndProperty();
+
+            GUI.backgroundColor = origBgColor;
         }
-
 #endif
-
         void OnItemSelected(int indexInOptions, Rect position, Options options, SerializedProperty property, SerializedProperty typeNameProperty)
         {
             HandleDraggingToPopup(position, options, ref indexInOptions, property, typeNameProperty);
@@ -310,7 +330,13 @@ namespace Unity.Tutorials.Core.Editor
         public string[] assemblyQualifiedNames;
         public bool dragging;
 
-        public Options(Type baseType, bool ignoreAbstractTypes)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="assemblyQualifiedName">The currently used assembly-qualified name for the type we are providing options for, if available.</param>
+        /// <param name="baseType">Base type of the options.</param>
+        /// <param name="ignoreAbstractTypes">Should we ignore abstract types from the options.</param>
+        public Options(string assemblyQualifiedName, Type baseType, bool ignoreAbstractTypes)
         {
             var allowedTypes = new HashSet<Type>();
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
@@ -326,7 +352,7 @@ namespace Unity.Tutorials.Core.Editor
                             continue;
                         if (ignoreAbstractTypes && type.GetTypeInfo().IsAbstract)
                         {
-                            /*Debug.LogFormat("Ignoring type: {0}", type);*/
+                            //Debug.LogFormat("Ignoring type: {0}", type);
                             continue;
                         }
 
@@ -340,27 +366,77 @@ namespace Unity.Tutorials.Core.Editor
 
             allowedTypes.Remove(baseType);
 
-            var optionCount = allowedTypes.Count() + 1;
+            var optionCount = allowedTypes.Count() + 1; // None
+
+            var resolvedType = Type.GetType(assemblyQualifiedName);
+            bool typeNotFound = resolvedType == null && assemblyQualifiedName.IsNotNullOrEmpty();
+            // Resolved type's AQN different than the original AQN: for example, SceneView behaves like this when upgrading from 2019.4
+            // to 2020 or newer (moved from UnityEngine to UnityEngine.CoreModule assembly).
+            var typeWithDifferentAqn = resolvedType != null && resolvedType.AssemblyQualifiedName != assemblyQualifiedName ? resolvedType : null;
+            bool typeFoundTypeWithDifferentAqn = typeWithDifferentAqn != null;
+            if (typeNotFound || typeFoundTypeWithDifferentAqn)
+                ++optionCount; // Not Found / Mismatch
+
             displayedOptions = new GUIContent[optionCount];
             assemblyQualifiedNames = new string[optionCount];
 
+            // Not Found item is always at index 0
             var index = 0;
-            displayedOptions[index] = new GUIContent(string.Format("None ({0})", baseType.FullName));
-            assemblyQualifiedNames[index] = "";
-            index++;
+            if (typeNotFound)
+            {
+                var fullName = SplitAqn(assemblyQualifiedName)[0];
+                displayedOptions[index] = new GUIContent($"Not Found ({fullName})", $"The stored type '{assemblyQualifiedName}' could not been found.");
+                assemblyQualifiedNames[index] = assemblyQualifiedName;
+                index++;
+            }
+
+            var allowedTypesOrdered = allowedTypes.OrderBy(t => t.FullName).ToArray();
 
             //However, the non FQN might create ambiguity between
             //windows that share the same name but have different namespace.
             //A Smart way would be to use FQN anyway for those non-unique names
             bool displaySimplifiedNames = SerializedTypeDrawer.ShowSimplifiedTypeNames;
 
-            foreach (var allowedType in allowedTypes.OrderBy(t => t.FullName))
+            if (typeFoundTypeWithDifferentAqn)
             {
-                displayedOptions[index] = new GUIContent(displaySimplifiedNames ? allowedType.Name : allowedType.FullName);
-                assemblyQualifiedNames[index] = allowedType.AssemblyQualifiedName;
-                index++;
+                // Mismatching AQN item is positioned after to the currently available AQN item
+                var mismatchIndex = ArrayUtility.IndexOf(allowedTypesOrdered, resolvedType) + 1;
+                var name = displaySimplifiedNames ? resolvedType.Name : resolvedType.FullName;
+                var assemblyName = SplitAqn(assemblyQualifiedName)[1];
+                displayedOptions[mismatchIndex] = new GUIContent(
+                    $"{name} (Assembly: {assemblyName})",
+                    $"The stored type '{assemblyQualifiedName}' was found but with a different name, '{resolvedType.AssemblyQualifiedName}'."
+                );
+                assemblyQualifiedNames[mismatchIndex] = assemblyQualifiedName;
+            }
+
+            displayedOptions[index] = new GUIContent($"None ({baseType.FullName})");
+            assemblyQualifiedNames[index] = "";
+            index++;
+
+            foreach (var allowedType in allowedTypesOrdered)
+            {
+                var name = displaySimplifiedNames ? allowedType.Name : allowedType.FullName;
+                var aqn = allowedType.AssemblyQualifiedName;
+                if (allowedType == typeWithDifferentAqn)
+                {
+                    ++index; // skip current index as has the originally mismatching item
+                    displayedOptions[index] = new GUIContent($"{name} (Assembly: {SplitAqn(aqn)[1]})");
+                    assemblyQualifiedNames[index] = aqn;
+                }
+                else
+                {
+                    displayedOptions[index] = new GUIContent(name);
+                    assemblyQualifiedNames[index] = aqn;
+                }
+
+                ++index;
             }
         }
+
+        // AQN is e.g. "System.Array, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"
+        // 0 Full name, 1 Assembly, 2 Version, 3 Culture, 4 PublicKeyToken
+        static string[] SplitAqn(string aqn) => aqn.Split(new[] { ", " }, StringSplitOptions.None);
     }
 
     /// <summary>

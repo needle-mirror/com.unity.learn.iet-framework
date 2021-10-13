@@ -133,5 +133,7 @@ namespace Unity.Tutorials.Core.Editor
     internal static class EditorWindowExtension
     {
         public static GUIViewProxy GetParent(this EditorWindow window) => new GUIViewProxy(window.m_Parent);
+        // EditorWindow.docked not public until 2020.1.
+        public static bool IsDocked(this EditorWindow window) => window.docked;
     }
 }

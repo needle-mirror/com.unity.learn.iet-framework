@@ -133,7 +133,7 @@ namespace Unity.Tutorials.Core.Editor
                             rects = new List<Rect>(8),
                             maskType = unmaskedView.m_MaskType,
                             maskSizeModifier = unmaskedView.m_MaskSizeModifier,
-                            EditorWindowType = unmaskedView.EditorWindowType
+                            EditorWindowType = unmaskedView.ResolvedEditorWindowType
                         };
                     }
 
@@ -408,8 +408,8 @@ namespace Unity.Tutorials.Core.Editor
             switch (unmaskedView.m_SelectorType)
             {
                 case SelectorType.EditorWindow:
-                    var targetEditorWindowType = unmaskedView.EditorWindowType;
-                    if (targetEditorWindowType == null)
+                    var targetEditorWindowType = unmaskedView.ResolvedEditorWindowType;
+                    if (unmaskedView.m_EditorWindowType.IsSpecified && targetEditorWindowType == null)
                     {
                         throw new ArgumentException(
                             $"Specified unmasked view does not refer to a known EditorWindow type:\n{JsonUtility.ToJson(unmaskedView, true)}",
@@ -420,7 +420,7 @@ namespace Unity.Tutorials.Core.Editor
                     {
                         // make sure desired window is in current layout
                         // TODO: allow trainer to specify desired dock area if window doesn't yet exist?
-//                        var window = EditorWindow.GetWindow(targetEditorWindowType);
+                        // var window = EditorWindow.GetWindow(targetEditorWindowType);
                         var window = Resources.FindObjectsOfTypeAll(targetEditorWindowType).Cast<EditorWindow>().ToArray().FirstOrDefault();
                         if (window == null || window.GetParent() == null)
                             return matchingViews;
@@ -447,7 +447,7 @@ namespace Unity.Tutorials.Core.Editor
                     break;
                 case SelectorType.GUIView:
                     var targetViewType = unmaskedView.m_ViewType.Type;
-                    if (targetViewType == null)
+                    if (unmaskedView.m_ViewType.IsSpecified && targetViewType == null)
                     {
                         throw new ArgumentException(
                             $"Specified unmasked view does not refer to a known GUIView type:\n{JsonUtility.ToJson(unmaskedView, true)}",
@@ -485,22 +485,22 @@ namespace Unity.Tutorials.Core.Editor
         }
 
         [SerializeField]
-        SelectorType m_SelectorType;
+        internal SelectorType m_SelectorType;
 
         /// <summary>
         /// Applicable when SelectorType == GUIView.
         /// </summary>
         [SerializedTypeGuiViewFilter]
         [SerializeField]
-        SerializedType m_ViewType = new SerializedType(null);
+        internal SerializedType m_ViewType = new SerializedType(null);
 
         /// <summary>
         /// Applicable when SelectorType == EditorWindow.
         /// </summary>
         [SerializedTypeFilter(typeof(EditorWindow), false)]
         [SerializeField]
-        SerializedType m_EditorWindowType = new SerializedType(null);
-        Type EditorWindowType
+        internal SerializedType m_EditorWindowType = new SerializedType(null);
+        Type ResolvedEditorWindowType
         {
             get
             {
@@ -525,16 +525,16 @@ namespace Unity.Tutorials.Core.Editor
         /// Applicable when SelectorType == EditorWindow. Used as the back-up type if primary EditorWindowType cannot be resolved.
         /// </summary>
         [SerializeField]
-        EditorWindowTypeCollection m_AlternateEditorWindowTypes = new EditorWindowTypeCollection();
+        internal EditorWindowTypeCollection m_AlternateEditorWindowTypes = new EditorWindowTypeCollection();
 
         [SerializeField]
-        MaskType m_MaskType = MaskType.FullyUnmasked;
+        internal MaskType m_MaskType = MaskType.FullyUnmasked;
 
         [SerializeField]
-        MaskSizeModifier m_MaskSizeModifier = MaskSizeModifier.NoModifications;
+        internal MaskSizeModifier m_MaskSizeModifier = MaskSizeModifier.NoModifications;
 
         [SerializeField]
-        List<GuiControlSelector> m_UnmaskedControls = new List<GuiControlSelector>();
+        internal List<GuiControlSelector> m_UnmaskedControls = new List<GuiControlSelector>();
 
         public int GetUnmaskedControls(List<GuiControlSelector> unmaskedControls)
         {

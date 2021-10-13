@@ -8,13 +8,13 @@ namespace Unity.Tutorials.Core.Editor
     [CustomPropertyDrawer(typeof(UnmaskedView))]
     class UnmaskedViewDrawer : PropertyDrawer
     {
-        private const string k_SelectorTypePath = "m_SelectorType";
-        private const string k_ViewTypePath = "m_ViewType";
-        private const string k_EditorWindowTypePath = "m_EditorWindowType";
-        const string k_AlternateEditorWindowTypesPath = "m_AlternateEditorWindowTypes";
-        private const string k_UnmaskedControlsPath = "m_UnmaskedControls";
-        private const string k_UnmaskTypePath = "m_MaskType";
-        private const string k_MaskSizeModifierPath = "m_MaskSizeModifier";
+        const string k_SelectorTypePath = nameof(UnmaskedView.m_SelectorType);
+        const string k_ViewTypePath = nameof(UnmaskedView.m_ViewType);
+        const string k_EditorWindowTypePath = nameof(UnmaskedView.m_EditorWindowType);
+        const string k_AlternateEditorWindowTypesPath = nameof(UnmaskedView.m_AlternateEditorWindowTypes);
+        const string k_UnmaskedControlsPath = nameof(UnmaskedView.m_UnmaskedControls);
+        const string k_UnmaskTypePath = nameof(UnmaskedView.m_MaskType);
+        const string k_MaskSizeModifierPath = nameof(UnmaskedView.m_MaskSizeModifier);
 
         private readonly Dictionary<string, ReorderableList> m_UnmaskedControlsPerPropertyPath =
             new Dictionary<string, ReorderableList>();

@@ -76,12 +76,11 @@ Note: the names of the **Editor Window Type** options displayed are simplified b
     - Input "ToolbarPlayModePlayButton" as the **Control Name**.
   - Unity 2021.1 and newer:
     - Change the **Selector Mode** to **Visual Element**.
-    - Input "Play" as the **Visual Element Name.**.
-  - If you wish to support both Unity version ranges, simply implement two unmasked views with the appropriate settings.
+    - Input "Play" as the **Visual Element Name**.
+  - If you want to support both Unity version ranges, simply implement two unmasked views with the appropriate settings.
 - Enable **Preview Masking** again to check that only the Play button is unmasked.
 
 Read more about the different configuration needs for the toolbar buttons [here](#configuring-masking-of-scene-view-tools-and-play-mode-buttons).
-
 
 ### Example: unmasking a property in the Inspector
 Another common unmasking you might want to do is to unmask a property in the Inspector. Let's say you want to unmask the x, y and z positions of a Transform component. These are all properties of a Transform component, so we set up our masking settings as follows: 
@@ -91,6 +90,76 @@ Another common unmasking you might want to do is to unmask a property in the Ins
 Note: this will work on whichever GameObject is currently active within the Inspector! It's best practice to make sure that a user has selected whichever GameObject's properties you want the user to modify within the same tutorial page, and to use masking accordingly to ensure no other object will be selected. 
 
 See [Masking settings](#masking-settings) for a full breakdown of the various settings.
+
+
+### Configuring masking of Scene view tools and Play mode buttons
+
+#### UI implementation differences between Unity versions
+
+In 2021.1, the implementation of Scene view tools and Play mode buttons changed from IMGUI to UI Toolkit, meaning, for Unity versions 2020.3 and older,
+the **Named Control** selector mode needs to be used to configure the masking of common toolbar controls, and for Unity 2021.1 and newer, the **Visual Element Name**
+selector mode must be used instead. For reference, the Scene view controls have the following names:
+|Control|Named Control|Visual Element Name|
+|---|---|---|
+|Hand/View|ToolbarPersistentToolsPan|ViewTool|
+|Move|ToolbarPersistentToolsTranslate|MoveTool|
+|Rotate|ToolbarPersistentToolsRotate|RotateTool|
+|Scale|ToolbarPersistentToolsScale|ScaleTool|
+|Rect|ToolbarPersistentToolsRect|RectTool|
+|Transform|ToolbarPersistentToolsTransform|TransformTool|
+|Tool Handle Position|ToolbarToolPivotPositionButton|Pivot Mode|
+|Tool Handle Rotation|ToolbarToolPivotOrientationButton|Pivot Rotation|
+|Custom Tools|ToolbarPersistentToolsCustom|toolbar-contents*|
+
+<sub>*__Visual Element Name__ not applicable, use __Visual Element Class Name__ instead.</sub>
+
+The names of the Play mode controls are:
+|Control|Named Control|Visual Element Name|
+|---|---|---|
+|Play|ToolbarPlayModePlayButton|Play|
+|Pause|ToolbarPlayModePauseButton|Pause|
+|Step|ToolbarPlayModeStepButton|Step|
+
+Additionally, the Editor's Scene view tools UI changed significantly between 2020.3 and 2021.1, moving the tools from the top toolbar into the Scene view.
+This requires you to adjust any existing Scene view tools masking settings as follows:
+|Property|Unity 2020.3 and older |Unity 2021.1 and newer|
+|---|---|---|
+|Selector Type|GUI View|Editor Window
+|View Type|UnityEditor.Toolbar|UnityEditor.SceneView
+|Selector Mode|Named Control|Visual Element Name
+
+For the Play mode controls, simply switch to use the appropriate visual element names seen in the above table. Note that, for now, it's not easy to support both Unity version ranges in your project,
+so it's recommended to implement different versions of the tutorial for different Unity versions.
+
+#### Assembly differences between Unity versions
+
+Certain editor windows, for example, `SceneView`, were moved from `UnityEngine` assembly to `UnityEngine.CoreModule` in Unity 2020, which can cause problems with masking settings
+if upgrading a tutorial project from Unity 2019 to Unity 2020 and newer. In your masking settings, look for **Editor Window Type** fields with yellow background to spot these misconfigurations.
+Note that in most cases the masking settings should still work; a tooltip will reveal more information about the type in question.
+
+ As a workaround,
+if wanting to support both Unity version ranges using the same asset, it's possible to use the older Unity version to author the value of **Editor Window Type** and the newer Editor version to author the
+value of **Alternate Editor Window Types**. As a result, the masking settings of a serialized `TutorialPage` asset should look like this:
+```
+m_MaskingSettings:
+  m_MaskingEnabled: 1
+  m_UnmaskedViews:
+  - m_SelectorType: 1
+    m_ViewType:
+      m_TypeName: 
+    m_EditorWindowType:
+      m_TypeName: UnityEditor.SceneView, UnityEditor, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    m_AlternateEditorWindowTypes:
+      m_Items:
+      - Type:
+          m_TypeName: UnityEditor.SceneView, UnityEditor.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+```
+
+When editing the tutorial pages, pay attention that you don't accidentally clear these values when committing changes to the version control.
+
+Note that the same issue applies also for certain GUI views, for example, `UnityEditor.Toolbar`, but there's no currently similar fallback mechanism available to work around these issues.
+In your masking settings, look for **View Type** fields with yellow background to spot these misconfigurations. In problematic GUI view's case, you need to upgrade the tutorial to support 
+only newer Unity version, or alternatively implement different versions of the tutorial for different Unity versions.
 
 ## Future Prefabs and Criteria 
 
@@ -131,7 +200,7 @@ The newly created children of the tutorial page are the Future Prefab Instance's
 
 In the second tutorial page, let's add another instruction paragraph. We want the user to modify the magicNumber property on our prefab, so we'll add a PropertyModificationCriterion as criteria. Within this criteria are a couple of options we need to modify.  
 
-Firstly, the **Property Path** is the name of the property. In the current prefab, it's named "magicNumber". If the property is derived from a different script, you can still access it: Otherscript.magicNumber for instance (Tip: If you're ever unsure what the property path is - for internal properties for instance - you can set your Inspector to Debug mode and alt-left click on the name of the property).
+Firstly, the **Property Path** is the name of the property. In the current prefab, it's named "magicNumber". If the property is derived from a different script, you can still access it, "Otherscript.magicNumber", for instance (Tip: If you're ever unsure what the property path is - for internal properties for instance - you can set your Inspector to Debug mode and alt-left click on the name of the property).
 
 ![](images/index056.png)
 
@@ -209,7 +278,7 @@ Assigns a Material in the Target Slot and sets Material Property Path to "_Color
 
 **PlayModeStateCriterion** 
 
-Checks which Play Mode the Editor is in. It can be toggled between Playing or Not Playing.
+Checks which Play mode the Editor is in. It can be toggled between Playing or Not Playing.
 
 **PrefabInstanceCountCriterion** 
 
@@ -296,7 +365,7 @@ The wanted element can be specified using the following properties:
 In many cases, specifying only one of these properties should suffice, but in some cases you will need to specify all three of them.
 
 The easiest way to select the wanted visual element is to use the visual element picker functionality by clicking the **Pick Visual Element** button. 
-After clicking this button, you can click the Editor's UI element you wish to select, and if the clicked element was a visual element, its values are set to the appropriate fields.
+After clicking this button, you can click the Editor's UI element you want to select, and if the clicked element was a visual element, its values are set to the appropriate fields.
 
 ### UI Toolkit Debugger
 In all cases it's not possible to pick the wanted visual element using the visual element picker. In these cases you should be able to figure out the names and classes of various visual elements in the Editor by using the UI Toolkit Debugger. The debugger can be accessed using the following methods:
@@ -316,39 +385,6 @@ In the debugger's left-side tree view, you can see the needed properties for eac
 3. The Unity style sheet class name—usually present but might be missing for some container elements.
     - Visual element class names begin with a period (.), for example ".unity-button".
     - Omit the period when inputting the class name as the **Visual Element Class Name** value, that is, use "unity-button".
-
-
-### Configuring masking of Scene view tools and Play mode buttons
-
-For Unity versions below 2021.1, the **Named Control** selector mode needs to be used to configure the masking of common toolbar controls.
-For Unity 2021.1 and newer, the **Visual Element Name** selector mode must be used instead. For reference, the Scene view controls have the following names:
-|Control|Named Control|Visual Element Name|
-|---|---|---|
-|Hand/View|ToolbarPersistentToolsPan|ViewTool|
-|Move|ToolbarPersistentToolsTranslate|MoveTool|
-|Rotate|ToolbarPersistentToolsRotate|RotateTool|
-|Scale|ToolbarPersistentToolsScale|ScaleTool|
-|Rect|ToolbarPersistentToolsRect|RectTool|
-|Transform|ToolbarPersistentToolsTransform|TransformTool|
-|Tool Handle Position|ToolbarToolPivotPositionButton|Pivot Mode|
-|Tool Handle Rotation|ToolbarToolPivotOrientationButton|Pivot Rotation|
-
-The names of the Play mode controls are:
-|Control|Named Control|Visual Element Name|
-|---|---|---|
-|Play|ToolbarPlayModePlayButton|Play|
-|Pause|ToolbarPlayModePauseButton|Pause|
-|Step|ToolbarPlayModeStepButton|Step|
-
-Additionally, the Editor's Scene view tools UI changed significantly between 2020.3 and 2021.1, requiring you to adjust any existing settings as follows:
-|Property|Unity 2020.3 and older |Unity 2021.1 and newer|
-|---|---|---|
-|Selector Type|GUI View|Editor Window
-|View Type|UnityEditor.Toolbar|UnityEditor.SceneView
-|Selector Mode|Named Control|Visual Element Name
-
-For the Play mode controls, simply switch to use the appropriate visual element names seen in the above table. If you want to support both Unity version ranges in your project,
-configure two unmasked views with the appropriate settings.
 
 ## Tutorial Styles
 

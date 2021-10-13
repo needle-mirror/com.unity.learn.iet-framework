@@ -4,6 +4,21 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2021-10-13
+### Changed
+- When traversing back to an already completed tutorial page, the masking settings of the page are reapplied if the page doesn't have completion criteria set.
+This new behavior improves the tutorial authoring experience and allows a tutorial user to reobserve pages in "a tour of the UI" type of tutorials.
+- When applying masking, do not not throw an exception if unmasked view's **Editor Window Type** or **View Type** is explicitly set to **None**, meaning, the masking is likely not fully configured yet.
+
+### Fixed
+- Fixed auto-completion of `SceneViewCameraMovedCriterion` not working.
+- Fixed unresolved `SerializedType` values being shown incorrectly as **None**. These values are now shown as **Not Found** with a red background in the Inspector.
+- Fixed `SerializedType` values that were resolved but the resolved type had a different assembly-qualified type name than the original name being shown incorrectly as **None**. These values are now shown with a yellow background in the Inspector.
+- Fixed NRE when auto-advancing a tutorial page with video on Unity 2021 and newer.
+
+### Removed
+- UI: Removed drop shadows from title and subtitle of tutorial category/project cards and tutorial window's header as the `text-shadow` USS property is not supported on Unity 2020 and older.
+
 ## [2.1.0-pre.1] - 2021-09-28
 ### Added
 - Added support for UI Toolkit masking and highlighting. **Pick Visual Element** functionality can be used to easily pick the wanted visual elements.
@@ -18,7 +33,7 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Scripting API: Made `TutorialModalWindow` part of the public API of the package. This class can be used to implement welcome/closing dialogs for the tutorial project.
 
 ### Fixed
-- Fixed misplaced unmasking of UI controls on Unity 2021.2.0.
+- Fixed misplaced unmasking of UI controls in floating editor windows on Unity 2021.2.0.
 - UI: Disabled horizontal scrollbars in all windows.
 - UI: Fixed unwanted offset in the interactable area of **Back to previous view** button.
 - Fixed original scenes not being restored correctly when exiting a tutorial which contained multiple scenes.

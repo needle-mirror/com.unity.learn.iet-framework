@@ -217,7 +217,7 @@ namespace Unity.Tutorials.Core.Editor
                 // mask everything except the unmasked view rects
                 if (s_UnmaskedViews.TryGetValue(view, out maskViewData))
                 {
-                    // Beginning from 2021.2 the layout of EditorWindows has changed a bit and now contains
+                    // Beginning from 2021.2 the layout of floating/undocked EditorWindows has changed a bit and now contains
                     // an offset caused by the tab area which we need to take into account.
                     EditorWindow parentWindow = null;
                     if (maskViewData.EditorWindowType != null)
@@ -228,7 +228,7 @@ namespace Unity.Tutorials.Core.Editor
                     for (var i = 0; i < maskedRects.Count; ++i)
                     {
                         var rect = maskedRects[i];
-                        if (parentWindow != null)
+                        if (parentWindow != null && !parentWindow.IsDocked())
                         {
                             // In theory we could have an X offset also but it seems highgly unlikely.
                             rect.y -= parentWindow.rootVisualElement.layout.y;

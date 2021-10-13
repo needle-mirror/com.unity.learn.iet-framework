@@ -1254,6 +1254,11 @@ namespace Unity.Tutorials.Core.Editor
 
         internal void SetTutorial(Tutorial tutorial)
         {
+            if (currentTutorial != tutorial)
+            {
+                VideoPlaybackManager.ClearCache();
+            }
+
             if (currentTutorial)
             {
                 ClearTutorialListener(currentTutorial);
@@ -1474,7 +1479,6 @@ namespace Unity.Tutorials.Core.Editor
             AnalyticsHelper.PageShown(page, index);
             PrepareNewPage();
 
-            VideoPlaybackManager.ClearCache();
             // TODO We raise Shown event before the actual content is shown:
             // PrepareNewPage() calls DelayedShowCurrentTutorialContent() which is causes at least one-frame delay
             // before ShowCurrentTutorialContent() is executed for real.
@@ -1516,7 +1520,10 @@ namespace Unity.Tutorials.Core.Editor
                         QueueMaskUpdate();
                     }
 
-                    if (currentTutorial.CurrentPageIndex <= m_FarthestPageCompleted)
+                    // When going back, don't reapply the page's masking settings if the page has completion criteria:
+                    // criterion logic introduces complexity and potential changes in the UI, but if we don't have such,
+                    // it's fairly safe to re-unmask/highlight UI elements.
+                    if (currentTutorial.CurrentPageIndex <= m_FarthestPageCompleted && currentTutorial.CurrentPage.HasCriteria())
                     {
                         unmaskedViews = new UnmaskedView.MaskData();
                     }
