@@ -4,6 +4,11 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.1-pre.1] - 2021-10-28
+### Fixed
+- Fixed possibility to horizontally scroll tutorial content when there were one or more line breaks.
+- Fixed `BuildPlayer_Succeeds` test failing when the build target is not available.
+
 ## [2.1.0] - 2021-10-13
 ### Changed
 - When traversing back to an already completed tutorial page, the masking settings of the page are reapplied if the page doesn't have completion criteria set.

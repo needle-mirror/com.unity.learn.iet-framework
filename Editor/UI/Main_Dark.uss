@@ -300,6 +300,7 @@ WrapCharLabel {
     white-space: normal;
     flex-wrap: wrap;
     flex-direction: row;
+    overflow: hidden;
 }
 
 #TutorialContainer .unity-scroll-view .unity-scroller--horizontal {
@@ -320,6 +321,7 @@ WrapCharLabel {
     padding: 15px;
     flex-direction: row;
     border-bottom-width: 1px;
+    overflow: hidden;
 }
 
 .container--instruction-text {

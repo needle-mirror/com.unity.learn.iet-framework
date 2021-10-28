@@ -12,7 +12,7 @@ namespace Unity.Tutorials.Core.Editor.Tests
     {
         const string k_TempScenePath = "Assets/UntitledScene.unity";
 
-        static string buildPath
+        static string BuildPath
         {
             get
             {
@@ -30,23 +30,23 @@ namespace Unity.Tutorials.Core.Editor.Tests
         {
             // 2021.2.0 and newer will fail if we don't save the current scene
             EditorSceneManager.SaveScene(SceneManager.GetActiveScene(), k_TempScenePath);
-            Assert.That(File.Exists(buildPath), Is.False, "Existing file at path " + buildPath);
-            Assert.That(Directory.Exists(buildPath), Is.False, "Existing directory at path " + buildPath);
+            Assert.That(File.Exists(BuildPath), Is.False, "Existing file at path " + BuildPath);
+            Assert.That(Directory.Exists(BuildPath), Is.False, "Existing directory at path " + BuildPath);
         }
 
         [TearDown]
         public void TearDown()
         {
-            if (File.Exists(buildPath))
-                File.Delete(buildPath);
+            if (File.Exists(BuildPath))
+                File.Delete(BuildPath);
 
-            if (Directory.Exists(buildPath))
-                Directory.Delete(buildPath, true);
+            if (Directory.Exists(BuildPath))
+                Directory.Delete(BuildPath, true);
 
             AssetDatabase.DeleteAsset(k_TempScenePath);
         }
 
-        static BuildTarget buildTarget
+        static BuildTarget BuildTarget
         {
             get
             {
@@ -54,14 +54,11 @@ namespace Unity.Tutorials.Core.Editor.Tests
                 {
                     case RuntimePlatform.OSXEditor:
                         return BuildTarget.StandaloneOSX;
-
                     case RuntimePlatform.WindowsEditor:
                         return BuildTarget.StandaloneWindows;
-
                     case RuntimePlatform.LinuxEditor:
                         // NOTE Universal & 32-bit Linux support dropped after 2018 LTS
                         return BuildTarget.StandaloneLinux64;
-
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
@@ -71,17 +68,23 @@ namespace Unity.Tutorials.Core.Editor.Tests
         [Test]
         public void BuildPlayer_Succeeds()
         {
-            var buildPlayerOptions = new BuildPlayerOptions
+            var buildTarget = BuildTarget;
+            if (!BuildPipeline.IsBuildTargetSupported(BuildTargetGroup.Standalone, buildTarget))
             {
-                scenes = new[] { GetTestAssetPath("EmptyTestScene.unity") },
-                locationPathName = buildPath,
-                targetGroup = BuildTargetGroup.Standalone,
-                target = buildTarget,
-                options = BuildOptions.StrictMode,
-            };
+                // Need to have this for Katana as it doesn't have Player building capabilities
+                Assert.Pass();
+            }
 
-            Assume.That(BuildPipeline.IsBuildTargetSupported(BuildTargetGroup.Standalone, buildTarget));
-            BuildPipeline.BuildPlayer(buildPlayerOptions);
+            BuildPipeline.BuildPlayer(
+                new BuildPlayerOptions
+                {
+                    scenes = new[] { GetTestAssetPath("EmptyTestScene.unity") },
+                    locationPathName = BuildPath,
+                    targetGroup = BuildTargetGroup.Standalone,
+                    target = buildTarget,
+                    options = BuildOptions.StrictMode,
+                }
+            );
         }
     }
 }
