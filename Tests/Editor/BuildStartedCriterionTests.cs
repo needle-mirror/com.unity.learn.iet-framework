@@ -1,45 +1,88 @@
+using System;
+using System.IO;
 using System.Collections;
 using NUnit.Framework;
 using UnityEditor;
+using UnityEngine;
 using UnityEngine.TestTools;
-using UnityEngine.Windows;
 
 namespace Unity.Tutorials.Core.Editor.Tests
 {
     class BuildStartedCriterionTests : CriterionTestBase<BuildStartedCriterion>
     {
+        // TODO Make some kind of reusable utils out of BuildPath, BuildTarget, and so on, as they are copy-pasted in multiple places now.
+        static string BuildPath
+        {
+            get
+            {
+                const string buildName = "Test/Test";
+                if (Application.platform == RuntimePlatform.OSXEditor)
+                    return buildName + ".app";
+                return buildName;
+            }
+        }
+
+        [SetUp]
+        public void SetUp()
+        {
+            SaveActiveScene();
+            Assert.That(File.Exists(BuildPath), Is.False, "Existing file at path " + BuildPath);
+            Assert.That(Directory.Exists(BuildPath), Is.False, "Existing directory at path " + BuildPath);
+        }
+
+        [TearDown]
+        public override void TearDown()
+        {
+            if (File.Exists(BuildPath))
+                File.Delete(BuildPath);
+
+            if (Directory.Exists(BuildPath))
+                Directory.Delete(BuildPath, true);
+
+            DeleteTempScene();
+
+            base.TearDown();
+        }
+
+        static BuildTarget BuildTarget
+        {
+            get
+            {
+                switch (Application.platform)
+                {
+                    case RuntimePlatform.OSXEditor:
+                        return BuildTarget.StandaloneOSX;
+                    case RuntimePlatform.WindowsEditor:
+                        return BuildTarget.StandaloneWindows;
+                    case RuntimePlatform.LinuxEditor:
+                        // NOTE Universal & 32-bit Linux support dropped after 2018 LTS
+                        return BuildTarget.StandaloneLinux64;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            }
+        }
+
         [UnityTest]
         public IEnumerator CustomHandlerIsInvoked_IsCompleted()
         {
-#if UNITY_EDITOR_WIN
-            var target = BuildTarget.StandaloneWindows;
-            var locationPathName = "Test/Test.exe";
-#elif UNITY_EDITOR_OSX
-            var target = BuildTarget.StandaloneOSX;
-            var locationPathName = "Test/Test";
-#elif UNITY_EDITOR_LINUX
-            var target = BuildTarget.StandaloneLinux64;
-            var locationPathName = "Test/Test";
-#else
-#error Unsupported platform
-#endif
+            var buildTarget = BuildTarget;
+            if (!BuildPipeline.IsBuildTargetSupported(BuildTargetGroup.Standalone, buildTarget))
+            {
+                // Need to have this for Katana as it doesn't have Player building capabilities
+                Assert.Pass();
+            }
 
             m_Criterion.BuildPlayerCustomHandler(new BuildPlayerOptions
             {
                 scenes = null,
-                target = target,
-                locationPathName = locationPathName,
+                target = buildTarget,
+                locationPathName = BuildPath,
                 targetGroup = BuildTargetGroup.Unknown
             });
             yield return null;
 
             Assert.IsTrue(m_Criterion.IsCompleted);
-
-            // Cleanup
-            if (Directory.Exists("Test"))
-            {
-                Directory.Delete("Test");
-            }
         }
 
         [UnityTest]

@@ -32,7 +32,7 @@ namespace Unity.Tutorials.Core.Editor.Tests
         }
 
         [TearDown]
-        public void TearDown()
+        public virtual void TearDown()
         {
             m_Criterion.StopTesting();
 
