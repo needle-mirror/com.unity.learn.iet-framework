@@ -8,7 +8,6 @@ The main updates in this release include:
 
 ### Fixed
 - Fixed possibility to horizontally scroll tutorial content when there were one or more line breaks.
-- Fixed `BuildPlayer_Succeeds` test failing when the build target is not available.
 
 For a full list of changes and updates in this version, see the [Changelog].
 

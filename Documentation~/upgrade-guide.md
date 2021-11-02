@@ -6,5 +6,4 @@ You do not need to take any actions to upgrade your project to this package vers
 
 For a full list of changes and updates in this version, see the [Changelog].
 
-[Tutorial Framework 2.0.0 upgrade guide]: https://docs.unity3d.com/Packages/com.unity.learn.iet-framework@2.0/manual/upgrade-guide.html
 [Changelog]: https://docs.unity3d.com/Packages/com.unity.learn.iet-framework@latest?subfolder=/changelog/CHANGELOG.html
