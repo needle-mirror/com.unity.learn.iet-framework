@@ -13,6 +13,18 @@ namespace Unity.Tutorials.Core.Editor
     [InitializeOnLoad]
     internal static class UIElementsHelper
     {
+        private static Assembly GetAssemblyByName(string name)
+        {
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            foreach (var assembly in assemblies)
+            {
+                if (assembly.GetName().Name.Equals(name))
+                    return assembly;
+            }
+
+            return null;
+        }
+
         static PropertyInfo s_VisualTreeProperty;
 
         static UIElementsHelper()
@@ -20,7 +32,7 @@ namespace Unity.Tutorials.Core.Editor
 #if UNITY_2021_2_OR_NEWER
             // Somewhere between 2021.2.0a and 2021.2.0b the internals changed.
             // Make sure to get the type from UnityEditor assemblies, not from UnityEngine.
-            var uiElementsModule = typeof(UnityEditor.UIElements.ColorField).Assembly;
+            var uiElementsModule = GetAssemblyByName("UnityEditor.UIElementsModule");
             // DefaultWindowBackend is a private class so cannot access the type directly.
             var defaultWindowBackendType = uiElementsModule.GetType("UnityEditor.UIElements.DefaultWindowBackend");
             s_VisualTreeProperty = GetProperty(defaultWindowBackendType, "visualTree", typeof(object));

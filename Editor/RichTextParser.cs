@@ -5,6 +5,7 @@ using System.Xml.Linq;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 
 namespace Unity.Tutorials.Core.Editor
 {
@@ -265,6 +266,11 @@ namespace Unity.Tutorials.Core.Editor
                         styleClass = strippedWord.Substring(styleFrom, styleTo - styleFrom);
                         strippedWord = strippedWord.Substring(styleTo + 2, (strippedWord.Length - 2) - styleTo);
                         strippedWord.Replace("\">", "");
+                    }
+
+                    if (strippedWord.Contains("&"))
+                    {
+                        strippedWord = WebUtility.HtmlDecode(strippedWord);
                     }
 
                     if (strippedWord.Contains("</a>"))

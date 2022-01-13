@@ -16,17 +16,23 @@ You can find more details below on how to use ```<wordwrap>```and other rich tex
 
 ### Using rich text in tutorial instructions and narratives
 
-You can apply styling and add links to your tutorial content with rich text tags. Rich text tags are supported in the **Narrative Description** and **Instruction Description** -fields.
+You can apply styling and add links to your tutorial content with rich text tags. Rich text tags are supported in most text fields of the Tutorial assets.
 
-To use rich text, include some of the tags below on either of the **Description** fields mentioned above:
+#### Supported tags
 
-```
-<b>Bold text here</b>
-<i>Italic text here</i>
-<a href="http://yourlink.com">Link text here</a>
-<br/> Force a linebreak (not necessary, you can use return)
-<wordwrap>Forced word wrap</wordwrap> Force word-based wrapping with CJK.
-```
+You can use the following HTML tags in the tutorial assets' text fields.
+
+1. `<b>Text</b>`: **Text**
+1. `<i>Text</i>`: *Text*
+1. `<a href="https://unity.com/">Text</a>`: [Text](https://unity.com/)
+1. `Text<br/>More Text`: Text<br/>More Text
+1. `<wordwrap>Force word wrapping:ワードラップを強制する</wordwrap>`: Force word wrapping:ワードラップを強制する - CJK characters are considered words when wrapped, unless overridden. Use this tag to wrap Korean correctly.
+1. `<style class="classname">Custom UIToolkit style class is applied to this text. Define the class in the .uss style sheet you use.</style>`
+1. HTML character codes: `&amp;` `&gt;` `&lt;`: & > <
+
+#### Leading white space indentation
+
+Leading white space is rendered as-is - adding tabulations or spaces at the beginning of a line will render similar indentation in the content. However, additional spaces between words will be ignored.
 
 ### Possible issues
 

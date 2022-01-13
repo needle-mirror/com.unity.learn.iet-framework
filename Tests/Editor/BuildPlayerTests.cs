@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using NUnit.Framework;
 using UnityEditor;
+using UnityEditor.Build.Reporting;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -75,16 +76,18 @@ namespace Unity.Tutorials.Core.Editor.Tests
                 Assert.Pass();
             }
 
-            BuildPipeline.BuildPlayer(
+            var report = BuildPipeline.BuildPlayer(
                 new BuildPlayerOptions
                 {
-                    scenes = new[] { GetTestAssetPath("EmptyTestScene.unity") },
+                    scenes = new[] { GetTestAssetPath("EmptyTestScene.unity") }, // NOTE could probably pass 'null' here as well
                     locationPathName = BuildPath,
                     targetGroup = BuildTargetGroup.Standalone,
                     target = buildTarget,
                     options = BuildOptions.StrictMode,
                 }
             );
+
+            Assert.AreEqual(BuildResult.Succeeded, report.summary.result);
         }
     }
 }

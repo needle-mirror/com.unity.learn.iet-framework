@@ -168,6 +168,24 @@ namespace Unity.Tutorials.Core.Editor.Tests
         }
 
         [Test]
+        [TestCase("&amp;",1)]
+        [TestCase("&amp; &lt;&gt;", 3)]
+        [TestCase("Test&amp;Result", 11)]
+        [TestCase("Test&amp;<b>Result</b>", 11)]
+        [TestCase("Test &amp; <b>Result</b>", 11)]
+        public void HTMLCharacterSupport (string testRichText, int totalCharacterCount)
+        {
+            Reset();
+            var visualElements = RichTextToVisualElements(testRichText, m_Window.rootVisualElement);
+            int totalCharacters = 0;
+            foreach (Label label in visualElements)
+            {
+                totalCharacters += label.text.Length;
+            }
+            Assert.AreEqual(totalCharacterCount, totalCharacters);
+        }
+
+        [Test]
         public void CanCreateParagraphsOfRichText()
         {
             Reset();
