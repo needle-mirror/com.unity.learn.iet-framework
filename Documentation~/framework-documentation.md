@@ -102,7 +102,7 @@ See [Masking settings](#masking-settings) for a full breakdown of the various se
 
 #### UI implementation differences between Unity versions
 
-In 2021.1, the implementation of Scene view tools and Play mode buttons changed from IMGUI to UI Toolkit, meaning, for Unity versions 2020.3 and older,
+In 2021.1, the implementation of Scene view tools and Play mode buttons changed from [IMGUI] to [UI Toolkit], meaning, for Unity versions 2020.3 and older,
 the **Named Control** selector mode needs to be used to configure the masking of common toolbar controls, and for Unity 2021.1 and newer, the **Visual Element Name**
 selector mode must be used instead. For reference, the Scene view controls have the following names:
 |Control|Named Control|Visual Element Name|
@@ -143,8 +143,7 @@ Certain editor windows, for example, `SceneView`, were moved from `UnityEngine` 
 if upgrading a tutorial project from Unity 2019 to Unity 2020 and newer. In your masking settings, look for **Editor Window Type** fields with yellow background to spot these misconfigurations.
 Note that in most cases the masking settings should still work; a tooltip will reveal more information about the type in question.
 
- As a workaround,
-if wanting to support both Unity version ranges using the same asset, it's possible to use the older Unity version to author the value of **Editor Window Type** and the newer Editor version to author the
+As a workaround, if wanting to support both Unity version ranges using the same asset, it's possible to use the older Unity version to author the value of **Editor Window Type** and the newer Editor version to author the
 value of **Alternate Editor Window Types**. As a result, the masking settings of a serialized `TutorialPage` asset should look like this:
 ```
 m_MaskingSettings:
@@ -282,6 +281,10 @@ As described above, you can check if a user has instantiated an object, and also
 
 Assigns a Material in the Target Slot and sets Material Property Path to "_Color" to check whether a user has changed the color of a material.
 
+**PackageInstalledCriterion** 
+
+Checks whether a Unity Package Manager (UPM) package is installed in the project.
+
 **PlayModeStateCriterion** 
 
 Checks which Play mode the Editor is in. It can be toggled between Playing or Not Playing.
@@ -316,25 +319,40 @@ Checks if the user has moved, zoomed or orbited around within the current scene 
 
 <!-- Dev note: MockCriterion exists for the devs but it's not visible for the end user. -->
 
-## Masking Settings 
+## Masking settings
 
-**Editor window**
+The masking is configured by using _selectors_ that specify the UI elements that should be unmasked when masking is applied to the Editor. A selector can specify a window/view or controls in a window/view.
 
-Within the Editor window, you can set which Editor window you'd like to reveal to the user. Select an **Editor Window Type** to add that window to the unmasked views. For instance, the Hierarchy window is `UnityEditor.SceneHierarchyWindow` - selecting it would unmask it for the user. 
+### Selector types
 
-**Mask Type** dictates whether or not the window is fully unmasked and can be interacted with, or if it's revealed and highlighted for the user but not actually interactive.  
-By default, **Fully Unmasked** means the user can interact freely within this window. Any functionality within a fully unmasked window will be accessible to the user. The **Block Interactions** option will make the window easier to look at, but prevent a user from interacting with it. 
+The **Selector Type** is needed to specify the underlying type of the window/view you wish to unmask. There exists two distinct types in the Editor, _editor windows_ and _GUI views_.
+
+**Editor Window** 
+
+This type is used in most cases to specify which editor window you'd like to reveal to the user. Select **Editor Window** as the **Selector Type** and pick the window you want to unmask 
+from the options available in the **Editor Window Type** menu. For instance, the type of the Hierarchy window is `UnityEditor.SceneHierarchyWindow`.
+**Alternate Editor Window Types** can be used as a fallback mechanism in some cases; see [Assembly differences between Unity versions](#assembly-differences-between-unity-versions)
 
 **GUI View** 
 
-GUI View is used for specific view types within the Editor. You'll mostly want to use this to access the toolbar, where you can then access the buttons for the various tools and the play/pause/next frame buttons.
-Selecting **GUI View** as the **Selector Type** allows you to specify **View Type** instead of **Editor Window Type**. Use this selector type when you to want to unmask specific controls in the upper toolbar of the Editor, for example, the Play button.
+For a handful of cases, the **GUI View** type needs to be used instead. You'll mostly want to use this type when configuring the tutorial user's access to the controls in the [toolbar](https://docs.unity3d.com/Manual/Toolbar.html) 
+of the Editor, for example, the Play button. Selecting **GUI View** as the **Selector Type** allows you to specify **View Type** instead of **Editor Window Type**.
+The type of the toolbar is `UnityEditor.Toolbar`.
 
-**Unmasked Controls**
+### Other settings
+
+**Mask Type** controls whether or not the window is fully unmasked and can be interacted with, or if it's revealed and highlighted for the user but not actually interactive. 
+By default, **Fully Unmasked** means the user can interact freely within this window. Any functionality within a fully unmasked window will be accessible to the user. The **Block Interactions** option will make the window easier to look at, but prevent a user from interacting with it. 
+
+**Mask Size Modifier** can be used to expand the width of the mask to the whole window if wanted.
+
+**Selector Match Type** lets you control which element(s) (the last, the first, all of them) is/are chosen if multiple elements match the chosen selector.
+
+### Selector modes
 
 **GUI Content**
 
-GUI Content allows you to enter a text, tooltip text, or image via reference. IMGUI Content with matching properties will not be masked in the Editor.
+GUI Content allows you to enter a text, tooltip text, or image via reference. [IMGUI] content with matching properties will not be masked in the Editor.
 
 ![](images/index061.png)
 
@@ -358,11 +376,12 @@ and appears in a shortened form (ends with ellipsis), the unmasking doesn't work
 
 **Property** 
 
-This option allows you to specify any serialized object property shown in the Inspector. You can view property names by changing the Inspector into debug mode, holding Alt/Option and clicking on a property name.
+This option allows you to specify any serialized object property shown in the Inspector. You can view property names by changing the Inspector into debug mode via 
+the "..." button at the top-right corner of the Inspector window, then holding Alt/Option and clicking on a property name.
 
 **Visual Element**
 
-The **Visual Element** selector mode is used to select [UI Toolkit](https://docs.unity3d.com/Manual/UIElements.html) (formerly known as UIElements) elements, also known as visual elements.
+The **Visual Element** selector mode is used to select desired [UI Toolkit] (formerly known as UIElements) elements, also known as visual elements.
 The wanted element can be specified using the following properties:
 - **Visual Element Type Name**, the fully qualified C# class/type name of the element, for example, "UnityEngine.UIElements.Button"
 - **Visual Element Class Name**, the Unity style sheet class name, for example, "unity-button"
@@ -370,11 +389,12 @@ The wanted element can be specified using the following properties:
 
 In many cases, specifying only one of these properties should suffice, but in some cases you will need to specify all three of them.
 
-The easiest way to select the wanted visual element is to use the visual element picker functionality by clicking the **Pick Visual Element** button. 
-After clicking this button, you can click the Editor's UI element you want to select, and if the clicked element was a visual element, its values are set to the appropriate fields.
+The easiest way to select the desired visual element is to use the visual element picker functionality by clicking the **Pick Visual Element** button. 
+After clicking this button, you can select an Editor UI element, and if the selected element was a visual element, its values are set to the appropriate fields.
 
-### UI Toolkit Debugger
-In all cases it's not possible to pick the wanted visual element using the visual element picker. In these cases you should be able to figure out the names and classes of various visual elements in the Editor by using the UI Toolkit Debugger. The debugger can be accessed using the following methods:
+## UI debuggers
+### UI Toolkit debugger
+It's not always possible to select the desired visual element using the visual element picker. In these cases you should be able to figure out the names and classes of various visual elements in the Editor by using the UI Toolkit Debugger. The debugger can be accessed using the following methods:
 - Unity 2020 and newer: navigate to **Window** > **UI Toolkit** > **Debugger**.
 - Unity 2019: navigate to **Window** > **Analysis** > **UIElements Debugger**.
 - Each editor window's context menu ("..." button at the top-right corner) should also contain an item to access the debugger.
@@ -391,6 +411,10 @@ In the debugger's left-side tree view, you can see the needed properties for eac
 3. The Unity style sheet class name—usually present but might be missing for some container elements.
     - Visual element class names begin with a period (.), for example ".unity-button".
     - Omit the period when inputting the class name as the **Visual Element Class Name** value, that is, use "unity-button".
+
+### IMGUI debugger
+For older Unity versions and older parts of the Editor UI in general, the IMGUI Debugger might be useful. Go to **Window** > **Analysis** > **IMGUI Debugger** 
+or alternatively the keyboard shortcut Alt/Option + 5.
 
 ## Tutorial Styles
 
@@ -441,3 +465,6 @@ This is where you assign your Tutorial Styles asset. This changes the visuals of
 ## Tips
 
 To trigger the tutorial project initialization code, you can delete the `InitCodeMarker` file in the project's root and reopen the project. Also, you can create a folder in `Assets/DontRunInitCodeMarker` to prevent the initialization code from being run, if necessary.
+
+[IMGUI]: https://docs.unity3d.com/Manual/GUIScriptingGuide.html
+[UI Toolkit]: https://docs.unity3d.com/Manual/UIElements.html

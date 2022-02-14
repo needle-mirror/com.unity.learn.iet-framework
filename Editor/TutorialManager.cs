@@ -248,6 +248,7 @@ namespace Unity.Tutorials.Core.Editor
 
         internal static void SaveOriginalWindowLayout()
         {
+            TutorialModalWindow.Hide();
             WindowLayoutProxy.SaveWindowLayout(k_OriginalLayoutPath);
         }
 

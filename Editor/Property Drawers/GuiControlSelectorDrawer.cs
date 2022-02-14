@@ -9,6 +9,7 @@ namespace Unity.Tutorials.Core.Editor
     [CustomPropertyDrawer(typeof(GuiControlSelector))]
     class GuiControlSelectorDrawer : PropertyDrawer
     {
+        const string k_SelectorTypePath = nameof(GuiControlSelector.m_SelectorMatchType);
         // TODO use nameof()
         private const string k_SelectorModePath = "m_SelectorMode";
         private const string k_GUIContentPath = "m_GUIContent";
@@ -34,6 +35,8 @@ namespace Unity.Tutorials.Core.Editor
         {
             var selectorMode = property.FindPropertyRelative(k_SelectorModePath);
             var height = EditorGUI.GetPropertyHeight(selectorMode);
+            height += EditorGUI.GetPropertyHeight(property.FindPropertyRelative(k_SelectorTypePath));
+
             switch ((GuiControlSelector.Mode)selectorMode.intValue)
             {
                 case GuiControlSelector.Mode.GuiContent:
@@ -152,8 +155,12 @@ namespace Unity.Tutorials.Core.Editor
                 EndPicking();
             }
 
-            var selectorMode = property.FindPropertyRelative(k_SelectorModePath);
+            var selectorType = property.FindPropertyRelative(k_SelectorTypePath);
+            position.height = EditorGUI.GetPropertyHeight(selectorType);
+            EditorGUI.PropertyField(position, selectorType);
+            position.y += position.height + EditorGUIUtility.standardVerticalSpacing;
 
+            var selectorMode = property.FindPropertyRelative(k_SelectorModePath);
             position.height = EditorGUI.GetPropertyHeight(selectorMode);
             EditorGUI.PropertyField(position, selectorMode);
             position.y += position.height + EditorGUIUtility.standardVerticalSpacing;

@@ -4,9 +4,27 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.1.2] - 2022-01-13
+## [2.2.0] - 2022-02-14
+### Added
+- Added `Package Installed` Criterion
+- Added a possibility to specify which element(s) (the last, the first, all of them) is/are chosen for unmasking if multiple elements match the chosen selector.
+- Added text wrapping for "narrative description" and "instruction description" fields of the Inspectors of tutorial pages
+
+### Changed
+- Documentation: Added PackageInstalledCriterion explanation
+
 ### Fixed
-- Support for HTML character codes in Rich Text Parser (&amp; etc.)
+- Fixed masking and highlighting not refreshing when hierarchy or project window content changes
+- Fixed "Cannot save invalid window <window> (Unity.Tutorials.Core.Editor.TutorialModalWindow) to layout." warning message appearing when a button of the welcome dialog was used to trigger a layout reload
+- Fixed unmasking not working properly for the next 1st time when switching tutorials without reloading the Editor's layout
+
+## [2.1.2] - 2022-01-17
+### Changed
+- Updated version number.
+
+## [2.1.2-pre.2] - 2022-01-13
+### Fixed
+- Support for HTML character codes in Rich Text Parser (`&amp;` etc.).
 - Fixed how UnityEditor.UIElementsModule is fetched in UIElementsHelper for latest editor versions.
 
 ## [2.1.1] - 2021-11-02

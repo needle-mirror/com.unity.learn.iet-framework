@@ -164,6 +164,7 @@ namespace Unity.Tutorials.Core.Editor
             var drawInstructions = new List<IMGUIDrawInstructionProxy>(32);
             var namedControlInstructions = new List<IMGUINamedControlInstructionProxy>(32);
             var propertyInstructions = new List<IMGUIPropertyInstructionProxy>(32);
+
             foreach (var viewRects in result)
             {
                 // prevents null exception when repainting in case e.g., user has accidentally maximized view
@@ -190,68 +191,104 @@ namespace Unity.Tutorials.Core.Editor
 
                 foreach (var controlSelector in unmaskedControls[viewRects.Key])
                 {
-                    Rect regionRect = Rect.zero;
-                    bool regionFound = false;
+                    bool reverse = controlSelector.SelectorMatchType == GuiControlSelector.MatchType.Last;
+                    bool selectAll = controlSelector.SelectorMatchType == GuiControlSelector.MatchType.All;
+
+                    var regionRects = new List<Rect>();
                     switch (controlSelector.SelectorMode)
                     {
                         case GuiControlSelector.Mode.GuiContent:
-                            var selectorContent = controlSelector.GuiContent;
+                            bool IsGuiContentMatch(IMGUIDrawInstructionProxy instruction, GUIContent content) =>
+                                AreEquivalent(instruction.usedGUIContent, content);
+
+                            if (reverse)
+                                drawInstructions.Reverse();
+
                             foreach (var instruction in drawInstructions)
                             {
-                                if (AreEquivalent(instruction.usedGUIContent, selectorContent))
+                                if (IsGuiContentMatch(instruction, controlSelector.GuiContent))
                                 {
-                                    regionFound = true;
-                                    regionRect = instruction.rect;
+                                    regionRects.Add(instruction.rect);
+                                    if (!selectAll)
+                                        break;
                                 }
                             }
                             break;
+
                         case GuiControlSelector.Mode.GuiStyleName:
+                            bool IsGuiStyleNameMatch(IMGUIDrawInstructionProxy instruction, string styleName) =>
+                                instruction.usedGUIStyleName == styleName;
+
+                            if (reverse)
+                                drawInstructions.Reverse();
+
                             foreach (var instruction in drawInstructions)
                             {
-                                if (instruction.usedGUIStyleName == controlSelector.GuiStyleName)
+                                if (IsGuiStyleNameMatch(instruction, controlSelector.GuiStyleName))
                                 {
-                                    regionFound = true;
-                                    regionRect = instruction.rect;
+                                    regionRects.Add(instruction.rect);
+                                    if (!selectAll)
+                                        break;
                                 }
                             }
                             break;
+
                         case GuiControlSelector.Mode.NamedControl:
+                            bool IsControlNameMatch(IMGUINamedControlInstructionProxy instruction, string controlName) =>
+                                instruction.name == controlName;
+
+                            if (reverse)
+                                namedControlInstructions.Reverse();
+
                             foreach (var instruction in namedControlInstructions)
                             {
-                                if (instruction.name == controlSelector.ControlName)
+                                if (IsControlNameMatch(instruction, controlSelector.ControlName))
                                 {
-                                    regionFound = true;
-                                    regionRect = instruction.rect;
+                                    regionRects.Add(instruction.rect);
+                                    if (!selectAll)
+                                        break;
                                 }
                             }
                             break;
+
                         case GuiControlSelector.Mode.Property:
+                            bool IsPropertyMatch(IMGUIPropertyInstructionProxy instruction, string typeName, string propertyPath) =>
+                                (instruction.targetTypeName == typeName && instruction.path == controlSelector.PropertyPath);
+
                             if (controlSelector.TargetType == null)
                                 continue;
+
+                            if (reverse)
+                                propertyInstructions.Reverse();
+
                             var targetTypeName = controlSelector.TargetType.AssemblyQualifiedName;
                             foreach (var instruction in propertyInstructions)
                             {
-                                if (
-                                    instruction.targetTypeName == targetTypeName &&
-                                    instruction.path == controlSelector.PropertyPath
-                                )
+                                if (IsPropertyMatch(instruction, targetTypeName, controlSelector.PropertyPath))
                                 {
-                                    regionFound = true;
-                                    regionRect = instruction.rect;
+                                    regionRects.Add(instruction.rect);
+                                    if (!selectAll)
+                                        break;
                                 }
                             }
 
-                            if (!regionFound)
+                            if (!regionRects.Any())
                             {
                                 // Property instruction not found
                                 // Let's see if we can find any of the ancestor instructions to allow the user to unfold
-                                regionFound = FindAncestorPropertyRegion(controlSelector.PropertyPath, targetTypeName,
-                                    drawInstructions, propertyInstructions,
-                                    ref regionRect);
-                                foundAncestorProperty = regionFound;
+                                Rect regionRect = Rect.zero;
+                                foundAncestorProperty = FindAncestorPropertyRegion(
+                                    controlSelector.PropertyPath, targetTypeName, drawInstructions, propertyInstructions, ref regionRect
+                                );
+                                if (foundAncestorProperty)
+                                    regionRects.Add(regionRect);
                             }
                             break;
+
                         case GuiControlSelector.Mode.ObjectReference:
+                            bool IsObjectNameMatch(IMGUIDrawInstructionProxy instruction, string objectName) =>
+                                instruction.usedGUIContent.text== objectName;
+
                             if (controlSelector.ObjectReference == null)
                                 continue;
 
@@ -259,16 +296,20 @@ namespace Unity.Tutorials.Core.Editor
                             if (referencedObject == null)
                                 continue;
 
+                            if (reverse)
+                                drawInstructions.Reverse();
+
                             foreach (var instruction in drawInstructions)
                             {
-                                if (instruction.usedGUIContent.text != referencedObject.name)
-                                    continue;
-
-                                regionFound = true;
-                                regionRect = instruction.rect;
-                                break;
+                                if (IsObjectNameMatch(instruction, referencedObject.name))
+                                {
+                                    regionRects.Add(instruction.rect);
+                                    if (!selectAll)
+                                        break;
+                                }
                             }
                             break;
+
                         case GuiControlSelector.Mode.VisualElement:
                             // At least one of the three properties must be specified in order to make a sensible query.
                             if (controlSelector.VisualElementTypeName.IsNotNullOrWhiteSpace() ||
@@ -286,15 +327,20 @@ namespace Unity.Tutorials.Core.Editor
                                 {
                                     queryBuilder = queryBuilder.Where(elem => elem.GetType().ToString() == controlSelector.VisualElementTypeName);
                                 }
-                                // Keep behavior consistent with the IMGUI selectors: use the last available element if we have multiple hits.
-                                var element = queryBuilder.Build().Last();
-                                if (element != null)
+
+                                var elements = queryBuilder.Build().ToList();
+                                if (reverse)
+                                    elements.Reverse();
+
+                                foreach (var element in elements)
                                 {
-                                    regionFound = true;
-                                    regionRect = element.worldBound;
+                                    regionRects.Add(element.worldBound);
+                                    if (!selectAll)
+                                        break;
                                 }
                             }
                             break;
+
                         default:
                             Debug.LogErrorFormat(
                                 "No method currently implemented for selecting using specified mode: {0}",
@@ -303,15 +349,18 @@ namespace Unity.Tutorials.Core.Editor
                             break;
                     }
 
-                    if (regionFound)
+                    if (regionRects.Any())
                     {
                         if (viewRects.Value.maskSizeModifier == MaskSizeModifier.ExpandWidthToWholeWindow)
                         {
                             const int padding = 5;
-                            regionRect.x = padding;
-                            regionRect.width = viewRects.Key.Position.width - padding * 2;
+                            regionRects.ForEach(regionRect =>
+                            {
+                                regionRect.x = padding;
+                                regionRect.width = viewRects.Key.Position.width - padding * 2;
+                            });
                         }
-                        viewRects.Value.rects.Add(regionRect);
+                        viewRects.Value.rects.AddRange(regionRects);
                     }
                 }
 

@@ -73,10 +73,8 @@ namespace Unity.Tutorials.Core.Editor
         /// <param name="onClose">Optional callback to be called when the window is closed.</param>
         public static void Show(TutorialWelcomePage welcomePage, Action onClose = null)
         {
-            var window = EditorWindowUtils.FindOpenInstance<TutorialModalWindow>();
-            if (window)
-                window.Close();
-            window = CreateInstance<TutorialModalWindow>();
+            Hide();
+            var window = CreateInstance<TutorialModalWindow>();
             window.titleContent.text = welcomePage.WindowTitle;
             //window.m_PreviousWindowTitle = welcomePage.WindowTitle;
             window.minSize = window.maxSize = new Vector2(k_Width, k_Height);
@@ -90,6 +88,16 @@ namespace Unity.Tutorials.Core.Editor
 
             if (MaskingEnabled)
                 window.Mask();
+        }
+
+        /// <summary>
+        /// Closes the window if it's open
+        /// </summary>
+        public static void Hide()
+        {
+            var window = EditorWindowUtils.FindOpenInstance<TutorialModalWindow>();
+            if (window)
+                window.Close();
         }
 
         void Initialize()

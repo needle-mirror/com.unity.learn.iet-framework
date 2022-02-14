@@ -265,7 +265,7 @@ namespace Unity.Tutorials.Core.Editor
         List<TutorialContainer> m_ChildContainers = new List<TutorialContainer>();
 
         [SerializeField]
-        Card[] m_Cards = {};
+        Card[] m_Cards = { };
 
         bool CanMoveToNextPage =>
             currentTutorial != null && currentTutorial.CurrentPage != null &&
@@ -611,15 +611,15 @@ namespace Unity.Tutorials.Core.Editor
                         Order = section.OrderInView,
                         Card = section.IsTutorial
                             ? new TutorialCard { Target = section }
-                        : (Card) new LinkCard { Target = section }    // cast required to prevent CS0173
+                        : (Card)new LinkCard { Target = section }    // cast required to prevent CS0173
                     });
 
                 var categories = m_ChildContainers
                     .Select(category => new
-                {
-                    Order = category.OrderInView,
-                    Card = (Card) new ContainerCard { Target = category }
-                });
+                    {
+                        Order = category.OrderInView,
+                        Card = (Card)new ContainerCard { Target = category }
+                    });
 
                 // Combine in order
                 m_Cards = sections.Concat(categories)
@@ -742,6 +742,15 @@ namespace Unity.Tutorials.Core.Editor
             if (currentTutorial)
                 SubscribeToModifications(currentTutorial);
             m_VisibleContainers.ForEach(SubscribeToModifications);
+            EditorApplication.projectChanged += RefreshMasking;
+            EditorApplication.hierarchyChanged += RefreshMasking;
+        }
+
+        void RefreshMasking()
+        {
+            MaskingManager.Unmask();
+            ApplyMaskingSettings(true);
+            QueueMaskUpdate();
         }
 
         IEnumerator DeferredOnEnable()
@@ -968,6 +977,8 @@ namespace Unity.Tutorials.Core.Editor
         {
             AssemblyReloadEvents.beforeAssemblyReload -= OnBeforeAssemblyReload;
             AssemblyReloadEvents.afterAssemblyReload -= OnAfterAssemblyReload;
+            EditorApplication.projectChanged -= RefreshMasking;
+            EditorApplication.hierarchyChanged -= RefreshMasking;
 
             if (m_WaitForStylesRoutine != null)
             {
@@ -1128,11 +1139,17 @@ namespace Unity.Tutorials.Core.Editor
             AnalyticsHelper.TutorialEnded(TutorialConclusion.Quit);
         }
 
+        void ForgetLastTutorialData()
+        {
+            m_FarthestPageCompleted = -1;
+        }
+
         void OnTutorialInitiated(Tutorial sender)
         {
             if (!currentTutorial)
                 return;
 
+            ForgetLastTutorialData();
             AnalyticsHelper.TutorialStarted(currentTutorial);
             if (currentTutorial.ProgressTrackingEnabled)
                 GenesisHelper.LogTutorialStarted(currentTutorial.LessonId);
@@ -1227,8 +1244,7 @@ namespace Unity.Tutorials.Core.Editor
 
         internal void ForceInititalizeTutorialAndPage()
         {
-            m_FarthestPageCompleted = -1;
-
+            ForgetLastTutorialData();
             CreateTutorialViews();
             PrepareNewPage();
         }
@@ -1285,7 +1301,7 @@ namespace Unity.Tutorials.Core.Editor
         void SetUpTutorial(Tutorial tutorial)
         {
             // bail out if this instance no longer exists such as when e.g., loading a new window layout
-            if (this == null || tutorial  == null || tutorial.CurrentPage == null)
+            if (this == null || tutorial == null || tutorial.CurrentPage == null)
                 return;
 
             tutorial.CurrentPage.Initiate();
@@ -1603,7 +1619,7 @@ namespace Unity.Tutorials.Core.Editor
             }
             else
             {
-                m_FarthestPageCompleted = -1;
+                ForgetLastTutorialData();
                 TutorialManager.Instance.ResetTutorial();
             }
         }

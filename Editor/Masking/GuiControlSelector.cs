@@ -42,11 +42,37 @@ namespace Unity.Tutorials.Core.Editor
         }
 
         /// <summary>
-        /// The used selector mode.
+         /// Supported selector match types.
+        /// </summary>
+        public enum MatchType
+        {
+            /// <summary>
+            /// Select the last matching control.
+            /// </summary>
+            Last,
+            /// <summary>
+            /// Select the first matching control.
+            /// </summary>
+            First,
+            /// <summary>
+            /// Select all matching controls.
+            /// </summary>
+            All,
+        }
+
+        /// <summary>
+        /// The mode by which the UI element is chosen.
         /// </summary>
         public Mode SelectorMode { get => m_SelectorMode; set => m_SelectorMode = value; }
         [SerializeField]
         Mode m_SelectorMode;
+
+        /// <summary>
+        /// The used match type in case of the selector matches multiple UI elements.
+        /// </summary>
+        public MatchType SelectorMatchType { get => m_SelectorMatchType; set => m_SelectorMatchType = value; }
+        [SerializeField]
+        internal MatchType m_SelectorMatchType;
 
         /// <summary>
         /// Applicable if Mode.GuiContent used.

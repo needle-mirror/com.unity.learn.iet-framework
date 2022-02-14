@@ -332,6 +332,7 @@ namespace Unity.Tutorials.Core.Editor
         void DrawSimplifiedInspector()
         {
             serializedObject.Update();
+            GUIStyle textAreaStyle = GUI.skin.GetStyle("TextArea");
 
             EditorGUILayout.BeginVertical();
 
@@ -352,7 +353,7 @@ namespace Unity.Tutorials.Core.Editor
 
             EditorGUILayout.Space(10);
 
-            RenderTextAreaProperty(Tr("Narrative Description"), m_NarrativeDescription);
+            RenderTextAreaProperty(Tr("Narrative Description"), m_NarrativeDescription, textAreaStyle);
 
             EditorGUILayout.Space(10);
 
@@ -360,7 +361,7 @@ namespace Unity.Tutorials.Core.Editor
 
             EditorGUILayout.Space(10);
 
-            RenderTextAreaProperty(Tr("Instruction Description"), m_InstructionDescription);
+            RenderTextAreaProperty(Tr("Instruction Description"), m_InstructionDescription, textAreaStyle);
 
             if (m_CriteriaCompletion != null)
             {
@@ -423,12 +424,14 @@ namespace Unity.Tutorials.Core.Editor
             EditorGUILayout.PropertyField(property, GUIContent.none);
         }
 
-        static void RenderTextAreaProperty(string name, SerializedProperty property)
+        static void RenderTextAreaProperty(string name, SerializedProperty property, GUIStyle textAreaStyle)
         {
             if (property == null)
                 return;
+
             EditorGUILayout.LabelField(name);
-            property.stringValue = EditorGUILayout.TextArea(property.stringValue);
+            property.stringValue = textAreaStyle != null ? EditorGUILayout.TextArea(property.stringValue, textAreaStyle)
+                                                         : EditorGUILayout.TextArea(property.stringValue);
         }
 
         /// <summary>

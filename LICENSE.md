@@ -1,4 +1,4 @@
-com.unity.learn.iet-framework copyright © 2018 Unity Technologies ApS
+com.unity.learn.iet-framework copyright © 2022 Unity Technologies ApS
 
 Licensed under the Unity Package Distribution License (see https://unity3d.com/legal/licenses/Unity_Package_Distribution_License ).
 
