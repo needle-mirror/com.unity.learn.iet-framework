@@ -10,7 +10,7 @@ namespace Unity.Tutorials.Core.Editor.Tests
     class PackageInstalledCriterionTests : CriterionTestBase<PackageInstalledCriterion>
     {
         const string k_UnfindablePackage = "com.unity.ads.ios-support"; //note: not in the project by default, so should never be there while our CI runs this
-        const string k_FindablePackage = "com.unity.test-framework";
+        const string k_FindablePackage = "com.unity.learn.iet-framework";
 
         [UnityTest]
         public IEnumerator PackageInstalled_IsCompleted()

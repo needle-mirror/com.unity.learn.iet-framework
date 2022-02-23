@@ -8,7 +8,7 @@ This package is used to display interactive in-Editor tutorials (IET) in tutoria
 
 For Unity 2021.2 and newer, simply search for "Tutorial Framework" in the Package Manager. For older Unity versions, this package is not currently discoverable,
 and you need to add the following line to the `dependencies` list of `Packages/manifest.json`:  
-`"com.unity.learn.iet-framework": "2.2.0`
+`"com.unity.learn.iet-framework": "2.2.1`
 
 Make sure to update to the latest version of the package.
 
