@@ -4,6 +4,17 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.2] - 2022-06-02
+### Fixed
+- Fixed errors with masking settings on Unity 2021 LTS
+- Fix from .net core 2.1 API to 2.0, documentation cleanup
+- Clean up RTP with a callback, clear changelog
+- Fix to naming and scope issues
+- Fixed missing support for relative file links in Rich Text Parser
+
+### Changed
+- Documentation and some cleanup
+
 ## [2.2.1] - 2022-02-23
 ### Fixed
 - Fixed one test failing when running in the Unity Editor's test environment

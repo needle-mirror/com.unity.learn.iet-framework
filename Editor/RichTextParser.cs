@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.IO;
 
 namespace Unity.Tutorials.Core.Editor
 {
@@ -342,14 +343,30 @@ namespace Unity.Tutorials.Core.Editor
                             text = strippedWord,
                             tooltip = linkURL
                         };
-                        label.RegisterCallback<MouseUpEvent, string>(
-                            (evt, linkurl) =>
-                            {
-                                TutorialEditorUtils.OpenUrl(linkurl);
-                            },
-                            linkURL
-                        );
 
+                        EventCallback<MouseUpEvent, string> linkCallback = null;
+                        string actualPath = "";
+
+                        // Link points to a relative directory
+                        if (linkURL[0] == '.')
+                        {
+                            actualPath = Path.GetFullPath(linkURL);
+                            actualPath = Uri.EscapeUriString(actualPath);
+                            actualPath = "file://" + actualPath;
+                            linkCallback = (evt, path) =>
+                            {
+                                Application.OpenURL(path);
+                            };
+                        }
+                        else
+                        {
+                            actualPath = linkURL;
+                            linkCallback = (evt, path) =>
+                            {
+                                TutorialEditorUtils.OpenUrl(path);
+                            };
+                        }
+                        label.RegisterCallback<MouseUpEvent, string>(linkCallback, actualPath);
                         targetContainer.Add(label);
                         elements.Add(label);
                     }

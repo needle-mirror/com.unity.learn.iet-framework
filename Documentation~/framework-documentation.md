@@ -30,6 +30,12 @@ You can use the following HTML tags in the tutorial assets' text fields.
 1. `<style class="classname">Custom UIToolkit style class is applied to this text. Define the class in the .uss style sheet you use.</style>`
 1. HTML character codes: `&amp;` `&gt;` `&lt;`: & > <
 
+The link tag `<a href=...</a>` supports also linking to local files with relative file paths. Root directory is considered to be the project root directory. Examples:
+
+1. `<a href="./Packages/packagename/file.txt">Link to a text file under a package</a>`
+1. `<a href="./Assets/file_under_assets.pdf">File in the Assets/ -folder</a>`
+1. `<a href="../ProjectName/Assets/file_under_assets.pdf">File in the Assets/ -folder</a>`
+
 #### Leading white space indentation
 
 Leading white space is rendered as-is - adding tabulations or spaces at the beginning of a line will render similar indentation in the content. However, additional spaces between words will be ignored.

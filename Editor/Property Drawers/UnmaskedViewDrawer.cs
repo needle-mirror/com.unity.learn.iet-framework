@@ -16,7 +16,7 @@ namespace Unity.Tutorials.Core.Editor
         const string k_UnmaskTypePath = nameof(UnmaskedView.m_MaskType);
         const string k_MaskSizeModifierPath = nameof(UnmaskedView.m_MaskSizeModifier);
 
-        private readonly Dictionary<string, ReorderableList> m_UnmaskedControlsPerPropertyPath =
+        readonly Dictionary<string, ReorderableList> m_UnmaskedControlsPerPropertyPath =
             new Dictionary<string, ReorderableList>();
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
@@ -86,7 +86,7 @@ namespace Unity.Tutorials.Core.Editor
                 listControl.DoList(position);
         }
 
-        private ReorderableList GetListControl(SerializedProperty parentProperty)
+        ReorderableList GetListControl(SerializedProperty parentProperty)
         {
             string key = parentProperty.propertyPath;
             ReorderableList list;
@@ -94,14 +94,22 @@ namespace Unity.Tutorials.Core.Editor
             {
                 list = new ReorderableList(parentProperty.serializedObject, parentProperty.FindPropertyRelative(k_UnmaskedControlsPath));
                 list.drawHeaderCallback = rect => EditorGUI.LabelField(rect, "Unmasked Controls");
-                list.elementHeightCallback = index =>
-                    EditorGUI.GetPropertyHeight(list.serializedProperty.GetArrayElementAtIndex(index), true) +
-                    EditorGUIUtility.standardVerticalSpacing;
+                list.elementHeightCallback = (index) => GetElementHeightForListIndex(list, index);
                 list.drawElementCallback = (rect, index, isActive, isFocused) =>
                     EditorGUI.PropertyField(rect, list.serializedProperty.GetArrayElementAtIndex(index), true);
                 m_UnmaskedControlsPerPropertyPath[key] = list;
             }
             return list;
+        }
+
+        float GetElementHeightForListIndex(ReorderableList list, int index)
+        {
+            if (list.count <= index) //this happens from 2021 LTS onward
+            {
+                return EditorGUIUtility.standardVerticalSpacing;
+            }
+            return EditorGUI.GetPropertyHeight(list.serializedProperty.GetArrayElementAtIndex(index), true) +
+            EditorGUIUtility.standardVerticalSpacing;
         }
     }
 }
