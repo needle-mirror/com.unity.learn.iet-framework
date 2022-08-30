@@ -468,9 +468,5 @@ Enabling this feature means that the size of your project will double and you sh
 
 This is where you assign your Tutorial Styles asset. This changes the visuals of your tutorials (see section above).
 
-## Tips
-
-To trigger the tutorial project initialization code, you can delete the `InitCodeMarker` file in the project's root and reopen the project. Also, you can create a folder in `Assets/DontRunInitCodeMarker` to prevent the initialization code from being run, if necessary.
-
 [IMGUI]: https://docs.unity3d.com/Manual/GUIScriptingGuide.html
 [UI Toolkit]: https://docs.unity3d.com/Manual/UIElements.html

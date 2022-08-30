@@ -21,8 +21,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Master control for masking and highlighting.
         /// </summary>
-        public static UserSetting<bool> MaskingEnabled =
-            new UserSetting<bool>("IET.MaskingEnabled", Tr("Enable Masking and Highlighting"), true, Tr("Master control for Masking and Highlighting"));
+        public static UserSetting<bool> MaskingEnabled = new UserSetting<bool>("IET.MaskingEnabled", Tr(LocalizationKeys.k_SettingsMaskingEnabled), true, Tr(LocalizationKeys.k_SettingsMaskingEnabledTooltip));
 
         /// <summary>
         /// Delay, in seconds, before the highlight starts pulsating.
@@ -34,32 +33,6 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         public static float HighlightAnimationSpeed { get; set; }
 
-        internal static bool IsMasked(GUIViewProxy view, List<Rect> rects)
-        {
-            rects.Clear();
-
-            MaskViewData maskViewData;
-            if (s_UnmaskedViews.TryGetValue(view, out maskViewData))
-            {
-                var rectList = maskViewData.rects;
-                rects.AddRange(rectList);
-                return false;
-            }
-            return true;
-        }
-
-        internal static bool IsHighlighted(GUIViewProxy view, List<Rect> rects)
-        {
-            rects.Clear();
-            MaskViewData maskViewData;
-
-            if (!s_HighlightedViews.TryGetValue(view, out maskViewData))
-                return false;
-            var rectList = maskViewData.rects;
-            rects.AddRange(rectList);
-            return true;
-        }
-
         static GUIViewProxyComparer s_GUIViewProxyComparer = new GUIViewProxyComparer();
 
         static readonly Dictionary<GUIViewProxy, MaskViewData> s_UnmaskedViews = new Dictionary<GUIViewProxy, MaskViewData>(s_GUIViewProxyComparer);
@@ -70,34 +43,60 @@ namespace Unity.Tutorials.Core.Editor
 
         static double s_LastHighlightTime;
 
-        static MaskingManager()
+        internal static bool IsMasked(GUIViewProxy view, List<Rect> rects)
         {
-            EditorApplication.update += delegate
+            rects.Clear();
+
+            MaskViewData maskViewData;
+            if (s_UnmaskedViews.TryGetValue(view, out maskViewData))
             {
-                // do not animate unless enough time has passed since masking was last applied
-                var t = EditorApplication.timeSinceStartup - s_LastHighlightTime - HighlightAnimationDelay;
-                if (t < 0d)
-                    return;
+                rects.AddRange(maskViewData.rects);
+                return false;
+            }
+            return true;
+        }
 
-                var baseBorderWidth = 4.2f;
-                var borderWidthAmplitude = 2.1f;
-                var animatedBorderWidth = Mathf.Cos((float)t * HighlightAnimationSpeed) * borderWidthAmplitude + baseBorderWidth;
-                foreach (var highlighter in s_Highlighters)
-                {
-                    if (highlighter == null)
-                        continue;
+        internal static bool IsHighlighted(GUIViewProxy view, List<Rect> rects)
+        {
+            rects.Clear();
+            if (!s_HighlightedViews.TryGetValue(view, out MaskViewData maskViewData))
+            {
+                return false;
+            }
+            rects.AddRange(maskViewData.rects);
+            return true;
+        }
 
-                    highlighter.style.borderLeftWidth = animatedBorderWidth;
-                    highlighter.style.borderRightWidth = animatedBorderWidth;
-                    highlighter.style.borderTopWidth = animatedBorderWidth;
-                    highlighter.style.borderBottomWidth = animatedBorderWidth;
-                }
-                foreach (var view in s_HighlightedViews)
+        internal static void OnEditorUpdate()
+        {
+            // do not animate unless enough time has passed since masking was last applied
+            var t = EditorApplication.timeSinceStartup - s_LastHighlightTime - HighlightAnimationDelay;
+            if (t < 0d)
+            {
+                return;
+            }
+
+            const float baseBorderWidth = 4.2f;
+            const float borderWidthAmplitude = 2.1f;
+            float animatedBorderWidth = Mathf.Cos((float)t * HighlightAnimationSpeed) * borderWidthAmplitude + baseBorderWidth;
+
+            foreach (var highlighter in s_Highlighters)
+            {
+                if (highlighter == null) { continue; }
+
+                highlighter.style.borderLeftWidth = animatedBorderWidth;
+                highlighter.style.borderRightWidth = animatedBorderWidth;
+                highlighter.style.borderTopWidth = animatedBorderWidth;
+                highlighter.style.borderBottomWidth = animatedBorderWidth;
+            }
+
+            foreach (var view in s_HighlightedViews)
+            {
+                if (view.Key.IsValid)
                 {
-                    if (view.Key.IsValid)
-                        view.Key.Repaint();
+                    view.Key.Repaint();
                 }
-            };
+            }
         }
 
         /// <summary>
@@ -108,13 +107,17 @@ namespace Unity.Tutorials.Core.Editor
             foreach (var mask in s_Masks)
             {
                 if (mask != null && mask.parent != null)
+                {
                     mask.parent.Remove(mask);
+                }
             }
             s_Masks.Clear();
             foreach (var highlighter in s_Highlighters)
             {
                 if (highlighter != null && highlighter.parent != null)
+                {
                     highlighter.parent.Remove(highlighter);
+                }
             }
             s_Highlighters.Clear();
         }
@@ -124,12 +127,14 @@ namespace Unity.Tutorials.Core.Editor
             viewsAndResources.Clear();
             foreach (var unmaskedView in maskData.m_MaskData)
             {
-                if (unmaskedView.Key == null)
-                    continue;
+                if (unmaskedView.Key == null) { continue; }
+
                 var maskViewData = unmaskedView.Value;
                 var unmaskedRegions = maskViewData.rects == null ? new List<Rect>(1) : maskViewData.rects.ToList();
                 if (unmaskedRegions.Count == 0)
+                {
                     unmaskedRegions.Add(new Rect(0f, 0f, unmaskedView.Key.Position.width, unmaskedView.Key.Position.height));
+                }
                 viewsAndResources[unmaskedView.Key] = new MaskViewData
                 {
                     maskType = maskViewData.maskType,
@@ -161,24 +166,22 @@ namespace Unity.Tutorials.Core.Editor
             if (view.IsDockedToEditor())
             {
                 UIElementsHelper.GetVisualTree(view).Add(child);
+                return;
             }
-            else
+            var viewVisualElement = UIElementsHelper.GetVisualTree(view);
+
+            Debug.Assert(
+                viewVisualElement.Children().Count() == 2
+                && viewVisualElement.Children().Count(viewChild => viewChild is IMGUIContainer) == 1,
+                "Could not find the expected VisualElement structure"
+            );
+
+            foreach (var visualElement in viewVisualElement.Children())
             {
-                var viewVisualElement = UIElementsHelper.GetVisualTree(view);
-
-                Debug.Assert(
-                    viewVisualElement.Children().Count() == 2
-                    && viewVisualElement.Children().Count(viewChild => viewChild is IMGUIContainer) == 1,
-                    "Could not find the expected VisualElement structure"
-                );
-
-                foreach (var visualElement in viewVisualElement.Children())
+                if (!(visualElement is IMGUIContainer))
                 {
-                    if (!(visualElement is IMGUIContainer))
-                    {
-                        visualElement.Add(child);
-                        break;
-                    }
+                    visualElement.Add(child);
+                    break;
                 }
             }
         }
@@ -207,12 +210,11 @@ namespace Unity.Tutorials.Core.Editor
 
             foreach (var view in views)
             {
-                if (!view.IsValid)
-                    continue;
+                if (!view.IsValid) { continue; }
 
                 MaskViewData maskViewData;
 
-                var viewRect =  new Rect(0, 0, view.Position.width, view.Position.height);
+                var viewRect = new Rect(0, 0, view.Position.width, view.Position.height);
 
                 // mask everything except the unmasked view rects
                 if (s_UnmaskedViews.TryGetValue(view, out maskViewData))
@@ -221,7 +223,9 @@ namespace Unity.Tutorials.Core.Editor
                     // an offset caused by the tab area which we need to take into account.
                     EditorWindow parentWindow = null;
                     if (maskViewData.EditorWindowType != null)
+                    {
                         parentWindow = FindOpenEditorWindowInstance(maskViewData.EditorWindowType);
+                    }
 
                     List<Rect> rects = maskViewData.rects;
                     var maskedRects = GetNegativeSpaceRects(viewRect, rects);
@@ -360,9 +364,7 @@ namespace Unity.Tutorials.Core.Editor
                 {
                     var minX = s_SortedXCoords[j - 1];
                     var maxX = s_SortedXCoords[j];
-
                     var midX = (maxX + minX) / 2;
-
 
                     var potentialHole = positiveSpaceRects.Find((hole) => { return hole.Contains(new Vector2(midX, midY)); });
                     var cellIsHole = potentialHole.width > 0 && potentialHole.height > 0;
@@ -370,7 +372,9 @@ namespace Unity.Tutorials.Core.Editor
                     if (cellIsHole)
                     {
                         if (workingRect.width > 0 && workingRect.height > 0)
+                        {
                             filledRects.Add(workingRect);
+                        }
 
                         workingRect.x = maxX;
                         workingRect.xMax = maxX;
@@ -382,7 +386,9 @@ namespace Unity.Tutorials.Core.Editor
                 }
 
                 if (workingRect.width > 0 && workingRect.height > 0)
+                {
                     filledRects.Add(workingRect);
+                }
             }
 
             return filledRects;

@@ -34,6 +34,7 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         public override void StartTesting()
         {
+            base.StartTesting();
 #if UNITY_2019_1_OR_NEWER
             SceneView.duringSceneGui += OnSceneGUI;
 #else
@@ -46,6 +47,7 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         public override void StopTesting()
         {
+            base.StopTesting();
 #if UNITY_2019_1_OR_NEWER
             SceneView.duringSceneGui -= OnSceneGUI;
 #else

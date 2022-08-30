@@ -58,6 +58,7 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         public override void StartTesting()
         {
+            base.StartTesting();
             UpdateCompletion();
 
             Selection.selectionChanged += UpdateCompletion;
@@ -68,6 +69,7 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         public override void StopTesting()
         {
+            base.StopTesting();
             Selection.selectionChanged -= UpdateCompletion;
         }
 

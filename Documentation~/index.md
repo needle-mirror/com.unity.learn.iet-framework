@@ -8,20 +8,20 @@ This package is used to display interactive in-Editor tutorials (IET) in tutoria
 
 For Unity 2021.2 and newer, simply search for "Tutorial Framework" in the Package Manager. For older Unity versions, this package is not currently discoverable,
 and you need to add the following line to the `dependencies` list of `Packages/manifest.json`:  
-`"com.unity.learn.iet-framework": "2.2.1`
+`"com.unity.learn.iet-framework": "3.1.1`
 
-Make sure to update to the latest version of the package.
+Make sure to update to the latest version of the package whose major version is the closest one to the one you're currently using. 
+I.E: if you're using version 1 of the package and the latest available is version 3, be sure to update to version 2 first, and then to version 3.
+This ensures that existing tutorials are properly converted and updated without any data loss.
 
 ## Requirements
 
 This version of Tutorial Framework is compatible with the following versions of the Unity Editor:
 
-* 2019.4 and newer (LTS versions recommended)
+* 2020.3 and newer (LTS versions recommended)
 
 ## Known issues
 - A benign "BuildStartedCriterion must be instantiated using the ScriptableObject.CreateInstance method..." warning in the Console when making a build.
-- **Window Title** of a `TutorialWelcomePage` asset cannot be edited at real-time; reopen the asset in the welcome dialog in order to see the change in the window title.
-- Windows & Unity 2019.4 (and older): A benign "No texture data available to upload" error in the Console when switching target platform while having a tutorial page with video open.
 - The save dialog does not appear if Play mode is active when exiting the tutorial.
 - `SceneViewCameraMovedCriterion` has no ability to distinguish different types of camera movements.
 - A misconfiguration of masking settings is likely to occur when upgrading a tutorial project between major Unity versions due to changes in the Unity Engine/Editor:
@@ -32,5 +32,5 @@ This version of Tutorial Framework is compatible with the following versions of 
 
 # Using Tutorial Framework
 To actually develop any tutorials, the Tutorial Authoring Tools package is needed. Install it by adding the following line to `Packages/manifest.json`:  
-`"com.unity.learn.iet-framework.authoring": "1.0.0"`  
+`"com.unity.learn.iet-framework.authoring": "1.2.1"`  
 Make sure to update to the latest version of the package. After the installation, refer to the Tutorial Authoring Tools' documentation for more information.

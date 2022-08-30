@@ -60,6 +60,7 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         public override void StartTesting()
         {
+            base.StartTesting();
             var target = m_Target.SceneObjectReference.ReferencedObject;
             if (m_TargetValueMode == ValueMode.TargetValue)
                 IsCompleted = PropertyFulfillCriterion(target, m_PropertyPath);
@@ -83,6 +84,7 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         public override void StopTesting()
         {
+            base.StopTesting();
             Undo.postprocessModifications -= PostprocessModifications;
             Undo.undoRedoPerformed -= UpdateCompletion;
         }

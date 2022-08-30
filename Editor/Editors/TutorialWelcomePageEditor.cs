@@ -46,8 +46,10 @@ namespace Unity.Tutorials.Core.Editor
         {
             TutorialProjectSettings.DrawDefaultAssetRestoreWarning();
 
-            if (GUILayout.Button(Localization.Tr("Show Welcome Dialog")))
+            if (GUILayout.Button(Localization.Tr(LocalizationKeys.k_TutorialWelcomePageButtonShowDialog)))
+            {
                 TutorialModalWindow.Show(Target);
+            }
 
             GUILayout.Space(10);
 

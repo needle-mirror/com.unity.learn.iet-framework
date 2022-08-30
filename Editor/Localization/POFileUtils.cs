@@ -16,6 +16,12 @@ namespace Unity.Tutorials.Core.Editor
     internal static class POFileUtils
     {
         /// <summary>
+        /// Entries that need to be translated will have this ocmment
+        /// </summary>
+        const string k_TranslatorCommentForAskingLocalization = "TODO: translate";
+        static readonly string s_IETLocalizationFilesFolder = $"Packages/{FrameworkSettings.k_PackageName}/Editor/Localization/";
+
+        /// <summary>
         /// Currently supported languages, in addition to English.
         /// </summary>
         public static readonly Dictionary<SystemLanguage, string> SupportedLanguages = new Dictionary<SystemLanguage, string>
@@ -36,9 +42,9 @@ namespace Unity.Tutorials.Core.Editor
         /// <param name="version"></param>
         /// <returns></returns>
         public static string CreateHeader(string langCode, string name, string version) =>
-// NOTE We don't have POTs so for POT-Creation-Date I just picked something.
-// TODO Value of Plural-Forms not probably true for all languages we support?
-// TODO check if we want to fill something more to the header
+            // NOTE We don't have POTs so for POT-Creation-Date I just picked something.
+            // TODO Value of Plural-Forms not probably true for all languages we support?
+            // TODO check if we want to fill something more to the header
             $@"
 msgid """"
 msgstr """"
@@ -130,7 +136,7 @@ msgstr """"
             /// <summary> #| msgid "previous-untranslated-string" </summary>
             public string PreviousUntranslatedString;
             /// <summary> msgid "untranslated-string" </summary>
-            public string UntranslatedString;
+            public string ID;
             /// <summary> msgstr "translated-string" </summary>
             public string TranslatedString;
 
@@ -138,7 +144,7 @@ msgstr """"
             /// Does this entry contain the minimum information to be a valid entry.
             /// </summary>
             /// <returns></returns>
-            public bool IsValid() => Reference.IsNotNullOrEmpty() && UntranslatedString.IsNotNullOrEmpty();
+            public bool IsValid() => Reference.IsNotNullOrEmpty() || ID.IsNotNullOrEmpty();
 
             /// <summary>
             /// Serializes this entry to a string representation.
@@ -162,7 +168,7 @@ msgstr """"
                     Reference.IsNotNullOrEmpty() ? $"#: {EscapeString(Reference)}\n" : string.Empty,
                     Flag.IsNotNullOrEmpty() ? $"#, {EscapeString(Flag)}\n" : string.Empty,
                     PreviousUntranslatedString.IsNotNullOrEmpty() ? $"#| {EscapeString(PreviousUntranslatedString)}" : string.Empty,
-                    EscapeString(UntranslatedString),
+                    EscapeString(ID),
                     EscapeString(TranslatedString)
                 );
             }
@@ -197,12 +203,12 @@ msgstr """"
                         if (line.StartsWith(str))
                         {
                             entry.TranslatedString = line.Substring(str.Length);
-                            entry.TranslatedString = entry.TranslatedString.Trim(new char[] {' ', '\"'});
+                            entry.TranslatedString = entry.TranslatedString.Trim(new char[] { ' ', '\"' });
                         }
                         if (line.StartsWith(id))
                         {
-                            entry.UntranslatedString = line.Substring(id.Length);
-                            entry.UntranslatedString = entry.UntranslatedString.Trim(new char[] { ' ', '\"' });
+                            entry.ID = line.Substring(id.Length);
+                            entry.ID = entry.ID.Trim(new char[] { ' ', '\"' });
                         }
                         if (line.StartsWith(previd))
                         {
@@ -266,5 +272,72 @@ msgstr """"
 
         // Let's be very explicit about this, using e.g. System.Text.Encoding.UTF8 gives UTF-8 with BOM...
         static UTF8Encoding Utf8WithoutBom => new UTF8Encoding();
+
+        internal static void ConvertIETLocalizationFileFromV2ToV3(string languageCode)
+        {
+            (List<POEntry> englishEntries, List<POEntry> targetLanguageEntries) = GetSourceAndTargetLanguageExistingEntries("en", languageCode);
+
+            var outputEntries = new List<POEntry>();
+            foreach (var englishEntry in englishEntries)
+            {
+                POEntry foundEntry = targetLanguageEntries.Find(e => e.ID == englishEntry.TranslatedString);
+                POEntry resultEntry = new POEntry() { ID = englishEntry.ID };
+                if (foundEntry == null)
+                {
+                    resultEntry.TranslatedString = englishEntry.TranslatedString;
+                    englishEntry.TranslatorComments = k_TranslatorCommentForAskingLocalization;
+                }
+                else
+                {
+                    resultEntry.TranslatedString = foundEntry.TranslatedString;
+                }
+                outputEntries.Add(resultEntry);
+            }
+
+            WritePOFile(Application.productName, Application.version, languageCode, outputEntries, $"{s_IETLocalizationFilesFolder}{languageCode}.po");
+        }
+
+        static (List<POEntry>, List<POEntry>) GetSourceAndTargetLanguageExistingEntries(string sourceLanguageCode, string targetLanguageCode)
+        {
+            return (ReadPOFile($"{s_IETLocalizationFilesFolder}{sourceLanguageCode}.po"), ReadPOFile($"{s_IETLocalizationFilesFolder}{targetLanguageCode}.po"));
+        }
+
+
+        /// <summary>
+        /// Syncs the entries of a non-english file with the ones of the english file, adding the ones that are not present in the non-english file
+        /// </summary>
+        /// <param name="languageCode"></param>
+        internal static void SyncIETLocalizationFileWithEnglish(string languageCode)
+        {
+            (List<POEntry> englishEntries, List<POEntry> targetLanguageEntries) = GetSourceAndTargetLanguageExistingEntries("en", languageCode);
+
+            var outputEntries = new List<POEntry>();
+            foreach (var englishEntry in englishEntries)
+            {
+                string entryID = englishEntry.ID;
+                POEntry foundEntry = targetLanguageEntries.Find(e => e.ID == entryID);
+                POEntry resultEntry = new POEntry() { ID = entryID };
+                if (foundEntry == null)
+                {
+                    resultEntry.TranslatedString = englishEntry.TranslatedString;
+                    resultEntry.TranslatorComments = k_TranslatorCommentForAskingLocalization;
+                }
+                else
+                {
+                    if (foundEntry.TranslatorComments == k_TranslatorCommentForAskingLocalization)
+                    {
+                        resultEntry.TranslatedString = englishEntry.TranslatedString;
+                        resultEntry.TranslatorComments = k_TranslatorCommentForAskingLocalization;
+                    }
+                    else
+                    {
+                        resultEntry.TranslatedString = foundEntry.TranslatedString;
+                    }
+                }
+                outputEntries.Add(resultEntry);
+            }
+
+            WritePOFile(Application.productName, Application.version, languageCode, outputEntries, $"{s_IETLocalizationFilesFolder}{languageCode}.po");
+        }
     }
 }

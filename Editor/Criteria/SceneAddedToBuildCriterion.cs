@@ -20,6 +20,7 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         public override void StartTesting()
         {
+            base.StartTesting();
             UpdateCompletion();
 
             EditorBuildSettings.sceneListChanged += UpdateCompletion;
@@ -30,6 +31,7 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         public override void StopTesting()
         {
+            base.StopTesting();
             EditorBuildSettings.sceneListChanged -= UpdateCompletion;
         }
 

@@ -34,6 +34,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <inheritdoc />
         public override void StartTesting()
         {
+            base.StartTesting();
             InitiatePackageListRequest();
             EditorApplication.update += UpdateCompletion;
         }
@@ -41,6 +42,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <inheritdoc />
         public override void StopTesting()
         {
+            base.StopTesting();
             EditorApplication.update -= UpdateCompletion;
         }
 

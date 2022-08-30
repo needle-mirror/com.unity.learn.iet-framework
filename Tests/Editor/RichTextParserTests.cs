@@ -10,6 +10,7 @@ namespace Unity.Tutorials.Core.Editor.Tests
     public class RichTextParserTests
     {
         TutorialWindow m_Window;
+        bool originalValueOfShowTutorialsWindowClosedDialog;
 
         string k_LoremIpsum = "Lorem Ipsum is simply dummy text of the printing and typesetting industry. " +
             "Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown" +
@@ -68,7 +69,8 @@ namespace Unity.Tutorials.Core.Editor.Tests
         {
             Reset();
             m_Window = EditorWindow.GetWindow<TutorialWindow>();
-            TutorialWindow.ShowTutorialsClosedDialog.SetValue(false);
+            originalValueOfShowTutorialsWindowClosedDialog = TutorialFrameworkModel.s_ShowTutorialsWindowClosedDialog;
+            TutorialFrameworkModel.s_ShowTutorialsWindowClosedDialog.SetValue(false);
             m_Window.rootVisualElement.style.flexDirection = FlexDirection.Row;
             m_Window.rootVisualElement.style.flexWrap = Wrap.Wrap;
         }
@@ -76,6 +78,7 @@ namespace Unity.Tutorials.Core.Editor.Tests
         [TearDown]
         public void TearDown()
         {
+            TutorialFrameworkModel.s_ShowTutorialsWindowClosedDialog.SetValue(originalValueOfShowTutorialsWindowClosedDialog);
             m_Window.Close();
         }
 

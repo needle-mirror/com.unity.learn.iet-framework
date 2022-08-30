@@ -51,6 +51,7 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         public override void StartTesting()
         {
+            base.StartTesting();
             InitializeRequiredStateIfNeeded();
 
             EditorApplication.update += UpdateCompletion;
@@ -74,6 +75,7 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         public override void StopTesting()
         {
+            base.StopTesting();
             m_InitialValue = null;
             EditorApplication.update -= UpdateCompletion;
         }

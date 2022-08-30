@@ -14,7 +14,7 @@ namespace Unity.Tutorials.Core.Editor
         {
             TutorialProjectSettings.DrawDefaultAssetRestoreWarning();
 
-            if (GUILayout.Button(Localization.Tr("Run Startup Code")))
+            if (GUILayout.Button(Localization.Tr(LocalizationKeys.k_ButtonRunStartupCode)))
             {
                 UserStartupCode.RunStartupCode(Target);
             }

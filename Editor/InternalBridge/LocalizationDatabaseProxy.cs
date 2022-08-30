@@ -20,14 +20,14 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Returns the current Editor language.
         /// </summary>
-        public static SystemLanguage currentEditorLanguage =>
-            LocalizationDatabase.currentEditorLanguage;
+        public static SystemLanguage currentEditorLanguage => LocalizationDatabase.currentEditorLanguage;
 
         /// <summary>
-        /// Returns available Editor languages.
+        /// Clears the localization table cache
         /// </summary>
-        /// <returns></returns>
-        public static SystemLanguage[] GetAvailableEditorLanguages() =>
-            LocalizationDatabase.GetAvailableEditorLanguages();
+        public static void ClearLocalizationCache()
+        {
+            UnityEditor.L10n.ClearCache();
+        }
     }
 }

@@ -10,7 +10,6 @@ namespace Unity.Tutorials.Core.Editor
             WindowLayout.SaveWindowLayout(path);
         }
 
-        // TODO Move to EditorWindowProxy
         public static object GetParentOf(EditorWindow window)
         {
             return window.m_Parent;

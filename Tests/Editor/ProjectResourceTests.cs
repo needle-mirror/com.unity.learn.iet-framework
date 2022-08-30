@@ -1,8 +1,10 @@
 using NUnit.Framework;
+using System.Collections;
 using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Unity.Tutorials.Core.Editor.Tests
 {
@@ -10,13 +12,28 @@ namespace Unity.Tutorials.Core.Editor.Tests
     {
         readonly string[] k_UITexturePaths =
         {
-            UIElementsUtils.k_UIAssetPath,
+            UIElementsUtils.s_UIResourcesPath,
         };
+        TutorialWindow Window => TutorialWindow.Instance;
+
+        [UnityTearDown]
+        public IEnumerator TearDown()
+        {
+            if (Window != null)
+            {
+                yield return new WaitForDelayCall();
+                if (Window.Model.Tutorial.CurrentTutorial)
+                {
+                    TutorialWindow.ExitTutorial();
+                }
+                Window.Close();
+            }
+        }
 
         [Test]
         public void CommonResourcesExist()
         {
-            Assert.IsTrue(Directory.Exists(UIElementsUtils.k_UIAssetPath), $"'{UIElementsUtils.k_UIAssetPath}' does not exist");
+            Assert.IsTrue(Directory.Exists(UIElementsUtils.s_UIResourcesPath), $"'{UIElementsUtils.s_UIResourcesPath}' does not exist");
 
             const string commonCallbacks = "Packages/com.unity.learn.iet-framework/Editor/DefaultAssets/CommonTutorialCallbacksHandler.asset";
             Assert.IsTrue(File.Exists(commonCallbacks), $"'{commonCallbacks}' does not exist");
@@ -29,15 +46,24 @@ namespace Unity.Tutorials.Core.Editor.Tests
             Assert.IsTrue(File.Exists(TutorialStyles.DefaultLightStyleFile), $"'{TutorialStyles.DefaultLightStyleFile}' does not exist");
         }
 
-        [Ignore("TODO: problematic with the new docking logic, revisit this.")]
+        [Ignore("Works locally, fails on Yamato")]
         [Test]
         public void DefaultLayoutContainsTutorialWindow()
         {
-            TutorialManager.SaveOriginalWindowLayout();
-            TutorialManager.LoadWindowLayout(TutorialContainer.k_DefaultLayoutPath);
-            bool hasTutorialWindow =  EditorWindowUtils.FindOpenInstance<TutorialWindow>();
-            TutorialManager.RestoreOriginalWindowLayout();
+            TutorialModel.OnLayoutLoaded -= OnLayoutLoaded;
+            TutorialModel.OnLayoutLoaded += OnLayoutLoaded;
+
+            TutorialWindow.GetOrCreateWindow(null);
+            TutorialWindow.Instance.Model.Tutorial.SaveOriginalWindowLayout();
+            TutorialModel.LoadWindowLayout(TutorialContainer.k_DefaultLayoutPath);
+            bool hasTutorialWindow = EditorWindowUtils.FindOpenInstance<TutorialWindow>();
+            TutorialModel.ReopenWindowLayoutAsBeforeTutorialStarted(null);
             Assert.IsTrue(hasTutorialWindow, $"{TutorialContainer.k_DefaultLayoutPath} does not contain TutorialWindow.");
+        }
+
+        void OnLayoutLoaded(bool obj)
+        {
+            TutorialFrameworkModel.s_AreTestsRunning = true;
         }
 
         [Test]

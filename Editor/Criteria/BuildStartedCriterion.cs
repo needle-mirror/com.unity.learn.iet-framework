@@ -48,6 +48,7 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         public override void StartTesting()
         {
+            base.StartTesting();
             BuildStarted = false;
             UpdateCompletion();
             BuildPlayerWindow.RegisterBuildPlayerHandler(BuildPlayerCustomHandler);
@@ -59,6 +60,7 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         public override void StopTesting()
         {
+            base.StopTesting();
             BuildPlayerWindow.RegisterBuildPlayerHandler(null);
             EditorApplication.update -= UpdateCompletion;
         }

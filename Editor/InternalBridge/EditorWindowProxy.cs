@@ -1,3 +1,4 @@
+using System;
 using UnityEditor;
 
 namespace Unity.Tutorials.Core.Editor
@@ -5,6 +6,7 @@ namespace Unity.Tutorials.Core.Editor
     /// <summary>
     /// Proxy class for accessing UnityEditor.EditorWindow.
     /// </summary>
+    [Obsolete("Will be removed in v4. Use EditorWindow instead")] //todo: remove in v4
     public class EditorWindowProxy : EditorWindow
     {
         internal override void OnResized()

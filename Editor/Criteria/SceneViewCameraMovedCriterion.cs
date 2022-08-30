@@ -21,6 +21,7 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         public override void StartTesting()
         {
+            base.StartTesting();
             UpdateInitialCameraPositionIfNeeded();
             UpdateCompletion();
 
@@ -45,6 +46,7 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         public override void StopTesting()
         {
+            base.StopTesting();
             EditorApplication.update -= UpdateCompletion;
             m_InitialPositionInitialized = false;
         }

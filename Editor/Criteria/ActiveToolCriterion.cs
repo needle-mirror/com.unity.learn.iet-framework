@@ -20,6 +20,7 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         public override void StartTesting()
         {
+            base.StartTesting();
             UpdateCompletion();
 
             EditorApplication.update += UpdateCompletion;
@@ -30,6 +31,7 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         public override void StopTesting()
         {
+            base.StopTesting();
             EditorApplication.update -= UpdateCompletion;
         }
 

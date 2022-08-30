@@ -1,5 +1,6 @@
 {
     "name": "Unity.Tutorials.Core.Editor",
+    "rootNamespace": "",
     "references": [
         "Unity.InternalAPIEditorBridge.007",
         "Unity.InternalAPIEngineBridge.007",

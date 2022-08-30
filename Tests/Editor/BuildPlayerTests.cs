@@ -39,10 +39,14 @@ namespace Unity.Tutorials.Core.Editor.Tests
         public void TearDown()
         {
             if (File.Exists(BuildPath))
+            {
                 File.Delete(BuildPath);
+            }
 
             if (Directory.Exists(BuildPath))
+            {
                 Directory.Delete(BuildPath, true);
+            }
 
             AssetDatabase.DeleteAsset(k_TempScenePath);
         }

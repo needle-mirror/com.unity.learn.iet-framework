@@ -40,28 +40,11 @@ namespace Unity.Tutorials.Core.Editor
     [Serializable]
     class UnmaskedView
     {
-        static Stack<EditorWindow> s_EditorWindowsToShow = new Stack<EditorWindow>();
-
-        static UnmaskedView()
-        {
-            EditorApplication.update += OnEditorUpdate;
-        }
-
-        static void OnEditorUpdate()
-        {
-            while (s_EditorWindowsToShow.Any())
-            {
-                var window = s_EditorWindowsToShow.Pop();
-                if (window != null)
-                    window.Show();
-            }
-        }
-
         public class MaskData : ICloneable
         {
             internal Dictionary<GUIViewProxy, MaskViewData> m_MaskData;
 
-            public MaskData() : this(null) {}
+            public MaskData() : this(null) { }
 
             public int Count { get { return m_MaskData.Count; } }
 
@@ -72,7 +55,10 @@ namespace Unity.Tutorials.Core.Editor
 
             public void AddParentFullyUnmasked(EditorWindow window)
             {
-                m_MaskData[window.GetParent()] = MaskViewData.CreateEmpty(MaskType.FullyUnmasked);
+                if (!window.IsParentNull()) //this is true when the tutorial window is undocked during a tutorial
+                {
+                    m_MaskData[window.GetParent()] = MaskViewData.CreateEmpty(MaskType.FullyUnmasked);
+                }
             }
 
             public void RemoveParent(EditorWindow window)
@@ -287,7 +273,7 @@ namespace Unity.Tutorials.Core.Editor
 
                         case GuiControlSelector.Mode.ObjectReference:
                             bool IsObjectNameMatch(IMGUIDrawInstructionProxy instruction, string objectName) =>
-                                instruction.usedGUIContent.text== objectName;
+                                instruction.usedGUIContent.text == objectName;
 
                             if (controlSelector.ObjectReference == null)
                                 continue;
@@ -468,28 +454,37 @@ namespace Unity.Tutorials.Core.Editor
                     if (targetEditorWindowType != null)
                     {
                         // make sure desired window is in current layout
-                        // TODO: allow trainer to specify desired dock area if window doesn't yet exist?
-                        // var window = EditorWindow.GetWindow(targetEditorWindowType);
-                        var window = Resources.FindObjectsOfTypeAll(targetEditorWindowType).Cast<EditorWindow>().ToArray().FirstOrDefault();
+                        /*
+                         * todo: discuss this feature proposal:
+                         * uncommenting this would basically implement a "show if not already on screen" feature. 
+                         * Maybe we could add an option in the masking settings to do so?
+                         * 
+                         * var window = EditorWindow.GetWindow(targetEditorWindowType);
+                         */
+                        var window = Resources.FindObjectsOfTypeAll(targetEditorWindowType).Cast<EditorWindow>().FirstOrDefault();
                         if (window == null || window.GetParent() == null)
+                        {
                             return matchingViews;
-
-                        // Postpone showing window until next editor update
-                        // GetMatchingViews could be called in response to window closing
-                        s_EditorWindowsToShow.Push(window);
+                        }
 
                         if (!allViews.Contains(window.GetParent()))
+                        {
                             allViews.Add(window.GetParent());
+                        }
+
                         foreach (var view in allViews)
                         {
                             if (!view.IsActualViewAssignableTo(targetEditorWindowType))
+                            {
                                 continue;
+                            }
 
-                            HashSet<EditorWindow> windows;
-                            if (!viewsWithWindows.TryGetValue(view, out windows))
+                            if (!viewsWithWindows.TryGetValue(view, out HashSet<EditorWindow> windows))
+                            {
                                 viewsWithWindows[view] = windows = new HashSet<EditorWindow>();
-                            windows.Add(window);
+                            }
 
+                            windows.Add(window);
                             matchingViews.Add(view);
                         }
                     }
@@ -508,21 +503,13 @@ namespace Unity.Tutorials.Core.Editor
                         foreach (var view in allViews)
                         {
                             if (view.IsGUIViewAssignableTo(targetViewType))
+                            {
                                 matchingViews.Add(view);
+                            }
                         }
                     }
                     break;
             }
-
-            // TODO Not necessarily exception worthy. We are using a "delayed masking" occasionally, e.g. when switching
-            // to Play mode and we want to unmask Game view which is not yet visible (in the background tab by defaul).
-            //if (matchingViews.Count == 0)
-            //{
-            //    throw new ArgumentException(
-            //        $"Specified unmasked view refers to a view that could not be found:\n{JsonUtility.ToJson(unmaskedView, true)}"
-            //        , "unmaskedView"
-            //    );
-            //}
 
             return matchingViews;
         }
@@ -592,7 +579,7 @@ namespace Unity.Tutorials.Core.Editor
             return unmaskedControls.Count;
         }
 
-        protected UnmaskedView() {}
+        protected UnmaskedView() { }
 
         internal static UnmaskedView CreateInstanceForGUIView(Type type, IList<GuiControlSelector> unmaskedControls = null)
         {

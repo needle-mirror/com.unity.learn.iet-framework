@@ -17,16 +17,16 @@ namespace Unity.Tutorials.Core.Editor
 
         internal static UserSetting<bool> ShowSimplifiedTypeNames = new UserSetting<bool>(
             "IET.ShowSimplifiedTypeNames",
-            Tr("Show simplified type names"),
+            Tr(LocalizationKeys.k_SettingsShowSimplifiedTypeNames),
             true,
-            Tr("Show simplified names instead of fully qualified names for SerializedTypes shown in the Inspector")
+            Tr(LocalizationKeys.k_SettingsShowSimplifiedTypeNamesTooltip)
         );
 
         internal static UserSetting<bool> UseDefaultEditors = new UserSetting<bool>(
             "IET.UseDefaultEditors",
-            Tr("Use default editors for editing tutorial assets"),
+            Tr(LocalizationKeys.k_SettingsUseDefaultEditors),
             false,
-            Tr("View the tutorial asset contents using default editor views instead of custom editors")
+            Tr(LocalizationKeys.k_SettingsUseDefaultEditorsTooltip)
         );
 
         static GUIStyle preDropGlow

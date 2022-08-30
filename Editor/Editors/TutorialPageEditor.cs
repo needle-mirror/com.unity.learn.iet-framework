@@ -31,6 +31,7 @@ namespace Unity.Tutorials.Core.Editor
         static readonly string[] k_PropertiesToHide = new[]
         {
             "m_Script",
+            nameof(TutorialPage.Title),
             nameof(TutorialPage.m_Paragraphs),
             k_AutoAdvancePropertyPath,
             nameof(TutorialPage.MaskingSettingsChanged),
@@ -39,6 +40,7 @@ namespace Unity.Tutorials.Core.Editor
             .Concat(k_EventPropertyPaths)
             .ToArray();
 
+        const string k_PageTitleProperty = "Title.m_Untranslated";
         const string k_ParagraphPropertyPath = nameof(TutorialPage.m_Paragraphs) + ".m_Items";
         const string k_ParagraphMaskingSettingsRelativeProperty = "m_MaskingSettings";
         const string k_ParagraphVideoRelativeProperty = "m_Video";
@@ -99,6 +101,7 @@ namespace Unity.Tutorials.Core.Editor
         SerializedProperty m_Video;
         SerializedProperty m_Image;
 
+        SerializedProperty m_PageTitle;
         SerializedProperty m_NarrativeTitle;
         SerializedProperty m_NarrativeDescription;
         SerializedProperty m_InstructionTitle;
@@ -121,16 +124,18 @@ namespace Unity.Tutorials.Core.Editor
 
         Texture s_HelpIcon;
 
-        protected virtual void OnEnable()
+        void OnEnable()
         {
             s_HelpIcon = EditorGUIUtility.IconContent("console.infoicon.sml").image;
             InitializeSerializedProperties();
 
+            Undo.postprocessModifications -= OnPostprocessModifications;
             Undo.postprocessModifications += OnPostprocessModifications;
+            Undo.undoRedoPerformed -= OnUndoRedoPerformed;
             Undo.undoRedoPerformed += OnUndoRedoPerformed;
         }
 
-        protected virtual void OnDisable()
+        void OnDisable()
         {
             Undo.postprocessModifications -= OnPostprocessModifications;
             Undo.undoRedoPerformed -= OnUndoRedoPerformed;
@@ -168,29 +173,22 @@ namespace Unity.Tutorials.Core.Editor
             }
             else if (targetModified)
             {
-                Target.RaiseNonMaskingSettingsChanged();
+                Target.RaiseNonMaskingSettingsChanged(); 
             }
             return modifications;
         }
 
         void InitializeSerializedProperties()
         {
-            // TODO: confirm that localization works for these
-            string tooltip = Tr(
-                "You can only assign public, non-static methods here. It is recommended that you define a ScriptableObject class " +
-                "that exposes all the methods you'd like to call, create an instance of that and assign it to these events in order to access the callbacks."
-            );
-            s_EventsSectionTitle = new GUIContent(Tr("Custom Callbacks"), s_HelpIcon, tooltip);
+            m_PageTitle = serializedObject.FindProperty(k_PageTitleProperty);
+            s_EventsSectionTitle = new GUIContent(Tr(LocalizationKeys.k_TutorialPageCustomCallbacks), s_HelpIcon, Tr(LocalizationKeys.k_TutorialPageCustomCallbacksTooltip));
 
             k_EventPropertyPaths.ToList().ForEach(prop => CreateEventProperty(prop));
 
             SerializedProperty paragraphs = serializedObject.FindProperty(k_ParagraphPropertyPath);
             if (paragraphs == null)
             {
-                m_WarningMessage = string.Format(
-                    Tr("Unable to locate property path {0} on this object. Automatic masking updates will not work."),
-                    k_ParagraphPropertyPath
-                );
+                m_WarningMessage = string.Format(Tr(LocalizationKeys.k_MissingPropertyPathWarning), k_ParagraphPropertyPath);
             }
             else if (paragraphs.arraySize > 0)
             {
@@ -198,11 +196,9 @@ namespace Unity.Tutorials.Core.Editor
 
                 m_MaskingSettings = firstParagraph.FindPropertyRelative(k_ParagraphMaskingSettingsRelativeProperty);
                 if (m_MaskingSettings == null)
-                    m_WarningMessage = string.Format(
-                        Tr("Unable to locate property path {0}.Array.data[0].{1} on this object. Automatic masking updates will not work."),
-                        k_ParagraphPropertyPath,
-                        k_ParagraphMaskingSettingsRelativeProperty
-                    );
+                {
+                    m_WarningMessage = string.Format(Tr(LocalizationKeys.k_TutorialPageMissingMaskingSettingsWarning), k_ParagraphPropertyPath, k_ParagraphMaskingSettingsRelativeProperty);
+                }
 
                 m_Type = firstParagraph.FindPropertyRelative(k_ParagraphTypeProperty);
                 m_HeaderMediaType = (HeaderMediaType)m_Type.intValue;
@@ -229,11 +225,12 @@ namespace Unity.Tutorials.Core.Editor
 
         void CreateEventProperty(string propertyPath)
         {
-            // TODO: confirm that localization works for these
             var property = serializedObject.FindProperty(propertyPath);
             Debug.Assert(property != null, $"Property path {propertyPath} not valid.");
             if (property == null)
+            {
                 return;
+            }
 
             string tooltip = GetSerializedPropertyTooltip<TutorialPage>(property);
             var eventData = new EventPropertyData
@@ -264,9 +261,6 @@ namespace Unity.Tutorials.Core.Editor
             SerializedProperty narrativeParagraph = paragraphs.GetArrayElementAtIndex(1);
             m_NarrativeTitle = narrativeParagraph.FindPropertyRelative(k_ParagraphNarrativeTitleProperty);
             m_NarrativeDescription = narrativeParagraph.FindPropertyRelative(k_ParagraphNarrativeDescriptionProperty);
-            // TODO refactoring, support the old name of the property for a while still. Drop this in 2.0.
-            if (m_NarrativeDescription == null)
-                m_NarrativeDescription = narrativeParagraph.FindPropertyRelative("m_description1");
         }
 
         void SetupNarrativeOnlyPage(SerializedProperty paragraphs)
@@ -336,47 +330,54 @@ namespace Unity.Tutorials.Core.Editor
 
             EditorGUILayout.BeginVertical();
 
+            RenderProperty(Tr(LocalizationKeys.k_TutorialPageLabelTitle), m_PageTitle);
+
+            EditorGUILayout.Space(10);
+
             if (m_Type != null)
             {
-                EditorGUILayout.LabelField(Tr("Header Media Type"));
+                EditorGUILayout.LabelField(Tr(LocalizationKeys.k_TutorialPageLabelHeaderMediaType));
                 m_HeaderMediaType = (HeaderMediaType)EditorGUILayout.EnumPopup(GUIContent.none, m_HeaderMediaType);
                 m_Type.intValue = (int)m_HeaderMediaType;
 
                 EditorGUILayout.Space(10);
             }
 
-            RenderProperty(Tr("Media"), m_HeaderMediaType == HeaderMediaType.Image ? m_Image : m_Video);
+            RenderProperty(Tr(LocalizationKeys.k_TutorialPagePropertyMedia), m_HeaderMediaType == HeaderMediaType.Image ? m_Image : m_Video);
 
             EditorGUILayout.Space(10);
 
-            RenderProperty(Tr("Narrative Title"), m_NarrativeTitle);
+            /* todo: Disabled as from v3.0 this is unused when rendering narrative paragraphs.
+             * By v4.0 decide what we want to do with titles of narrative paragraphs, 
+             * which before v3.0 were used as the title of the page
+            RenderProperty(Tr(LocalizationKeys.k_TutorialPageLabelNarrativeTitle), m_NarrativeTitle);
+
+            EditorGUILayout.Space(10);*/
+
+            RenderTextAreaProperty(Tr(LocalizationKeys.k_TutorialPageLabelNarrativeDescription), m_NarrativeDescription, textAreaStyle);
 
             EditorGUILayout.Space(10);
 
-            RenderTextAreaProperty(Tr("Narrative Description"), m_NarrativeDescription, textAreaStyle);
+            RenderProperty(Tr(LocalizationKeys.k_TutorialPageLabelInstructionTitle), m_InstructionTitle);
 
             EditorGUILayout.Space(10);
 
-            RenderProperty(Tr("Instruction Title"), m_InstructionTitle);
-
-            EditorGUILayout.Space(10);
-
-            RenderTextAreaProperty(Tr("Instruction Description"), m_InstructionDescription, textAreaStyle);
+            RenderTextAreaProperty(Tr(LocalizationKeys.k_TutorialPageLabelInstructionDescription), m_InstructionDescription, textAreaStyle);
 
             if (m_CriteriaCompletion != null)
             {
                 EditorGUILayout.Space(10);
-                EditorGUILayout.LabelField(Tr("Completion Criteria"), EditorStyles.boldLabel);
+                EditorGUILayout.LabelField(Tr(LocalizationKeys.k_TutorialPageLabelCompletionCriteria), EditorStyles.boldLabel);
                 EditorGUILayout.PropertyField(m_AutoAdvance);
-                EditorGUILayout.PropertyField(m_CriteriaCompletion, new GUIContent(Tr("Completion Type")));
-                EditorGUILayout.PropertyField(m_Criteria, new GUIContent(Tr("Criteria")));
+                EditorGUILayout.PropertyField(m_CriteriaCompletion, new GUIContent(Tr(LocalizationKeys.k_TutorialPagePropertyCompletionType)));
+                EditorGUILayout.PropertyField(m_Criteria, new GUIContent(Tr(LocalizationKeys.k_TutorialPagePropertyCriteria)));
             }
 
             if (m_NextTutorial != null)
             {
                 EditorGUILayout.Space(10);
-                RenderProperty(Tr("Next Tutorial"), m_NextTutorial);
-                RenderProperty(Tr("Next Tutorial button text"), m_TutorialButtonText);
+                RenderProperty(Tr(LocalizationKeys.k_TutorialPagePropertyNextTutorial), m_NextTutorial);
+                RenderProperty(Tr(LocalizationKeys.k_TutorialPagePropertyNextTutorialButton), m_TutorialButtonText);
             }
 
             EditorStyles.label.wordWrap = true;
@@ -386,7 +387,7 @@ namespace Unity.Tutorials.Core.Editor
             EditorGUILayout.BeginHorizontal();
 
             ShowEvents = EditorGUILayout.Foldout(ShowEvents, s_EventsSectionTitle);
-            if (k_IsAuthoringMode && GUILayout.Button(Tr("Create Callback Handler")))
+            if (k_IsAuthoringMode && GUILayout.Button(Tr(LocalizationKeys.k_TutorialPageButtonCreateCallbackHandler)))
             {
                 CreateCallbackHandlerScript("TutorialCallbacks.cs");
                 m_Events.ForEach(data => InitializeEventWithDefaultData(data.Property));
@@ -407,7 +408,7 @@ namespace Unity.Tutorials.Core.Editor
                 m_Events.ForEach(data => RenderEventProperty(data.Content, data.Property));
             }
 
-            RenderProperty(Tr("Enable Masking"), m_MaskingSettings);
+            RenderProperty(Tr(LocalizationKeys.k_TutorialPagePropertyEnableMasking), m_MaskingSettings);
 
             EditorGUILayout.EndVertical();
 
@@ -496,13 +497,15 @@ namespace Unity.Tutorials.Core.Editor
 
             if (targetDir == null)
             {
-                targetDir =  EditorUtility.OpenFolderPanel(
-                    Tr("Choose Folder for the Callback Handler Files"),
+                targetDir = EditorUtility.OpenFolderPanel(
+                    Tr(LocalizationKeys.k_TutorialPageDialogCallbackFolderTitle),
                     Application.dataPath,
                     string.Empty
                 );
                 if (targetDir.IsNullOrEmpty())
+                {
                     return; // user cancelled
+                }
             }
 
             try

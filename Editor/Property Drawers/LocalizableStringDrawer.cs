@@ -26,8 +26,10 @@ namespace Unity.Tutorials.Core.Editor
         internal static GUIContent IconContent()
         {
             if (s_IconContent == null)
+            {
                 s_IconContent = EditorGUIUtility.IconContent("console.infoicon.sml"); // TODO create and use a proper localization/translation icon
-            s_IconContent.tooltip = Localization.Tr("Localizable string");
+            }
+            s_IconContent.tooltip = Localization.Tr(LocalizationKeys.k_LocalizableStringIconTooltip);
             return s_IconContent;
         }
     }

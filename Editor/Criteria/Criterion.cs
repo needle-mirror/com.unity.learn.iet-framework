@@ -35,12 +35,12 @@ namespace Unity.Tutorials.Core.Editor
         /// Raised when this criterion is completed.
         /// </summary>
         [Header("Events")]
-        public CriterionEvent Completed;
+        public CriterionEvent Completed = new CriterionEvent();
 
         /// <summary>
         /// Raised when this criterion is invalidated.
         /// </summary>
-        public CriterionEvent Invalidated;
+        public CriterionEvent Invalidated = new CriterionEvent();
 
         bool m_Completed;
 
@@ -52,8 +52,11 @@ namespace Unity.Tutorials.Core.Editor
             get { return m_Completed; }
             internal set
             {
-                if (value == m_Completed)
+                if (performedAtLeastOneEvaluationSinceTestingStarted
+                && (value == m_Completed))
+                {
                     return;
+                }
 
                 m_Completed = value;
                 if (m_Completed)
@@ -66,6 +69,7 @@ namespace Unity.Tutorials.Core.Editor
                     Invalidated?.Invoke(this);
                     CriterionInvalidated?.Invoke(this);
                 }
+                performedAtLeastOneEvaluationSinceTestingStarted = true;
             }
         }
 
@@ -74,7 +78,7 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         public void ResetCompletionState()
         {
-            m_Completed = false;
+            IsCompleted = false;
         }
 
         /// <summary>
@@ -82,6 +86,8 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         public virtual void StartTesting()
         {
+            isTesting = true;
+            performedAtLeastOneEvaluationSinceTestingStarted = false;
         }
 
         /// <summary>
@@ -89,13 +95,29 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         public virtual void StopTesting()
         {
+            isTesting = false;
         }
+
+        /// <summary>
+        /// Is this criterion being tested right now?
+        /// </summary>
+        [SerializeField, HideInInspector]
+        protected bool isTesting = false;
+
+        /// <summary>
+        /// Has at least one evaluation been performed since testing started?
+        /// </summary>
+        protected bool performedAtLeastOneEvaluationSinceTestingStarted = false;
 
         /// <summary>
         /// Runs update logic for the criterion.
         /// </summary>
         public virtual void UpdateCompletion()
         {
+            if (!isTesting)
+            {
+                return;
+            }
             IsCompleted = EvaluateCompletion();
         }
 

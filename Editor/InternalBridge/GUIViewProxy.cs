@@ -51,6 +51,16 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         public static Type InspectorWindowType => typeof(InspectorWindow);
 
+        /// <summary>
+        /// Type of internal class SceneHierarchyWindow.
+        /// </summary>
+        public static Type SceneHierarchyWindowType => typeof(SceneHierarchyWindow);
+
+        /// <summary>
+        /// Type of internal class ProjectBrowser.
+        /// </summary>
+        public static Type ProjectBrowserType => typeof(ProjectBrowser);
+
         static GUIViewProxy()
         {
             GUIView.positionChanged += (guiView) => PositionChanged?.Invoke(guiView);
@@ -132,6 +142,7 @@ namespace Unity.Tutorials.Core.Editor
 
     internal static class EditorWindowExtension
     {
+        public static bool IsParentNull(this EditorWindow window) => window.m_Parent == null;
         public static GUIViewProxy GetParent(this EditorWindow window) => new GUIViewProxy(window.m_Parent);
         // EditorWindow.docked not public until 2020.1.
         public static bool IsDocked(this EditorWindow window) => window.docked;

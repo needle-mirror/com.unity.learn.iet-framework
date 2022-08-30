@@ -110,10 +110,12 @@ namespace Unity.Tutorials.Core.Editor.Tests
                 Assert.AreEqual(unmaskedSceneViewControls.Count(), rects.Count, "Did not find all of the expected controls in the SceneView");
             }
         }
-
+#if UNITY_EDITOR_LINUX
+        [Ignore("Unstable on Linux, fails non-deterministically")]
+#endif
         [UnityTest]
         public IEnumerator TestGetViewsAndRects_ForSerializedPropertyInInspector()
-        {
+        { 
             var testObject = new GameObject("TestGetViewsAndRects_ForSerializedPropertiesInInspector");
             Selection.activeObject = testObject;
             try
@@ -142,6 +144,9 @@ namespace Unity.Tutorials.Core.Editor.Tests
             }
         }
 
+#if UNITY_EDITOR_LINUX
+        [Ignore("Unstable on Linux, fails non-deterministically")]
+#endif
         [UnityTest]
         public IEnumerator TestGetViewsAndRects_ForSerializedPropertyInInspector_WhenSamePathExistsOnMultipleComponents()
         {

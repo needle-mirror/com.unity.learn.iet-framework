@@ -156,6 +156,7 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         public override void StartTesting()
         {
+            base.StartTesting();
             // Record existing prefab instances
             m_ExistingPrefabInstances.Clear();
             foreach (var gameObject in UnityObject.FindObjectsOfType<GameObject>())
@@ -180,6 +181,7 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         public override void StopTesting()
         {
+            base.StopTesting();
             m_ExistingPrefabInstances.Clear();
 
             Selection.selectionChanged -= OnSelectionChanged;

@@ -13,9 +13,9 @@ namespace Unity.Tutorials.Core.Editor
     {
         static class Contents
         {
-            public static GUIContent autoCompletion = new GUIContent(Tr("Auto Completion"));
-            public static GUIContent startAutoCompletion = new GUIContent(Tr("Start Auto Completion"));
-            public static GUIContent stopAutoCompletion = new GUIContent(Tr("Stop Auto Completion"));
+            public static GUIContent s_AutoCompletion = new GUIContent(Tr(LocalizationKeys.k_TutorialLabelAutoCompletion));
+            public static GUIContent s_StartAutoCompletion = new GUIContent(Tr(LocalizationKeys.k_TutorialButtonStartAutoCompletion));
+            public static GUIContent s_StopAutoCompletion = new GUIContent(Tr(LocalizationKeys.k_TutorialButtonStopAutoCompletion));
         }
 
         static readonly string[] k_PropsToIgnore = { "m_Script", nameof(Tutorial.m_LessonId) };
@@ -23,26 +23,23 @@ namespace Unity.Tutorials.Core.Editor
             .Concat(new[] { nameof(Tutorial.m_SceneManagementBehavior) })
             .ToArray();
 
-        private const string k_PagesPropertyPath = "m_Pages.m_Items";
+        static readonly string s_PagesPropertyPath = $"{nameof(Tutorial.m_Pages)}.m_Items";
 
-        private static readonly Regex s_MatchPagesPropertyPath =
+        static readonly Regex s_MatchPagesPropertyPath =
             new Regex(
-                string.Format("^({0}\\.Array\\.size)|(^({0}\\.Array\\.data\\[\\d+\\]))", Regex.Escape(k_PagesPropertyPath))
+                string.Format("^({0}\\.Array\\.size)|(^({0}\\.Array\\.data\\[\\d+\\]))", Regex.Escape(s_PagesPropertyPath))
             );
 
         Tutorial Target => (Tutorial)target;
 
         [NonSerialized]
-        private string m_WarningMessage;
+        string m_WarningMessage;
 
         protected virtual void OnEnable()
         {
-            if (serializedObject.FindProperty(k_PagesPropertyPath) == null)
+            if (serializedObject.FindProperty(s_PagesPropertyPath) == null)
             {
-                m_WarningMessage = string.Format(
-                    Tr("Unable to locate property path {0} on this object. Automatic masking updates will not work."),
-                    k_PagesPropertyPath
-                );
+                m_WarningMessage = string.Format(Tr(LocalizationKeys.k_MissingPropertyPathWarning), s_PagesPropertyPath);
             }
 
             Undo.postprocessModifications += OnPostprocessModifications;
@@ -55,7 +52,7 @@ namespace Unity.Tutorials.Core.Editor
             Undo.undoRedoPerformed -= OnUndoRedoPerformed;
         }
 
-        private void OnUndoRedoPerformed()
+        void OnUndoRedoPerformed()
         {
             if (Target != null)
             {
@@ -63,18 +60,20 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
-        private UndoPropertyModification[] OnPostprocessModifications(UndoPropertyModification[] modifications)
+        UndoPropertyModification[] OnPostprocessModifications(UndoPropertyModification[] modifications)
         {
             Target.RaiseModified();
 
-            var pagesChanged = false;
+            bool pagesChanged = false;
 
             foreach (var modification in modifications)
             {
                 if (modification.currentValue.target != target)
+                {
                     continue;
+                }
 
-                var propertyPath = modification.currentValue.propertyPath;
+                string propertyPath = modification.currentValue.propertyPath;
                 if (s_MatchPagesPropertyPath.IsMatch(propertyPath))
                 {
                     pagesChanged = true;
@@ -83,7 +82,9 @@ namespace Unity.Tutorials.Core.Editor
             }
 
             if (pagesChanged)
+            {
                 Target.RaiseModified();
+            }
 
             return modifications;
         }
@@ -93,7 +94,9 @@ namespace Unity.Tutorials.Core.Editor
             TutorialProjectSettings.DrawDefaultAssetRestoreWarning();
 
             if (!string.IsNullOrEmpty(m_WarningMessage))
+            {
                 EditorGUILayout.HelpBox(m_WarningMessage, MessageType.Warning);
+            }
 
             if (SerializedTypeDrawer.UseDefaultEditors)
             {
@@ -110,15 +113,19 @@ namespace Unity.Tutorials.Core.Editor
             }
 
             // Auto completion
-            GUILayout.Label(Contents.autoCompletion, EditorStyles.boldLabel);
+            GUILayout.Label(Contents.s_AutoCompletion, EditorStyles.boldLabel);
             using (new EditorGUI.DisabledScope(Target.IsCompleted))
             {
-                if (GUILayout.Button(Target.IsAutoCompleting ? Contents.stopAutoCompletion : Contents.startAutoCompletion))
+                if (GUILayout.Button(Target.IsAutoCompleting ? Contents.s_StopAutoCompletion : Contents.s_StartAutoCompletion))
                 {
                     if (Target.IsAutoCompleting)
+                    {
                         Target.StopAutoCompletion();
+                    }
                     else
+                    {
                         Target.StartAutoCompletion();
+                    }
                 }
             }
         }

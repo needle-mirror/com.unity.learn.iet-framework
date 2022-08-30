@@ -27,8 +27,8 @@ namespace Unity.Tutorials.Core.Editor
         List<VisualElement> guiViewVisualElements = new List<VisualElement>();
         EventCallback<MouseDownEvent> pickerCallback;
         static readonly GUIContent k_PickButtonContent = new GUIContent(
-            Localization.Tr("Pick Visual Element"),
-            Localization.Tr("Pick the wanted visual element by clicking it. Press Esc key to cancel picking.")
+            Localization.Tr(LocalizationKeys.k_GuiControlSelectorButtonPickElement),
+            Localization.Tr(LocalizationKeys.k_GuiControlSelectorButtonPickElementTooltip)
         );
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
@@ -55,7 +55,11 @@ namespace Unity.Tutorials.Core.Editor
                         EditorGUI.GetPropertyHeight(property.FindPropertyRelative(k_PropertyPathPath), true);
                     break;
                 case GuiControlSelector.Mode.ObjectReference:
-                    height += EditorGUIUtility.standardVerticalSpacing + EditorGUI.GetPropertyHeight(property.FindPropertyRelative(k_ObjectReferencePath), true);
+                    height += EditorGUIUtility.standardVerticalSpacing
+                           + EditorGUI.GetPropertyHeight(property.FindPropertyRelative(k_ObjectReferencePath), true);
+#if UNITY_2021_1_OR_NEWER
+                    height += EditorGUIUtility.singleLineHeight;
+#endif
                     break;
                 case GuiControlSelector.Mode.VisualElement:
                     height +=
