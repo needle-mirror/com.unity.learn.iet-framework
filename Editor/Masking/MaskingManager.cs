@@ -70,34 +70,36 @@ namespace Unity.Tutorials.Core.Editor
 
         static double s_LastHighlightTime;
 
-        static MaskingManager()
+        internal static void OnEditorUpdate()
         {
-            EditorApplication.update += delegate
+            // do not animate unless enough time has passed since masking was last applied
+            var t = EditorApplication.timeSinceStartup - s_LastHighlightTime - HighlightAnimationDelay;
+            if (t < 0d)
             {
-                // do not animate unless enough time has passed since masking was last applied
-                var t = EditorApplication.timeSinceStartup - s_LastHighlightTime - HighlightAnimationDelay;
-                if (t < 0d)
-                    return;
+                return;
+            }
 
-                var baseBorderWidth = 4.2f;
-                var borderWidthAmplitude = 2.1f;
-                var animatedBorderWidth = Mathf.Cos((float)t * HighlightAnimationSpeed) * borderWidthAmplitude + baseBorderWidth;
-                foreach (var highlighter in s_Highlighters)
-                {
-                    if (highlighter == null)
-                        continue;
+            const float baseBorderWidth = 4.2f;
+            const float borderWidthAmplitude = 2.1f;
+            float animatedBorderWidth = Mathf.Cos((float)t * HighlightAnimationSpeed) * borderWidthAmplitude + baseBorderWidth;
 
-                    highlighter.style.borderLeftWidth = animatedBorderWidth;
-                    highlighter.style.borderRightWidth = animatedBorderWidth;
-                    highlighter.style.borderTopWidth = animatedBorderWidth;
-                    highlighter.style.borderBottomWidth = animatedBorderWidth;
-                }
-                foreach (var view in s_HighlightedViews)
+            foreach (var highlighter in s_Highlighters)
+            {
+                if (highlighter == null) { continue; }
+
+                highlighter.style.borderLeftWidth = animatedBorderWidth;
+                highlighter.style.borderRightWidth = animatedBorderWidth;
+                highlighter.style.borderTopWidth = animatedBorderWidth;
+                highlighter.style.borderBottomWidth = animatedBorderWidth;
+            }
+
+            foreach (var view in s_HighlightedViews)
+            {
+                if (view.Key.IsValid)
                 {
-                    if (view.Key.IsValid)
-                        view.Key.Repaint();
+                    view.Key.Repaint();
                 }
-            };
+            }
         }
 
         /// <summary>

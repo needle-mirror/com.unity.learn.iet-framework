@@ -4,7 +4,15 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.2.2] - 2022-06-02
+## [2.2.3] - 2022-09-12
+### Fixed
+- Fixed performance issues caused by unneeded calls to InternalEditorUtility.RepaintAllViews(), which caused the whole editor's UI to be redrawn
+- Fixed performance issues caused by unnecessary redraws of the making/highlighting. The masking logic has been optimized to avoid redrawing of masking / highlighting when it is not needed
+- Fixed masking data being constantly recalculated even when a tutorial wasn't running
+- Fixed Tutorial URLs not being opened if they didn't start with http:// or https:// and didn't have at least a 3rd level domain in the url
+- Fixed TutorialPage's "URL that points to local resource/folder/file" feature not working
+
+## [2.2.2] - 2022-05-23
 ### Fixed
 - Fixed errors with masking settings on Unity 2021 LTS
 - Fix from .net core 2.1 API to 2.0, documentation cleanup
@@ -207,7 +215,7 @@ This preference can be found under **Preferences** > **In-Editor Tutorials**.
 - **Breaking change**: `TutorialContainer`'s `ProjectName` renamed to `Title`, old `Title` renamed to `Subtitle`.
 - **Breaking change**: `TutorialContainer.Section`'s `AuthorizedUrl` removed, `LinkText` renamed to `Metadata`, `SessionStateKey` made `internal`.
 - **Breaking change**: Renamed `SceneObjectGUIDComponent` to `SceneObjectGuid` and `SceneObjectGUIDManager` to `SceneObjectGuidManager`.
-- Dependencies: Settings Manager dependency updated to 1.0.3.
+- Dependencies: Settings Manager dependency updated to 1.0.4.
 - UX: Show a warning in the Console if the user is not signed in.
 - UX: **Show Tutorials** menu item simply focuses **Tutorials** window in all cases, also when a tutorial is in progress.
 - UX: If `TutorialContainer.ProjectLayout` has a layout without **Tutorials** window, the window is now shown as a free-floating window instead of not showing it at all.
@@ -312,7 +320,7 @@ This preference can be found under **Preferences** > **In-Editor Tutorials**.
 - Cleaned up PO files from dummy test translations.
 - Fixed null reference exception spam when rerunning a newly created tutorial.
 
-## [1.0.3] - 2020-08-26
+## [1.0.4] - 2020-08-26
 ### Fixed
 - Fixed potential problems with copying of the layouts during the initial import of a project.
 - Removed a duplicate error print if window layout loading fails.

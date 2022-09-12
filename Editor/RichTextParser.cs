@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.IO;
+using UnityEditor;
 
 namespace Unity.Tutorials.Core.Editor
 {
@@ -350,12 +351,29 @@ namespace Unity.Tutorials.Core.Editor
                         // Link points to a relative directory
                         if (linkURL[0] == '.')
                         {
-                            actualPath = Path.GetFullPath(linkURL);
-                            actualPath = Uri.EscapeUriString(actualPath);
-                            actualPath = "file://" + actualPath;
+                            if (linkURL.Length == 1) //current folder
+                            {
+                                actualPath = Path.GetFullPath(linkURL);
+                            }
+                            else if (linkURL.StartsWith("./"))
+                            {
+                                if (linkURL.Length == 2) //current folder
+                                {
+                                    actualPath = Path.GetFullPath(linkURL);
+                                }
+                                else //Folder within the current one, or parent folder
+                                {
+                                    actualPath = Path.GetFullPath(linkURL.Remove(0, 2));
+                                }
+                            }
+                            else //local asset, assume the "." is there only because the user doesn't know about the "./" notation
+                            {
+                                actualPath = Path.GetFullPath(linkURL.Remove(0, 1));
+                            }
+
                             linkCallback = (evt, path) =>
                             {
-                                Application.OpenURL(path);
+                                EditorUtility.OpenWithDefaultApp(path);
                             };
                         }
                         else

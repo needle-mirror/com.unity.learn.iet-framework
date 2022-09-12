@@ -83,15 +83,32 @@ namespace Unity.Tutorials.Core.Editor
         public static void OpenUrl(string url)
         {
             if (string.IsNullOrEmpty(url))
+            {
                 return;
+            }
 
             string urlWithoutHttpPrefix = RemoveHttpProtocolPrefix(url);
             if (IsUnityUrlRequiringAuthentication(urlWithoutHttpPrefix) && UnityConnectProxy.loggedIn)
             {
-                UnityConnectProxy.OpenAuthorizedURLInWebBrowser(url);
+                //unity websites can only be opened if they have the https prefix, we need to ensure that it exists otherwise URLs like "unity.com" won't be opened at all
+                UnityConnectProxy.OpenAuthorizedURLInWebBrowser(EnsureProtocolPrefixIsPresent(url, "https"));
                 return;
             }
-            Application.OpenURL(url);
+
+            /* Important: as its documentation says, this API is extremely powerful and could be exploited by malicius users trying to run protocols different than HTTP.
+             * Moreover, it ignores urls that dont' have a 3rd domain level. In order to address both issues, we need to ensure URLs have the https prefix
+             * otherwise URLs like "google.com" won't be opened at all */
+            Application.OpenURL(EnsureProtocolPrefixIsPresent(url, "http"));
+        }
+
+
+        internal static string EnsureProtocolPrefixIsPresent(string url, string protocol)
+        {
+            if (url.StartsWith(protocol, System.StringComparison.OrdinalIgnoreCase))
+            {
+                return url;
+            }
+            return $"{protocol}://{url}";
         }
 
         /// <summary>

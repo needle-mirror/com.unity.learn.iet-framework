@@ -743,7 +743,18 @@ namespace Unity.Tutorials.Core.Editor
                 SubscribeToModifications(currentTutorial);
             m_VisibleContainers.ForEach(SubscribeToModifications);
             EditorApplication.projectChanged += RefreshMasking;
-            EditorApplication.hierarchyChanged += RefreshMasking;
+            EditorApplication.hierarchyChanged += RefreshMaskingOnHierarchyChange;
+        }
+
+        void RefreshMaskingOnHierarchyChange()
+        {
+            if (!currentTutorial
+            || !currentTutorial.CurrentPage
+            || !currentTutorial.CurrentPage.ShouldRefreshMaskingOnHierarchyChange)
+            {
+                return;
+            }
+            RefreshMasking();
         }
 
         void RefreshMasking()
@@ -978,7 +989,7 @@ namespace Unity.Tutorials.Core.Editor
             AssemblyReloadEvents.beforeAssemblyReload -= OnBeforeAssemblyReload;
             AssemblyReloadEvents.afterAssemblyReload -= OnAfterAssemblyReload;
             EditorApplication.projectChanged -= RefreshMasking;
-            EditorApplication.hierarchyChanged -= RefreshMasking;
+            EditorApplication.hierarchyChanged -= RefreshMaskingOnHierarchyChange;
 
             if (m_WaitForStylesRoutine != null)
             {
@@ -1499,6 +1510,17 @@ namespace Unity.Tutorials.Core.Editor
             // PrepareNewPage() calls DelayedShowCurrentTutorialContent() which is causes at least one-frame delay
             // before ShowCurrentTutorialContent() is executed for real.
             page.RaiseShown();
+
+            EditorApplication.update -= OnEditorUpdate;
+            EditorApplication.update += OnEditorUpdate;
+        }
+
+        void OnEditorUpdate()
+        {
+            if (currentTutorial)
+            {
+                MaskingManager.OnEditorUpdate();
+            }
         }
 
         void OnGUIViewPositionChanged(UnityObject sender)
@@ -1515,7 +1537,6 @@ namespace Unity.Tutorials.Core.Editor
                 || currentTutorial.CurrentPage == null || TutorialManager.IsLoadingLayout)
             {
                 MaskingManager.Unmask();
-                InternalEditorUtility.RepaintAllViews();
                 return;
             }
 
@@ -1592,10 +1613,6 @@ namespace Unity.Tutorials.Core.Editor
                     Console.WriteLine(StackTraceUtility.ExtractStringFromException(e));
 
                 MaskingManager.Unmask();
-            }
-            finally
-            {
-                InternalEditorUtility.RepaintAllViews();
             }
         }
 

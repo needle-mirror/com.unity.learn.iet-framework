@@ -51,6 +51,8 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         public bool AreAllCriteriaSatisfied { get; private set; }
 
+        internal bool ShouldRefreshMaskingOnHierarchyChange => m_Paragraphs.Any(p => p.ShouldRefreshMaskingOnHierarchyChange);
+
         /// <summary>
         /// Paragraphs of this page.
         /// </summary>

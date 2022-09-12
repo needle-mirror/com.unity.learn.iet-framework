@@ -1,6 +1,6 @@
 <!-- Upgrade guide page template for packages: https://confluence.unity3d.com/display/DOCS/Upgrade+guide+page+template+for+packages -->
 
-# Upgrading to Tutorial Framework version 2.2.2
+# Upgrading to Tutorial Framework version 2.2.3
 
 You do not need to take any actions to upgrade your project to this package version. 
 

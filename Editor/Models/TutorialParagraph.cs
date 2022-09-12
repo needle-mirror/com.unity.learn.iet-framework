@@ -148,6 +148,31 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
+        internal bool ShouldRefreshMaskingOnHierarchyChange
+        {
+            get
+            {
+                if (!m_MaskingSettings.Enabled)
+                {
+                    return false;
+                }
+
+                foreach (var unmaskedView in m_MaskingSettings.UnmaskedViews)
+                {
+                    Type editorWindowType = unmaskedView.m_EditorWindowType.Type;
+                    bool isMaskingRelatedToHierarchy = editorWindowType == GUIViewProxy.SceneHierarchyWindowType;
+                    if (isMaskingRelatedToHierarchy && unmaskedView.GetUnmaskedControls(new List<GuiControlSelector>()) > 0)
+                    {
+                        // Related to hierarchy, and the unmasked controls is non-empty
+                        return true;
+                    }
+                }
+                /* either none of the masking is related to hierarchy
+                or all masking related to hierarchy has an empty unmasked controls list */
+                return false;
+            }
+        }
+
         // Backwards-compatibility for < 1.2
         [SerializeField, HideInInspector]
         string m_Summary;

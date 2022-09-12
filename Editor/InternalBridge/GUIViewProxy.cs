@@ -51,6 +51,11 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         public static Type InspectorWindowType => typeof(InspectorWindow);
 
+        /// <summary>
+        /// Type of internal class SceneHierarchyWindow.
+        /// </summary>
+        internal static Type SceneHierarchyWindowType => typeof(SceneHierarchyWindow);
+
         static GUIViewProxy()
         {
             GUIView.positionChanged += (guiView) => PositionChanged?.Invoke(guiView);
