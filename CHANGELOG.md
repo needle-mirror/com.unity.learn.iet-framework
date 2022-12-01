@@ -4,6 +4,11 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.2] - 2022-12-01
+### Fixed
+- Fixed issue where Maximizing a view breaks the TutorialWindows.
+- AssetStore links will no longer go through Unity authentication processes. This previously prevented the asset store from being able to be opened through direct links.
+
 ## [3.1.1] - 2022-08-30
 ### Added
 - Added an error log when a folder without a Translator.cs file is selected as the target folder of content localization files
@@ -33,6 +38,18 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed masking data being constantly recalculated even when a tutorial wasn't running
 - Fixed Tutorial URLs not being opened if they didn't start with http:// or https:// and didn't have at least a 3rd level domain in the url
 - Fixed TutorialPage's "URL that points to local resource/folder/file" feature not working
+
+## [2.2.2] - 2022-06-02
+### Fixed
+- Fixed errors with masking settings on Unity 2021 LTS
+- Fix from .net core 2.1 API to 2.0, documentation cleanup
+- Clean up RTP with a callback, clear changelog
+- Fix to naming and scope issues
+- Fixed missing support for relative file links in Rich Text Parser
+
+### Changed
+- Documentation and some cleanup
+
 
 ## [2.2.1] - 2022-02-23
 ### Fixed
@@ -103,7 +120,7 @@ This new behavior improves the tutorial authoring experience and allows a tutori
 - Scripting API: Made `TutorialModalWindow` part of the public API of the package. This class can be used to implement welcome/closing dialogs for the tutorial project.
 
 ### Fixed
-- Fixed misplaced unmasking of UI controls in floating editor windows on Unity 2021.2.1.
+- Fixed misplaced unmasking of UI controls in floating editor windows on Unity 2021.2.0.
 - UI: Disabled horizontal scrollbars in all windows.
 - UI: Fixed unwanted offset in the interactable area of **Back to previous view** button.
 - Fixed original scenes not being restored correctly when exiting a tutorial which contained multiple scenes.
@@ -121,7 +138,7 @@ This new behavior improves the tutorial authoring experience and allows a tutori
 - UI: Disabled horizontal scrollbars in the **Tutorials** windows altogether.
 
 ### Fixed
-- Fixed masking and highlighting on Unity 2021.2.1b.
+- Fixed masking and highlighting on Unity 2021.2.0b.
 - Fixed occasionally appearing half-window-sized vertical scrollbar in **Tutorials** windows on Unity 2021.2.
 
 ## [2.0.0-pre.6] - 2021-06-17
@@ -288,7 +305,7 @@ This preference can be found under **Preferences** > **In-Editor Tutorials**.
 ### Added
 - Localization: added translations for CJK languages.
 
-## [1.2.1] - 2020-11-10
+## [1.2.0] - 2020-11-10
 ### Added
 - Localization: Finalize localization support for CJK languages. No translations provided yet.
 - Localization: Changes to IET project translations are applied automatically, _Translate Current Project_ menu item removed as unnecessary.
@@ -312,7 +329,7 @@ This preference can be found under **Preferences** > **In-Editor Tutorials**.
 ### Fixed
 - Hyperlinks in tutorial pages support also to non-Unity URLs and work when the user was is not logged in.
 
-## [1.2.1] - 2020-09-22
+## [1.1.0] - 2020-09-22
 ### Added
 - Support for both Personal/Light & Professional/Dark style sheets. The styles can be customized on a per-project basis using `TutorialStyles`.
 - Rich text parser: validate input, create a clickable error label for invalid input.

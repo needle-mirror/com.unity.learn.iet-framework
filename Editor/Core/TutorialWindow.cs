@@ -721,5 +721,17 @@ namespace Unity.Tutorials.Core.Editor
         {
             LocalizationDatabaseProxy.ClearLocalizationCache();
         }
+
+        /// <summary>
+        /// Re-find our instance if we've lost it
+        /// This occurs when a window is maximized
+        /// </summary>
+        protected override void OnResized_Internal()
+        {
+            if (!Instance)
+            {
+                Instance = FindInstance();
+            }
+        }
     }
 }

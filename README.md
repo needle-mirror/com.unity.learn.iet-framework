@@ -7,7 +7,7 @@ IMPORTANT: before updating to this version, please update to the closest major v
 ## Setup
 For Unity 2021.2 and newer, simply search for "Tutorial Framework" in the Package Manager. For older Unity versions, this package is not currently discoverable,
 and you need to add the following line to the `dependencies` list of `Packages/manifest.json`:  
-`"com.unity.learn.iet-framework": "3.1.1"`
+`"com.unity.learn.iet-framework": "3.1.1" `
 
 Make sure to update to the latest version of the package.
 

@@ -128,7 +128,10 @@ namespace Unity.Tutorials.Core.Editor
         {
             // TODO Genesis will provide an API where we can keep a list of Unity URLs that we want to support.
             url = RemoveHttpProtocolPrefix(url);
-            return url.StartsWith("unity.", System.StringComparison.OrdinalIgnoreCase) || url.Split('/')[0].ToLower().Contains(".unity.");
+            var splitUrl = url.Split('/')[0].ToLower();
+
+            return (url.StartsWith("unity.", System.StringComparison.OrdinalIgnoreCase) || splitUrl.Contains(".unity."))
+                   && !splitUrl.Contains("assetstore");
         }
     }
 }
