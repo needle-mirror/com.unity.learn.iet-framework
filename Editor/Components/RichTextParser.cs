@@ -202,29 +202,11 @@ namespace Unity.Tutorials.Core.Editor
         {
             targetContainer.Clear();
 
-            bool addError = false;
-            string errorText = "";
-
-            try
-            {
-                XDocument.Parse("<content>" + htmlText + "</content>");
-            }
-            catch (Exception e)
-            {
-                errorText = e.Message;
-                htmlText = ParseUntilError(htmlText);
-                addError = true;
-            }
-
             var generatedElements = new List<VisualElement>();
             // start streaming text per word to elements while retaining current style for each word block
             string[] lines = htmlText.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
             RenderLines(lines, targetContainer, generatedElements);
 
-            if (addError)
-            {
-                TrackAndAddGeneratedElement(() => GenerateParseErrorLabel(errorText), targetContainer, generatedElements);
-            }
             return generatedElements;
         }
 
