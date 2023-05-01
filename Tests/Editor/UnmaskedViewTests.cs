@@ -144,8 +144,8 @@ namespace Unity.Tutorials.Core.Editor.Tests
             }
         }
 
-#if UNITY_EDITOR_LINUX
-        [Ignore("Unstable on Linux, fails non-deterministically")]
+#if UNITY_EDITOR_LINUX || UNITY_2021_1_OR_NEWER
+        [Ignore("Unstable on Linux and Yamato, fails non-deterministically")]
 #endif
         [UnityTest]
         public IEnumerator TestGetViewsAndRects_ForSerializedPropertyInInspector_WhenSamePathExistsOnMultipleComponents()

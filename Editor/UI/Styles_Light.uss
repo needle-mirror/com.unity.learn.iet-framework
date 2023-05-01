@@ -17,6 +17,13 @@ HyperlinkLabel {
     border-bottom-width: 1px;
 }
 
+.video-play-button {
+    background-image: resource("Icons/Animation.Play.png");
+}
+
+.video-popup-button {
+    background-image: resource("Icons/Animation.Play.png");
+}
 
 /****************************
 *  THEME SPECIFIC COLORS
@@ -68,4 +75,8 @@ HyperlinkLabel {
 
 .image--instruction-arrow {
     background-color: #0089E4;
+}
+
+.tutorial-code-sample {
+    border-color: rgba(0.5,0.5,0.5,0.5);
 }

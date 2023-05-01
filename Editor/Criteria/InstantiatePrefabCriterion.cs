@@ -159,7 +159,7 @@ namespace Unity.Tutorials.Core.Editor
             base.StartTesting();
             // Record existing prefab instances
             m_ExistingPrefabInstances.Clear();
-            foreach (var gameObject in UnityObject.FindObjectsOfType<GameObject>())
+            foreach (var gameObject in EditorFindObjectUtils.FindObjectsByTypeSorted<GameObject>())
             {
                 if (PrefabUtilityShim.GetCorrespondingObjectFromSource(gameObject) != null)
                 {

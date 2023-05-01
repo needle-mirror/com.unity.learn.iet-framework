@@ -14,6 +14,7 @@ namespace Unity.Tutorials.Core.Editor
         const string k_TutorialPath = "m_Tutorial";
         const string k_TutorialButtonTextPath = "m_TutorialButtonText";
         const string k_ImagePath = "m_Image";
+        const string k_VideoUrlPath = "m_VideoUrl";
         const string k_VideoPath = "m_Video";
 
         protected override void DisplayChildProperty(
@@ -49,6 +50,10 @@ namespace Unity.Tutorials.Core.Editor
                     if (type != ParagraphType.Video)
                         return;
                     break;
+                case k_VideoUrlPath:
+                    if (type != ParagraphType.VideoUrl)
+                        return;
+                    break;
             }
             base.DisplayChildProperty(position, parentProperty, childProperty, label);
         }
@@ -76,6 +81,10 @@ namespace Unity.Tutorials.Core.Editor
                     break;
                 case k_VideoPath:
                     if (type != ParagraphType.Video)
+                        return -EditorGUIUtility.standardVerticalSpacing;
+                    break;
+                case k_VideoUrlPath:
+                    if (type != ParagraphType.VideoUrl)
                         return -EditorGUIUtility.standardVerticalSpacing;
                     break;
             }

@@ -117,7 +117,15 @@ namespace Unity.Tutorials.Core.Editor
         /// </remarks>
         public SceneManagementBehaviorType SceneManagementBehavior { get => m_SceneManagementBehavior; set => m_SceneManagementBehavior = value; }
 
+        /// <summary>
+        /// Will the tutorial revert to the open scenes before it was started or leave the scene as is (default is true)
+        /// </summary>
+        public bool ReturnToPreviousScenes { get => m_ReturnToPreviousScenes; set => m_ReturnToPreviousScenes = value; }
+
         [Header("Scene Management")]
+        [SerializeField, Tooltip("Revert to previous scene on tutorial exit or keep opened scene")]
+        internal bool m_ReturnToPreviousScenes = true;
+
         [SerializeField, Tooltip("Applicable when no Scenes are specified.")]
         internal SceneManagementBehaviorType m_SceneManagementBehavior;
 

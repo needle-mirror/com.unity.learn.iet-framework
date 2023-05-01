@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Unity.EditorCoroutines.Editor;
+using UnityEditor;
 using UnityEngine;
 
 namespace Unity.Tutorials.Core.Editor
@@ -19,6 +20,8 @@ namespace Unity.Tutorials.Core.Editor
             AddListener<SectionClickedEvent>(OnSectionClicked);
             AddListener<BackButtonClickedEvent>(OnBackButtonClicked);
             AddListener<TutorialsCompletionStatusUpdatedEvent>(OnTutorialsCompletionStatusUpdated);
+
+            EditorApplication.update += OnEditorUpdate;
         }
 
         internal override void RemoveListeners()
@@ -28,6 +31,8 @@ namespace Unity.Tutorials.Core.Editor
             RemoveListener<SectionClickedEvent>(OnSectionClicked);
             RemoveListener<BackButtonClickedEvent>(OnBackButtonClicked);
             RemoveListener<TutorialsCompletionStatusUpdatedEvent>(OnTutorialsCompletionStatusUpdated);
+
+            EditorApplication.update -= OnEditorUpdate;
         }
 
         void OnTutorialsCompletionStatusUpdated(TutorialsCompletionStatusUpdatedEvent evt)
@@ -64,6 +69,11 @@ namespace Unity.Tutorials.Core.Editor
             m_Model.FetchAllTutorialStates();
         }
 
+        void OnEditorUpdate()
+        {
+            MaskingManager.OnEditorUpdate();
+        }
+
         void OnTutorialCategoryModified(TutorialContainer category)
         {
             if (Application == null
@@ -91,6 +101,8 @@ namespace Unity.Tutorials.Core.Editor
 
         void EnterCategory(TutorialContainer category)
         {
+            MaskingManager.Unmask();
+
             if (m_Model.CurrentCategory == category) { return; }
             m_Model.CurrentCategory = category;
             m_View.Refresh();

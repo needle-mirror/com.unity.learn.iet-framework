@@ -36,7 +36,7 @@ namespace Unity.Tutorials.Core
             }
             else
             {
-                var components = FindObjectsOfType<SceneObjectGuid>();
+                var components = RuntimeFindObjectUtils.FindObjectsByTypeUnsorted<SceneObjectGuid>();
                 if (components.Any(c => c.m_Id == m_Id && c != this))
                 {
                     m_Id = Guid.NewGuid().ToString();

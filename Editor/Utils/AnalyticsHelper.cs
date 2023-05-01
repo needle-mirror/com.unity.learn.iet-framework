@@ -309,15 +309,11 @@ namespace Unity.Tutorials.Core.Editor
         /// Use for external references/links, documentation, assets, etc.
         /// https://docs.google.com/spreadsheets/d/1vftlkO4yps3qUoPgM2wnbJu4YwRO3fZ4cS7IELk4Gww/edit#gid=1343103808
         /// </summary>
+#if UNITY_6000
+        public struct ExternalReferenceEventData : IAnalytic.IData
+#else
         public struct ExternalReferenceEventData
-        {
-            public int ts; // timestamp
-            public string id;
-            public string title;
-            public string type; // e.g. Asset Store or Mods
-            public string path; // URL
-        }
-        public struct ExternalReferenceImpressionEventData
+#endif
         {
             public int ts; // timestamp
             public string id;
@@ -326,7 +322,24 @@ namespace Unity.Tutorials.Core.Editor
             public string path; // URL
         }
 
+#if UNITY_6000
+        public struct ExternalReferenceImpressionEventData : IAnalytic.IData
+#else
+        public struct ExternalReferenceImpressionEventData
+#endif
+        {
+            public int ts; // timestamp
+            public string id;
+            public string title;
+            public string type; // e.g. Asset Store or Mods
+            public string path; // URL
+        }
+
+#if UNITY_6000
+        public struct TutorialEventData : IAnalytic.IData
+#else
         public struct TutorialEventData
+#endif
         {
             public int ts; // timestamp
             public string tutorialName;
@@ -338,7 +351,11 @@ namespace Unity.Tutorials.Core.Editor
             public bool isBlocking;
         }
 
+#if UNITY_6000
+        public struct TutorialPageEventData : IAnalytic.IData
+#else
         public struct TutorialPageEventData
+#endif
         {
             public int ts; // timestamp
             public string tutorialName;
@@ -350,7 +367,11 @@ namespace Unity.Tutorials.Core.Editor
             public bool isBlocking;
         }
 
+#if UNITY_6000
+        public struct TutorialParagraphEventData : IAnalytic.IData
+#else
         public struct TutorialParagraphEventData
+#endif
         {
             public int ts; // timestamp
             public string tutorialName;
@@ -372,6 +393,143 @@ namespace Unity.Tutorials.Core.Editor
         const string k_EventTutorialPage = "iet_tutorialPage";
         const string k_EventTutorialParagraph = "iet_tutorialParagraph";
 
+#if UNITY_6000
+        //Unity 6 editor analytics changed, you now define 1 class per type of analytics, so we need to create a class for each even above
+
+        [AnalyticInfo(eventName: k_EventTutorial, vendorKey: k_VendorKey)]
+        internal class TutorialAnalytic : IAnalytic
+        {
+            private TutorialEventData parameters;
+
+            public TutorialAnalytic(string tutorialName, string version, TutorialConclusion conclusion, string lessonID, DateTime startTime, TimeSpan duration, bool isBlocking)
+            {
+                this.parameters = new TutorialEventData
+                {
+                    ts = DateTime.UtcNow.Millisecond,
+                    tutorialName = tutorialName,
+                    version = version,
+                    conclusion = (int)conclusion,
+                    lessonID = lessonID,
+                    duration = duration.Milliseconds,
+                    startTime = startTime.Millisecond,
+                    isBlocking = isBlocking
+                };
+            }
+
+            public bool TryGatherData(out IAnalytic.IData data, out Exception error)
+            {
+                error = null;
+                data =  parameters;
+                return data != null;
+            }
+        }
+
+        [AnalyticInfo(eventName: k_EventTutorialPage, vendorKey: k_VendorKey)]
+        internal class TutorialPageAnalytic : IAnalytic
+        {
+            private TutorialPageEventData parameters;
+
+            public TutorialPageAnalytic(string tutorialName, int pageIndex, string guid, TutorialPageConclusion conclusion, DateTime startTime, TimeSpan duration, bool isBlocking)
+            {
+                parameters = new TutorialPageEventData
+                {
+                    ts = DateTime.UtcNow.Millisecond,
+                    tutorialName = tutorialName,
+                    pageIndex = pageIndex,
+                    guid = guid,
+                    conclusion = (int)conclusion,
+                    duration = duration.Milliseconds,
+                    startTime = startTime.Millisecond,
+                    isBlocking = isBlocking
+                };
+            }
+
+            public bool TryGatherData(out IAnalytic.IData data, out Exception error)
+            {
+                error = null;
+                data =  parameters;
+                return data != null;
+            }
+        }
+
+        [AnalyticInfo(eventName: k_EventTutorialParagraph, vendorKey: k_VendorKey)]
+        internal class TutorialParagraphAnalytic : IAnalytic
+        {
+            private TutorialParagraphEventData parameters;
+
+            public TutorialParagraphAnalytic(string tutorialName, int pageIndex, int paragraphIndex, TutorialParagraphConclusion conclusion, DateTime startTime, TimeSpan duration, bool isBlocking)
+            {
+                parameters = new TutorialParagraphEventData
+                {
+                    ts = DateTime.UtcNow.Millisecond,
+                    tutorialName = tutorialName,
+                    pageIndex = pageIndex,
+                    paragraphIndex = paragraphIndex,
+                    conclusion = (int)conclusion,
+                    duration = duration.Milliseconds,
+                    startTime = startTime.Millisecond,
+                    isBlocking = isBlocking
+                };
+            }
+
+            public bool TryGatherData(out IAnalytic.IData data, out Exception error)
+            {
+                error = null;
+                data =  parameters;
+                return data != null;
+            }
+        }
+
+        [AnalyticInfo(eventName: k_EventExternalReference, vendorKey: k_VendorKey)]
+        internal class ExternalReferenceAnalytic : IAnalytic
+        {
+            private ExternalReferenceEventData parameters;
+
+            public ExternalReferenceAnalytic(string url, string title, string contentType, string id = null)
+            {
+                parameters =  new ExternalReferenceEventData
+                {
+                    ts = DateTime.UtcNow.Millisecond,
+                    id = id,
+                    title = title,
+                    type = contentType,
+                    path = url
+                };
+            }
+
+            public bool TryGatherData(out IAnalytic.IData data, out Exception error)
+            {
+                error = null;
+                data =  parameters;
+                return data != null;
+            }
+        }
+
+        [AnalyticInfo(eventName: k_EventExternalReferenceImpression, vendorKey: k_VendorKey)]
+        internal class ExternalReferenceImpressionAnalytic : IAnalytic
+        {
+            private ExternalReferenceImpressionEventData parameters;
+
+            public ExternalReferenceImpressionAnalytic(string url, string title, string contentType, string id = null)
+            {
+                parameters = new ExternalReferenceImpressionEventData
+                {
+                    ts = DateTime.UtcNow.Millisecond,
+                    id = id,
+                    title = title,
+                    type = contentType,
+                    path = url
+                };
+            }
+
+            public bool TryGatherData(out IAnalytic.IData data, out Exception error)
+            {
+                error = null;
+                data =  parameters;
+                return data != null;
+            }
+        }
+#else
         static bool RegisterEvent(string name)
         {
             AnalyticsResult result = EditorAnalytics.RegisterEventWithLimit(name, k_MaxEventsPerHour, k_MaxNumberOfElements, k_VendorKey);
@@ -382,10 +540,20 @@ namespace Unity.Tutorials.Core.Editor
             }
             return true;
         }
+#endif
 
         public static AnalyticsResult SendTutorialEvent(string tutorialName, string version, TutorialConclusion conclusion, string lessonID, DateTime startTime, TimeSpan duration, bool isBlocking)
         {
-            if (!EditorAnalytics.enabled || !RegisterEvent(k_EventTutorial)) { return AnalyticsResult.AnalyticsDisabled; }
+
+            if (!EditorAnalytics.enabled
+#if !UNITY_6000
+                || !RegisterEvent(k_EventTutorial)
+#endif
+                ) { return AnalyticsResult.AnalyticsDisabled; }
+
+#if UNITY_6000
+            return EditorAnalytics.SendAnalytic(new TutorialAnalytic(tutorialName, version, conclusion, lessonID, startTime, duration, isBlocking));
+#else
             var data = new TutorialEventData
             {
                 ts = DateTime.UtcNow.Millisecond,
@@ -399,11 +567,20 @@ namespace Unity.Tutorials.Core.Editor
             };
 
             return SendEvent(k_EventTutorial, data);
+#endif
         }
 
         public static AnalyticsResult SendTutorialPageEvent(string tutorialName, int pageIndex, string guid, TutorialPageConclusion conclusion, DateTime startTime, TimeSpan duration, bool isBlocking)
         {
-            if (!EditorAnalytics.enabled || !RegisterEvent(k_EventTutorialPage)) { return AnalyticsResult.AnalyticsDisabled; }
+            if (!EditorAnalytics.enabled
+#if !UNITY_6000
+                || !RegisterEvent(k_EventTutorialPage)
+#endif
+                ) { return AnalyticsResult.AnalyticsDisabled; }
+
+#if UNITY_6000
+            return EditorAnalytics.SendAnalytic(new TutorialPageAnalytic(tutorialName, pageIndex, guid, conclusion, startTime, duration, isBlocking));
+#else
             var data = new TutorialPageEventData
             {
                 ts = DateTime.UtcNow.Millisecond,
@@ -415,12 +592,22 @@ namespace Unity.Tutorials.Core.Editor
                 startTime = startTime.Millisecond,
                 isBlocking = isBlocking
             };
+
             return SendEvent(k_EventTutorialPage, data);
+#endif
         }
 
         public static AnalyticsResult SendTutorialParagraphEvent(string tutorialName, int pageIndex, int paragraphIndex, TutorialParagraphConclusion conclusion, DateTime startTime, TimeSpan duration, bool isBlocking)
         {
-            if (!EditorAnalytics.enabled || !RegisterEvent(k_EventTutorialParagraph)) { return AnalyticsResult.AnalyticsDisabled; }
+            if (!EditorAnalytics.enabled
+#if !UNITY_6000
+                || !RegisterEvent(k_EventTutorialParagraph)
+#endif
+                ) { return AnalyticsResult.AnalyticsDisabled; }
+
+#if UNITY_6000
+            return EditorAnalytics.SendAnalytic(new TutorialParagraphAnalytic(tutorialName, pageIndex, paragraphIndex, conclusion, startTime, duration, isBlocking));
+#else
             var data = new TutorialParagraphEventData
             {
                 ts = DateTime.UtcNow.Millisecond,
@@ -433,12 +620,20 @@ namespace Unity.Tutorials.Core.Editor
                 isBlocking = isBlocking
             };
             return SendEvent(k_EventTutorialParagraph, data);
+#endif
         }
 
         public static AnalyticsResult SendExternalReferenceEvent(string url, string title, string contentType, string id = null)
         {
-            if (!EditorAnalytics.enabled || !RegisterEvent(k_EventExternalReference)) { return AnalyticsResult.AnalyticsDisabled; }
+            if (!EditorAnalytics.enabled
+#if !UNITY_6000
+                || !RegisterEvent(k_EventExternalReference)
+#endif
+                ) { return AnalyticsResult.AnalyticsDisabled; }
 
+#if UNITY_6000
+            return EditorAnalytics.SendAnalytic(new ExternalReferenceAnalytic(url, title, contentType, id));
+#else
             var data = new ExternalReferenceEventData
             {
                 ts = DateTime.UtcNow.Millisecond,
@@ -448,12 +643,20 @@ namespace Unity.Tutorials.Core.Editor
                 path = url
             };
             return SendEvent(k_EventExternalReference, data);
+#endif
         }
 
         public static AnalyticsResult SendExternalReferenceImpressionEvent(string url, string title, string contentType, string id = null)
         {
-            if (!EditorAnalytics.enabled || !RegisterEvent(k_EventExternalReferenceImpression)) { return AnalyticsResult.AnalyticsDisabled; }
+            if (!EditorAnalytics.enabled
+#if !UNITY_6000
+                || !RegisterEvent(k_EventExternalReferenceImpression)
+#endif
+                ) { return AnalyticsResult.AnalyticsDisabled; }
 
+#if UNITY_6000
+            return EditorAnalytics.SendAnalytic(new ExternalReferenceImpressionAnalytic(url, title, contentType, id));
+#else
             var data = new ExternalReferenceImpressionEventData
             {
                 ts = DateTime.UtcNow.Millisecond,
@@ -463,8 +666,10 @@ namespace Unity.Tutorials.Core.Editor
                 path = url
             };
             return SendEvent(k_EventExternalReferenceImpression, data);
+#endif
         }
 
+#if !UNITY_6000
         static AnalyticsResult SendEvent(string eventName, object parameters)
         {
             AnalyticsResult result = EditorAnalytics.SendEventWithLimit(eventName, parameters);
@@ -474,5 +679,6 @@ namespace Unity.Tutorials.Core.Editor
             }
             return result;
         }
+#endif
     }
 }

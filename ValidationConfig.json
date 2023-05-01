@@ -1,0 +1,20 @@
+{
+	"FileContentKeywordValidation":
+	{
+		"Keywords":
+		[
+			{
+				"Targets": "+Switch",
+				"Files":
+				[
+					"Editor/UI/Paragraphs/SwitchTutorial.uxml",
+                    "Editor/UI/Paragraphs/SwitchTutorial.uxml.meta"
+				],
+				"Patterns":
+				[
+					"cli\\.switch"
+				]
+			}
+		]
+	}
+}

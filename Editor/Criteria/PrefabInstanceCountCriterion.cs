@@ -82,7 +82,7 @@ namespace Unity.Tutorials.Core.Editor
             if (PrefabParent == null)
                 return false;
 
-            var matches = FindObjectsOfType<GameObject>().Where(go => PrefabUtilityShim.GetCorrespondingObjectFromSource(go) == PrefabParent);
+            var matches = EditorFindObjectUtils.FindObjectsByTypeSorted<GameObject>().Where(go => PrefabUtilityShim.GetCorrespondingObjectFromSource(go) == PrefabParent);
             var count = matches.Count();
             switch (ComparisonMode)
             {
@@ -147,7 +147,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <returns>True if the auto-completion succeeded.</returns>
         public override bool AutoComplete()
         {
-            var prefabInstances = FindObjectsOfType<GameObject>().Where(go => PrefabUtilityShim.GetCorrespondingObjectFromSource(go) == PrefabParent);
+            var prefabInstances = EditorFindObjectUtils.FindObjectsByTypeSorted<GameObject>().Where(go => PrefabUtilityShim.GetCorrespondingObjectFromSource(go) == PrefabParent);
             var actualInstanceCount = prefabInstances.Count();
             var difference = actualInstanceCount - InstanceCount;
 

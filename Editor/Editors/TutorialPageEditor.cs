@@ -43,6 +43,7 @@ namespace Unity.Tutorials.Core.Editor
         const string k_PageTitleProperty = "Title.m_Untranslated";
         const string k_ParagraphPropertyPath = nameof(TutorialPage.m_Paragraphs) + ".m_Items";
         const string k_ParagraphMaskingSettingsRelativeProperty = "m_MaskingSettings";
+        const string k_ParagraphVideoUrlRelativeProperty = "m_VideoUrl";
         const string k_ParagraphVideoRelativeProperty = "m_Video";
         const string k_ParagraphImageRelativeProperty = "m_Image";
         const string k_ParagraphTypeProperty = "m_Type";
@@ -52,6 +53,8 @@ namespace Unity.Tutorials.Core.Editor
 
         const string k_ParagraphIntructionTitleProperty = "Title.m_Untranslated";
         const string k_ParagraphInstructionDescriptionProperty = "Text.m_Untranslated";
+        const string k_ParagraphCodeSampleProperty = "m_CodeSample";
+        const string k_ParagraphPostInstructionImage = "m_PostInstructionImage";
 
         const string k_ParagraphCriteriaTypePropertyPath = "m_CriteriaCompletion";
         const string k_ParagraphCriteriaPropertyPath = "m_Criteria";
@@ -98,6 +101,7 @@ namespace Unity.Tutorials.Core.Editor
 
         SerializedProperty m_MaskingSettings;
         SerializedProperty m_Type;
+        SerializedProperty m_VideoUrl;
         SerializedProperty m_Video;
         SerializedProperty m_Image;
 
@@ -106,6 +110,8 @@ namespace Unity.Tutorials.Core.Editor
         SerializedProperty m_NarrativeDescription;
         SerializedProperty m_InstructionTitle;
         SerializedProperty m_InstructionDescription;
+        SerializedProperty m_CodeSample;
+        SerializedProperty m_PostInstructionImage;
 
         SerializedProperty m_CriteriaCompletion;
         SerializedProperty m_Criteria;
@@ -119,7 +125,8 @@ namespace Unity.Tutorials.Core.Editor
         enum HeaderMediaType
         {
             Image = ParagraphType.Image,
-            Video = ParagraphType.Video
+            Video = ParagraphType.Video,
+            VideoUrl = ParagraphType.VideoUrl
         }
 
         Texture s_HelpIcon;
@@ -173,7 +180,7 @@ namespace Unity.Tutorials.Core.Editor
             }
             else if (targetModified)
             {
-                Target.RaiseNonMaskingSettingsChanged(); 
+                Target.RaiseNonMaskingSettingsChanged();
             }
             return modifications;
         }
@@ -209,6 +216,7 @@ namespace Unity.Tutorials.Core.Editor
                     m_Type.intValue = (int)ParagraphType.Image;
                 }
 
+                m_VideoUrl = firstParagraph.FindPropertyRelative(k_ParagraphVideoUrlRelativeProperty);
                 m_Video = firstParagraph.FindPropertyRelative(k_ParagraphVideoRelativeProperty);
                 m_Image = firstParagraph.FindPropertyRelative(k_ParagraphImageRelativeProperty);
 
@@ -276,6 +284,8 @@ namespace Unity.Tutorials.Core.Editor
                 SerializedProperty instructionParagraph = paragraphs.GetArrayElementAtIndex(2);
                 m_InstructionTitle = instructionParagraph.FindPropertyRelative(k_ParagraphIntructionTitleProperty);
                 m_InstructionDescription = instructionParagraph.FindPropertyRelative(k_ParagraphInstructionDescriptionProperty);
+                m_CodeSample = instructionParagraph.FindPropertyRelative(k_ParagraphCodeSampleProperty);
+                m_PostInstructionImage = instructionParagraph.FindPropertyRelative(k_ParagraphPostInstructionImage);
                 m_CriteriaCompletion = instructionParagraph.FindPropertyRelative(k_ParagraphCriteriaTypePropertyPath);
                 m_Criteria = instructionParagraph.FindPropertyRelative(k_ParagraphCriteriaPropertyPath);
                 m_AutoAdvance = serializedObject.FindProperty(k_AutoAdvancePropertyPath);
@@ -283,6 +293,8 @@ namespace Unity.Tutorials.Core.Editor
             }
             m_InstructionTitle = null;
             m_InstructionDescription = null;
+            m_CodeSample = null;
+            m_PostInstructionImage = null;
             m_CriteriaCompletion = null;
             m_Criteria = null;
             m_AutoAdvance = null;
@@ -343,12 +355,23 @@ namespace Unity.Tutorials.Core.Editor
                 EditorGUILayout.Space(10);
             }
 
-            RenderProperty(Tr(LocalizationKeys.k_TutorialPagePropertyMedia), m_HeaderMediaType == HeaderMediaType.Image ? m_Image : m_Video);
+            switch (m_HeaderMediaType)
+            {
+                case HeaderMediaType.Image:
+                    RenderProperty(Tr(LocalizationKeys.k_TutorialPagePropertyMedia), m_Image);
+                    break;
+                case HeaderMediaType.Video:
+                    RenderProperty(Tr(LocalizationKeys.k_TutorialPagePropertyMedia), m_Video);
+                    break;
+                case HeaderMediaType.VideoUrl:
+                    RenderProperty(Tr(LocalizationKeys.k_TutorialPagePropertyMedia), m_VideoUrl);
+                    break;
+            }
 
             EditorGUILayout.Space(10);
 
             /* todo: Disabled as from v3.0 this is unused when rendering narrative paragraphs.
-             * By v4.0 decide what we want to do with titles of narrative paragraphs, 
+             * By v4.0 decide what we want to do with titles of narrative paragraphs,
              * which before v3.0 were used as the title of the page
             RenderProperty(Tr(LocalizationKeys.k_TutorialPageLabelNarrativeTitle), m_NarrativeTitle);
 
@@ -363,6 +386,26 @@ namespace Unity.Tutorials.Core.Editor
             EditorGUILayout.Space(10);
 
             RenderTextAreaProperty(Tr(LocalizationKeys.k_TutorialPageLabelInstructionDescription), m_InstructionDescription, textAreaStyle);
+
+            if (m_CodeSample != null)
+            {
+                EditorGUILayout.Space(10);
+                RenderTextAreaProperty(Tr(LocalizationKeys.k_TutorialPageCodeSample), m_CodeSample, textAreaStyle);
+                if (GUILayout.Button("Auto-Format"))
+                {
+                    //this allow to remove focus on the above text area if it was the last thing in focus (e.g. the user
+                    //just pasted something in there. Otherwise it doesn't get updated visually and let to believe the
+                    //button doesn't work.
+                    EditorGUI.FocusTextInControl("");
+                    m_CodeSample.stringValue = CodeSampleUtils.AsFormattedCode(m_CodeSample.stringValue);
+                }
+            }
+
+            if (m_PostInstructionImage != null)
+            {
+                EditorGUILayout.Space(10);
+                RenderProperty(Tr(LocalizationKeys.k_TutorialPagePostInstructionImage), m_PostInstructionImage);
+            }
 
             if (m_CriteriaCompletion != null)
             {

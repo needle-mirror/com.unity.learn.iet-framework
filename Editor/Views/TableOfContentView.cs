@@ -22,6 +22,10 @@ namespace Unity.Tutorials.Core.Editor
         bool m_SectionsInitialized = false;
         EditorCoroutine m_CheckmarksUpdateRoutine;
 
+        private EditorCoroutine m_CategoryStateLoadingRoutine;
+        private bool m_CategoriesInitialized;
+        List<Tuple<VisualElement, TutorialContainer>> m_CategoryAwaitingStateUpdate;
+
         public TableOfContentView() : base() { }
 
         internal void Initialize(VisualElement root)
@@ -78,6 +82,15 @@ namespace Unity.Tutorials.Core.Editor
                                                                                             : Model.CurrentCategory.FindSubCategories();
 
             if (categoriesToLoad == null) { return; }
+
+            //sorting category by order in view
+            categoriesToLoad = categoriesToLoad.OrderBy(container => container.OrderInView);
+
+            m_CategoriesInitialized = false;
+            m_CategoryAwaitingStateUpdate = new();
+            Application.StopAndNullifyEditorCoroutine(ref m_CategoryStateLoadingRoutine);
+            m_CategoryStateLoadingRoutine = EditorCoroutineUtility.StartCoroutine(UpdateTutorialsStateFetched(), Application);
+
             VisualTreeAsset tutorialCategoryUIPrefab = UIElementsUtils.LoadUXML("TutorialCategoryUI");
             VisualElement categoryUI;
             foreach (var category in categoriesToLoad)
@@ -86,6 +99,8 @@ namespace Unity.Tutorials.Core.Editor
                 SetupCategoryUI(categoryUI, category);
                 m_TutorialsContainer.Add(categoryUI);
             }
+
+            m_CategoriesInitialized = true;
         }
 
         internal void SetupSectionUI(VisualElement sectionUI, Section data)
@@ -127,12 +142,48 @@ namespace Unity.Tutorials.Core.Editor
         {
             UIElementsUtils.SetupLabel("lblName", data.Title, categoryUI, false);
             UIElementsUtils.SetupLabel("lblDescription", data.Subtitle, categoryUI, false);
+
+            InitCompletionUI(categoryUI, data);
+            m_CategoryAwaitingStateUpdate.Add(new Tuple<VisualElement, TutorialContainer>(categoryUI, data));
+
             categoryUI.tooltip = data.Description;
             if (data.BackgroundImage != null)
             {
                 categoryUI.Q("TutorialImage").style.backgroundImage = Background.FromTexture2D(data.BackgroundImage);
             }
             categoryUI.RegisterCallback((MouseUpEvent evt) => OnCategoryClicked(evt, data));
+        }
+
+        void InitCompletionUI(VisualElement categoryUI, TutorialContainer container)
+        {
+            var label = categoryUI.Q<Label>("CategoryCompletionLabel");
+            var bar = categoryUI.Q<VisualElement>("CategoryCompletionBar");
+
+            bar.style.width = 0;
+            label.text = "Completion Loading...";
+            UIElementsUtils.Hide("Checkmark", categoryUI);
+        }
+
+        void UpdateCompletionUI(VisualElement categoryUI, TutorialContainer container)
+        {
+            var label = categoryUI.Q<Label>("CategoryCompletionLabel");
+            var bar = categoryUI.Q<VisualElement>("CategoryCompletionBar");
+
+            float completion = container.GetCompletionRate();
+            int completionPercent = UnityEngine.Mathf.RoundToInt(completion * 100);
+
+            if (completionPercent == 100)
+            {
+                label.text = "COMPLETED";
+                UIElementsUtils.Show("Checkmark", categoryUI);
+            }
+            else
+            {
+                UIElementsUtils.Hide("Checkmark", categoryUI);
+                label.text = string.Format($"Completion : {completionPercent}%");
+            }
+
+            bar.style.width = Length.Percent(completionPercent);
         }
 
         void OnSectionClicked(MouseUpEvent evt, Section section)
@@ -223,6 +274,22 @@ namespace Unity.Tutorials.Core.Editor
                 {
                     UpdateCheckmark(sectionUIAndData.Item1, sectionUIAndData.Item2);
                 }
+            }
+        }
+
+        IEnumerator UpdateTutorialsStateFetched()
+        {
+            // Model.FetchedTutorialStates will be set to true by the model once all state have been fetched. As this
+            // potentially fetch online data, we need to wait until the answer is there
+            while (Application != null && (!m_CategoriesInitialized || !Model.FetchedTutorialStates))
+            {
+                yield return null;
+            }
+
+
+            foreach (var uiAndData in m_CategoryAwaitingStateUpdate)
+            {
+                UpdateCompletionUI(uiAndData.Item1, uiAndData.Item2);
             }
         }
     }

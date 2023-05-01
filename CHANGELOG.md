@@ -4,6 +4,29 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.0] - 2023-05-01
+### Changed
+- The minimum version supported by the package was raised to 2021.3
+
+### Added
+- Video now start paused and a set of control have been added to pause/play and scrub through them
+- Video can now be defined with an external URL that will be streamed in
+- Medias (Videos and Images) can now be pop-out into a separate window that can be resized
+- Added an optional image to be displayed after the instruction on a Tutorial page
+- Added an option in Scene management settings of Tutorial to not restore the scenes after exiting that tutorial to
+the scenes that were opened before it started
+- Added a function to highlight the Tutorial Window in TutorialContainer
+- Added a new option, Focus Editor Window, is available when unmasking an EditorWindow. Setting this to true focus or open
+the targeted window if it's not focused or opened yet.
+
+### Fixed
+- Text now use the built-in Rich Text support from UI Toolkit, so any rich text tag listed in the Unity Manual is now supported
+
+## [3.1.4] - 2023-03-15
+### Changed
+- Reduced domain reload cost by making HttpClient instance create on-demand
+- Updated use cases of obsolete FindObjectsOfType() API to use replacement FindObjectsByType() for Unity 2023.1 or newer
+
 ## [3.1.3] - 2022-12-09
 ### Fixed
 - Fixed issue where RichTextParser was incorrectly validating HTML as XML

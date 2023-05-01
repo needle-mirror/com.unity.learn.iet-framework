@@ -10,6 +10,7 @@ namespace Unity.Tutorials.Core.Editor
     {
         const string k_SelectorTypePath = nameof(UnmaskedView.m_SelectorType);
         const string k_ViewTypePath = nameof(UnmaskedView.m_ViewType);
+        const string k_EditorWindowHighlightFocus = nameof(UnmaskedView.m_FocusEditorWindow);
         const string k_EditorWindowTypePath = nameof(UnmaskedView.m_EditorWindowType);
         const string k_AlternateEditorWindowTypesPath = nameof(UnmaskedView.m_AlternateEditorWindowTypes);
         const string k_UnmaskedControlsPath = nameof(UnmaskedView.m_UnmaskedControls);
@@ -26,6 +27,7 @@ namespace Unity.Tutorials.Core.Editor
             switch ((UnmaskedView.SelectorType)selectorType.intValue)
             {
                 case UnmaskedView.SelectorType.EditorWindow:
+                    height += EditorGUI.GetPropertyHeight(property.FindPropertyRelative(k_EditorWindowHighlightFocus), true);
                     height += EditorGUI.GetPropertyHeight(property.FindPropertyRelative(k_EditorWindowTypePath), true);
                     height += EditorGUI.GetPropertyHeight(property.FindPropertyRelative(k_AlternateEditorWindowTypesPath), true);
                     break;
@@ -47,6 +49,14 @@ namespace Unity.Tutorials.Core.Editor
             EditorGUI.PropertyField(position, selectorType);
 
             position.y += position.height + EditorGUIUtility.standardVerticalSpacing;
+
+            if ((UnmaskedView.SelectorType)selectorType.intValue == UnmaskedView.SelectorType.EditorWindow)
+            {
+                EditorGUI.PropertyField(position, property.FindPropertyRelative(k_EditorWindowHighlightFocus));
+            }
+
+            position.y += position.height + EditorGUIUtility.standardVerticalSpacing;
+
             SerializedProperty typeProperty = null;
             switch ((UnmaskedView.SelectorType)selectorType.intValue)
             {

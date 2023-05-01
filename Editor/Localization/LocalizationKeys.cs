@@ -61,6 +61,8 @@ namespace Unity.Tutorials.Core.Editor
         internal const string k_TutorialPageLabelNarrativeDescription = "TutorialPageLabelNarrativeDescription";
         internal const string k_TutorialPageLabelInstructionTitle = "TutorialPageLabelInstructionTitle";
         internal const string k_TutorialPageLabelInstructionDescription = "TutorialPageLabelInstructionDescription";
+        internal const string k_TutorialPageCodeSample = "TutorialPageCodeSample";
+        internal const string k_TutorialPagePostInstructionImage = "PostInstructionImage";
         internal const string k_TutorialPageLabelCompletionCriteria = "TutorialPageLabelCompletionCriteria";
         internal const string k_TutorialPagePropertyCompletionType = "TutorialPagePropertyCompletionType";
         internal const string k_TutorialPagePropertyCriteria = "TutorialPagePropertyCriteria";

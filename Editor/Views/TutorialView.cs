@@ -4,8 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.EditorCoroutines.Editor;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEditorInternal;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 using UnityEngine.Video;
 
@@ -32,6 +34,8 @@ namespace Unity.Tutorials.Core.Editor
         Dictionary<TutorialParagraph, VisualElement> instructionParagraphs = new Dictionary<TutorialParagraph, VisualElement>();
 
         VideoPlaybackManager VideoPlaybackManager { get; } = new VideoPlaybackManager();
+        private List<VisualElement> playButtons = new List<VisualElement>();
+        private List<VisualElement> playOverlays = new List<VisualElement>();
         public TutorialView() : base() { }
 
         public override void SubscribeEvents()
@@ -40,6 +44,9 @@ namespace Unity.Tutorials.Core.Editor
             GUIViewProxy.PositionChanged += OnGUIViewPositionChanged;
             EditorApplication.projectChanged += RefreshMasking;
             EditorApplication.hierarchyChanged += RefreshMaskingOnHierarchyChange;
+
+            EditorApplication.playModeStateChanged += PlayModeChanged;
+            EditorSceneManager.sceneOpened += SceneOpened;
         }
 
         public override void UnubscribeEvents()
@@ -48,6 +55,9 @@ namespace Unity.Tutorials.Core.Editor
             GUIViewProxy.PositionChanged -= OnGUIViewPositionChanged;
             EditorApplication.projectChanged -= RefreshMasking;
             EditorApplication.hierarchyChanged -= RefreshMaskingOnHierarchyChange;
+
+            EditorApplication.playModeStateChanged -= PlayModeChanged;
+            EditorSceneManager.sceneOpened -= SceneOpened;
 
             Application.StopAndNullifyEditorCoroutine(ref m_NextButtonBlinkRoutine);
             VideoPlaybackManager.OnDisable();
@@ -74,6 +84,9 @@ namespace Unity.Tutorials.Core.Editor
             VideoPlaybackManager.OnEnable();
             VideoPlaybackManager.ClearCache();
 
+            playButtons.Clear();
+            playOverlays.Clear();
+
             Refresh();
             SubscribeEvents();
         }
@@ -91,6 +104,45 @@ namespace Unity.Tutorials.Core.Editor
             MaskingManager.Unmask();
             ApplyMaskingSettings(true);
             QueueMaskUpdate();
+        }
+
+        internal void PlayModeChanged(PlayModeStateChange stateChange)
+        {
+            // Exiting play mode don't reset anything, but some thing get unloaded as the UI will have things
+            // disappearing and play buttons won't be refreshed. So we force those refresh
+            if (stateChange == PlayModeStateChange.EnteredEditMode && m_Root != null)
+            {
+                RefreshPlayer();
+            }
+        }
+
+        // opening a new scene will mess up the player like a playmode change so we need to refresh it
+        internal void SceneOpened(Scene scene, OpenSceneMode mode)
+        {
+            RefreshPlayer();
+        }
+
+        internal void RefreshPlayer()
+        {
+            EditorCoroutineUtility.StartCoroutineOwnerless(RefreshPlayerCoroutine());
+        }
+
+        IEnumerator RefreshPlayerCoroutine()
+        {
+            m_Root.style.display = DisplayStyle.None;
+            yield return null;
+            m_Root.style.display = DisplayStyle.Flex;
+
+            foreach (var playButton in playButtons)
+            {
+                playButton.RemoveFromClassList("video-pause-button");
+                playButton.AddToClassList("video-play-button");
+            }
+
+            foreach (var playOverlay in playOverlays)
+            {
+                playOverlay.visible = true;
+            }
         }
 
         void OnGUIViewPositionChanged(UnityEngine.Object sender)
@@ -198,9 +250,13 @@ namespace Unity.Tutorials.Core.Editor
                     // ensure tutorial window's HostView and tooltips are not masked
                     unmaskedViews.AddParentFullyUnmasked(Application);
                     unmaskedViews.AddTooltipViews();
+                    // also ensure the Media Popout window (used to enlarge video and image) is unmasked
+                    unmaskedViews.AddPopoutWindow();
 
                     // tooltip views should not be highlighted
                     highlightedViews.RemoveTooltipViews();
+                    // media popout window should not be highlighted
+                    highlightedViews.RemovePopoutWindow();
 
                     /* note: For some reason, when highlighting is applied because HierarchyChanged is triggered because a new object is created
                      * and the editor is not attached to a debugger, the object won't be highlighted even if its name matches
@@ -244,12 +300,84 @@ namespace Unity.Tutorials.Core.Editor
             const string instructionContainerElementName = "InstructionContainer";
             const string startLinkedTutorialElementName = "btnStartLinkedTutorial";
             const string tutorialMediaContainerElementName = "TutorialMediaContainer";
+            const string codeSampleScrollViewElementName = "CodeSampleScrollView";
+            const string codeSampleLabelElementName = "CodeSample";
 
             paragraphUI.name = paragraph.Type.ToString();
             switch (paragraph.Type)
             {
                 case ParagraphType.Narrative:
-                    RichTextParser.RichTextToVisualElements(paragraph.Text, paragraphUI.Q("TutorialStepBox1"));
+
+                    var label = new Label(paragraph.Text);
+                    //ensure we got word wrap
+                    label.style.whiteSpace = WhiteSpace.Normal;
+                    paragraphUI.Q("TutorialStepBox1").Add(label);
+
+                    if (paragraph.CodeSample.IsNotNullOrEmpty())
+                    {
+                        UIElementsUtils.Show(codeSampleScrollViewElementName, paragraphUI);
+                        var codeSample = paragraphUI.Q<Label>(codeSampleLabelElementName);
+
+                        var codeSampleScrollView = paragraphUI.Q<VisualElement>(codeSampleScrollViewElementName);
+                        var btn = new VisualElement();
+                        btn.tooltip = Localization.Tr("CopyCodeTooltip");
+                        btn.AddToClassList("code-sample-copy-button");
+
+                        var overlay = new VisualElement();
+                        overlay.AddToClassList("code-sample-copied-notice");
+                        var copyLabel = new Label(Localization.Tr("CodeCopiedWarning"));
+                        overlay.Add(copyLabel);
+
+                        //we need to bypass the normal Add by using hierarchy.Add because we want the button to be on
+                        //top right corner of the scrollview window, not its content (which can expand past the window)
+                        codeSampleScrollView.hierarchy.Add(btn);
+                        codeSampleScrollView.hierarchy.Add(overlay);
+
+                        overlay.RegisterCallback<TransitionEndEvent>(evt =>
+                        {
+                            overlay.style.transitionDuration = null;
+                            overlay.style.transitionProperty = null;
+                            overlay.style.transitionTimingFunction = null;
+
+                            overlay.style.display = DisplayStyle.None;
+                        });
+
+                        btn.AddManipulator(new Clickable(() =>
+                        {
+                            GUIUtility.systemCopyBuffer = paragraph.CodeSample;
+
+                            overlay.style.display = DisplayStyle.Flex;
+                            overlay.style.transitionDuration = new List<TimeValue>(){new(0.5f, TimeUnit.Second)};
+                            overlay.style.transitionProperty = new List<StylePropertyName>() { new("opacity") };
+                            overlay.style.transitionTimingFunction = new List<EasingFunction>() { EasingMode.Linear };
+
+                            overlay.style.display = DisplayStyle.Flex;
+                        }));
+
+                        codeSample.text = CodeSampleUtils.HighlightCode(paragraph.CodeSample);
+                    }
+                    else
+                    {
+                        UIElementsUtils.Hide(codeSampleScrollViewElementName, paragraphUI);
+                    }
+
+                    if (paragraph.PostInstructionImage != null)
+                    {
+                        UIElementsUtils.Show(tutorialMediaContainerElementName, paragraphUI);
+                        var media = paragraphUI.Q("TutorialMedia");
+                        media.style.backgroundImage = paragraph.PostInstructionImage;
+
+                        var popout = paragraphUI.Q<VisualElement>("PopoutButton");
+                        //Popout button
+                        popout.AddManipulator(new Clickable(() =>
+                        {
+                            MediaPopoutWindow.Popout(media);
+                        }));
+                    }
+                    else
+                    {
+                        UIElementsUtils.Hide(tutorialMediaContainerElementName, paragraphUI);
+                    }
                     break;
                 case ParagraphType.Instruction:
                     if (string.IsNullOrEmpty(paragraph.Text) && string.IsNullOrEmpty(paragraph.Title))
@@ -268,10 +396,82 @@ namespace Unity.Tutorials.Core.Editor
                             UIElementsUtils.Show("InstructionTitle", paragraphUI);
                         }
                         UIElementsUtils.SetupLabel("InstructionTitle", paragraph.Title, paragraphUI, false);
-                        RichTextParser.RichTextToVisualElements(paragraph.Text, paragraphUI.Q("InstructionDescription"));
+
+                        var paragraphLabel = new Label(paragraph.Text);
+                        //ensure we got word wrapping
+                        paragraphLabel.style.whiteSpace = WhiteSpace.Normal;
+                        paragraphUI.Q("InstructionDescription").Add(paragraphLabel);
                         instructionParagraphs.Add(paragraph, paragraphUI);
                         UpdateInstructionBoxForParagraph(paragraph);
                     }
+
+                    if (paragraph.CodeSample.IsNotNullOrEmpty())
+                    {
+                        UIElementsUtils.Show(codeSampleScrollViewElementName, paragraphUI);
+                        var codeSample = paragraphUI.Q<Label>(codeSampleLabelElementName);
+                        codeSample.text = CodeSampleUtils.HighlightCode(paragraph.CodeSample);
+
+                        var codeSampleScrollView = paragraphUI.Q<VisualElement>(codeSampleScrollViewElementName);
+                        var btn = new VisualElement();
+                        btn.tooltip = Localization.Tr("CopyCodeTooltip");
+                        btn.AddToClassList("code-sample-copy-button");
+
+                        var overlay = new VisualElement();
+                        overlay.AddToClassList("code-sample-copied-notice");
+                        var copyLabel = new Label(Localization.Tr("CodeCopiedWarning"));
+                        overlay.Add(copyLabel);
+
+                        //we need to bypass the normal Add by using hierarchy.Add because we want the button to be on
+                        //top right corner of the scrollview window, not its content (which can expand past the window)
+                        codeSampleScrollView.hierarchy.Add(btn);
+                        codeSampleScrollView.hierarchy.Add(overlay);
+
+                        overlay.RegisterCallback<TransitionEndEvent>(evt =>
+                        {
+                            overlay.style.transitionDuration = null;
+                            overlay.style.transitionProperty = null;
+                            overlay.style.transitionTimingFunction = null;
+
+                            overlay.style.display = DisplayStyle.None;
+                            overlay.style.opacity = 1.0f;
+                        });
+
+                        btn.AddManipulator(new Clickable(() =>
+                        {
+                            GUIUtility.systemCopyBuffer = paragraph.CodeSample;
+
+                            overlay.style.display = DisplayStyle.Flex;
+                            overlay.style.transitionDuration = new List<TimeValue>(){new(0.5f, TimeUnit.Second)};
+                            overlay.style.transitionProperty = new List<StylePropertyName>() { new("opacity") };
+                            overlay.style.transitionTimingFunction = new List<EasingFunction>() { EasingMode.Linear };
+
+                            overlay.style.display = DisplayStyle.Flex;
+                            overlay.style.opacity = 0.0f;
+                        }));
+                    }
+                    else
+                    {
+                        UIElementsUtils.Hide(codeSampleScrollViewElementName, paragraphUI);
+                    }
+
+                    if (paragraph.PostInstructionImage != null)
+                    {
+                        UIElementsUtils.Show(tutorialMediaContainerElementName, paragraphUI);
+                        var media = paragraphUI.Q("TutorialMedia");
+                        media.style.backgroundImage = paragraph.PostInstructionImage;
+
+                        var popout = paragraphUI.Q<VisualElement>("PopoutButton");
+                        //Popout button
+                        popout.AddManipulator(new Clickable(() =>
+                        {
+                            MediaPopoutWindow.Popout(media);
+                        }));
+                    }
+                    else
+                    {
+                        UIElementsUtils.Hide(tutorialMediaContainerElementName, paragraphUI);
+                    }
+
                     break;
                 case ParagraphType.SwitchTutorial:
                     if (paragraph.m_Tutorial == null)
@@ -294,6 +494,13 @@ namespace Unity.Tutorials.Core.Editor
                     {
                         UIElementsUtils.Show(tutorialMediaContainerElementName, paragraphUI);
                         paragraphUI.Q("TutorialMedia").style.backgroundImage = paragraph.Image;
+
+                        var popout = paragraphUI.Q<VisualElement>("PopoutButton");
+                        //Popout button
+                        popout.AddManipulator(new Clickable(() =>
+                        {
+                            MediaPopoutWindow.Popout(paragraphUI);
+                        }));
                     }
                     else
                     {
@@ -301,10 +508,136 @@ namespace Unity.Tutorials.Core.Editor
                     }
                     break;
                 case ParagraphType.Video:
-                    if (paragraph.Video != null)
+                case ParagraphType.VideoUrl:
+                    if (paragraph.Video != null || paragraph.VideoUrl != null)
                     {
                         UIElementsUtils.Show(tutorialMediaContainerElementName, paragraphUI);
-                        EditorCoroutineUtility.StartCoroutine(UpdateVideo(paragraph.Video, paragraphUI.Q("videoPlayer")), Application);
+
+                        var playControlBar = paragraphUI.Q<VisualElement>("PlayBar");
+
+                        var playOverlay = paragraphUI.Q<VisualElement>("PlayOverlay");
+                        var playTrack = paragraphUI.Q<VisualElement>("PlayTrackFiller");
+                        var playTrackParent = playTrack.parent;
+                        var popout = paragraphUI.Q<VisualElement>("PopoutButton");
+                        var playButton = paragraphUI.Q<VisualElement>("PlayButton");
+
+                        var audioIcon = paragraphUI.Q<VisualElement>("AudioIcon");
+                        var volumeSlider = paragraphUI.Q<Slider>("VolumeSlider");
+
+                        var errorString = paragraphUI.Q<Label>("ErrorLabel");
+                        errorString.style.display = DisplayStyle.None;
+
+                        //we store the play button & overlay as we will need to update then when exiting play mode
+                        playButtons.Add(playButton);
+                        playOverlays.Add(playOverlay);
+
+                        var cacheKey = new VideoPlaybackManager.CacheKey(paragraph);
+
+                        // ---- play functions ----
+
+                        void PlayerPlay()
+                        {
+                            //player may not be prepared yet so we cannot start playing
+                            if (!VideoPlaybackManager.IsPrepared(cacheKey))
+                                return;
+
+                            playOverlay.visible = false;
+                            playButton.RemoveFromClassList("video-play-button");
+                            playButton.AddToClassList("video-pause-button");
+                            playOverlay.visible = false;
+                            VideoPlaybackManager.Play(cacheKey);
+                        }
+                        void PlayerPause()
+                        {
+                            VideoPlaybackManager.Pause(new VideoPlaybackManager.CacheKey(paragraph));
+                            playButton.RemoveFromClassList("video-pause-button");
+                            playButton.AddToClassList("video-play-button");
+                            playOverlay.visible = true;
+                        }
+
+                        // --- player setup ---
+
+                        paragraphUI.AddManipulator(new Clickable(PlayerPause));
+                        //we had a clickable manipulator on our control bar at the bottom so it eat click event so that
+                        //the player above doesn't receive it to stop the video
+                        playControlBar.AddManipulator(new Clickable(() => {}));
+
+                        playOverlay.AddManipulator(new Clickable(PlayerPlay));
+
+                        //Play Button
+                        playButton.AddToClassList("video-pause-button");
+                        playButton.AddManipulator(new Clickable(() =>
+                        {
+                            if (VideoPlaybackManager.IsPlaying(new VideoPlaybackManager.CacheKey(paragraph)))
+                            {
+                                PlayerPause();
+                            }
+                            else
+                            {
+                                PlayerPlay();
+                            }
+                        }));
+
+                        //volume slider
+                        volumeSlider.SetValueWithoutNotify(1.0f);
+                        volumeSlider.RegisterValueChangedCallback(evt =>
+                        {
+                            VideoPlaybackManager.SetVolume(new VideoPlaybackManager.CacheKey(paragraph), evt.newValue);
+                        });
+
+                        //clicking the audio icon set the volume to 0 (mute)
+                        audioIcon.AddManipulator(new Clickable(() =>
+                        {
+                            //if the volume is 0 and we have a previous value, we return to that value
+                            if (volumeSlider.value < 0.001f && volumeSlider.userData != null)
+                            {
+                                volumeSlider.value = (float)volumeSlider.userData;
+                                volumeSlider.userData = null;
+                            }
+                            else
+                            {
+                                //otherwise we save in the user data the previous volume and mute
+                                volumeSlider.userData = volumeSlider.value;
+                                volumeSlider.value = 0.0f;
+                            }
+                        }));
+
+                        //Play Track
+                        playTrack.schedule.Execute(() =>
+                        {
+                            playTrack.style.width =
+                                Length.Percent(VideoPlaybackManager.GetPlayPercent(new VideoPlaybackManager.CacheKey(paragraph)) * 100.0f);
+                        }).Every(16);
+
+                        //register on the parent listening to mouse events to seek times
+                        playTrackParent.RegisterCallback<MouseDownEvent>(evt =>
+                        {
+                            playTrackParent.CaptureMouse();
+
+                            float seekPosition = evt.localMousePosition.x / playTrackParent.contentRect.width;
+                            VideoPlaybackManager.SetPlayPercent(new VideoPlaybackManager.CacheKey(paragraph), seekPosition);
+                        });
+                        playTrackParent.RegisterCallback<MouseMoveEvent>(evt =>
+                        {
+                            if (!playTrackParent.HasMouseCapture())
+                                return;
+
+                            float seekPosition = evt.localMousePosition.x / playTrackParent.contentRect.width;
+                            VideoPlaybackManager.SetPlayPercent(new VideoPlaybackManager.CacheKey(paragraph), seekPosition);
+                        });
+
+                        playTrackParent.RegisterCallback<MouseUpEvent>(evt =>
+                        {
+                            playTrackParent.ReleaseMouse();
+                        });
+
+                        //Popout button
+                        popout.AddManipulator(new Clickable(() =>
+                        {
+                            MediaPopoutWindow.Popout(paragraphUI);
+                        }));
+
+                        EditorCoroutineUtility.StartCoroutine(UpdateVideo(new VideoPlaybackManager.CacheKey(paragraph), paragraphUI.Q("videoPlayer")), Application);
                     }
                     else
                     {
@@ -320,14 +653,29 @@ namespace Unity.Tutorials.Core.Editor
             Application.Broadcast(new TutorialStartRequestedEvent(newTutorial, Model.CurrentTutorial));
         }
 
-        IEnumerator UpdateVideo(VideoClip video, VisualElement paragraphUI)
+        IEnumerator UpdateVideo(VideoPlaybackManager.CacheKey key, VisualElement paragraphUI)
         {
-            while (Application && Model.CurrentTutorial)
+            var errorString = paragraphUI.parent.Q<Label>("ErrorLabel");
+            var player = paragraphUI.Q<VisualElement>("videoPlayer");
+
+            //If the panel of the given visual element is null, that mean the element isn't rendered anywhere
+            //so we can exit the enumerator which would run for nothing now
+            while (Application && Model.CurrentTutorial && paragraphUI.panel != null && player != null)
             {
-                paragraphUI.style.backgroundImage = VideoPlaybackManager.GetTextureForVideoClip(video);
+                paragraphUI.style.backgroundImage = VideoPlaybackManager.GetTextureForVideoClip(key, errorMsg =>
+                {
+                    player.style.display = DisplayStyle.None;
+                    errorString.style.display = DisplayStyle.Flex;
+                    errorString.text = errorMsg;
+                    player = null; //this will exit this coroutine, as the video player errored out
+                });
+
                 paragraphUI.MarkDirtyRepaint(); //needed, otherwise the video will be laggy as images will be updated only on the next editor update
                 yield return null;
             }
+
+            //we pause the video
+            VideoPlaybackManager.Pause(key);
         }
 
         void ShowCurrentTutorialContent()
@@ -375,11 +723,14 @@ namespace Unity.Tutorials.Core.Editor
 
         void OnPreviousButtonClicked()
         {
+            MediaPopoutWindow.EnsureClosed();
             Application.Broadcast(new TutorialNavigationEvent(false));
         }
 
         void OnNextButtonClicked()
         {
+            //we ensure we close any stray open pop media
+            MediaPopoutWindow.EnsureClosed();
             Application.Broadcast(new TutorialNavigationEvent(true));
         }
 

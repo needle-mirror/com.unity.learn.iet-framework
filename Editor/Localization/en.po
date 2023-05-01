@@ -187,4 +187,10 @@ msgstr "Autocomplete page"
 msgid "TutorialModalWindowIconPreviewMasking"
 msgstr "Preview Masking"
 
+msgid "CopyCodeTooltip"
+msgstr "Copy Code Sample"
+
+msgid "CodeCopiedWarning"
+msgstr "Copied!"
+
 #Always leave an empty line before this line of the english file, or the last entry won't be synced with non-english files

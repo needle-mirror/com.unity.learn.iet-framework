@@ -84,6 +84,24 @@ namespace Unity.Tutorials.Core.Editor
                 }
             }
 
+            public void AddPopoutWindow()
+            {
+                var allViews = new List<GUIViewProxy>();
+                GUIViewDebuggerHelperProxy.GetViews(allViews);
+
+                foreach (var tooltipView in allViews.Where(v => v.IsGUIViewAssignableTo(typeof(MediaPopoutWindow))))
+                    m_MaskData[tooltipView] = MaskViewData.CreateEmpty(MaskType.FullyUnmasked);
+            }
+
+            public void RemovePopoutWindow()
+            {
+                foreach (var view in m_MaskData.Keys.ToArray())
+                {
+                    if (view.IsGUIViewAssignableTo(typeof(MediaPopoutWindow)))
+                        m_MaskData.Remove(view);
+                }
+            }
+
             public object Clone()
             {
                 return new MaskData(m_MaskData.ToDictionary(kv => kv.Key, kv => kv.Value));
@@ -453,15 +471,11 @@ namespace Unity.Tutorials.Core.Editor
                     }
                     if (targetEditorWindowType != null)
                     {
-                        // make sure desired window is in current layout
-                        /*
-                         * todo: discuss this feature proposal:
-                         * uncommenting this would basically implement a "show if not already on screen" feature. 
-                         * Maybe we could add an option in the masking settings to do so?
-                         * 
-                         * var window = EditorWindow.GetWindow(targetEditorWindowType);
-                         */
-                        var window = Resources.FindObjectsOfTypeAll(targetEditorWindowType).Cast<EditorWindow>().FirstOrDefault();
+                        EditorWindow window = null;
+                        window = unmaskedView.m_FocusEditorWindow ?
+                            EditorWindow.GetWindow(targetEditorWindowType) :
+                            Resources.FindObjectsOfTypeAll(targetEditorWindowType).Cast<EditorWindow>().FirstOrDefault();
+
                         if (window == null || window.GetParent() == null)
                         {
                             return matchingViews;
@@ -533,9 +547,17 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Applicable when SelectorType == EditorWindow.
         /// </summary>
+        [Tooltip("If set to false, if the highlighted window is not visible or open, it won't open it")]
+        [SerializeField]
+        internal bool m_FocusEditorWindow = false;
+
+        /// <summary>
+        /// Applicable when SelectorType == EditorWindow.
+        /// </summary>
         [SerializedTypeFilter(typeof(EditorWindow), false)]
         [SerializeField]
         internal SerializedType m_EditorWindowType = new SerializedType(null);
+
         Type ResolvedEditorWindowType
         {
             get

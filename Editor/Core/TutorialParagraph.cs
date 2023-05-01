@@ -37,6 +37,10 @@ namespace Unity.Tutorials.Core.Editor
         /// A video clip.
         /// </summary>
         Video,
+        /// <summary>
+        /// A video url
+        /// </summary>
+        VideoUrl
     }
 
     enum CompletionType
@@ -70,6 +74,20 @@ namespace Unity.Tutorials.Core.Editor
         public LocalizableString Text;
 
         /// <summary>
+        /// An optional code sample. If this is empty or null, no code sample zone will be displayed on tutorial
+        /// </summary>
+        public string CodeSample { get => m_CodeSample; set => m_CodeSample = value; }
+        [SerializeField, TextArea(3, 30)]
+        private string m_CodeSample;
+
+        /// <summary>
+        /// Optional image to display after instruction
+        /// </summary>
+        public Texture2D PostInstructionImage { get => m_PostInstructionImage; set => m_PostInstructionImage = value; }
+        [SerializeField]
+        Texture2D m_PostInstructionImage;
+
+        /// <summary>
         /// Used for SwitchTutorial.
         /// </summary>
         [SerializeField]
@@ -81,6 +99,13 @@ namespace Unity.Tutorials.Core.Editor
         public Texture2D Image { get => m_Image; set => m_Image = value; }
         [SerializeField]
         Texture2D m_Image;
+
+        /// <summary>
+        /// The url for the video if this paragraph's type is Video
+        /// </summary>
+        public string VideoUrl { get => m_VideoUrl; set => m_VideoUrl = value; }
+        [SerializeField]
+        private string m_VideoUrl;
 
         /// <summary>
         /// The video clip if this paragraph's type is Video.

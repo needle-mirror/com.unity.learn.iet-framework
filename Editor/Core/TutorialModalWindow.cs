@@ -219,7 +219,10 @@ namespace Unity.Tutorials.Core.Editor
             UIElementsUtils.ShowOrHide("HeaderContainer", m_Root, WelcomePage.Image != null);
             UIElementsUtils.SetupLabel("Heading", WelcomePage.Title, m_Root, false);
 
-            RichTextToVisualElements(WelcomePage.Description, m_Root.Q("Description"));
+            var welcomeLabel = new Label(WelcomePage.Description);
+            //ensure we got word wrapping
+            welcomeLabel.style.whiteSpace = WhiteSpace.Normal;
+            m_Root.Q("Description").Add(welcomeLabel);
             AddDynamicButtonsToContent();
         }
 
@@ -236,7 +239,7 @@ namespace Unity.Tutorials.Core.Editor
                     tooltip = buttonData.Tooltip
                 };
                 buttonContainer.Add(button);
-            } 
+            }
         }
 
         void OnGuiToolbar()

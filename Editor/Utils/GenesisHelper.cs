@@ -19,7 +19,19 @@ namespace Unity.Tutorials.Core.Editor
 
         static List<KeyValuePair<UnityWebRequestAsyncOperation, Action<UnityWebRequest>>> m_Requests = new List<KeyValuePair<UnityWebRequestAsyncOperation, Action<UnityWebRequest>>>();
 
-        static readonly HttpClient s_HttpClient = new HttpClient();
+        static HttpClient s_HttpClientInstance;
+        static HttpClient s_HttpClient
+        {
+            get
+            {
+                if (s_HttpClientInstance == null)
+                {
+                    s_HttpClientInstance = new HttpClient();
+                    s_HttpClientInstance.BaseAddress = new Uri(HostAddress);
+                }
+                return s_HttpClientInstance;
+            }
+        }
 
         public static bool HasWarnedAboutLogin { get; set; }
 
@@ -51,7 +63,6 @@ namespace Unity.Tutorials.Core.Editor
 
         static GenesisHelper()
         {
-            s_HttpClient.BaseAddress = new Uri(HostAddress);
             EditorApplication.update += WebRequestProcessor;
         }
 

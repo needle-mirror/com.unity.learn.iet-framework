@@ -82,9 +82,15 @@ namespace Unity.Tutorials.Core.Editor
 
             if (!m_Model.IsTransitioningBetweenTutorials)
             {
-                m_Model.SaveOriginalScenes();
+                if (evt.Tutorial.ReturnToPreviousScenes)
+                {
+                    //if return to previous scene was disabled on that tutorial, we do not save the scene and state
+                    //The restore function will just do nothing as no states
+                    m_Model.SaveOriginalScenes();
+                    m_Model.SaveSceneViewState();
+                }
+
                 m_Model.SaveOriginalWindowLayout();
-                m_Model.SaveSceneViewState();
             }
 
             m_Model.CurrentTutorial = evt.Tutorial;

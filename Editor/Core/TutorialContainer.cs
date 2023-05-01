@@ -237,5 +237,67 @@ namespace Unity.Tutorials.Core.Editor
             TutorialContainerModified?.Invoke(this);
             Modified?.Invoke(this);
         }
+
+        /// <summary>
+        /// This will highlight the Tutorial Window. Can be used by the Welcome Dialog to Highlight tutorials when exited
+        /// </summary>
+        public void HighlightTutorialWindow()
+        {
+            var Model = TutorialWindow.Instance.Model.Tutorial;
+
+            MaskingManager.Unmask();
+
+            bool foundAncestorProperty;
+            var unmaskedViews = UnmaskedView.GetViewsAndRects(new UnmaskedView[] { UnmaskedView.CreateInstanceForEditorWindow(typeof(TutorialWindow))}, out foundAncestorProperty);
+
+            UnmaskedView.MaskData highlightedViews;
+
+            if (unmaskedViews.Count > 0) //Unmasked views should be highlighted
+            {
+                highlightedViews = (UnmaskedView.MaskData)unmaskedViews.Clone();
+            }
+            else
+            {
+                highlightedViews = new UnmaskedView.MaskData();
+            }
+
+            unmaskedViews.AddTooltipViews();
+            // also ensure the Media Popout window (used to enlarge video and image) is unmasked
+            unmaskedViews.AddPopoutWindow();
+
+            MaskingManager.Mask(
+                unmaskedViews,
+                Model.Styles == null ? Color.magenta * new Color(1f, 1f, 1f, 0.8f) : Model.Styles.MaskingColor,
+                highlightedViews,
+                Model.Styles == null ? Color.cyan * new Color(1f, 1f, 1f, 0.8f) : Model.Styles.HighlightColor,
+                Model.Styles == null ? new Color(1, 1, 1, 0.5f) : Model.Styles.BlockedInteractionColor,
+                Model.Styles == null ? 3f : Model.Styles.HighlightThickness
+            );
+        }
+
+        /// <summary>
+        /// Return a number between 0.0 and 1.0 that is the number of tutorials in that containers that are completed.
+        /// Tutorials that don't have tracking enable always count as completed
+        /// </summary>
+        /// <returns>The percentage of tutorials completed, as a number between 0.0 and 1.0</returns>
+        public float GetCompletionRate()
+        {
+            int tutorialsCount = 0;
+            int completedTutorialsCount = 0;
+            foreach (var section in Sections)
+            {
+                if (section.Tutorial != null && section.Tutorial.ProgressTrackingEnabled)
+                {
+                    tutorialsCount += 1;
+                    if (section.Tutorial.CompletedByUser)
+                    {
+                        completedTutorialsCount += 1;
+                    }
+                }
+            }
+
+            //no tracked tutorial mean the container is "completed"
+            return tutorialsCount == 0 ? 1.0f : completedTutorialsCount / (float)tutorialsCount;
+        }
     }
 }
