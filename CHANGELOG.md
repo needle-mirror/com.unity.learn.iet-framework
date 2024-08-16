@@ -4,7 +4,13 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [4.0.0] - 2023-05-01
+## [4.0.1] - 2024-08-16
+## Fixed
+
+- Fixed video audio not playing until at least one domain reload had happened
+- Media popout now stay on top of editor as expected
+
+## [4.0.0] - 2024-05-01
 ### Changed
 - The minimum version supported by the package was raised to 2021.3
 
@@ -15,7 +21,7 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added an optional image to be displayed after the instruction on a Tutorial page
 - Added an option in Scene management settings of Tutorial to not restore the scenes after exiting that tutorial to
 the scenes that were opened before it started
-- Added a function to highlight the Tutorial Window in TutorialContainer
+- Added a C# function to highlight the Tutorial Window in the TutorialContainer class
 - Added a new option, Focus Editor Window, is available when unmasking an EditorWindow. Setting this to true focus or open
 the targeted window if it's not focused or opened yet.
 

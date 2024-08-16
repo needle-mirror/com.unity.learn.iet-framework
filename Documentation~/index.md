@@ -6,9 +6,7 @@ This package is used to display interactive in-Editor tutorials (IET) in tutoria
 
 ## Installation
 
-For Unity 2021.2 and newer, simply search for "Tutorial Framework" in the Package Manager. For older Unity versions, this package is not currently discoverable,
-and you need to add the following line to the `dependencies` list of `Packages/manifest.json`:  
-`"com.unity.learn.iet-framework": "3.1.1`
+Simply search for "Tutorial Framework" in the Package Manager.
 
 Make sure to update to the latest version of the package whose major version is the closest one to the one you're currently using. 
 I.E: if you're using version 1 of the package and the latest available is version 3, be sure to update to version 2 first, and then to version 3.
@@ -18,7 +16,9 @@ This ensures that existing tutorials are properly converted and updated without 
 
 This version of Tutorial Framework is compatible with the following versions of the Unity Editor:
 
-* 2020.3 and newer (LTS versions recommended)
+* 2021.3 and newer (LTS versions recommended)
+
+Note however that is is only discoverable in the package manager for Unity 6 and above as it is only supported for those version.
 
 ## Known issues
 - A benign "BuildStartedCriterion must be instantiated using the ScriptableObject.CreateInstance method..." warning in the Console when making a build.

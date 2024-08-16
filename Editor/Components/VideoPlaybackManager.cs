@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.Experimental.Video;
 using UnityEngine.SceneManagement;
 using UnityEngine.Video;
 using Object = UnityEngine.Object;
@@ -64,6 +65,12 @@ namespace Unity.Tutorials.Core.Editor
         // is exited by Tutorials > Show Tutorials instead of exiting the tutorial regularly.
         static GameObject m_GameObject;
 
+        // This is to fix a bug in the videoplayer in edit mode in Unity : audio isn't initialized properly until you
+        // enter play mode. Audio Source seems to properly initialize the audio subsystem, so we play a dummy clip
+        // which force the init of the audio system when starting playing a video
+        private static AudioSource s_BugFixAudioSource;
+        private static AudioClip s_BugFixClip;
+
         Dictionary<CacheKey, CacheEntry> m_Cache = new Dictionary<CacheKey, CacheEntry>();
 
         public void OnEnable()
@@ -73,13 +80,23 @@ namespace Unity.Tutorials.Core.Editor
                 m_GameObject = new GameObject() { hideFlags = HideFlags.HideAndDontSave };
                 EditorApplication.playModeStateChanged += PlayModeStateChange;
                 EditorSceneManager.sceneOpened += SceneLoaded;
+
+                s_BugFixClip = AudioClip.Create("testClip", 44000, 1, 44000, false);
+                var sourceGo = new GameObject() { hideFlags = HideFlags.HideAndDontSave };
+                s_BugFixAudioSource = sourceGo.AddComponent<AudioSource>();
+                s_BugFixAudioSource.clip = s_BugFixClip;
             }
         }
 
         public void OnDisable()
         {
             ClearCache();
+            Object.DestroyImmediate(s_BugFixClip);
+            if(s_BugFixAudioSource != null) Object.DestroyImmediate(s_BugFixAudioSource.gameObject);
             Object.DestroyImmediate(m_GameObject);
+
+            s_BugFixClip = null;
+            s_BugFixAudioSource = null;
             m_GameObject = null;
             EditorApplication.playModeStateChanged -= PlayModeStateChange;
             EditorSceneManager.sceneOpened -= SceneLoaded;
@@ -183,6 +200,7 @@ namespace Unity.Tutorials.Core.Editor
             CacheEntry cacheEntry;
             if (m_Cache.TryGetValue(cacheKey, out cacheEntry) && cacheEntry.VideoPlayer.isPrepared)
             {
+                s_BugFixAudioSource.Play();
                 cacheEntry.VideoPlayer.Play();
             }
         }

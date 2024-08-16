@@ -41,7 +41,8 @@ internal class MediaPopoutWindow : EditorWindow
 
     public static void Popout(VisualElement element)
     {
-        var win = CreateWindow<MediaPopoutWindow>();
+        var win = CreateInstance<MediaPopoutWindow>();
+        win.ShowUtility();
 
         win.m_PopOutElement = element;
 

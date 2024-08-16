@@ -1,6 +1,6 @@
 <!-- Upgrade guide page template for packages: https://confluence.unity3d.com/display/DOCS/Upgrade+guide+page+template+for+packages -->
 
-# Upgrading to Tutorial Framework version 3.1.1
+# Upgrading to Tutorial Framework version 4.0.0
 
 Important: before upgrading to this version, please upgrade to the closest major version to the one you're currently using. This ensures that existing tutorials are properly converted and updated without any data loss.
 
