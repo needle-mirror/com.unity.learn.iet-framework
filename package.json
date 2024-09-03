@@ -1,7 +1,7 @@
 {
   "name": "com.unity.learn.iet-framework",
   "displayName": "Tutorial Framework",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "unity": "2021.3",
   "description": "This package is used to display interactive in-Editor tutorials in tutorial projects and project templates.",
   "keywords": [
@@ -13,14 +13,14 @@
   },
   "type": "tool",
   "_upm": {
-    "changelog": "## Fixed\n\n- Fixed video audio not playing until at least one domain reload had happened\n- Media popout now stay on top of editor as expected"
+    "changelog": "### Fixed\n\n- Scene View Camera was wrongly restored when the tutorial Restore Scene setting was set to false"
   },
   "upmCi": {
-    "footprint": "77c0b9b1ee793d213aacbaae480b46f73a48bc74"
+    "footprint": "f05778ffef9919f1229e0583ab1b1a23089e939c"
   },
   "repository": {
     "url": "https://github.cds.internal.unity3d.com/unity/iet-package.git",
     "type": "git",
-    "revision": "715893fbe5b9a036b94338bc4315ea5f90452a0c"
+    "revision": "2bb33e11c86adec8f2f59ff55abd5b6d4963867e"
   }
 }

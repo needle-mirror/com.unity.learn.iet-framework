@@ -3,6 +3,7 @@ using System.Linq;
 using Unity.EditorCoroutines.Editor;
 using UnityEditor;
 using UnityEditor.SceneManagement;
+using UnityEngine;
 
 namespace Unity.Tutorials.Core.Editor
 {
@@ -13,6 +14,7 @@ namespace Unity.Tutorials.Core.Editor
         Tutorial CurrentTutorial => m_Model?.CurrentTutorial;
         EditorCoroutine m_AutoAdvanceRoutine;
         EditorCoroutine m_OnEditorUpdateRoutine;
+        private bool m_RestoreSceneViewCamera = false;
 
         internal TutorialController()
         {
@@ -88,6 +90,11 @@ namespace Unity.Tutorials.Core.Editor
                     //The restore function will just do nothing as no states
                     m_Model.SaveOriginalScenes();
                     m_Model.SaveSceneViewState();
+                    m_RestoreSceneViewCamera = true;
+                }
+                else
+                {
+                    m_RestoreSceneViewCamera = false;
                 }
 
                 m_Model.SaveOriginalWindowLayout();
@@ -261,7 +268,12 @@ namespace Unity.Tutorials.Core.Editor
             {
                 EditorCoroutineUtility.StartCoroutine(m_Model.ReopenActiveScenesAsBeforeTutorialStarted(), Application);
                 TutorialModel.ReopenWindowLayoutAsBeforeTutorialStarted(tutorial);
-                m_Model.RestoreSceneViewStateAsBeforeTutorialStarted();
+
+                if (m_RestoreSceneViewCamera)
+                {
+                    Debug.Log("Resting scene view");
+                    m_Model.RestoreSceneViewStateAsBeforeTutorialStarted();
+                }
 
                 if (tutorial.ShowCompletionDialogOnQuit)
                 {

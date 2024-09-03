@@ -4,8 +4,13 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.2] - 2024-09-03
+### Fixed
+
+- Scene View Camera was wrongly restored when the tutorial Restore Scene setting was set to false
+
 ## [4.0.1] - 2024-08-16
-## Fixed
+### Fixed
 
 - Fixed video audio not playing until at least one domain reload had happened
 - Media popout now stay on top of editor as expected
@@ -264,7 +269,7 @@ Note that these assemblies are only for internal use and they should not be depe
 - UI: Fixed unwanted horizontal scroll bar appearing on tutorial pages on Unity 2021 by disabling the horizontal scroll bar altogether.
 
 ## [2.0.0-pre.3] - 2021-03-02
-## Added
+### Added
 - UI: Added **Show simplified type names** preference which affects the appearance of `SerializedType` fields.
 This preference can be found under **Preferences** > **In-Editor Tutorials**.
 - Rich text parser: Added word wrapping support for CJK characters.
@@ -309,7 +314,7 @@ This preference can be found under **Preferences** > **In-Editor Tutorials**.
 - UI: Fixed tutorial card not being marked as completed when a completed tutorial was quit by clicking the **Close** (**X**) button.
 
 ## [2.0.0-pre.1] - 2020-11-17
-## Added
+### Added
 - Documentation: All public APIs documented.
 
 ### Changed
