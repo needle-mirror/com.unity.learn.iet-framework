@@ -110,7 +110,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Constructs from a SerializedProperty.
         /// </summary>
-        /// <param name="property"></param>
+        /// <param name="property">The SerializedProperty parent of that SceneObjectReference</param>
         public SceneObjectReference(SerializedProperty property)
         {
             m_SceneGuidProperty = property.FindPropertyRelative("m_SceneGuid");
@@ -198,7 +198,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Resets/updates this reference to a new object.
         /// </summary>
-        /// <param name="newObject"></param>
+        /// <param name="newObject">The Object to use to reset/update that SceneObjectReference to</param>
         public void Update(Object newObject)
         {
             ResetInitialization();

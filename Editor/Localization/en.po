@@ -133,6 +133,12 @@ msgstr "Instruction Title"
 msgid "TutorialPageLabelInstructionDescription"
 msgstr "Instruction Description"
 
+msgid "TutorialPageCodeSample"
+msgstr "Code Sample"
+
+msgid "PostInstructionImage"
+msgstr "End of Page Media"
+
 msgid "TutorialPageLabelCompletionCriteria"
 msgstr "Completion Criteria"
 

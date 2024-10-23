@@ -16,7 +16,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// See UnityEditor.Build.IPreprocessBuildWithReport.OnPreprocessBuild.
         /// </summary>
-        /// <param name="report"></param>
+        /// <param name="report">The BuildReport from the requested Build</param>
         public abstract void OnPreprocessBuild(BuildReport report);
     }
 
@@ -36,7 +36,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Used for BuildPlayerWindow.RegisterBuildPlayerHandler.
         /// </summary>
-        /// <param name="options"></param>
+        /// <param name="options">The BuildPlayerOption of the requested build</param>
         public void BuildPlayerCustomHandler(BuildPlayerOptions options)
         {
             BuildStarted = true;
@@ -68,7 +68,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Evaluates if the criterion is completed.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>True if the build have started, false otherwise</returns>
         protected override bool EvaluateCompletion()
         {
             return BuildStarted;
@@ -86,7 +86,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// UnityEditor.Build.IPreprocessBuildWithReport override, do not call.
         /// </summary>
-        /// <param name="report"></param>
+        /// <param name="report">The BuildReport from the requested Build</param>
         public override void OnPreprocessBuild(BuildReport report)
         {
             BuildStarted = true;

@@ -45,7 +45,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Evaluates if the criterion is completed.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>True if the window is opened, false otherwise</returns>
         protected override bool EvaluateCompletion()
         {
             if (m_EditorWindowType.Type == null)

@@ -10,7 +10,7 @@ namespace SerializableCallback
         /// https://github.com/Siccity/SerializableCallback
         /// </summary>
         /// <param name="args"></param>
-        /// <returns></returns>
+        /// <returns>The return value of the callback</returns>
         public abstract TReturn Invoke(params object[] args);
     }
 }

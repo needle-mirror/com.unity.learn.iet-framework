@@ -282,7 +282,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary> Default-constructs an empty collection. </summary>
         public TutorialParagraphCollection() : base() { }
         /// <summary> Constructs a collection from existing items. </summary>
-        /// <param name="items"></param>
+        /// <param name="items">The list of TutorialParagraph to initialize this TutorialParagraphCollection with</param>
         public TutorialParagraphCollection(IList<TutorialParagraph> items) : base(items) { }
     }
 }

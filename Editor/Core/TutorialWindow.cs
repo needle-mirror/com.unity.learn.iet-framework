@@ -166,10 +166,10 @@ namespace Unity.Tutorials.Core.Editor
 
         /// <summary>
         /// Main logic for ShowWindow()
-        /// </summary>>
+        /// </summary>
         /// <param name="shouldRefreshLayout">Whether or not we should reset the layout to the basic tutorial layout.
         /// Should be false when loading a tutorial step and true when first initializing the tutorial window.</param>
-        /// <returns>The the created, or already existing, window instance.</returns>
+        /// <returns>The created, or already existing, window instance.</returns>
         public static TutorialWindow ShowWindow(bool shouldRefreshLayout)
         {
             var rootCategories = TutorialEditorUtils.FindAssets<TutorialContainer>()
@@ -357,7 +357,7 @@ namespace Unity.Tutorials.Core.Editor
         {
             m_Root = rootVisualElement;
 
-            titleContent.text = Localization.Tr(LocalizationKeys.k_WindowTitle);
+            titleContent = new GUIContent(Localization.Tr(LocalizationKeys.k_WindowTitle));
             minSize = k_MinWindowSize;
             maxSize = k_MaxWindowSize;
             FrontendIsReadyToBeInitialized = true;
@@ -626,6 +626,7 @@ namespace Unity.Tutorials.Core.Editor
 
             if (Button("Refresh", Localization.Tr(LocalizationKeys.k_ButtonRunStartupCode)))
             {
+                Broadcast(new TutorialQuitEvent());
                 UserStartupCode.RunStartupCode(TutorialProjectSettings.Instance);
             }
 

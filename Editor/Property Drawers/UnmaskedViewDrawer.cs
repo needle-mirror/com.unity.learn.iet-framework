@@ -39,6 +39,7 @@ namespace Unity.Tutorials.Core.Editor
             height += EditorGUI.GetPropertyHeight(property.FindPropertyRelative(k_MaskSizeModifierPath));
             var listControl = GetListControl(property);
             height += EditorGUIUtility.standardVerticalSpacing + listControl.GetHeight();
+            height += 20; // this is for the reorderable list +/- button. GetHeight above should have covered it but for some reason no
             return height;
         }
 

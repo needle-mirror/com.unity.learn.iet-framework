@@ -24,7 +24,7 @@ namespace SerializableCallback
         /// <summary>
         /// https://github.com/Siccity/SerializableCallback
         /// </summary>
-        /// <returns></returns>
+        /// <returns>An instance of serialized event</returns>
         protected InvokableEventBase GetPersistentMethod()
         {
             Type[] types = new Type[ArgTypes.Length];

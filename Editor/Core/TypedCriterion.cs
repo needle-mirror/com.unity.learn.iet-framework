@@ -27,8 +27,8 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Constructs with type and criterion.
         /// </summary>
-        /// <param name="type"></param>
-        /// <param name="criterion"></param>
+        /// <param name="type">The SerializedType this criterion looks for</param>
+        /// <param name="criterion">The Criterion this TypedCriterion uses</param>
         public TypedCriterion(SerializedType type, Criterion criterion)
         {
             Type = type;

@@ -52,7 +52,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Evaluates if the criterion is completed.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>True the Play Mode Criterion is satisfied</returns>
         protected override bool EvaluateCompletion()
         {
             switch (m_RequiredPlayModeState)

@@ -346,7 +346,7 @@ namespace Unity.Tutorials.Core.Editor.Tests
         /// <summary>
         /// hint: if this throws errors when called in a UnityTest, copy-paste the code directly instead.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The IEnumerator to yield</returns>
         IEnumerator WaitUntilTutorialIsRunning()
         {
             while (!Window.Model.Tutorial.CurrentTutorial)

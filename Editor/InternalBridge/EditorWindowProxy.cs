@@ -25,7 +25,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Is the parent of this window null.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>True if this window have no parent</returns>
         protected bool IsParentNull()
         {
             return m_Parent == null;

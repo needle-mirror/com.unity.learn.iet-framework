@@ -297,7 +297,7 @@ namespace Unity.Tutorials.Core.Editor
             /// <summary> Creates and empty collection. </summary>
             public TutorialPageCollection() : base() { }
             /// <summary> Creates a new collection from existing items. </summary>
-            /// <param name="items"></param>
+            /// <param name="items">The list of TutorialPage with collections is insitialized with</param>
             public TutorialPageCollection(IList<TutorialPage> items) : base(items) { }
         }
 

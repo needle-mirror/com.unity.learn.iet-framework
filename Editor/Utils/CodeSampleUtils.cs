@@ -9,7 +9,7 @@ namespace Unity.Tutorials.Core.Editor
         /// Returns the string formatted as code (indented)
         /// </summary>
         /// <param name="self"></param>
-        /// <returns></returns>
+        /// <returns>The given string as tabulated formated code</returns>
         public static string AsFormattedCode(string originalString)
         {
             var lines = originalString.Split('\n').Select(s => s.Trim());
@@ -52,6 +52,11 @@ namespace Unity.Tutorials.Core.Editor
         }
 
 
+        /// <summary>
+        /// Add rich text tag to color the given code. This only look for a subset of keywords, comments and function
+        /// </summary>
+        /// <param name="code"></param>
+        /// <returns>A string containing the code with added rich text tag with color</returns>
         public static string HighlightCode(string code)
         {
             var strBuilder = new StringBuilder();

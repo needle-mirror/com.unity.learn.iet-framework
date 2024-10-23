@@ -16,6 +16,7 @@ namespace Unity.Tutorials.Core.Editor
 
             if (GUILayout.Button(Localization.Tr(LocalizationKeys.k_ButtonRunStartupCode)))
             {
+                TutorialWindow.Instance.Broadcast(new TutorialQuitEvent());
                 UserStartupCode.RunStartupCode(Target);
             }
 

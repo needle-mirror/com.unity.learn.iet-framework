@@ -38,7 +38,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Evaluates if the criterion is completed.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>True if completed</returns>
         protected override bool EvaluateCompletion()
         {
             if (m_Scene == null)
@@ -87,9 +87,9 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Is a specific Scene added to Build Settings.
         /// </summary>
-        /// <param name="asset"></param>
-        /// <param name="forceEnable"></param>
-        /// <returns></returns>
+        /// <param name="asset">The SceneAsset that need to be checked</param>
+        /// <param name="forceEnable">If true, will enable the scene in the BuildSetting if it's not already enabled</param>
+        /// <returns>True if the given scene is in the Build Settings</returns>
         public static bool SceneIsAddedToBuildSettings(SceneAsset asset, bool forceEnable = false)
         {
             if (EditorBuildSettings.scenes.Length == 0)
@@ -114,8 +114,8 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Adds a Scene to Build Settings.
         /// </summary>
-        /// <param name="scene"></param>
-        /// <param name="enabled"></param>
+        /// <param name="scene">The SceneAsset to check</param>
+        /// <param name="enabled">If true, will add the scene enabled in the BuildSettings, otherwise it's added disabled</param>
         public static void AddSceneToBuildSettings(SceneAsset scene, bool enabled = true)
         {
             var scenes = new EditorBuildSettingsScene[EditorBuildSettings.scenes.Length + 1];

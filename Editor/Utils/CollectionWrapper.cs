@@ -28,14 +28,13 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Constructs with items.
         /// </summary>
-        /// <param name="items"></param>
+        /// <param name="items">The List of item this CollectionWrapper will initially contain</param>
         public CollectionWrapper(IList<T> items) { SetItems(items); }
 
         /// <summary>
-        /// Returns an item at a specific index.
+        /// Set or get the item at index i
         /// </summary>
-        /// <param name="i"></param>
-        /// <returns></returns>
+        /// <param name="i">The index of the requested item</param>
         public T this[int i]
         {
             get { return m_Items[i]; }
@@ -68,7 +67,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Returns an Enumerator to the items.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>An IEnumerator on the items array</returns>
         public IEnumerator<T> GetEnumerator()
         {
             return m_Items.GetEnumerator();
@@ -77,7 +76,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Returns the items of the collection as a list.
         /// </summary>
-        /// <param name="items"></param>
+        /// <param name="items">The List to which the containing items will be added to. This List is cleared before insertion!</param>
         public void GetItems(List<T> items)
         {
             if (items.Capacity < m_Items.Count)
@@ -91,7 +90,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Sets the items of the collection.
         /// </summary>
-        /// <param name="items"></param>
+        /// <param name="items">The List that contained the item that will be added to this Collection. The Collection is cleared before insertion!</param>
         public void SetItems(IEnumerable<T> items)
         {
             m_Items.Clear();
@@ -101,7 +100,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Adds an item to the collection
         /// </summary>
-        /// <param name="item"></param>
+        /// <param name="item">The item to add to the Collection</param>
         public void AddItem(T item)
         {
             m_Items.Add(item);

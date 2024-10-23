@@ -38,7 +38,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Evaluates if the criterion is completed.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>True if complete, false otherwise</returns>
         protected override bool EvaluateCompletion()
         {
             return Tools.current == m_TargetTool;

@@ -19,7 +19,7 @@ namespace Unity.Tutorials.Core.Editor
         /// Tries to parse text to XDocument word by word - outputs the longest successful string before failing
         /// </summary>
         /// <param name="faultyContent">Content that contains a markdown error</param>
-        /// <returns></returns>
+        /// <returns>The parsed RichText up to the error the faultyContent parameter contains</returns>
         static string ParseUntilError(string faultyContent)
         {
             string longestString = "";
@@ -191,7 +191,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Transforms HTML tags to word element labels with different styles to enable rich text.
         /// </summary>
-        /// <param name="htmlText"></param>
+        /// <param name="htmlText">The text with tags for which the VisualElements need to be constructed</param>
         /// <param name="targetContainer">
         /// The following need to set for the container's style:
         /// flex-direction: row;
@@ -513,7 +513,7 @@ namespace Unity.Tutorials.Core.Editor
             /// <summary>
             /// Constructs with text.
             /// </summary>
-            /// <param name="text"></param>
+            /// <param name="text">The Text contained by this label</param>
             public TextLabel(string text) : base(text)
             {
             }
@@ -527,7 +527,7 @@ namespace Unity.Tutorials.Core.Editor
             /// <summary>
             /// Constructs with text.
             /// </summary>
-            /// <param name="text"></param>
+            /// <param name="text">The text contained by this label</param>
             public WhiteSpaceLabel(string text) : base(text)
             {
             }
@@ -541,7 +541,7 @@ namespace Unity.Tutorials.Core.Editor
             /// <summary>
             /// Constructs with text.
             /// </summary>
-            /// <param name="text"></param>
+            /// <param name="text">The text contained by this label</param>
             public BoldLabel(string text) : base(text)
             {
             }
@@ -555,7 +555,7 @@ namespace Unity.Tutorials.Core.Editor
             /// <summary>
             /// Constructs with text.
             /// </summary>
-            /// <param name="text"></param>
+            /// <param name="text">The text contained by this label</param>
             public ItalicLabel(string text) : base(text)
             {
             }

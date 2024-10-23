@@ -22,7 +22,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Sets object references.
         /// </summary>
-        /// <param name="objectReferences"></param>
+        /// <param name="objectReferences">The ObjectReference list that need to be selected for this Criterion to be satisfied</param>
         public void SetObjectReferences(IEnumerable<ObjectReference> objectReferences)
         {
             m_ObjectReferences.SetItems(objectReferences);
@@ -51,7 +51,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Evaluates if the criterion is completed.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>True if the selection is the right one, false otherwise</returns>
         protected override bool EvaluateCompletion()
         {
             if (m_ObjectReferences.Count() != Selection.objects.Length)

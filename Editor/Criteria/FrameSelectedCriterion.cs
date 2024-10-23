@@ -22,7 +22,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Sets object references.
         /// </summary>
-        /// <param name="objectReferences"></param>
+        /// <param name="objectReferences">A list of ObjectReference the Criterion need to check if selected</param>
         public void SetObjectReferences(IEnumerable<ObjectReference> objectReferences)
         {
             m_ObjectReferences.SetItems(objectReferences);

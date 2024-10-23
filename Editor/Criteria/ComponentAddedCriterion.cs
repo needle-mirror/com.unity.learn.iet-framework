@@ -107,7 +107,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Evaluates if the criterion is completed.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>True if the target GameObject have the required component, false otherwise</returns>
         protected override bool EvaluateCompletion()
         {
             var gameObject = TargetGameObject;
@@ -142,7 +142,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Returns FutureObjectReference for this Criterion.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The list of FutureObjectReference on the required component</returns>
         protected override IEnumerable<FutureObjectReference> GetFutureObjectReferences()
         {
             return m_RequiredComponents
@@ -197,7 +197,7 @@ namespace Unity.Tutorials.Core.Editor
             /// <summary>
             /// Constructs from a SerializedType.
             /// </summary>
-            /// <param name="serializedType"></param>
+            /// <param name="serializedType">The SerializedType to which that TypeAndFutureReference will point to</param>
             public TypeAndFutureReference(SerializedType serializedType)
             {
                 this.SerializedType = serializedType;
@@ -206,7 +206,7 @@ namespace Unity.Tutorials.Core.Editor
             /// <summary>
             /// Creates a clone of this instance.
             /// </summary>
-            /// <returns></returns>
+            /// <returns>A new instance clone of this one</returns>
             public object Clone()
             {
                 return new TypeAndFutureReference(SerializedType);

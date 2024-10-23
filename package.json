@@ -1,7 +1,7 @@
 {
   "name": "com.unity.learn.iet-framework",
   "displayName": "Tutorial Framework",
-  "version": "4.0.2",
+  "version": "4.0.3",
   "unity": "2021.3",
   "description": "This package is used to display interactive in-Editor tutorials in tutorial projects and project templates.",
   "keywords": [
@@ -11,16 +11,16 @@
     "com.unity.editorcoroutines": "1.0.0",
     "com.unity.settings-manager": "1.0.3"
   },
-  "type": "tool",
   "_upm": {
-    "changelog": "### Fixed\n\n- Scene View Camera was wrongly restored when the tutorial Restore Scene setting was set to false"
+    "changelog": "### Fixed\n\n- Fixed some XMLDoc missing tags\n- Removed a stray Debug.Log\n- Fixed TutorialWindow sometime displaying a wrongly formated title\n- Added missing Localization String so some Title appear properly\n- Fixed Selector type in masking settings overlapping +/- control of Unamsked Control view\n- Muting button on GameView was muting video. Mutting is now removed and reapplied when video play/pause\n- Fixed rare case (mainly happening at authoring time) of a tutorial not being re-enterable after reloading"
   },
   "upmCi": {
-    "footprint": "f05778ffef9919f1229e0583ab1b1a23089e939c"
+    "footprint": "697f5fc0ad54b9ffe17209267ebc16d75bd5bd8f"
   },
+  "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.learn.iet-framework@4.0/manual/index.html",
   "repository": {
     "url": "https://github.cds.internal.unity3d.com/unity/iet-package.git",
     "type": "git",
-    "revision": "2bb33e11c86adec8f2f59ff55abd5b6d4963867e"
+    "revision": "25078fca3045f272f91ae7cec1b9629aa2fa7ad2"
   }
 }

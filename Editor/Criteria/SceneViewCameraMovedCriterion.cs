@@ -54,7 +54,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Evaluates if the criterion is completed.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>True if the criterion is completed</returns>
         protected override bool EvaluateCompletion()
         {
             if (SceneView.lastActiveSceneView == null)

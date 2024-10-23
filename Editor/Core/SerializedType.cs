@@ -31,7 +31,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Constructs with a type.
         /// </summary>
-        /// <param name="type"></param>
+        /// <param name="type">The Type this SerializedType refers to</param>
         public SerializedType(Type type)
         {
             Type = type;

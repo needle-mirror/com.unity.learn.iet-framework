@@ -10,7 +10,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Returns true if Tutorial Authoring Tools are present and we are in authoring mode.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>True if the Framework is in Authoring mode, false otherwise</returns>
         public static bool IsAuthoringMode()
         {
             return Type.GetType(

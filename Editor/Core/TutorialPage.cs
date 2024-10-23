@@ -68,7 +68,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Has the current page any completion criteria?
         /// </summary>
-        /// <returns></returns>
+        /// <returns>True if the page have any completion criteria</returns>
         public bool HasCriteria()
         {
             foreach (TutorialParagraph para in Paragraphs)

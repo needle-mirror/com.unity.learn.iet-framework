@@ -41,7 +41,7 @@ public class TutorialCallbacks : ScriptableObject
     /// <summary>
     /// Example callbacks for ArbitraryCriterion's BoolCallback
     /// </summary>
-    /// <returns></returns>
+    /// <returns>True if the GameObject Foo exist</returns>
     public bool DoesFooExist()
     {
         return GameObject.Find("Foo") != null;

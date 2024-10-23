@@ -40,7 +40,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <param name="langCode"></param>
         /// <param name="name"></param>
         /// <param name="version"></param>
-        /// <returns></returns>
+        /// <returns>The new PO file Header</returns>
         public static string CreateHeader(string langCode, string name, string version) =>
             // NOTE We don't have POTs so for POT-Creation-Date I just picked something.
             // TODO Value of Plural-Forms not probably true for all languages we support?
@@ -70,7 +70,7 @@ msgstr """"
         /// http://pology.nedohodnik.net/doc/user/en_US/ch-poformat.html, "2.3.3. Escape Sequences"
         /// </summary>
         /// <param name="str"></param>
-        /// <returns></returns>
+        /// <returns>A new string containing the escaped string</returns>
         public static string EscapeString(string str)
         {
             // adapted from https://stackoverflow.com/a/14502246
@@ -178,7 +178,7 @@ msgstr """"
         /// Reads a PO file and creates a list of PO entries.
         /// </summary>
         /// <param name="filepath"></param>
-        /// <returns></returns>
+        /// <returns>A list of POEntry in the file</returns>
         // TODO Currently unused, implement a unit test at minimum if wanting to keep this around or make internal or remove.
         public static List<POEntry> ReadPOFile(string filepath)
         {
@@ -244,7 +244,7 @@ msgstr """"
         /// <param name="langCode"></param>
         /// <param name="entries"></param>
         /// <param name="filepath"></param>
-        /// <returns></returns>
+        /// <returns>True if the file could be written, false if an exception happened</returns>
         public static bool WritePOFile(string projectName, string projectVersion, string langCode, IEnumerable<POEntry> entries, string filepath)
         {
             try

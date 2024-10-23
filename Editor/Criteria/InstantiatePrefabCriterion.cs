@@ -41,7 +41,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Sets future prefab instances.
         /// </summary>
-        /// <param name="prefabParents"></param>
+        /// <param name="prefabParents">A list of Object the prefab will be child of</param>
         public void SetFuturePrefabInstances(IList<UnityObject> prefabParents)
         {
             var futurePrefabInstances = prefabParents.Select(prefabParent => new FuturePrefabInstance(prefabParent));
@@ -256,7 +256,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Evaluates if the criterion is completed.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>True when completed</returns>
         protected override bool EvaluateCompletion()
         {
             var willBeCompleted = EvaluateCompletionInternal();
@@ -279,7 +279,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Returns FutureObjectReference for this Criterion.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>An IEnumerable of all the FutureObjectReference that Criterion depends on</returns>
         protected override IEnumerable<FutureObjectReference> GetFutureObjectReferences()
         {
             return m_FuturePrefabInstances
@@ -331,9 +331,9 @@ namespace Unity.Tutorials.Core.Editor
             public FutureObjectReference FutureReference { get => m_FutureReference; set => m_FutureReference = value; }
 
             /// <summary>
-            /// Construcs with a specific prefab parent.
+            /// Constructs with a specific prefab parent.
             /// </summary>
-            /// <param name="prefabParent"></param>
+            /// <param name="prefabParent">The parent Object of this FuturePrefabInstance</param>
             public FuturePrefabInstance(UnityObject prefabParent)
             {
                 m_PrefabParent = prefabParent;

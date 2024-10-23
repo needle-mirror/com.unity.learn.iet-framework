@@ -73,7 +73,7 @@ namespace Unity.Tutorials.Core.Editor
         /// Opens an Url in the browser.
         /// Links to Unity's websites will open only if the user is logged in.
         /// </summary>
-        /// <param name="url"></param>
+        /// <param name="url">The URL to open</param>
         public static void OpenUrl(string url)
         {
             if (string.IsNullOrEmpty(url))
@@ -109,7 +109,7 @@ namespace Unity.Tutorials.Core.Editor
         /// Removes "http://" and "https://" prefixes from an url
         /// </summary>
         /// <param name="url"></param>
-        /// <returns></returns>
+        /// <returns>The url without the protocol prefix</returns>
         internal static string RemoveHttpProtocolPrefix(string url)
         {
             if (url.StartsWith("http", System.StringComparison.OrdinalIgnoreCase))
@@ -123,7 +123,7 @@ namespace Unity.Tutorials.Core.Editor
         /// Is this a Unity URL that requires Authentication?
         /// </summary>
         /// <param name="url"></param>
-        /// <returns></returns>
+        /// <returns>True if the url is a Unity URL that require an authentication</returns>
         internal static bool IsUnityUrlRequiringAuthentication(string url)
         {
             // TODO Genesis will provide an API where we can keep a list of Unity URLs that we want to support.

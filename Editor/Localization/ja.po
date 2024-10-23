@@ -168,6 +168,14 @@ msgid "TutorialPageLabelInstructionDescription"
 msgstr "Instruction Description"
 
 # TODO: translate
+msgid "TutorialPageCodeSample"
+msgstr "Code Sample"
+
+# TODO: translate
+msgid "PostInstructionImage"
+msgstr "End of Page Media"
+
+# TODO: translate
 msgid "TutorialPageLabelCompletionCriteria"
 msgstr "Completion Criteria"
 

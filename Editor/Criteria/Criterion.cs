@@ -124,7 +124,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Evaluates if the criterion is completed.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>True if the criterion is completed, false otherwise</returns>
         protected virtual bool EvaluateCompletion()
         {
             throw new NotImplementedException($"Missing implementation of EvaluateCompletion in: {GetType()}");
@@ -139,7 +139,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Returns FutureObjectReference for this Criterion.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>An IEnumerable of all future objects references for this Criterion</returns>
         protected virtual IEnumerable<FutureObjectReference> GetFutureObjectReferences()
         {
             return Enumerable.Empty<FutureObjectReference>();
@@ -148,9 +148,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Destroys unreferenced future references.
         /// </summary>
-        /// <see>
-        /// https://docs.unity3d.com/ScriptReference/MonoBehaviour.OnValidate.html
-        /// </see>
+        /// <seealso href="https://docs.unity3d.com/ScriptReference/MonoBehaviour.OnValidate.html"/>
         protected virtual void OnValidate()
         {
             // Find instanceIDs of referenced future references
@@ -175,7 +173,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Creates a default FutureObjectReference for this Criterion.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The new FutureObjectReference instance</returns>
         protected FutureObjectReference CreateFutureObjectReference()
         {
             return CreateFutureObjectReference("Future Reference");
@@ -184,8 +182,8 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Creates a FutureObjectReference by specific name for this Criterion.
         /// </summary>
-        /// <param name="referenceName"></param>
-        /// <returns></returns>
+        /// <param name="referenceName">The reference name to which the created FutureObjectReference point to</param>
+        /// <returns>The new FutureObjectReference instance</returns>
         protected FutureObjectReference CreateFutureObjectReference(string referenceName)
         {
             var futureReference = CreateInstance<FutureObjectReference>();

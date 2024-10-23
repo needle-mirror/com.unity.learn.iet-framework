@@ -38,7 +38,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Evaluates if the criterion is completed.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>True if completed</returns>
         protected override bool EvaluateCompletion()
         {
             // TODO revisit the logic here -- should AutoCompleteCallback take a precedence over Callback?

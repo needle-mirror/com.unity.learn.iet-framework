@@ -92,7 +92,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Evaluates if the criterion is completed.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>True if the right property were modified, false otherwise</returns>
         protected override bool EvaluateCompletion()
         {
             var targetObject = m_Target.SceneObjectReference.ReferencedObject;

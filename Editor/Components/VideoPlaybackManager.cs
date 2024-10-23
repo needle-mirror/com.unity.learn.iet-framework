@@ -59,6 +59,7 @@ namespace Unity.Tutorials.Core.Editor
             public Texture2D Texture2D;
             public VideoPlayer VideoPlayer;
             public Action<string> OnErrorCallback;
+            public bool SceneAudioWasMuted;
         }
 
         // NOTE Static reference fixes a peculiar NRE issue when a tutorial which has Window Layout set
@@ -202,6 +203,15 @@ namespace Unity.Tutorials.Core.Editor
             {
                 s_BugFixAudioSource.Play();
                 cacheEntry.VideoPlayer.Play();
+                
+                //A button in GameView can mute audio and direct audio respect that. So we need to save if it was disable
+                //so we can disable it again when the video is stopped/destroyed
+                cacheEntry.SceneAudioWasMuted = EditorUtility.audioMasterMute;
+
+                //reassigned it as cacheEntry is a struct so we got a copy when getting it
+                m_Cache[cacheKey] = cacheEntry;
+
+                EditorUtility.audioMasterMute = false;
             }
         }
 
@@ -211,6 +221,9 @@ namespace Unity.Tutorials.Core.Editor
             if (m_Cache.TryGetValue(cacheKey, out cacheEntry) && cacheEntry.VideoPlayer.isPrepared)
             {
                 cacheEntry.VideoPlayer.Pause();
+
+                if(cacheEntry.SceneAudioWasMuted)
+                    EditorUtility.audioMasterMute = true;
             }
         }
 
@@ -274,6 +287,9 @@ namespace Unity.Tutorials.Core.Editor
         {
             foreach (var cacheEntry in m_Cache.Values)
             {
+                if(cacheEntry.SceneAudioWasMuted)
+                    EditorUtility.audioMasterMute = true;
+
                 Object.DestroyImmediate(cacheEntry.Texture2D);
                 Object.DestroyImmediate(cacheEntry.VideoPlayer);
             }

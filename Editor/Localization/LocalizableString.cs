@@ -41,20 +41,20 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Constructs with an untranslated string.
         /// </summary>
-        /// <param name="untranslated"></param>
+        /// <param name="untranslated">The untranslated string of text</param>
         public LocalizableString(string untranslated) { Untranslated = untranslated; }
 
         /// <summary>
         /// Implicitly constructs from an untranslated string.
         /// </summary>
-        /// <param name="untranslated"></param>
-        /// <returns></returns>
+        /// <param name="untranslated">The untranslated string of text</param>
+        /// <returns>The LocalizedString from an untranslated entry</returns>
         public static implicit operator LocalizableString(string untranslated) => new LocalizableString(untranslated);
         /// <summary>
         /// Implicit conversion to string returns the Value.
         /// </summary>
-        /// <param name="str"></param>
-        /// <returns></returns>
+        /// <param name="str">The LocalizableString to convert to a string</param>
+        /// <returns>This LocalizableString as a string</returns>
         public static implicit operator string(LocalizableString str) => str.Value;
 
         /// <summary>
@@ -99,8 +99,8 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Constructs with desired number of lines.
         /// </summary>
-        /// <param name="minLines"></param>
-        /// <param name="maxLines"></param>
+        /// <param name="minLines">The minimum number of lines for that TextArea</param>
+        /// <param name="maxLines">The maximum number of lines for that TextArea</param>
         public LocalizableTextAreaAttribute(int minLines, int maxLines)
         {
             MinLines = minLines;

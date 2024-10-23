@@ -271,7 +271,6 @@ namespace Unity.Tutorials.Core.Editor
 
                 if (m_RestoreSceneViewCamera)
                 {
-                    Debug.Log("Resting scene view");
                     m_Model.RestoreSceneViewStateAsBeforeTutorialStarted();
                 }
 

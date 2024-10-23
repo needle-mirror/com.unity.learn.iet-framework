@@ -76,7 +76,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Evaluates if the criterion is completed.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>True if the prefab where created, false otherwise</returns>
         protected override bool EvaluateCompletion()
         {
             if (PrefabParent == null)
@@ -106,7 +106,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Returns FutureObjectReference for this Criterion.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The FutureObjectReference when it becomes available</returns>
         protected override IEnumerable<FutureObjectReference> GetFutureObjectReferences()
         {
             if (m_FutureReference == null)

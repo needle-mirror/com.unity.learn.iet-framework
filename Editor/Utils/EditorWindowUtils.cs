@@ -15,8 +15,8 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Finds the first open EditorWindow instance, if such exists.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
+        /// <typeparam name="T">The Type of the EditorWindow to find</typeparam>
+        /// <returns>The first opened instance of the given EditorWindow type, or a new default one if none exist</returns>
         public static T FindOpenInstance<T>() where T : EditorWindow => Resources.FindObjectsOfTypeAll<T>().FirstOrDefault();
 
         /// <summary>
@@ -59,7 +59,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Centers an EditorWindow to the Editor main window.
         /// </summary>
-        /// <param name="win"></param>
+        /// <param name="win">The window to center</param>
         public static void CenterOnMainWindow(EditorWindow win)
         {
             var main = GetEditorMainWindowPos();
@@ -74,7 +74,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Returns the position of the Editor main window.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>A rect of the main window position on screen</returns>
         public static Rect GetEditorMainWindowPos()
         {
             // NOTE Code adapted from http://answers.unity.com/answers/960709/view.html
@@ -105,7 +105,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Sets the position of the Editor main window.
         /// </summary>
-        /// <param name="pos"></param>
+        /// <param name="pos">The position to which place the main editor window</param>
         public static void SetEditorMainWindowPos(Rect pos)
         {
             // TODO copy-pasta, generalise and clean up the code with GetEditorMainWindowPos
