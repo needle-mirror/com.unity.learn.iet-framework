@@ -29,6 +29,23 @@ namespace Unity.Tutorials.Core.Editor
 
         static string GetPropertyValueToString(MaterialProperty property)
         {
+#if UNITY_6000_1_OR_NEWER
+            switch (property.propertyType)
+            {
+                case UnityEngine.Rendering.ShaderPropertyType.Color:
+                    return property.colorValue.ToString();
+                case UnityEngine.Rendering.ShaderPropertyType.Vector:
+                    return property.vectorValue.ToString();
+                case UnityEngine.Rendering.ShaderPropertyType.Float:
+                    return property.floatValue.ToString();
+                case UnityEngine.Rendering.ShaderPropertyType.Range:
+                    return property.rangeLimits.ToString();
+                case UnityEngine.Rendering.ShaderPropertyType.Texture:
+                    return property.textureValue.GetInstanceID().ToString();
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+#else
             switch (property.type)
             {
                 case MaterialProperty.PropType.Color:
@@ -44,6 +61,7 @@ namespace Unity.Tutorials.Core.Editor
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+#endif
         }
 
         /// <summary>

@@ -4,15 +4,20 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.4] - 2025-01-27
+### Fixed
+
+- Popout window for media is now properly always unmasked even when resized
+
 ## [4.0.3] - 2024-10-23
 ### Fixed
 
 - Fixed some XMLDoc missing tags
 - Removed a stray Debug.Log
-- Fixed TutorialWindow sometime displaying a wrongly formated title
+- Fixed TutorialWindow sometime displaying a wrongly formatted title
 - Added missing Localization String so some Title appear properly
-- Fixed Selector type in masking settings overlapping +/- control of Unamsked Control view
-- Muting button on GameView was muting video. Mutting is now removed and reapplied when video play/pause
+- Fixed Selector type in masking settings overlapping +/- control of Unmasked Control view
+- Muting button on GameView was muting video. Muting is now removed and reapplied when video play/pause
 - Fixed rare case (mainly happening at authoring time) of a tutorial not being re-enterable after reloading 
 
 ## [4.0.2] - 2024-09-03

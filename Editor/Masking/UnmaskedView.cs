@@ -89,8 +89,10 @@ namespace Unity.Tutorials.Core.Editor
                 var allViews = new List<GUIViewProxy>();
                 GUIViewDebuggerHelperProxy.GetViews(allViews);
 
-                foreach (var tooltipView in allViews.Where(v => v.IsGUIViewAssignableTo(typeof(MediaPopoutWindow))))
+                foreach (var tooltipView in allViews.Where(v => v.IsActualViewAssignableTo(typeof(MediaPopoutWindow))))
+                {
                     m_MaskData[tooltipView] = MaskViewData.CreateEmpty(MaskType.FullyUnmasked);
+                }
             }
 
             public void RemovePopoutWindow()
