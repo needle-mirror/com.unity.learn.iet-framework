@@ -1,8 +1,3 @@
-using System.Collections;
-using NUnit.Framework;
-using UnityEditor;
-using UnityEngine.TestTools;
-
 namespace Unity.Tutorials.Core.Editor.Tests
 {
     class SceneAddedToBuildCriterionTests : CriterionTestBase<SceneAddedToBuildCriterion>

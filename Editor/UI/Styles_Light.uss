@@ -70,7 +70,7 @@ HyperlinkLabel {
 }
 
 .icon--tutorial-error-checkmark {
-    background-image: url('Images/Icons/ErrorLight.png');
+    background-image: url('/Packages/com.unity.learn.iet-framework/Editor/UI/Images/Icons/ErrorLight.png');
 }
 
 .image--instruction-arrow {

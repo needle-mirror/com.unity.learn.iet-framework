@@ -9,7 +9,7 @@ namespace Unity.Tutorials.Core.Editor
         /// Returns the string formatted as code (indented)
         /// </summary>
         /// <param name="self"></param>
-        /// <returns>The given string as tabulated formated code</returns>
+        /// <returns>The given string as tabulated formatted code</returns>
         public static string AsFormattedCode(string originalString)
         {
             var lines = originalString.Split('\n').Select(s => s.Trim());

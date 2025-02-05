@@ -1,7 +1,7 @@
 using System;
+using SerializableCallback;
 using UnityEditor;
 using UnityEngine;
-using SerializableCallback;
 
 namespace Unity.Tutorials.Core.Editor
 {

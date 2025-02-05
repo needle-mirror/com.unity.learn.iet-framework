@@ -1,11 +1,11 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
+using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
-using NUnit.Framework;
-using System.Collections.Generic;
 
 namespace Unity.Tutorials.Core.Editor.Tests
 {

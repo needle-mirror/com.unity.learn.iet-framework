@@ -22,7 +22,7 @@ namespace Unity.Tutorials.Core.Editor
     /// In addition of window title, header image, title, and description,
     /// a welcome page/dialog contains a fully customizable button row.
     /// </remarks>
-    public class TutorialWelcomePage : ScriptableObject
+    public class TutorialWelcomePage : ScriptableObject, ISerializationCallbackReceiver
     {
         /// <summary>
         /// Data for a customizable button.
@@ -58,11 +58,29 @@ namespace Unity.Tutorials.Core.Editor
         public TutorialWelcomePageEvent Modified = new TutorialWelcomePageEvent();
 
         /// <summary>
-        /// Header image of the welcome dialog.
+        /// Does this Welcome Dialog mask the rest of the editor when displayed
         /// </summary>
+        public bool MaskEditor { get => m_MaskEditor; set => m_MaskEditor = value; }
+        [SerializeField]
+        [Tooltip("Is the editor masked when the Welcome Dialog is opened")]
+        internal bool m_MaskEditor;
+
+
+        /// <summary>
+        /// Header image of the welcome dialog if the HeaderType is set to Image
+        /// </summary>
+        [Obsolete("This is deprecated and will be removed in a future version. Use HeaderContent with Type set to Image")]
         public Texture2D Image { get => m_Image; set => m_Image = value; }
+        [HideInInspector]
         [SerializeField]
         Texture2D m_Image;
+
+        /// <summary>
+        /// The Video Media settings used by the header if the media type is set to Video
+        /// </summary>
+        public MediaContent HeaderContent { get => m_HeaderContent; set => m_HeaderContent = value; }
+        [SerializeField]
+        private MediaContent m_HeaderContent;
 
         /// <summary>
         /// Window title of the welcome dialog.
@@ -141,6 +159,26 @@ namespace Unity.Tutorials.Core.Editor
         public void ExitEditor()
         {
             EditorApplication.Exit(0);
+        }
+
+        /// <summary>
+        /// Called before the asset is serialized to disk
+        /// </summary>
+        public void OnBeforeSerialize()
+        {
+
+        }
+
+        /// <summary>
+        /// Called just after the asset was deserialized to disk
+        /// </summary>
+        public void OnAfterDeserialize()
+        {
+            //Migrate the old version to new one.
+            if (m_Image != null && HeaderContent.Image == null)
+            {
+                HeaderContent.Image = m_Image;
+            }
         }
     }
 }

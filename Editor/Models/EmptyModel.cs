@@ -1,5 +1,9 @@
-using JetBrains.Annotations;
+#region
+
 using System;
+using JetBrains.Annotations;
+
+#endregion
 
 namespace Unity.Tutorials.Core.Editor
 {

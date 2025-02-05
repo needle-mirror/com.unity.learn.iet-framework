@@ -12,6 +12,7 @@
                 <ui:Label text="Make a simple change and playtest your game." name="lblDescription" class="label--tutorial-description" />
                 <ui:Label text="COMPLETED" name="lblCompletionStatus" class="label--completed" />
             </ui:VisualElement>
+            <ui:VisualElement name="imgLink" class="container--tutorial-link-icon" />
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

@@ -1,7 +1,8 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.UIElements;
-using UnityEngine;
 using UnityEngine.UIElements;
 using UnityObject = UnityEngine.Object;
 
@@ -183,6 +184,23 @@ namespace Unity.Tutorials.Core.Editor
             if (!target.styleSheets.Contains(styleSheet)) { return; }
 
             target.styleSheets.Remove(styleSheet);
+        }
+
+        internal static void DrawPropertiesExcluding(VisualElement root, SerializedObject serializedObject,
+            string[] propsToIgnore)
+        {
+            SerializedProperty iterator = serializedObject.GetIterator();
+            bool enterChildren = true;
+            while (iterator.NextVisible(enterChildren))
+            {
+                enterChildren = false;
+                if (!((IEnumerable<string>)propsToIgnore).Contains<string>(iterator.name))
+                {
+                    var propField = new PropertyField(iterator);
+                    propField.BindProperty(iterator);
+                    root.Add(propField);
+                }
+            }
         }
     }
 

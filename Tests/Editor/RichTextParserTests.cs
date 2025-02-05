@@ -2,7 +2,6 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
-using Unity.Tutorials.Core.Editor;
 using static Unity.Tutorials.Core.Editor.RichTextParser;
 
 namespace Unity.Tutorials.Core.Editor.Tests

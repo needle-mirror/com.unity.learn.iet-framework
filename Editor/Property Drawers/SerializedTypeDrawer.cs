@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
-
 using UnityObject = UnityEngine.Object;
 using static Unity.Tutorials.Core.Editor.Localization;
 

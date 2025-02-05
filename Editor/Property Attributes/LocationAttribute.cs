@@ -1,6 +1,5 @@
 using System;
 using UnityEditorInternal;
-using UnityEngine;
 
 namespace Unity.Tutorials.Core.Editor
 {

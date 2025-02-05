@@ -1,8 +1,6 @@
 using System.IO;
-using System.Linq;
 using System.Reflection;
-
-using PackageInfo = UnityEditor.PackageManager.PackageInfo;
+using UnityEditor.PackageManager;
 
 namespace Unity.Tutorials.Core.Editor.Tests
 {

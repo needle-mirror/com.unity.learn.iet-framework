@@ -1,7 +1,5 @@
-using System.Linq;
 using UnityEditor;
 using UnityEditor.SettingsManagement;
-using UnityEngine;
 
 namespace Unity.Tutorials.Core.Editor
 {

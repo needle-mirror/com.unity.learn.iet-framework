@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Video;
 using UnityEngine.Serialization;
+using UnityEngine.Video;
 
 namespace Unity.Tutorials.Core.Editor
 {
@@ -36,11 +36,15 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// A video clip.
         /// </summary>
-        Video,
+        Video = 7,
         /// <summary>
         /// A video url
         /// </summary>
-        VideoUrl
+        VideoUrl = 8,
+        /// <summary>
+        /// A media content (can be image, video or video url)
+        /// </summary>
+        Media = 9
     }
 
     enum CompletionType
@@ -113,6 +117,14 @@ namespace Unity.Tutorials.Core.Editor
         public VideoClip Video { get => m_Video; set => m_Video = value; }
         [SerializeField]
         VideoClip m_Video;
+
+        /// <summary>
+        /// The media used by the page (image, video or url). This replaced the
+        /// three separate Image, video and video url properties
+        /// </summary>
+        public MediaContent Media { get => m_Media; set => m_Media = value; }
+        [SerializeField]
+        private MediaContent m_Media;
 
         [SerializeField]
         [Tooltip("The state in which the criteria of the page are be considered as completed")]
@@ -242,6 +254,26 @@ namespace Unity.Tutorials.Core.Editor
                 case ParagraphType.SwitchTutorial:
                     MigrateStringToLocalizableString(ref m_TutorialButtonText, ref Text);
                     break;
+            }
+
+            //migrate the media from separate image/video entry into the new MediaContent
+            if(m_Type == ParagraphType.Image)
+            {
+                m_Type = ParagraphType.Media;
+                m_Media.ContentType = MediaContent.MediaContentType.Image;
+                m_Media.Image = m_Image;
+            }
+            else if(m_Type == ParagraphType.Video)
+            {
+                m_Type = ParagraphType.Media;
+                m_Media.ContentType = MediaContent.MediaContentType.VideoClip;
+                m_Media.VideoClip = m_Video;
+            }
+            else if(m_Type == ParagraphType.VideoUrl)
+            {
+                 m_Type = ParagraphType.Media;
+                m_Media.ContentType = MediaContent.MediaContentType.VideoUrl;
+                m_Media.Url = m_VideoUrl;
             }
         }
 

@@ -1,9 +1,6 @@
-using System.Linq;
-using UnityEditor.SceneManagement;
-using UnityEngine;
 using NUnit.Framework;
+using UnityEngine;
 using UnityObject = UnityEngine.Object;
-using UnityEngine.TestTools;
 
 namespace Unity.Tutorials.Core.Editor.Tests
 {

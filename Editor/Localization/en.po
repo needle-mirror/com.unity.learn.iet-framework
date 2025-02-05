@@ -10,6 +10,15 @@
 msgid "WindowTitle"
 msgstr "Tutorials"
 
+msgid "FaqOpenText"
+msgstr "Need Help?"
+
+msgid "ReportProblemText"
+msgstr "Is your question not listed here or would you like to report an issue?"
+
+msgid "ReportProblemButtonText"
+msgstr "Report issue"
+
 msgid "TOCLabelTitle"
 msgstr "Tutorials and documentation"
 

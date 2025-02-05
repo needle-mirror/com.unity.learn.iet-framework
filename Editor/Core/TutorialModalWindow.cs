@@ -6,7 +6,6 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 using static Unity.Tutorials.Core.Editor.Localization;
-using static Unity.Tutorials.Core.Editor.RichTextParser;
 
 namespace Unity.Tutorials.Core.Editor
 {
@@ -150,6 +149,11 @@ namespace Unity.Tutorials.Core.Editor
         {
             UIElementsUtils.RemoveStyleSheet(m_LastCommonStyleSheet, m_Root);
             UIElementsUtils.LoadSkinStyleSheet(out m_LastCommonStyleSheet, m_Root);
+
+            if (TutorialProjectSettings.Instance != null && TutorialProjectSettings.Instance.TutorialStyle != null)
+            {
+                TutorialProjectSettings.Instance.TutorialStyle.AddCustomStyleSheet(m_Root);
+            }
         }
 
         void SubscribeEvents()
@@ -213,10 +217,41 @@ namespace Unity.Tutorials.Core.Editor
 
             Instance.titleContent = new GUIContent(WelcomePage.WindowTitle);
 
-            VisualElement header = m_Root.Q("HeaderMedia");
-            header.style.backgroundImage = Background.FromTexture2D(WelcomePage.Image);
+            if (!WelcomePage.HeaderContent.IsValid())
+            {
+                UIElementsUtils.ShowOrHide("HeaderContainer", m_Root, false);
+            }
+            else
+            {
 
-            UIElementsUtils.ShowOrHide("HeaderContainer", m_Root, WelcomePage.Image != null);
+                VisualElement header = m_Root.Q("HeaderMedia");
+                VideoPlayerElement videoPlayer = m_Root.Q<VideoPlayerElement>();
+
+                switch (WelcomePage.HeaderContent.ContentType)
+                {
+                    case MediaContent.MediaContentType.Image:
+                        UIElementsUtils.ShowOrHide("HeaderMedia", m_Root, WelcomePage.HeaderContent.IsValid());
+                        UIElementsUtils.ShowOrHide("VideoPlayerContainer", m_Root, false);
+                        header.style.backgroundImage = Background.FromTexture2D(WelcomePage.HeaderContent.Image);
+                        break;
+                    case MediaContent.MediaContentType.VideoClip:
+                    case MediaContent.MediaContentType.VideoUrl:
+                        UIElementsUtils.ShowOrHide("VideoPlayerContainer", m_Root, WelcomePage.HeaderContent.IsValid());
+                        UIElementsUtils.ShowOrHide("HeaderMedia", m_Root, false);
+
+                        if (WelcomePage.HeaderContent.ContentType == MediaContent.MediaContentType.VideoClip)
+                            videoPlayer.SetVideoClip(WelcomePage.HeaderContent.VideoClip,
+                                WelcomePage.HeaderContent.Loop);
+                        else
+                            videoPlayer.SetVideoUrl(WelcomePage.HeaderContent.Url, WelcomePage.HeaderContent.Loop);
+
+                        videoPlayer.SetLooping(WelcomePage.HeaderContent.Loop);
+                        break;
+                    default:
+                        break;
+                }
+            }
+
             UIElementsUtils.SetupLabel("Heading", WelcomePage.Title, m_Root, false);
 
             var welcomeLabel = new Label(WelcomePage.Description);
@@ -224,6 +259,11 @@ namespace Unity.Tutorials.Core.Editor
             welcomeLabel.style.whiteSpace = WhiteSpace.Normal;
             m_Root.Q("Description").Add(welcomeLabel);
             AddDynamicButtonsToContent();
+
+            if (WelcomePage.MaskEditor)
+            {
+                Mask();
+            }
         }
 
         void AddDynamicButtonsToContent()

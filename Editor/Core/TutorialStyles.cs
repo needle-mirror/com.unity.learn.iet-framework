@@ -58,6 +58,7 @@ namespace Unity.Tutorials.Core.Editor
         public StyleSheet DarkThemeStyleSheet;
 
         StyleSheet m_LastCommonStyleSheet;
+        StyleSheet m_LastCustomStyleSheet;
 
         /// <summary>
         /// The default style sheet file used when the Personal Editor Theme is chosen. Deprecated.
@@ -83,6 +84,22 @@ namespace Unity.Tutorials.Core.Editor
         {
             MaskingManager.HighlightAnimationSpeed = m_HighlightAnimationSpeed;
             MaskingManager.HighlightAnimationDelay = m_HighlightAnimationDelay;
+        }
+
+        /// <summary>
+        /// Add the DarkThemeStyleSheet or LightThemeStyleSheet (based on editor theme) to the given VisualElement.
+        /// </summary>
+        /// <param name="target">The VisualElement on which to set the right Stylesheet</param>
+        public void AddCustomStyleSheet(VisualElement target)
+        {
+            if (m_LastCustomStyleSheet != null)
+                target.styleSheets.Remove(m_LastCustomStyleSheet);
+
+            m_LastCustomStyleSheet = EditorGUIUtility.isProSkin ? DarkThemeStyleSheet : LightThemeStyleSheet;
+            if (m_LastCustomStyleSheet != null)
+            {
+                target.styleSheets.Add(m_LastCustomStyleSheet);
+            }
         }
 
         /// <summary>

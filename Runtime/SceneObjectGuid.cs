@@ -1,6 +1,6 @@
 using System;
-using UnityEngine;
 using System.Linq;
+using UnityEngine;
 
 namespace Unity.Tutorials.Core
 {

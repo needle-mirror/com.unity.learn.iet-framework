@@ -1,8 +1,6 @@
 using NUnit.Framework;
-using System.Collections;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.TestTools;
 
 namespace Unity.Tutorials.Core.Editor.Tests
 {

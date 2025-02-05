@@ -1,10 +1,10 @@
 using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using UnityObject = UnityEngine.Object;
 using UnityEngine.UIElements;
+using UnityObject = UnityEngine.Object;
 
 namespace Unity.Tutorials.Core.Editor
 {

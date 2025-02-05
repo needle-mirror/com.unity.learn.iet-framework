@@ -1,13 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Reflection;
 using System.Text;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Networking;
-using System.Net.Http;
-using System.Net.Http.Headers;
 
 namespace Unity.Tutorials.Core.Editor
 {

@@ -5,11 +5,10 @@ using System.Linq;
 using Unity.EditorCoroutines.Editor;
 using UnityEditor;
 using UnityEditor.SceneManagement;
-using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
-using UnityEngine.Video;
+using Object = UnityEngine.Object;
 
 namespace Unity.Tutorials.Core.Editor
 {
@@ -36,6 +35,9 @@ namespace Unity.Tutorials.Core.Editor
         VideoPlaybackManager VideoPlaybackManager { get; } = new VideoPlaybackManager();
         private List<VisualElement> playButtons = new List<VisualElement>();
         private List<VisualElement> playOverlays = new List<VisualElement>();
+
+        private HelpPanelHandler m_HelpPanelHandler = new();
+
         public TutorialView() : base() { }
 
         public override void SubscribeEvents()
@@ -86,6 +88,8 @@ namespace Unity.Tutorials.Core.Editor
 
             playButtons.Clear();
             playOverlays.Clear();
+
+            m_HelpPanelHandler.Initialize(m_Root);
 
             Refresh();
             SubscribeEvents();
@@ -145,7 +149,7 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
-        void OnGUIViewPositionChanged(UnityEngine.Object sender)
+        void OnGUIViewPositionChanged(Object sender)
         {
             if (Model.CurrentTutorial == null
             || Model.IsLoadingLayout
@@ -159,7 +163,7 @@ namespace Unity.Tutorials.Core.Editor
         internal void Refresh()
         {
             UIElementsUtils.SetupLabel("lblTutorialName", Model.CurrentTutorial.TutorialTitle, m_Root, false);
-            UIElementsUtils.SetupLabel("lblStepCount", $"{Model.CurrentTutorial.CurrentPageIndex + 1} / {Model.CurrentTutorial.PagesCollection.Count}", m_Root, false);
+            UIElementsUtils.SetupLabel("lblStepCount", $"Steps {Model.CurrentTutorial.CurrentPageIndex + 1} / {Model.CurrentTutorial.PagesCollection.Count}", m_Root, false);
 
             m_Root.Q("btnQuit").RegisterCallback<MouseUpEvent>(_ => ExitTutorial());
 
@@ -287,6 +291,7 @@ namespace Unity.Tutorials.Core.Editor
 
         void ExitTutorial()
         {
+            m_HelpPanelHandler.Close();
             Application.Broadcast(new TutorialQuitEvent());
         }
 
@@ -513,135 +518,76 @@ namespace Unity.Tutorials.Core.Editor
                     {
                         UIElementsUtils.Show(tutorialMediaContainerElementName, paragraphUI);
 
-                        var playControlBar = paragraphUI.Q<VisualElement>("PlayBar");
+                        var vidPlayer = paragraphUI.Q<VideoPlayerElement>();
 
-                        var playOverlay = paragraphUI.Q<VisualElement>("PlayOverlay");
-                        var playTrack = paragraphUI.Q<VisualElement>("PlayTrackFiller");
-                        var playTrackParent = playTrack.parent;
-                        var popout = paragraphUI.Q<VisualElement>("PopoutButton");
-                        var playButton = paragraphUI.Q<VisualElement>("PlayButton");
-
-                        var audioIcon = paragraphUI.Q<VisualElement>("AudioIcon");
-                        var volumeSlider = paragraphUI.Q<Slider>("VolumeSlider");
-
-                        var errorString = paragraphUI.Q<Label>("ErrorLabel");
-                        errorString.style.display = DisplayStyle.None;
-
-                        //we store the play button & overlay as we will need to update then when exiting play mode
-                        playButtons.Add(playButton);
-                        playOverlays.Add(playOverlay);
-
-                        var cacheKey = new VideoPlaybackManager.CacheKey(paragraph);
-
-                        // ---- play functions ----
-
-                        void PlayerPlay()
+                        if(paragraph.Type == ParagraphType.Video)
                         {
-                            //player may not be prepared yet so we cannot start playing
-                            if (!VideoPlaybackManager.IsPrepared(cacheKey))
-                                return;
-
-                            playOverlay.visible = false;
-                            playButton.RemoveFromClassList("video-play-button");
-                            playButton.AddToClassList("video-pause-button");
-                            playOverlay.visible = false;
-                            VideoPlaybackManager.Play(cacheKey);
+                            if (paragraph.Video != null)
+                            {
+                                vidPlayer.SetVideoClip(paragraph.Video, true);
+                            }
                         }
-                        void PlayerPause()
+                        else if (paragraph.Type == ParagraphType.VideoUrl)
                         {
-                            VideoPlaybackManager.Pause(new VideoPlaybackManager.CacheKey(paragraph));
-                            playButton.RemoveFromClassList("video-pause-button");
-                            playButton.AddToClassList("video-play-button");
-                            playOverlay.visible = true;
+                            if (paragraph.VideoUrl != null)
+                            {
+                                vidPlayer.SetVideoUrl(paragraph.VideoUrl, true);
+                            }
                         }
-
-                        // --- player setup ---
-
-                        paragraphUI.AddManipulator(new Clickable(PlayerPause));
-                        //we had a clickable manipulator on our control bar at the bottom so it eat click event so that
-                        //the player above doesn't receive it to stop the video
-                        playControlBar.AddManipulator(new Clickable(() => {}));
-
-                        playOverlay.AddManipulator(new Clickable(PlayerPlay));
-
-                        //Play Button
-                        playButton.AddToClassList("video-pause-button");
-                        playButton.AddManipulator(new Clickable(() =>
-                        {
-                            if (VideoPlaybackManager.IsPlaying(new VideoPlaybackManager.CacheKey(paragraph)))
-                            {
-                                PlayerPause();
-                            }
-                            else
-                            {
-                                PlayerPlay();
-                            }
-                        }));
-
-                        //volume slider
-                        volumeSlider.SetValueWithoutNotify(1.0f);
-                        volumeSlider.RegisterValueChangedCallback(evt =>
-                        {
-                            VideoPlaybackManager.SetVolume(new VideoPlaybackManager.CacheKey(paragraph), evt.newValue);
-                        });
-
-                        //clicking the audio icon set the volume to 0 (mute)
-                        audioIcon.AddManipulator(new Clickable(() =>
-                        {
-                            //if the volume is 0 and we have a previous value, we return to that value
-                            if (volumeSlider.value < 0.001f && volumeSlider.userData != null)
-                            {
-                                volumeSlider.value = (float)volumeSlider.userData;
-                                volumeSlider.userData = null;
-                            }
-                            else
-                            {
-                                //otherwise we save in the user data the previous volume and mute
-                                volumeSlider.userData = volumeSlider.value;
-                                volumeSlider.value = 0.0f;
-                            }
-                        }));
-
-                        //Play Track
-                        playTrack.schedule.Execute(() =>
-                        {
-                            playTrack.style.width =
-                                Length.Percent(VideoPlaybackManager.GetPlayPercent(new VideoPlaybackManager.CacheKey(paragraph)) * 100.0f);
-                        }).Every(16);
-
-                        //register on the parent listening to mouse events to seek times
-                        playTrackParent.RegisterCallback<MouseDownEvent>(evt =>
-                        {
-                            playTrackParent.CaptureMouse();
-
-                            float seekPosition = evt.localMousePosition.x / playTrackParent.contentRect.width;
-                            VideoPlaybackManager.SetPlayPercent(new VideoPlaybackManager.CacheKey(paragraph), seekPosition);
-                        });
-                        playTrackParent.RegisterCallback<MouseMoveEvent>(evt =>
-                        {
-                            if (!playTrackParent.HasMouseCapture())
-                                return;
-
-                            float seekPosition = evt.localMousePosition.x / playTrackParent.contentRect.width;
-                            VideoPlaybackManager.SetPlayPercent(new VideoPlaybackManager.CacheKey(paragraph), seekPosition);
-                        });
-
-                        playTrackParent.RegisterCallback<MouseUpEvent>(evt =>
-                        {
-                            playTrackParent.ReleaseMouse();
-                        });
-
-                        //Popout button
-                        popout.AddManipulator(new Clickable(() =>
-                        {
-                            MediaPopoutWindow.Popout(paragraphUI);
-                        }));
-
-                        EditorCoroutineUtility.StartCoroutine(UpdateVideo(new VideoPlaybackManager.CacheKey(paragraph), paragraphUI.Q("videoPlayer")), Application);
                     }
                     else
                     {
                         UIElementsUtils.Hide(tutorialMediaContainerElementName, paragraphUI);
+                    }
+                    break;
+                case ParagraphType.Media:
+                    if(paragraph.Media.ContentType == MediaContent.MediaContentType.Image)
+                    {
+                        if (paragraph.Media.IsValid())
+                        {
+                            UIElementsUtils.Show(tutorialMediaContainerElementName, paragraphUI);
+                            //hide the video part
+                            UIElementsUtils.Hide("VideoPlayerRoot", paragraphUI);
+
+                            paragraphUI.Q("TutorialMedia").style.backgroundImage = paragraph.Media.Image;
+
+                            var popout = paragraphUI.Q<VisualElement>("PopoutButton");
+                            //Popout button
+                            popout.AddManipulator(new Clickable(() =>
+                            {
+                                MediaPopoutWindow.Popout(paragraphUI);
+                            }));
+                        }
+                        else
+                        {
+                            UIElementsUtils.Hide(tutorialMediaContainerElementName, paragraphUI);
+                        }
+                    }
+                    else
+                    {
+                        if (paragraph.Media.IsValid())
+                        {
+                            UIElementsUtils.Show(tutorialMediaContainerElementName, paragraphUI);
+                            //Hide the image part
+                            UIElementsUtils.Hide("TutorialMedia", paragraphUI);
+
+                            var vidPlayer = paragraphUI.Q<VideoPlayerElement>();
+
+                            if (paragraph.Media.ContentType == MediaContent.MediaContentType.VideoClip)
+                            {
+                                vidPlayer.SetVideoClip(paragraph.Media.VideoClip, paragraph.Media.AutoStart);
+                            }
+                            else if (paragraph.Media.ContentType == MediaContent.MediaContentType.VideoUrl)
+                            {
+                                vidPlayer.SetVideoUrl(paragraph.Media.Url, paragraph.Media.AutoStart);
+                            }
+
+                            vidPlayer.SetLooping(paragraph.Media.Loop);
+                        }
+                        else
+                        {
+                            UIElementsUtils.Hide(tutorialMediaContainerElementName, paragraphUI);
+                        }
                     }
                     break;
                 default: break;
@@ -651,31 +597,6 @@ namespace Unity.Tutorials.Core.Editor
         void SwitchTutorial(Tutorial newTutorial)
         {
             Application.Broadcast(new TutorialStartRequestedEvent(newTutorial, Model.CurrentTutorial));
-        }
-
-        IEnumerator UpdateVideo(VideoPlaybackManager.CacheKey key, VisualElement paragraphUI)
-        {
-            var errorString = paragraphUI.parent.Q<Label>("ErrorLabel");
-            var player = paragraphUI.Q<VisualElement>("videoPlayer");
-
-            //If the panel of the given visual element is null, that mean the element isn't rendered anywhere
-            //so we can exit the enumerator which would run for nothing now
-            while (Application && Model.CurrentTutorial && paragraphUI.panel != null && player != null)
-            {
-                paragraphUI.style.backgroundImage = VideoPlaybackManager.GetTextureForVideoClip(key, errorMsg =>
-                {
-                    player.style.display = DisplayStyle.None;
-                    errorString.style.display = DisplayStyle.Flex;
-                    errorString.text = errorMsg;
-                    player = null; //this will exit this coroutine, as the video player errored out
-                });
-
-                paragraphUI.MarkDirtyRepaint(); //needed, otherwise the video will be laggy as images will be updated only on the next editor update
-                yield return null;
-            }
-
-            //we pause the video
-            VideoPlaybackManager.Pause(key);
         }
 
         void ShowCurrentTutorialContent()
@@ -708,6 +629,25 @@ namespace Unity.Tutorials.Core.Editor
                 Application.StopAndNullifyEditorCoroutine(ref m_NextButtonBlinkRoutine);
                 UIElementsUtils.ShowOrHide(k_NextButtonBorderElementName, btnNext, false);
             }
+
+            var faqContainer = m_Root.Q<VisualElement>("FAQContainer");
+            var faqLabel = m_Root.Q<Label>("FAQLabelTitle");
+            var faqFoldoutArrow = m_Root.Q<VisualElement>("FoldoutArrow");
+
+            faqLabel.text = Localization.Tr(LocalizationKeys.k_FaqOpenText);
+            faqContainer.AddManipulator(new Clickable(() =>
+            {
+                if (!m_HelpPanelHandler.IsOpened)
+                {
+                    faqFoldoutArrow.AddToClassList("open");
+                    m_HelpPanelHandler.Open(Model.CurrentTutorial);
+                }
+                else
+                {
+                    faqFoldoutArrow.RemoveFromClassList("open");
+                    m_HelpPanelHandler.Close();
+                }
+            }));
         }
 
         IEnumerator MakeNextButtonBlink()

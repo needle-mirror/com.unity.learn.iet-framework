@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-
 using Unity.EditorCoroutines.Editor;
 using UnityEditor;
 using UnityEngine;
@@ -355,12 +354,17 @@ namespace Unity.Tutorials.Core.Editor
 
         void SetupFrontend()
         {
-            m_Root = rootVisualElement;
+            //The root is not the root of the window, as we want an always present bottom bar to report problem at the
+            //bottom
+            m_Root = new VisualElement();
+            m_Root.style.flexGrow = 1.0f;
+            rootVisualElement.Add(m_Root);
 
             titleContent = new GUIContent(Localization.Tr(LocalizationKeys.k_WindowTitle));
             minSize = k_MinWindowSize;
             maxSize = k_MaxWindowSize;
             FrontendIsReadyToBeInitialized = true;
+
             RebuildFrontend();
         }
 
@@ -416,6 +420,11 @@ namespace Unity.Tutorials.Core.Editor
         {
             UIElementsUtils.RemoveStyleSheet(m_LastCommonStyleSheet, m_Root);
             UIElementsUtils.LoadSkinStyleSheet(out m_LastCommonStyleSheet, m_Root);
+
+            if (TutorialProjectSettings.Instance != null && TutorialProjectSettings.Instance.TutorialStyle != null)
+            {
+                TutorialProjectSettings.Instance.TutorialStyle.AddCustomStyleSheet(m_Root);
+            }
         }
 
         void SubscribeEvents()

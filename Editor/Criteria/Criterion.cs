@@ -1,9 +1,13 @@
+#region
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
+
+#endregion
 
 namespace Unity.Tutorials.Core.Editor
 {

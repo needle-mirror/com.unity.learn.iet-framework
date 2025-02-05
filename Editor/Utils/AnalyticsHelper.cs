@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Analytics;
@@ -383,6 +381,29 @@ namespace Unity.Tutorials.Core.Editor
             public bool isBlocking;
         }
 
+#if UNITY_6000
+        public struct FaqOpenedEventData : IAnalytic.IData
+#else
+        public struct FaqOpenedEventData
+#endif
+        {
+            public int ts; // timestamp
+            public string tutorialName;
+            public int pageIndex;
+        }
+
+#if UNITY_6000
+        public struct FaqQuestionClickedEventData : IAnalytic.IData
+#else
+        public struct FaqQuestionClickedEventData
+#endif
+        {
+            public int ts; // timestamp
+            public string tutorialName;
+            public int pageIndex;
+            public string question;
+        }
+
         const int k_MaxEventsPerHour = 1000;
         const int k_MaxNumberOfElements = 1000;
         const string k_VendorKey = "unity.iet"; // the format needs to be "unity.xxx"
@@ -392,6 +413,8 @@ namespace Unity.Tutorials.Core.Editor
         const string k_EventTutorial = "iet_tutorial";
         const string k_EventTutorialPage = "iet_tutorialPage";
         const string k_EventTutorialParagraph = "iet_tutorialParagraph";
+        const string k_EventTutorialFaqOpened = "iet_faqOpened";
+        const string k_EventTutorialFaqQuestionClicked = "iet_faqQuestionClicked";
 
 #if UNITY_6000
         //Unity 6 editor analytics changed, you now define 1 class per type of analytics, so we need to create a class for each even above
@@ -529,6 +552,54 @@ namespace Unity.Tutorials.Core.Editor
                 return data != null;
             }
         }
+
+        [AnalyticInfo(eventName: k_EventTutorialFaqOpened, vendorKey: k_VendorKey)]
+        internal class FaqOpenedAnalytic : IAnalytic
+        {
+            private FaqOpenedEventData parameters;
+
+            public FaqOpenedAnalytic(string tutorialName, int pageIndex)
+            {
+                parameters = new FaqOpenedEventData
+                {
+                    ts = DateTime.UtcNow.Millisecond,
+                    tutorialName = tutorialName,
+                    pageIndex = pageIndex
+                };
+            }
+
+            public bool TryGatherData(out IAnalytic.IData data, out Exception error)
+            {
+                error = null;
+                data =  parameters;
+                return data != null;
+            }
+        }
+
+        [AnalyticInfo(eventName: k_EventTutorialFaqQuestionClicked, vendorKey: k_VendorKey)]
+        internal class FaqQuestionClickedAnalytic : IAnalytic
+        {
+            private FaqQuestionClickedEventData parameters;
+
+            public FaqQuestionClickedAnalytic(string tutorialName, int pageIndex, string question)
+            {
+                parameters = new FaqQuestionClickedEventData
+                {
+                    ts = DateTime.UtcNow.Millisecond,
+                    tutorialName = tutorialName,
+                    pageIndex = pageIndex,
+                    question = question
+                };
+            }
+
+            public bool TryGatherData(out IAnalytic.IData data, out Exception error)
+            {
+                error = null;
+                data =  parameters;
+                return data != null;
+            }
+        }
+
 #else
         static bool RegisterEvent(string name)
         {
@@ -666,6 +737,49 @@ namespace Unity.Tutorials.Core.Editor
                 path = url
             };
             return SendEvent(k_EventExternalReferenceImpression, data);
+#endif
+        }
+
+        public static AnalyticsResult SendFaqOpenedEvent(string tutorialName, int pageIndex)
+        {
+            if (!EditorAnalytics.enabled
+#if !UNITY_6000
+                || !RegisterEvent(k_EventTutorialFaqOpened)
+#endif
+               ) { return AnalyticsResult.AnalyticsDisabled; }
+
+#if UNITY_6000
+            return EditorAnalytics.SendAnalytic(new FaqOpenedAnalytic(tutorialName, pageIndex));
+#else
+            var data = new FaqOpenedEventData
+            {
+                ts = DateTime.UtcNow.Millisecond,
+                tutorialName = tutorialName,
+                pageIndex = pageIndex
+            };
+            return SendEvent(k_EventTutorialFaqOpened, data);
+#endif
+        }
+
+        public static AnalyticsResult SendFaqQuestionClickedEvent(string tutorialName, int pageIndex, string question)
+        {
+            if (!EditorAnalytics.enabled
+#if !UNITY_6000
+                || !RegisterEvent(k_EventTutorialFaqQuestionClicked)
+#endif
+               ) { return AnalyticsResult.AnalyticsDisabled; }
+
+#if UNITY_6000
+            return EditorAnalytics.SendAnalytic(new FaqQuestionClickedAnalytic(tutorialName, pageIndex, question));
+#else
+            var data = new FaqQuestionClickedEventData
+            {
+                ts = DateTime.UtcNow.Millisecond,
+                tutorialName = tutorialName,
+                pageIndex = pageIndex,
+                question = question
+            };
+            return SendEvent(k_EventTutorialFaqQuestionClicked, data);
 #endif
         }
 

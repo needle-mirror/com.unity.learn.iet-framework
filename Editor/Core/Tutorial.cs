@@ -1,13 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.Events;
-
+using UnityEngine.Serialization;
 using UnityObject = UnityEngine.Object;
-using System.Linq;
 
 namespace Unity.Tutorials.Core.Editor
 {
@@ -301,6 +300,14 @@ namespace Unity.Tutorials.Core.Editor
             public TutorialPageCollection(IList<TutorialPage> items) : base(items) { }
         }
 
+        /// <summary>
+        /// Faq Entries for that specific tutorial
+        /// </summary>
+        [Header("Faq")]
+        [SerializeField]
+        private FaqEntry[] m_FaqEntries = Array.Empty<FaqEntry>();
+
+
         internal bool HasScenes() => Scenes?.Length > 0;
 
         void ClearLessonId()
@@ -555,6 +562,29 @@ namespace Unity.Tutorials.Core.Editor
         public void AddPage(TutorialPage tutorialPage)
         {
             PagesCollection.AddItem(tutorialPage);
+        }
+
+        /// <summary>
+        /// Fill the provided List with the questions for the given section
+        /// </summary>
+        /// <param name="section">The section for which get the FAQ question</param>
+        /// <param name="questions">The list that will be filled with the question</param>
+        public void GetFaqQuestions(HelpPanelHandler.Section section, out List<FaqEntry> questions)
+        {
+            questions = new List<FaqEntry>();
+
+            switch (section)
+            {
+                case HelpPanelHandler.Section.TutorialContainer:
+                    questions.AddRange(TutorialWindow.Instance.CurrentCategory.FaqEntries);
+                    break;
+                case HelpPanelHandler.Section.Tutorial:
+                    questions.AddRange(m_FaqEntries);
+                    break;
+                case HelpPanelHandler.Section.Page:
+                    questions.AddRange(CurrentPage.m_FaqEntries);
+                    break;
+            }
         }
 
         /// <summary>

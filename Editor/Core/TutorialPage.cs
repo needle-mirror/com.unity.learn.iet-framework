@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEditor;
-using UnityEditor.Events;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Serialization;
@@ -123,6 +122,14 @@ namespace Unity.Tutorials.Core.Editor
         [Header("Sounds")]
         [SerializeField]
         AudioClip m_CompletedSound = null;
+
+        /// <summary>
+        /// Faq Entries for that specific page
+        /// </summary>
+        [FormerlySerializedAs("m_FAQEntries")]
+        [Header("FAQ")]
+        [SerializeField]
+        public FaqEntry[] m_FaqEntries = Array.Empty<FaqEntry>();
 
         /// <summary>
         /// Should we auto-advance upon completion.

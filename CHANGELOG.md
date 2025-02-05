@@ -4,6 +4,28 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.1.0] - 2025-02-05
+### Changed
+- Back arrow won't be displayed on container with no Parent container anymore
+- Video Player has been refactored into a custom UIElement. This shouldn't change its usage but should improve performance
+- Section that are links now display an icon to let the user know this will open a browser
+
+### Added
+- New option *Mask Editor* on the Welcome Page that allow to mask the rest of the editor when the Welcome popup is opened
+- Welcome page can now also take a Video media as header instead of an Image
+- Tutorial and Tutorial Page now have an array of FAQ Entries where question-answer pair can be added. 
+  Tutorial window now have a link at the top left that open the current page and tutorial FAQ entry in a window to guide 
+  the learner
+- A link was added  at the top of the FAQ window to report problem with a tutorial. The address it sends user to
+  is defined in the TutorialSettings
+- Video Player can now have multiple speed
+- Video Player now have a playing head to help with scrubbing through videos
+
+### Fixed
+- Custom USS Light and Dark in the Tutorial Settings are now properly added to the Tutorial Window
+- Fixed path in default created uss through the Create/Tutorial submenu
+- Video player now display the 1st frame of the video when starting paused
+
 ## [4.0.4] - 2025-01-27
 ### Fixed
 

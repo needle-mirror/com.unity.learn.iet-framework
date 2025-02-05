@@ -1,8 +1,10 @@
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
-using System.Collections.Generic;
+using UnityEngine.UIElements;
 
 namespace Unity.Tutorials.Core.Editor
 {
@@ -70,6 +72,19 @@ namespace Unity.Tutorials.Core.Editor
         }
 
         /// <summary>
+        /// VisualElement version of RenderEventStateWarning. Renders a warning box for when event are set to runtime only
+        /// </summary>
+        /// <returns>The created helpbox (useful to show/hide it if needed)</returns>
+        internal static HelpBox RenderEventStateWarningElement(VisualElement root)
+        {
+            var helpBox = new HelpBox(Localization.Tr(LocalizationKeys.k_TutorialPageLabelEventStateWarning),
+                HelpBoxMessageType.Warning);
+            root.Add(helpBox);
+
+            return helpBox;
+        }
+
+        /// <summary>
         /// Opens an Url in the browser.
         /// Links to Unity's websites will open only if the user is logged in.
         /// </summary>
@@ -133,5 +148,37 @@ namespace Unity.Tutorials.Core.Editor
             return (url.StartsWith("unity.", System.StringComparison.OrdinalIgnoreCase) || splitUrl.Contains(".unity."))
                    && !splitUrl.Contains("assetstore");
         }
+
+        internal static void ReportLinkClicked()
+        {
+            var reportingUrl = TutorialProjectSettings.Instance?.ReportUrl;
+
+            if (string.IsNullOrEmpty(reportingUrl))
+            {
+                //we log an error as the link shouldn't appear if the url is null, so if it did, something went wrong
+                Debug.LogError("The reporting url in Project Setting is empty or null");
+                return;
+            }
+            
+            if (TutorialProjectSettings.Instance.AppendDataToReport)
+            {
+                var data = new ReportData();
+                data.ContainerTitle = TutorialWindow.Instance?.CurrentCategory?.Title.Untranslated;
+                data.TutorialTitle = TutorialWindow.Instance?.CurrentTutorial?.TutorialTitle.Untranslated;
+                data.PageTitle = TutorialWindow.Instance?.CurrentTutorial?.CurrentPage?.Title.Untranslated;
+
+                reportingUrl += "&tutorialdata=" + Uri.EscapeDataString(JsonUtility.ToJson(data));
+            }
+
+            Application.OpenURL(reportingUrl);
+        }
+    }
+
+    [System.Serializable]
+    internal class ReportData
+    {
+        public string ContainerTitle;
+        public string TutorialTitle;
+        public string PageTitle;
     }
 }

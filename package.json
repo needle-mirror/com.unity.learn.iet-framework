@@ -1,7 +1,7 @@
 {
   "name": "com.unity.learn.iet-framework",
   "displayName": "Tutorial Framework",
-  "version": "4.0.4",
+  "version": "4.1.0",
   "unity": "2021.3",
   "description": "This package is used to display interactive in-Editor tutorials in tutorial projects and project templates.",
   "keywords": [
@@ -12,15 +12,15 @@
     "com.unity.settings-manager": "1.0.3"
   },
   "_upm": {
-    "changelog": "### Fixed\n\n- Popout window for media is now properly always unmasked even when resized"
+    "changelog": "### Changed\n- Back arrow won't be displayed on container with no Parent container anymore\n- Video Player has been refactored into a custom UIElement. This shouldn't change its usage but should improve performance\n- Section that are links now display an icon to let the user know this will open a browser\n\n### Added\n- New option *Mask Editor* on the Welcome Page that allow to mask the rest of the editor when the Welcome popup is opened\n- Welcome page can now also take a Video media as header instead of an Image\n- Tutorial and Tutorial Page now have an array of FAQ Entries where question-answer pair can be added. \n  Tutorial window now have a link at the top left that open the current page and tutorial FAQ entry in a window to guide \n  the learner\n- A link was added  at the top of the FAQ window to report problem with a tutorial. The address it sends user to\n  is defined in the TutorialSettings\n- Video Player can now have multiple speed\n- Video Player now have a playing head to help with scrubbing through videos\n\n### Fixed\n- Custom USS Light and Dark in the Tutorial Settings are now properly added to the Tutorial Window\n- Fixed path in default created uss through the Create/Tutorial submenu\n- Video player now display the 1st frame of the video when starting paused"
   },
   "upmCi": {
-    "footprint": "4c92e93335d69bade431e4d25765350b46851e62"
+    "footprint": "42c31417a6424519aee8cb254114b00ee45357a5"
   },
-  "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.learn.iet-framework@4.0/manual/index.html",
+  "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.learn.iet-framework@4.1/manual/index.html",
   "repository": {
     "url": "https://github.cds.internal.unity3d.com/unity/iet-package.git",
     "type": "git",
-    "revision": "67b54224375735a114b1a2e68aad2d0bc2668cca"
+    "revision": "fe203a547afdc927347dc825091f9a3363f465b2"
   }
 }

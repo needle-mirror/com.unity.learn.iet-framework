@@ -5,8 +5,10 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using UnityEditor;
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UIElements;
 
 namespace Unity.Tutorials.Core.Editor
 {
@@ -104,6 +106,7 @@ namespace Unity.Tutorials.Core.Editor
         SerializedProperty m_VideoUrl;
         SerializedProperty m_Video;
         SerializedProperty m_Image;
+        SerializedProperty m_MediaContent;
 
         SerializedProperty m_PageTitle;
         SerializedProperty m_NarrativeTitle;
@@ -219,6 +222,7 @@ namespace Unity.Tutorials.Core.Editor
                 m_VideoUrl = firstParagraph.FindPropertyRelative(k_ParagraphVideoUrlRelativeProperty);
                 m_Video = firstParagraph.FindPropertyRelative(k_ParagraphVideoRelativeProperty);
                 m_Image = firstParagraph.FindPropertyRelative(k_ParagraphImageRelativeProperty);
+                m_MediaContent = firstParagraph.FindPropertyRelative("m_Media");
 
                 switch (paragraphs.arraySize)
                 {
@@ -316,6 +320,31 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
+        //TODO : this has been disabled as it's too big a change for 4.1, but left here to be activated in 5.0
+        // public override VisualElement CreateInspectorGUI()
+        // {
+        //     var root = new VisualElement();
+        //
+        //     TutorialProjectSettings.DrawDefaultAssetRestoreWarningElement(root);
+        //
+        //     if (!string.IsNullOrEmpty(m_WarningMessage))
+        //     {
+        //         var helpBox = new HelpBox(m_WarningMessage, HelpBoxMessageType.Warning);
+        //         root.Add(helpBox);
+        //     }
+        //
+        //     if (SerializedTypeDrawer.UseDefaultEditors)
+        //     {
+        //         InspectorElement.FillDefaultInspector(root, serializedObject, this);
+        //     }
+        //     else
+        //     {
+        //         DrawSimplifiedInspectorElement(root);
+        //     }
+        //
+        //     return root;
+        // }
+
         public override void OnInspectorGUI()
         {
             TutorialProjectSettings.DrawDefaultAssetRestoreWarning();
@@ -335,6 +364,96 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
+        void DrawSimplifiedInspectorElement(VisualElement root)
+        {
+            root.Add(CreatePropertyElement(Tr(LocalizationKeys.k_TutorialPageLabelTitle), m_PageTitle));
+            root.Add(CreatePropertyElement(Tr(LocalizationKeys.k_TutorialPagePropertyMedia), m_MediaContent));
+
+            root.Add(CreateTextAreaPropertyElement(Tr(LocalizationKeys.k_TutorialPageLabelNarrativeDescription), m_NarrativeDescription));
+            root.Add(CreatePropertyElement(Tr(LocalizationKeys.k_TutorialPageLabelInstructionTitle), m_InstructionTitle));
+            root.Add(CreateTextAreaPropertyElement(Tr(LocalizationKeys.k_TutorialPageLabelInstructionDescription), m_InstructionDescription));
+
+            root.Add(CreateTextAreaPropertyElement(Tr(LocalizationKeys.k_TutorialPageCodeSample), m_CodeSample));
+
+            var autoFormatButton = new Button(() =>
+            {
+                m_CodeSample.stringValue = CodeSampleUtils.AsFormattedCode(m_CodeSample.stringValue);
+                m_CodeSample.serializedObject.ApplyModifiedProperties();
+            });
+            autoFormatButton.text = "Auto-Format Code Sample";
+            autoFormatButton.style.marginBottom = 10;
+
+            root.Add(autoFormatButton);
+            root.Add(CreatePropertyElement(Tr(LocalizationKeys.k_TutorialPagePostInstructionImage),
+                m_PostInstructionImage));
+
+            if (m_CriteriaCompletion != null)
+            {
+                var label = new Label(Tr(LocalizationKeys.k_TutorialPageLabelCompletionCriteria));
+                label.style.unityFontStyleAndWeight = FontStyle.Bold;
+
+                root.Add(new PropertyField(m_AutoAdvance));
+                root.Add(new PropertyField(m_CriteriaCompletion, Tr(LocalizationKeys.k_TutorialPagePropertyCompletionType)));
+                root.Add(new PropertyField(m_Criteria, Tr(LocalizationKeys.k_TutorialPagePropertyCriteria)));
+            }
+
+            if (m_NextTutorial != null)
+            {
+                root.Add(CreatePropertyElement(Tr(LocalizationKeys.k_TutorialPagePropertyNextTutorial), m_NextTutorial));
+                root.Add(CreatePropertyElement(Tr(LocalizationKeys.k_TutorialPagePropertyNextTutorialButton), m_TutorialButtonText));
+            }
+
+            var foldout = new Foldout();
+
+            //the 1st child of the foldout contains the label
+            var foldoutToggleContent = foldout.Q<Toggle>()[0];
+            var foldoutImage = new Image();
+            foldoutImage.image = s_EventsSectionTitle.image;
+            foldoutImage.style.marginRight = 5;
+            foldoutToggleContent.Add(foldoutImage);
+            var foldoutLabel = new Label(s_EventsSectionTitle.text);
+            foldoutLabel.style.flexGrow = 1.0f;
+            foldoutToggleContent.Add(foldoutLabel);
+
+            if (k_IsAuthoringMode)
+            {
+                var createCallbackButton = new Button(() =>
+                {
+                    CreateCallbackHandlerScript("TutorialCallbacks.cs");
+                    m_Events.ForEach(data => InitializeEventWithDefaultData(data.Property));
+                    serializedObject.ApplyModifiedProperties();
+                });
+                createCallbackButton.text = Tr(LocalizationKeys.k_TutorialPageButtonCreateCallbackHandler);
+                createCallbackButton.style.width =  Length.Percent(50);
+                foldoutToggleContent.Add(createCallbackButton);
+            }
+
+            var warningHelpBox = TutorialEditorUtils.RenderEventStateWarningElement(foldout.contentContainer);
+            warningHelpBox.style.display = DisplayStyle.None;
+
+            if (m_Events.Any(e => TutorialEditorUtils.EventIsNotInState(e.Property, UnityEventCallState.EditorAndRuntime)))
+            {
+                warningHelpBox.style.display = DisplayStyle.Flex;
+            }
+
+            m_Events.ForEach(data => foldout.contentContainer.Add(CreateEventProperty(data.Content, data.Property)));
+
+            //we register to the change event to update the visibility of the helpbox when a change happen
+            foldout.RegisterCallback<SerializedPropertyChangeEvent>(evt =>
+            {
+                warningHelpBox.style.display = m_Events.Any(e => TutorialEditorUtils.EventIsNotInState(e.Property, UnityEventCallState.EditorAndRuntime)) ?
+                    DisplayStyle.Flex :
+                    DisplayStyle.None;
+            });
+
+            root.Add(foldout);
+
+            root.Add(CreatePropertyElement(Tr(LocalizationKeys.k_TutorialPagePropertyEnableMasking),
+                m_MaskingSettings));
+
+            UIElementsUtils.DrawPropertiesExcluding(root, serializedObject, k_PropertiesToHide);
+        }
+
         void DrawSimplifiedInspector()
         {
             serializedObject.Update();
@@ -346,27 +465,7 @@ namespace Unity.Tutorials.Core.Editor
 
             EditorGUILayout.Space(10);
 
-            if (m_Type != null)
-            {
-                EditorGUILayout.LabelField(Tr(LocalizationKeys.k_TutorialPageLabelHeaderMediaType));
-                m_HeaderMediaType = (HeaderMediaType)EditorGUILayout.EnumPopup(GUIContent.none, m_HeaderMediaType);
-                m_Type.intValue = (int)m_HeaderMediaType;
-
-                EditorGUILayout.Space(10);
-            }
-
-            switch (m_HeaderMediaType)
-            {
-                case HeaderMediaType.Image:
-                    RenderProperty(Tr(LocalizationKeys.k_TutorialPagePropertyMedia), m_Image);
-                    break;
-                case HeaderMediaType.Video:
-                    RenderProperty(Tr(LocalizationKeys.k_TutorialPagePropertyMedia), m_Video);
-                    break;
-                case HeaderMediaType.VideoUrl:
-                    RenderProperty(Tr(LocalizationKeys.k_TutorialPagePropertyMedia), m_VideoUrl);
-                    break;
-            }
+            RenderProperty(Tr(LocalizationKeys.k_TutorialPagePropertyMedia), m_MediaContent);
 
             EditorGUILayout.Space(10);
 
@@ -486,6 +585,51 @@ namespace Unity.Tutorials.Core.Editor
         static void RenderEventProperty(GUIContent headerContent, SerializedProperty property)
         {
             EditorGUILayout.PropertyField(property, headerContent);
+        }
+
+        static VisualElement CreatePropertyElement(string label, SerializedProperty property)
+        {
+            var root = new VisualElement();
+
+            var labelElement = new Label(label);
+            labelElement.style.unityFontStyleAndWeight = FontStyle.Bold;
+            labelElement.style.marginBottom = 5;
+
+            var propertyElement = new PropertyField(property, "");
+
+            root.Add(labelElement);
+            root.Add(propertyElement);
+
+            root.style.marginBottom = 10;
+
+            return root;
+        }
+
+        static VisualElement CreateTextAreaPropertyElement(string label, SerializedProperty property)
+        {
+            var root = new VisualElement();
+
+            var labelElement = new Label(label);
+            labelElement.style.unityFontStyleAndWeight = FontStyle.Bold;
+            labelElement.style.marginBottom = 5;
+
+            var textArea = new TextField();
+            textArea.multiline = true;
+
+            textArea.BindProperty(property);
+
+            root.Add(labelElement);
+            root.Add(textArea);
+
+            root.style.marginBottom = 10;
+            return root;
+        }
+
+        static VisualElement CreateEventProperty(GUIContent headerContent, SerializedProperty property)
+        {
+            var root = new VisualElement();
+            root.Add(new PropertyField(property, headerContent.text));
+            return root;
         }
 
         void InitializeEventWithDefaultData(SerializedProperty eventProperty)

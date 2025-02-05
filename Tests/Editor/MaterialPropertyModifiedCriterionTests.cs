@@ -1,13 +1,6 @@
-using System;
-using System.Linq;
-using System.Collections;
-using System.Collections.Generic;
 using NUnit.Framework;
-using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.TestTools;
-using Object = System.Object;
 using UnityObject = UnityEngine.Object;
 
 namespace Unity.Tutorials.Core.Editor.Tests

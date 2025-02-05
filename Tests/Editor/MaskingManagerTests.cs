@@ -1,8 +1,7 @@
-using System.Collections.Generic;
 using System.Collections;
-using UnityEngine;
-using UnityEditor;
+using System.Collections.Generic;
 using NUnit.Framework;
+using UnityEngine;
 
 namespace Unity.Tutorials.Core.Editor.Tests
 {

@@ -1,8 +1,5 @@
-using System.Collections.Generic;
 using System.Linq;
-using Unity.EditorCoroutines.Editor;
 using UnityEditor;
-using UnityEngine;
 
 namespace Unity.Tutorials.Core.Editor
 {

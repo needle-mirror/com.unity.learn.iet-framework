@@ -2,6 +2,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Serialization;
+using UnityEngine.UIElements;
 
 namespace Unity.Tutorials.Core.Editor
 {
@@ -107,6 +108,21 @@ namespace Unity.Tutorials.Core.Editor
         bool m_RestoreAssetsBackupOnTutorialReload;
 
         /// <summary>
+        /// The address the link at the bottom of the Tutorial Window used to report problem with the Tutorials
+        /// </summary>
+        public string ReportUrl { get => m_ReportUrl; set => m_ReportUrl = value; }
+        [SerializeField, Tooltip("The address called when clicking on the report link at the bottom of the TutorialWindow ")]
+        string m_ReportUrl = "https://discussions.unity.com/c/learn/50";
+
+        /// <summary>
+        /// If this is set to true data about the current tutorial will be appended as an URL variable to the report url
+        /// The target website can then process that URL to handle it.
+        /// </summary>
+        public bool AppendDataToReport { get => m_AppendDataToReport; set => m_AppendDataToReport = value; }
+        [SerializeField, Tooltip("If true, this append a json object with ContainerTitle, TutorialTitle, PageTile to the link as a TutorialData url variable")]
+        bool m_AppendDataToReport = true;
+
+        /// <summary>
         /// Call this in the beginning of tutorial asset editors.
         /// </summary>
         internal static void DrawDefaultAssetRestoreWarning()
@@ -116,6 +132,23 @@ namespace Unity.Tutorials.Core.Editor
             {
                 EditorGUILayout.HelpBox(Localization.Tr(LocalizationKeys.k_SettingsHelpboxRestoreDefaultAssetsWarning), MessageType.Warning);
                 EditorGUILayout.Space(10);
+            }
+        }
+
+        /// <summary>
+        /// VisualElement version of DrawDefaultAssetRestoreWarning, call at the beginning of tutorial assets editors
+        /// </summary>
+        /// <param name="root"></param>
+        internal static void DrawDefaultAssetRestoreWarningElement(VisualElement root)
+        {
+            if (Instance.RestoreAssetsBackupOnTutorialReload && !ProjectMode.IsAuthoringMode())
+            {
+                var helpBox = new HelpBox();
+                helpBox.text = Localization.Tr(LocalizationKeys.k_SettingsHelpboxRestoreDefaultAssetsWarning);
+                helpBox.messageType = HelpBoxMessageType.Warning;
+                helpBox.style.marginBottom = 10;
+
+                root.Add(helpBox);
             }
         }
     }

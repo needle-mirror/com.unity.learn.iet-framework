@@ -1,6 +1,10 @@
+#region
+
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
+
+#endregion
 
 namespace Unity.Tutorials.Core.Editor
 {

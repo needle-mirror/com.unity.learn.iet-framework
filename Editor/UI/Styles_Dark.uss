@@ -11,6 +11,12 @@
     border-color: rgba(0,0,0,0.3);
 }
 
+.container--tutorial-link-icon {
+    border-left-color: #212421;
+    background-image: resource('GoToDashboard@2x');
+    -unity-background-scale-mode: scale-to-fit;
+}
+
 .container--header-large {
     border-color: rgba(255,255,255,0.1);
 }
@@ -38,5 +44,9 @@
 }
 
 .icon--tutorial-error-checkmark {
-    background-image: url('Images/Icons/ErrorDark.png');
+    background-image: url('/Packages/com.unity.learn.iet-framework/Editor/UI/Images/Icons/ErrorDark.png');
+}
+
+.faq-report-icon {
+    background-image: resource('GoToDashboard@2x');
 }

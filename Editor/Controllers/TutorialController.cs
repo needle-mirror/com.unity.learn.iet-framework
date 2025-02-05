@@ -3,7 +3,6 @@ using System.Linq;
 using Unity.EditorCoroutines.Editor;
 using UnityEditor;
 using UnityEditor.SceneManagement;
-using UnityEngine;
 
 namespace Unity.Tutorials.Core.Editor
 {

@@ -1,9 +1,8 @@
-using NUnit.Framework;
 using System.Collections;
 using System.IO;
 using System.Linq;
+using NUnit.Framework;
 using UnityEditor;
-using UnityEngine;
 using UnityEngine.TestTools;
 
 namespace Unity.Tutorials.Core.Editor.Tests

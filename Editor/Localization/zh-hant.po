@@ -17,6 +17,18 @@ msgid "WindowTitle"
 msgstr "教學"
 
 # TODO: translate
+msgid "FaqOpenText"
+msgstr "Need Help?"
+
+# TODO: translate
+msgid "ReportProblemText"
+msgstr "Is your question not listed here or would you like to report an issue?"
+
+# TODO: translate
+msgid "ReportProblemButtonText"
+msgstr "Report issue"
+
+# TODO: translate
 msgid "TOCLabelTitle"
 msgstr "Tutorials and documentation"
 

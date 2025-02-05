@@ -73,7 +73,11 @@ namespace Unity.Tutorials.Core.Editor
             UIElementsUtils.SetupLabel("lblTitle", title, imgTitleHeader, false);
             UIElementsUtils.SetupLabel("lblSubtitle", subtitle, imgTitleHeader, false);
             bool enableBackButton = Model.CurrentCategory && (Model.CurrentCategory.ParentContainer || Model.RootCategoriesOfProject.Count() > 1);
-            UIElementsUtils.SetupButton("btnExitCategory", GoBackInContainerHierachy, enableBackButton, imgTitleHeader, string.Empty, Localization.Tr(LocalizationKeys.k_TOCButtonBackTooltip));
+
+            if(enableBackButton)
+                UIElementsUtils.SetupButton("btnExitCategory", GoBackInContainerHierachy, enableBackButton, imgTitleHeader, string.Empty, Localization.Tr(LocalizationKeys.k_TOCButtonBackTooltip));
+            else
+                UIElementsUtils.Hide("btnExitCategory", imgTitleHeader);
         }
 
         void LoadCategories()
@@ -107,6 +111,8 @@ namespace Unity.Tutorials.Core.Editor
         {
             UIElementsUtils.SetupLabel("lblName", data.Heading, sectionUI, false);
             UIElementsUtils.SetupLabel("lblDescription", data.Text, sectionUI, false);
+
+            UIElementsUtils.ShowOrHide("imgLink", sectionUI, !string.IsNullOrEmpty(data.Url));
 
             if (data.Image != null)
             {

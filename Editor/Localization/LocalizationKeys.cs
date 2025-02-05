@@ -3,6 +3,9 @@ namespace Unity.Tutorials.Core.Editor
     internal class LocalizationKeys
     {
         internal const string k_WindowTitle = "WindowTitle";
+        internal const string k_FaqOpenText = "FaqOpenText";
+        internal const string k_ReportProblemText = "ReportProblemText";
+        internal const string k_ReportProblemButtonText = "ReportProblemButtonText";
 
         //User & Project Settings
         internal const string k_SettingsCategory = "SettingsCategory";

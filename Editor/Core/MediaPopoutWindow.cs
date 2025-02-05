@@ -1,6 +1,3 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using Unity.Tutorials.Core.Editor;
 using UnityEditor;
 using UnityEngine;
@@ -44,6 +41,31 @@ internal class MediaPopoutWindow : EditorWindow
         var win = CreateInstance<MediaPopoutWindow>();
         win.ShowUtility();
 
+        //we go back up the parent chain to make sure every stylesheet that could be relevant to that element is also
+        //added to the window
+        var currentElement = element;
+        while (currentElement != null)
+        {
+            for (int i = 0; i < currentElement.styleSheets.count; ++i)
+            {
+                if (!win.rootVisualElement.styleSheets.Contains(currentElement.styleSheets[i]))
+                {
+                    win.rootVisualElement.styleSheets.Add(currentElement.styleSheets[i]);
+                }
+            }
+            currentElement = currentElement.parent;
+        }
+
+        //Make sure we get all the stylesheets of the original element added to the popup window
+        for (int i = 0; i < element.styleSheets.count; ++i)
+        {
+            Debug.Log(element.styleSheets[i]);
+            if (!win.rootVisualElement.styleSheets.Contains(element.styleSheets[i]))
+            {
+                win.rootVisualElement.styleSheets.Add(element.styleSheets[i]);
+            }
+        }
+
         win.m_PopOutElement = element;
 
         win.m_OriginalContainer = element.parent;
@@ -64,6 +86,9 @@ internal class MediaPopoutWindow : EditorWindow
     }
     private void OnDestroy()
     {
+        if(m_PopOutElement == null)
+            return;
+
         m_PopOutElement.RemoveFromClassList("popout-media");
         if (m_OriginalContainer != null)
         {

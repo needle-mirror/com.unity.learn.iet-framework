@@ -83,7 +83,7 @@ namespace Unity.Tutorials.Core.Editor.Tests
             var report = BuildPipeline.BuildPlayer(
                 new BuildPlayerOptions
                 {
-                    scenes = new[] { GetTestAssetPath("EmptyTestScene.unity") }, // NOTE could probably pass 'null' here as well
+                    scenes = null,
                     locationPathName = BuildPath,
                     targetGroup = BuildTargetGroup.Standalone,
                     target = buildTarget,

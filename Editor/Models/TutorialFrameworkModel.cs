@@ -1,6 +1,5 @@
-using JetBrains.Annotations;
 using System;
-using UnityEditor.SettingsManagement;
+using JetBrains.Annotations;
 
 namespace Unity.Tutorials.Core.Editor
 {

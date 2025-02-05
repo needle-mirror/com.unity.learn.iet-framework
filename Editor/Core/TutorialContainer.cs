@@ -1,10 +1,10 @@
 using System;
-using UnityEditor;
-using UnityEngine;
-using UnityEngine.Serialization;
-using UnityEngine.Events;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.Events;
+using UnityEngine.Serialization;
 
 namespace Unity.Tutorials.Core.Editor
 {
@@ -90,6 +90,13 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         [NonReorderable]
         public Section[] Sections = { };
+
+        /// <summary>
+        /// A list of questions that can be applied to that whole container
+        /// </summary>
+        [Header("FAQ")]
+        [SerializeField]
+        public FaqEntry[] FaqEntries = Array.Empty<FaqEntry>();
 
         /// <summary>
         /// Returns the path for the ProjectLayout, relative to the project folder,

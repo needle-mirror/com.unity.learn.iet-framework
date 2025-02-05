@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
-
 using UnityObject = UnityEngine.Object;
 
 namespace Unity.Tutorials.Core.Editor
