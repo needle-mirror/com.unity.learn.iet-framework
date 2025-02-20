@@ -159,7 +159,7 @@ namespace Unity.Tutorials.Core.Editor
                 Debug.LogError("The reporting url in Project Setting is empty or null");
                 return;
             }
-            
+
             if (TutorialProjectSettings.Instance.AppendDataToReport)
             {
                 var data = new ReportData();
@@ -167,7 +167,7 @@ namespace Unity.Tutorials.Core.Editor
                 data.TutorialTitle = TutorialWindow.Instance?.CurrentTutorial?.TutorialTitle.Untranslated;
                 data.PageTitle = TutorialWindow.Instance?.CurrentTutorial?.CurrentPage?.Title.Untranslated;
 
-                reportingUrl += "&tutorialdata=" + Uri.EscapeDataString(JsonUtility.ToJson(data));
+                reportingUrl += "?tutorialdata=" + Uri.EscapeDataString(JsonUtility.ToJson(data));
             }
 
             Application.OpenURL(reportingUrl);

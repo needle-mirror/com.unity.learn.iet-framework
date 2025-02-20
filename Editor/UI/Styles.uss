@@ -9,6 +9,7 @@
 
 .container--header {
     background-color: var(--unity-colors-window-background);
+    flex-shrink: 0.0;
 }
 
 .container--header-labels {

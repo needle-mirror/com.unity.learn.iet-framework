@@ -4,6 +4,12 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.1.1] - 2025-02-20
+### Fixed
+- video player now properly display the first frame when starting paused
+- Fixed data appending to report URL in FAQ breaking the URL
+- Fixed faq opening header being squished by too much content in the tutorial window
+
 ## [4.1.0] - 2025-02-05
 ### Changed
 - Back arrow won't be displayed on container with no Parent container anymore

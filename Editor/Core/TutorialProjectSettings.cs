@@ -120,7 +120,7 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         public bool AppendDataToReport { get => m_AppendDataToReport; set => m_AppendDataToReport = value; }
         [SerializeField, Tooltip("If true, this append a json object with ContainerTitle, TutorialTitle, PageTile to the link as a TutorialData url variable")]
-        bool m_AppendDataToReport = true;
+        bool m_AppendDataToReport = false;
 
         /// <summary>
         /// Call this in the beginning of tutorial asset editors.

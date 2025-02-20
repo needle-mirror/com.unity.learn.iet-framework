@@ -133,6 +133,10 @@ public partial class VideoPlayerElement : VisualElement
 
             m_VideoPlayer.time = m_PreviousTime;
         }
+
+        //This will trigger the player prepare (which then take care of auto starting the video if set to auto start)
+        m_VideoPlayer.Play();
+        m_VideoPlayer.Pause();
     }
 
     void FreePlayer()
@@ -232,7 +236,7 @@ public partial class VideoPlayerElement : VisualElement
         this.AddManipulator(new Clickable(PlayerPause));
         //we had a clickable manipulator on our control bar at the bottom so it eat click event so that
         //the player above doesn't receive it to stop the video
-        m_PlayControlBar.AddManipulator(new Clickable(() => {Debug.Log("Playbar clicked");}));
+        m_PlayControlBar.AddManipulator(new Clickable(() => {}));
 
         m_PlayOverlay.AddManipulator(new Clickable(PlayerPlay));
 
