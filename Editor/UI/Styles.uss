@@ -320,6 +320,10 @@
     margin-right: 5px;
 }
 
+.category-completion-label {
+    color: rgb(255 255, 255);
+}
+
 .tutorial-bottom-bar {
     height: 32px;
     width: 100%;
@@ -330,6 +334,11 @@
     border-top-width: 1px;
 
     -unity-text-align: middle-center;
+}
+
+.container--tutorial-link-icon {
+    background-image: url("./Images/Icons/IconLink@2x.png");
+    -unity-background-scale-mode: scale-to-fit;
 }
 
 .tutorial-bottom-bar > Label {
@@ -393,6 +402,7 @@
     border-bottom-left-radius: 3px;
     border-width: 1px;
     min-width: 270px;
+    background-color: var(--unity-colors-highlight-background-inactive);
 }
 
 .card--tutorial-group {
@@ -400,7 +410,7 @@
 }
 
 .container--tutorial-icon {
-    background-color: #414141;
+    background-color: var(--unity-colors-highlight-background-inactive);
     max-width: 80px;
     min-width: 80px;
     min-height: 80px;
