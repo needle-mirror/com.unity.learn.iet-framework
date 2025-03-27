@@ -6,6 +6,7 @@ namespace Unity.Tutorials.Core.Editor
         internal const string k_FaqOpenText = "FaqOpenText";
         internal const string k_ReportProblemText = "ReportProblemText";
         internal const string k_ReportProblemButtonText = "ReportProblemButtonText";
+        internal const string k_AskAIText = "AskAIText";
 
         //User & Project Settings
         internal const string k_SettingsCategory = "SettingsCategory";

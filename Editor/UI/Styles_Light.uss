@@ -80,16 +80,3 @@ HyperlinkLabel {
 .tutorial-code-sample {
     border-color: rgba(0.5,0.5,0.5,0.5);
 }
-
-.label--header {
-    color: #000000;
-}
-
-.label--header-large {
-    color: #FFFFFF;
-}
-
-.image--close {
-    background-image: url('Images/Icons/Close_w.png');
-}
-

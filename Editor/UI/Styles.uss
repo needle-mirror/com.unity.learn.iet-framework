@@ -320,10 +320,6 @@
     margin-right: 5px;
 }
 
-.category-completion-label {
-    color: rgb(255 255, 255);
-}
-
 .tutorial-bottom-bar {
     height: 32px;
     width: 100%;
@@ -334,11 +330,6 @@
     border-top-width: 1px;
 
     -unity-text-align: middle-center;
-}
-
-.container--tutorial-link-icon {
-    background-image: url("./Images/Icons/IconLink@2x.png");
-    -unity-background-scale-mode: scale-to-fit;
 }
 
 .tutorial-bottom-bar > Label {
@@ -402,7 +393,6 @@
     border-bottom-left-radius: 3px;
     border-width: 1px;
     min-width: 270px;
-    background-color: var(--unity-colors-highlight-background-inactive);
 }
 
 .card--tutorial-group {
@@ -410,7 +400,7 @@
 }
 
 .container--tutorial-icon {
-    background-color: var(--unity-colors-highlight-background-inactive);
+    background-color: #414141;
     max-width: 80px;
     min-width: 80px;
     min-height: 80px;
@@ -891,8 +881,8 @@ ParseErrorLabel {
     flex-direction: row;
     align-items: center;
 
-    margin-top: 15px;
-    margin-bottom: 15px;
+    margin-top: 5px;
+    margin-bottom: 5px;
     margin-left: 10px;
     margin-right: 10px;
 }
@@ -908,6 +898,8 @@ ParseErrorLabel {
     white-space: normal;
     flex-shrink: 1.0;
     font-size: 11px;
+
+    flex-grow: 1.0;
 }
 
 .faq-report-icon {

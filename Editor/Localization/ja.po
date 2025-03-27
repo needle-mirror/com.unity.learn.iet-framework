@@ -29,6 +29,10 @@ msgid "ReportProblemButtonText"
 msgstr "Report issue"
 
 # TODO: translate
+msgid "AskAIText"
+msgstr "Your question is not listed here? Try asking the AI Assistant"
+
+# TODO: translate
 msgid "TOCLabelTitle"
 msgstr "Tutorials and documentation"
 

@@ -13,6 +13,8 @@
 
 .container--tutorial-link-icon {
     border-left-color: #212421;
+    background-image: resource('GoToDashboard@2x');
+    -unity-background-scale-mode: scale-to-fit;
 }
 
 .container--header-large {
@@ -46,5 +48,5 @@
 }
 
 .faq-report-icon {
-    background-image: url('/Packages/com.unity.learn.iet-framework/Editor/UI/Images/Icons/IconLink@2x.png');
+    background-image: resource('GoToDashboard@2x');
 }

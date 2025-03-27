@@ -1,6 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using UnityEditor;
 using UnityEngine.UIElements;
+using UnityEditor.PackageManager.Requests;
+using UnityEditor.PackageManager;
+using UnityEngine;
 
 namespace Unity.Tutorials.Core.Editor
 {
@@ -101,6 +106,55 @@ namespace Unity.Tutorials.Core.Editor
             m_ReportLabel.text = Localization.Tr(LocalizationKeys.k_ReportProblemText);
             m_ReportButton = reportContainer.Q<Button>("ReportButton");
             m_ReportButton.clicked += TutorialEditorUtils.ReportLinkClicked;
+
+            var askAiContainer = root.Q<VisualElement>("AskAI");
+            var askAILabel = askAiContainer.Q<Label>("AskAILabel");
+            askAILabel.text = Localization.Tr(LocalizationKeys.k_AskAIText);
+            var askAIButton = askAiContainer.Q<Button>("AskAIButton");
+            askAIButton.clicked += () =>
+            {
+                var listRequest = Client.List(true, false);
+                while (!listRequest.IsCompleted) ;
+
+                if (listRequest.Result.Any(info => info.name == "com.unity.muse.chat"))
+                {
+                    EditorApplication.ExecuteMenuItem("Muse/Chat");
+                }
+                else
+                {
+                    var win = InstallAIWarningWindow.OpenNew(
+                        "To use the AI Assistant tool,\nyou need to install the AI packages\n\n" +
+                        "Click on the highlighted button to install it");
+
+                    win.OnClosed += () =>
+                    {
+                        MaskingManager.Unmask();
+                    };
+
+                    GuiControlSelector selector = new GuiControlSelector();
+                    selector.SelectorMode = GuiControlSelector.Mode.VisualElement;
+                    selector.VisualElementClassName = "unity-editor-toolbar-element";
+                    selector.VisualElementName = "AIDropdown";
+                    var views = UnmaskedView.CreateInstanceForGUIView(Type.GetType("UnityEditor.Toolbar, UnityEditor.CoreModule"), new []{selector});
+
+                    var unmaskedViews = UnmaskedView.GetViewsAndRects(new[] { views });
+                    unmaskedViews.AddParentFullyUnmasked(win);
+                    var highlightedViews = UnmaskedView.GetViewsAndRects(new[] { views });
+
+                    var styles = TutorialProjectSettings.Instance.TutorialStyle;
+                    MaskingManager.Mask
+                    (
+                        unmaskedViews,
+                        styles.MaskingColor,
+                        highlightedViews,
+                        styles.HighlightColor,
+                        styles.BlockedInteractionColor,
+                        styles.HighlightThickness
+                    );
+                }
+            };
+
+            askAiContainer.style.display = Unsupported.IsDeveloperMode() ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
         /// <summary>
@@ -252,6 +306,44 @@ namespace Unity.Tutorials.Core.Editor
 
                 m_EntriesRoot.Add(newEntry);
             }
+        }
+    }
+
+    internal class InstallAIWarningWindow : EditorWindow
+    {
+        internal System.Action OnClosed;
+
+        private string m_Content = "Default";
+
+        internal static InstallAIWarningWindow OpenNew(string content)
+        {
+            var win = CreateInstance<InstallAIWarningWindow>();
+            win.m_Content = content;
+
+            var p = EditorGUIUtility.GetMainWindowPosition();
+            var popupSize = new Vector2(500, 200);
+            win.ShowAsDropDown(new Rect(p.center - new Vector2(popupSize.x * 0.5f, 0), popupSize), popupSize);
+            win.position =
+                new Rect(new Rect(p.center - new Vector2(popupSize.x * 0.5f, popupSize.y * 0.5f), popupSize));
+
+            return win;
+        }
+
+        private void OnDestroy()
+        {
+            OnClosed?.Invoke();
+        }
+
+        private void CreateGUI()
+        {
+            var label = new Label();
+            label.text = m_Content;
+
+            label.style.flexGrow = 1;
+            label.style.unityTextAlign = TextAnchor.MiddleCenter;
+            label.style.fontSize = 20;
+
+            rootVisualElement.Add(label);
         }
     }
 }

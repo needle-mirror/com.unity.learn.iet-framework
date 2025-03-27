@@ -19,6 +19,9 @@ msgstr "Is your question not listed here or would you like to report an issue?"
 msgid "ReportProblemButtonText"
 msgstr "Report issue"
 
+msgid "AskAIText"
+msgstr "Your question is not listed here? Try asking the AI Assistant"
+
 msgid "TOCLabelTitle"
 msgstr "Tutorials and documentation"
 
