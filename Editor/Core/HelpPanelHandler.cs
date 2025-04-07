@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Unity.Tutorials.Core.Editor
@@ -84,6 +85,24 @@ namespace Unity.Tutorials.Core.Editor
             //use parent because as its a template
             m_FaqRoot = root.Q<VisualElement>("FaqBackground");
 
+            m_FaqRoot.RegisterCallback<GeometryChangedEvent>(evt =>
+            {
+                //we retranslate as this doesn't seem to be recomputed by the layout engine (the 100% is only computed
+                //when assigned once)
+                //we assign a different value first as reassigning the same value (e.g. setting length ot -100 when it's
+                //already at -100, it won't trigger a recomputation)
+                if (m_IsOpened)
+                {
+                    m_FaqRoot.style.translate = new Translate(0, 1);
+                    m_FaqRoot.style.translate = new Translate(0, 0);
+                }
+                else
+                {
+                    m_FaqRoot.style.translate = new Translate(0, Length.Percent(-99));
+                    m_FaqRoot.style.translate = new Translate(0, Length.Percent(-100));
+                }
+            });
+
             m_SectionSelection = root.Q<VisualElement>("ToggleGroup");
             m_TutorialSectionButton = m_SectionSelection.Q<Button>("TutorialSectionButton");
             m_UnitSectionButton = m_SectionSelection.Q<Button>("UnitSectionButton");
@@ -157,7 +176,7 @@ namespace Unity.Tutorials.Core.Editor
 
             RegisterEvents(m_Tutorial);
 
-            m_FaqRoot.style.translate = new Translate(Length.Percent(0), 0);
+            m_FaqRoot.style.translate = new Translate(0, 0);
             m_IsOpened = true;
 
             AnalyticsHelper.SendFaqOpenedEvent(TutorialWindow.Instance.CurrentTutorial.name,
