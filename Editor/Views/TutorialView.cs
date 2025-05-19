@@ -64,6 +64,8 @@ namespace Unity.Tutorials.Core.Editor
             Application.StopAndNullifyEditorCoroutine(ref m_NextButtonBlinkRoutine);
             VideoPlaybackManager.OnDisable();
             ApplyMaskingSettings(false);
+
+            Application.Model.IsFaqOpen = false;
         }
 
         internal void Initialize(VisualElement root)
@@ -90,6 +92,9 @@ namespace Unity.Tutorials.Core.Editor
             playOverlays.Clear();
 
             m_HelpPanelHandler.Initialize(m_Root);
+
+            if(Application.Model.IsFaqOpen)
+                m_HelpPanelHandler.Open(Application.CurrentTutorial);
 
             Refresh();
             SubscribeEvents();
@@ -291,6 +296,7 @@ namespace Unity.Tutorials.Core.Editor
 
         void ExitTutorial()
         {
+            Application.Model.IsFaqOpen = false;
             m_HelpPanelHandler.Close();
             Application.Broadcast(new TutorialQuitEvent());
         }
@@ -640,11 +646,13 @@ namespace Unity.Tutorials.Core.Editor
                 if (!m_HelpPanelHandler.IsOpened)
                 {
                     faqFoldoutArrow.AddToClassList("open");
+                    Application.Model.IsFaqOpen = true;
                     m_HelpPanelHandler.Open(Model.CurrentTutorial);
                 }
                 else
                 {
                     faqFoldoutArrow.RemoveFromClassList("open");
+                    Application.Model.IsFaqOpen = false;
                     m_HelpPanelHandler.Close();
                 }
             }));

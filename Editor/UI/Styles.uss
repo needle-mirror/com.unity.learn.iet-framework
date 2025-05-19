@@ -236,17 +236,19 @@
 
     padding: 10px;
     flex-grow: 1.0;
+
+    min-height: 40px;
 }
 
 .code-sample-copy-button {
     display: none;
     position: absolute;
 
-    top: 30px;
-    right: 10px;
-
     width: 32px;
     height: 32px;
+
+    right: 20px;
+    top: 20px;
 
     background-image: url('Images/Icons/CopyIcon.png');
 }
@@ -320,6 +322,10 @@
     margin-right: 5px;
 }
 
+.category-completion-label {
+    color: rgb(255 255, 255);
+}
+
 .tutorial-bottom-bar {
     height: 32px;
     width: 100%;
@@ -330,6 +336,11 @@
     border-top-width: 1px;
 
     -unity-text-align: middle-center;
+}
+
+.container--tutorial-link-icon {
+    background-image: url("./Images/Icons/IconLink@2x.png");
+    -unity-background-scale-mode: scale-to-fit;
 }
 
 .tutorial-bottom-bar > Label {
@@ -393,6 +404,7 @@
     border-bottom-left-radius: 3px;
     border-width: 1px;
     min-width: 270px;
+    background-color: var(--unity-colors-highlight-background-inactive);
 }
 
 .card--tutorial-group {
@@ -400,7 +412,7 @@
 }
 
 .container--tutorial-icon {
-    background-color: #414141;
+    background-color: var(--unity-colors-highlight-background-inactive);
     max-width: 80px;
     min-width: 80px;
     min-height: 80px;
@@ -965,4 +977,10 @@ ParseErrorLabel {
 .faq-entry_container {
     background-color: var(--unity-colors-window-background);
     flex-grow: 0;
+}
+
+#SparkleIcon {
+    height: 100%;
+    width: 16px;
+    -unity-background-scale-mode: scale-to-fit;
 }

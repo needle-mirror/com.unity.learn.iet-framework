@@ -20,7 +20,10 @@ msgid "ReportProblemButtonText"
 msgstr "Report issue"
 
 msgid "AskAIText"
-msgstr "Your question is not listed here? Try asking the AI Assistant"
+msgstr "Still need help? Use Unity AI to ask Assistant."
+
+msgid "AIInstallPopup"
+msgstr "Install the Assistant package using the highlighted AI menu button. Then, open Assistant using the <b>Open Assistant</b> button."
 
 msgid "TOCLabelTitle"
 msgstr "Tutorials and documentation"

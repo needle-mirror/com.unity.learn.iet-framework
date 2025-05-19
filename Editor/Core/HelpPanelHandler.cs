@@ -30,6 +30,9 @@ namespace Unity.Tutorials.Core.Editor
     /// </summary>
     public class HelpPanelHandler
     {
+        private const string k_AIAssistantMenuEntry = "Window/AI/Assistant";
+        private const string k_AIAssistantPackageName = "com.unity.ai.assistant";
+
         /// <summary>
         /// Section of the TutorialContainer hierarchy
         /// </summary>
@@ -78,6 +81,13 @@ namespace Unity.Tutorials.Core.Editor
         private List<FaqEntry> m_UnitEntries = new();
         private List<FaqEntry> m_StepEntries = new();
 
+        //AI Assistant management
+        private SearchRequest m_SearchRequest = null;
+        private ListRequest m_ListRequest = null;
+        private VisualElement m_AIAssistantRoot = null;
+        private Button m_AIAssistantButton;
+        private bool m_AssistantAvailable = false;
+
         /// <summary>
         /// Initialize the Help panel, storing all references to UIElements it will need for its functionalities
         /// </summary>
@@ -88,6 +98,24 @@ namespace Unity.Tutorials.Core.Editor
 
             //use parent because as its a template
             m_FaqRoot = root.Q<VisualElement>("FaqBackground");
+
+            m_FaqRoot.RegisterCallback<GeometryChangedEvent>(evt =>
+            {
+                //we retranslate as this doesn't seem to be recomputed by the layout engine (the 100% is only computed
+                //when assigned once)
+                //we assign a different value first as reassigning the same value (e.g. setting length ot -100 when it's
+                //already at -100, it won't trigger a recomputation)
+                if (m_IsOpened)
+                {
+                    m_FaqRoot.style.translate = new Translate(0, 1);
+                    m_FaqRoot.style.translate = new Translate(0, 0);
+                }
+                else
+                {
+                    m_FaqRoot.style.translate = new Translate(0, Length.Percent(-99));
+                    m_FaqRoot.style.translate = new Translate(0, Length.Percent(-100));
+                }
+            });
 
             m_SectionSelection = root.Q<VisualElement>("ToggleGroup");
             m_TutorialSectionButton = m_SectionSelection.Q<Button>("TutorialSectionButton");
@@ -107,24 +135,25 @@ namespace Unity.Tutorials.Core.Editor
             m_ReportButton = reportContainer.Q<Button>("ReportButton");
             m_ReportButton.clicked += TutorialEditorUtils.ReportLinkClicked;
 
-            var askAiContainer = root.Q<VisualElement>("AskAI");
-            var askAILabel = askAiContainer.Q<Label>("AskAILabel");
-            askAILabel.text = Localization.Tr(LocalizationKeys.k_AskAIText);
-            var askAIButton = askAiContainer.Q<Button>("AskAIButton");
-            askAIButton.clicked += () =>
-            {
-                var listRequest = Client.List(true, false);
-                while (!listRequest.IsCompleted) ;
+            m_AIAssistantRoot = root.Q<VisualElement>("AskAI");
+            var aiSparkle = m_AIAssistantRoot.Q<VisualElement>("SparkleIcon");
+            aiSparkle.style.backgroundImage = Background.FromTexture2D(EditorGUIUtility.FindTexture("AISparkle Icon"));
 
-                if (listRequest.Result.Any(info => info.name == "com.unity.muse.chat"))
+            var label = m_AIAssistantRoot.Q<Label>("AskAILabel");
+            label.text = Localization.Tr(LocalizationKeys.k_AskAIText);
+            m_AIAssistantButton = m_AIAssistantRoot.Q<Button>("AskAIButton");
+            m_AIAssistantButton.text = "Install Assistant";
+            m_AIAssistantRoot.style.display = DisplayStyle.None;
+
+            m_AIAssistantButton.clicked += () =>
+            {
+                if (m_AssistantAvailable)
                 {
-                    EditorApplication.ExecuteMenuItem("Muse/Chat");
+                    EditorApplication.ExecuteMenuItem(k_AIAssistantMenuEntry);
                 }
                 else
                 {
-                    var win = InstallAIWarningWindow.OpenNew(
-                        "To use the AI Assistant tool,\nyou need to install the AI packages\n\n" +
-                        "Click on the highlighted button to install it");
+                    var win = InstallAIWarningWindow.OpenNew(Localization.Tr("AIInstallPopup"));
 
                     win.OnClosed += () =>
                     {
@@ -154,7 +183,7 @@ namespace Unity.Tutorials.Core.Editor
                 }
             };
 
-            askAiContainer.style.display = Unsupported.IsDeveloperMode() ? DisplayStyle.Flex : DisplayStyle.None;
+            CheckAIPackage();
         }
 
         /// <summary>
@@ -211,11 +240,13 @@ namespace Unity.Tutorials.Core.Editor
 
             RegisterEvents(m_Tutorial);
 
-            m_FaqRoot.style.translate = new Translate(Length.Percent(0), 0);
+            m_FaqRoot.style.translate = new Translate(0, 0);
             m_IsOpened = true;
 
             AnalyticsHelper.SendFaqOpenedEvent(TutorialWindow.Instance.CurrentTutorial.name,
                 TutorialWindow.Instance.CurrentTutorial.CurrentPageIndex);
+
+            UpdateAIButton();
         }
 
         /// <summary>
@@ -234,12 +265,14 @@ namespace Unity.Tutorials.Core.Editor
         {
             tutorial.PageInitiated.AddListener(OnPageInitiated);
             tutorial.Quit.AddListener(OnTutorialQuit);
+            EditorApplication.update += EditorUpdate;
         }
 
         void UnregisterEvents(Tutorial tutorial)
         {
             tutorial?.PageInitiated.RemoveListener(OnPageInitiated);
             tutorial?.Quit.RemoveListener(OnTutorialQuit);
+            EditorApplication.update -= EditorUpdate;
         }
 
         void OnTutorialQuit(Tutorial tutorial)
@@ -247,12 +280,12 @@ namespace Unity.Tutorials.Core.Editor
             if(m_Tutorial == null)
                 return;
 
-            UnregisterEvents(m_Tutorial);
+            Close();
         }
 
         void OnPageInitiated(Tutorial tutorial, TutorialPage page, int pageIndex)
         {
-            RefreshEntries();
+            Close();
         }
 
         void SwitchCategory(Button categoryButton, Section newSection)
@@ -307,6 +340,47 @@ namespace Unity.Tutorials.Core.Editor
                 m_EntriesRoot.Add(newEntry);
             }
         }
+
+        void CheckAIPackage()
+        {
+            if (m_SearchRequest != null)
+                return;
+
+            m_SearchRequest = Client.Search(k_AIAssistantPackageName);
+        }
+
+        void EditorUpdate()
+        {
+            if (m_SearchRequest is { IsCompleted: true })
+            {
+                m_AIAssistantRoot.style.display = m_SearchRequest.Result?.Length > 0 ? DisplayStyle.Flex : DisplayStyle.None;
+                m_SearchRequest = null;
+            }
+
+            if (m_ListRequest is { IsCompleted: true })
+            {
+                if (m_ListRequest.Result.Any(info => info.name == k_AIAssistantPackageName))
+                {
+                    m_AIAssistantButton.text = "Open Assistant";
+                    m_AssistantAvailable = true;
+                }
+                else
+                {
+                    m_AIAssistantButton.text = "Install Assistant";
+                    m_AssistantAvailable = false;
+                }
+
+                m_ListRequest = null;
+            }
+        }
+
+        void UpdateAIButton()
+        {
+            if (m_ListRequest != null)
+                return;
+
+            m_ListRequest = Client.List(true, false);
+        }
     }
 
     internal class InstallAIWarningWindow : EditorWindow
@@ -341,6 +415,7 @@ namespace Unity.Tutorials.Core.Editor
 
             label.style.flexGrow = 1;
             label.style.unityTextAlign = TextAnchor.MiddleCenter;
+            label.style.whiteSpace = WhiteSpace.Normal;
             label.style.fontSize = 20;
 
             rootVisualElement.Add(label);

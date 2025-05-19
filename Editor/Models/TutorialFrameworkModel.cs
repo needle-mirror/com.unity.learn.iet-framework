@@ -30,6 +30,7 @@ namespace Unity.Tutorials.Core.Editor
         internal bool AreTestsRunning;
 
         internal bool IsOpen;
+        internal bool IsFaqOpen;
         internal bool DomainReloadOccured;
         internal string CurrentView;
         internal string PreviousView;
@@ -51,6 +52,7 @@ namespace Unity.Tutorials.Core.Editor
             DomainReloadOccured = cache.DomainReloadOccured;
 
             IsOpen = cache.IsOpen;
+            IsFaqOpen = cache.IsFaqOpen;
             s_AreTestsRunning = cache.AreTestsRunning || s_AreTestsRunning;
 
             StateChanged?.Invoke();
@@ -78,6 +80,7 @@ namespace Unity.Tutorials.Core.Editor
             cache.PreviousView = PreviousView;
             cache.DomainReloadOccured = DomainReloadOccured;
             cache.IsOpen = IsOpen;
+            cache.IsFaqOpen = IsFaqOpen;
             cache.AreTestsRunning = s_AreTestsRunning;
         }
     }
