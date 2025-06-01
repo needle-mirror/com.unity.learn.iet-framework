@@ -56,6 +56,7 @@
     visibility: hidden;
 
     background-image: resource("ScaleTool On@2x");
+    -unity-background-image-tint-color: var(--unity-colors-default-text);
 }
 
 .container--tutorial-media:hover .image-popout-button {
@@ -323,7 +324,7 @@
 }
 
 .category-completion-label {
-    color: rgb(255 255, 255);
+    color: rgb(255, 255, 255);
 }
 
 .tutorial-bottom-bar {

@@ -109,8 +109,7 @@ namespace Unity.Tutorials.Core.Editor
         /// True if the basic frontend data of the Window is set, meaning that specific Views can be loaded
         /// </summary>
         internal bool FrontendIsReadyToBeInitialized { get; private set; }
-
-        [SerializeField]
+        
         internal string CurrentView
         {
             get => m_Model.CurrentView;

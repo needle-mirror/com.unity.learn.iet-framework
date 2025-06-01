@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
+using UnityEditor.Toolbars;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UIElements;
+using PopupWindow = UnityEditor.PopupWindow;
 
 namespace Unity.Tutorials.Core.Editor
 {
@@ -92,6 +94,30 @@ namespace Unity.Tutorials.Core.Editor
                 foreach (var tooltipView in allViews.Where(v => v.IsActualViewAssignableTo(typeof(MediaPopoutWindow))))
                 {
                     m_MaskData[tooltipView] = MaskViewData.CreateEmpty(MaskType.FullyUnmasked);
+                }
+
+                // Check if the AI install popup is displayed, we do not want to hide it
+                foreach (var editorPopup in allViews.Where(v => v.IsActualViewAssignableTo(typeof(PopupWindow))))
+                {
+                    var popupWindow = editorPopup.GetActualEditorWindow() as PopupWindow;
+
+                    if (popupWindow != null)
+                    {
+                        if(popupWindow.rootVisualElement.Query<Label>().ToList().Any(elem => elem.text.Contains("Use of Unity AI")))
+                        {
+                            m_MaskData[editorPopup] = MaskViewData.CreateEmpty(MaskType.FullyUnmasked);
+                        }
+                    }
+                }
+
+                var assistantWindowType = Type.GetType("Unity.AI.Assistant.UI.Editor.Scripts.AssistantWindow, Unity.AI.Assistant.UI.Editor");
+                if (assistantWindowType != null)
+                {
+                    //if the AI Assistant Window type exist, we also need to unmask it
+                    foreach (var assistantWindow in allViews.Where(v => v.IsActualViewAssignableTo(assistantWindowType)))
+                    {
+                        m_MaskData[assistantWindow] = MaskViewData.CreateEmpty(MaskType.FullyUnmasked);
+                    }
                 }
             }
 

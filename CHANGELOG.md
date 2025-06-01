@@ -4,7 +4,13 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [4.2.0-pre.2] - 2025-05-19
+## [4.2.0-pre.3] - 2025-06-01
+### Added
+- The help panel now have a button to open the Assistant to ask question
+
+### Fixed
+- Media pop-out button now properly visible on light theme
+- Missing comma in style file
 
 ## [4.1.3] - 2025-04-07
 ### Fixed

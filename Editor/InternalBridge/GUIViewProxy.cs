@@ -117,6 +117,16 @@ namespace Unity.Tutorials.Core.Editor
         }
 
         /// <summary>
+        /// Will return the actual EditorWindow this is a proxy for.
+        /// </summary>
+        /// <returns>The EditorWindow or null if not an editor window</returns>
+        public EditorWindow GetActualEditorWindow()
+        {
+            var hostView = GuiView as HostView;
+            return hostView != null ? hostView.actualView : null;
+        }
+
+        /// <summary>
         /// Is the GUIView docked to the Editor.
         /// </summary>
         /// <returns></returns>
