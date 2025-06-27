@@ -1,35 +1,17 @@
 #region
 
 using UnityEditor;
-using UnityEditor.Build;
-using UnityEditor.Build.Reporting;
 
 #endregion
 
 namespace Unity.Tutorials.Core.Editor
 {
     /// <summary>
-    /// Needed by BuildStartedCriterion.
-    /// </summary>
-    public abstract class PreprocessBuildCriterion : Criterion, IPreprocessBuildWithReport
-    {
-        /// <summary>
-        /// See UnityEditor.Build.IPreprocessBuildWithReport.callbackOrder.
-        /// </summary>
-        public int callbackOrder => 0;
-        /// <summary>
-        /// See UnityEditor.Build.IPreprocessBuildWithReport.OnPreprocessBuild.
-        /// </summary>
-        /// <param name="report">The BuildReport from the requested Build</param>
-        public abstract void OnPreprocessBuild(BuildReport report);
-    }
-
-    /// <summary>
     /// Tests if a build has started.
     /// </summary>
     // TODO revisit this code, BuildPlayerWindow.RegisterBuildPlayerHandler works only when
     // building from the default build dialog, hence IPreprocessBuildWithReport + SessionState used also.
-    public class BuildStartedCriterion : PreprocessBuildCriterion
+    public class BuildStartedCriterion : Criterion
     {
         bool BuildStarted
         {
@@ -85,15 +67,6 @@ namespace Unity.Tutorials.Core.Editor
         public override bool AutoComplete()
         {
             return true;
-        }
-
-        /// <summary>
-        /// UnityEditor.Build.IPreprocessBuildWithReport override, do not call.
-        /// </summary>
-        /// <param name="report">The BuildReport from the requested Build</param>
-        public override void OnPreprocessBuild(BuildReport report)
-        {
-            BuildStarted = true;
         }
     }
 }

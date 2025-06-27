@@ -1,7 +1,7 @@
 {
   "name": "com.unity.learn.iet-framework",
   "displayName": "Tutorial Framework",
-  "version": "4.2.0-pre.3",
+  "version": "5.0.0",
   "unity": "2021.3",
   "description": "This package is used to display interactive in-Editor tutorials in tutorial projects and project templates.",
   "keywords": [
@@ -12,15 +12,15 @@
     "com.unity.settings-manager": "1.0.3"
   },
   "_upm": {
-    "changelog": "### Added\n- The help panel now have a button to open the Assistant to ask question\n\n### Fixed\n- Media pop-out button now properly visible on light theme\n- Missing comma in style file"
+    "changelog": "### Fixed\n- Fixed a warning being generated each time a build was made. This required breaking change (BuildStartedCriterion now inehrit firectly from Criterion)"
   },
   "upmCi": {
-    "footprint": "74cfc2e9b5c2ecfcfec5353277ca8c72061b12cf"
+    "footprint": "66d23f73aa12983eb3b8e58e07be1c3bcb96fc00"
   },
-  "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.learn.iet-framework@4.2/manual/index.html",
+  "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.learn.iet-framework@5.0/manual/index.html",
   "repository": {
     "url": "https://github.cds.internal.unity3d.com/unity/iet-package.git",
     "type": "git",
-    "revision": "d7a694758aa270a99182b3c187223010998dfd21"
+    "revision": "e76f890d1cf4d7d5982455481bc41fde47b20be7"
   }
 }
