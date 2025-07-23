@@ -404,6 +404,28 @@ namespace Unity.Tutorials.Core.Editor
             public string question;
         }
 
+#if UNITY_6000
+        public struct AiAssistantInstallRequestEventData : IAnalytic.IData
+#else
+        public struct AiAssistantInstallRequestEventData
+#endif
+        {
+            public int ts; // timestamp
+            public string tutorialName;
+            public int pageIndex;
+        }
+
+#if UNITY_6000
+        public struct AiAssistantOpenEventData : IAnalytic.IData
+#else
+        public struct AiAssistantOpenEventData
+#endif
+        {
+            public int ts; // timestamp
+            public string tutorialName;
+            public int pageIndex;
+        }
+
         const int k_MaxEventsPerHour = 1000;
         const int k_MaxNumberOfElements = 1000;
         const string k_VendorKey = "unity.iet"; // the format needs to be "unity.xxx"
@@ -415,6 +437,9 @@ namespace Unity.Tutorials.Core.Editor
         const string k_EventTutorialParagraph = "iet_tutorialParagraph";
         const string k_EventTutorialFaqOpened = "iet_faqOpened";
         const string k_EventTutorialFaqQuestionClicked = "iet_faqQuestionClicked";
+
+        const string k_EventTutorialAiAssistantInstallRequest = "iet_aiAssistantInstallRequest";
+        const string k_EventTutorialAiAssistantOpened = "iet_aiAssistantOpen";
 
 #if UNITY_6000
         //Unity 6 editor analytics changed, you now define 1 class per type of analytics, so we need to create a class for each even above
@@ -442,7 +467,7 @@ namespace Unity.Tutorials.Core.Editor
             public bool TryGatherData(out IAnalytic.IData data, out Exception error)
             {
                 error = null;
-                data =  parameters;
+                data = parameters;
                 return data != null;
             }
         }
@@ -470,7 +495,7 @@ namespace Unity.Tutorials.Core.Editor
             public bool TryGatherData(out IAnalytic.IData data, out Exception error)
             {
                 error = null;
-                data =  parameters;
+                data = parameters;
                 return data != null;
             }
         }
@@ -498,7 +523,7 @@ namespace Unity.Tutorials.Core.Editor
             public bool TryGatherData(out IAnalytic.IData data, out Exception error)
             {
                 error = null;
-                data =  parameters;
+                data = parameters;
                 return data != null;
             }
         }
@@ -510,7 +535,7 @@ namespace Unity.Tutorials.Core.Editor
 
             public ExternalReferenceAnalytic(string url, string title, string contentType, string id = null)
             {
-                parameters =  new ExternalReferenceEventData
+                parameters = new ExternalReferenceEventData
                 {
                     ts = DateTime.UtcNow.Millisecond,
                     id = id,
@@ -523,7 +548,7 @@ namespace Unity.Tutorials.Core.Editor
             public bool TryGatherData(out IAnalytic.IData data, out Exception error)
             {
                 error = null;
-                data =  parameters;
+                data = parameters;
                 return data != null;
             }
         }
@@ -548,7 +573,7 @@ namespace Unity.Tutorials.Core.Editor
             public bool TryGatherData(out IAnalytic.IData data, out Exception error)
             {
                 error = null;
-                data =  parameters;
+                data = parameters;
                 return data != null;
             }
         }
@@ -571,7 +596,7 @@ namespace Unity.Tutorials.Core.Editor
             public bool TryGatherData(out IAnalytic.IData data, out Exception error)
             {
                 error = null;
-                data =  parameters;
+                data = parameters;
                 return data != null;
             }
         }
@@ -595,7 +620,53 @@ namespace Unity.Tutorials.Core.Editor
             public bool TryGatherData(out IAnalytic.IData data, out Exception error)
             {
                 error = null;
-                data =  parameters;
+                data = parameters;
+                return data != null;
+            }
+        }
+
+        [AnalyticInfo(eventName: k_EventTutorialAiAssistantInstallRequest, vendorKey: k_VendorKey)]
+        internal class AiAssistanInstalRequestAnalytic : IAnalytic
+        {
+            private AiAssistantInstallRequestEventData parameters;
+
+            public AiAssistanInstalRequestAnalytic(string tutorialName, int pageIndex)
+            {
+                parameters = new AiAssistantInstallRequestEventData
+                {
+                    ts = DateTime.UtcNow.Millisecond,
+                    tutorialName = tutorialName,
+                    pageIndex = pageIndex
+                };
+            }
+
+            public bool TryGatherData(out IAnalytic.IData data, out Exception error)
+            {
+                error = null;
+                data = parameters;
+                return data != null;
+            }
+        }
+
+        [AnalyticInfo(eventName: k_EventTutorialAiAssistantOpened, vendorKey: k_VendorKey)]
+        internal class AiAssistantOpenAnalytic : IAnalytic
+        {
+            private AiAssistantOpenEventData parameters;
+
+            public AiAssistantOpenAnalytic(string tutorialName, int pageIndex)
+            {
+                parameters = new AiAssistantOpenEventData
+                {
+                    ts = DateTime.UtcNow.Millisecond,
+                    tutorialName = tutorialName,
+                    pageIndex = pageIndex
+                };
+            }
+
+            public bool TryGatherData(out IAnalytic.IData data, out Exception error)
+            {
+                error = null;
+                data = parameters;
                 return data != null;
             }
         }
@@ -780,6 +851,48 @@ namespace Unity.Tutorials.Core.Editor
                 question = question
             };
             return SendEvent(k_EventTutorialFaqQuestionClicked, data);
+#endif
+        }
+
+        public static AnalyticsResult SendAIAssistantInstallRequest(string tutorialName, int pageIndex)
+        {
+            if (!EditorAnalytics.enabled
+#if !UNITY_6000
+                || !RegisterEvent(k_EventTutorialAiAssistantInstallRequest)
+#endif
+               ) { return AnalyticsResult.AnalyticsDisabled; }
+
+#if UNITY_6000
+            return EditorAnalytics.SendAnalytic(new AiAssistanInstalRequestAnalytic(tutorialName, pageIndex));
+#else
+            var data = new AiAssistantInstallRequestEventData
+            {
+                ts = DateTime.UtcNow.Millisecond,
+                tutorialName = tutorialName,
+                pageIndex = pageIndex
+            };
+            return SendEvent(k_EventTutorialAiAssistantInstallRequest, data);
+#endif
+        }
+
+        public static AnalyticsResult SendAIAssistantOpen(string tutorialName, int pageIndex)
+        {
+            if (!EditorAnalytics.enabled
+#if !UNITY_6000
+                || !RegisterEvent(k_EventTutorialAiAssistantOpened)
+#endif
+               ) { return AnalyticsResult.AnalyticsDisabled; }
+
+#if UNITY_6000
+            return EditorAnalytics.SendAnalytic(new AiAssistantOpenAnalytic(tutorialName, pageIndex));
+#else
+            var data = new AiAssistantOpenEventData
+            {
+                ts = DateTime.UtcNow.Millisecond,
+                tutorialName = tutorialName,
+                pageIndex = pageIndex
+            };
+            return SendEvent(k_EventTutorialAiAssistantOpened, data);
 #endif
         }
 

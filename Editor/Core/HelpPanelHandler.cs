@@ -149,10 +149,12 @@ namespace Unity.Tutorials.Core.Editor
             {
                 if (m_AssistantAvailable)
                 {
+                    AnalyticsHelper.SendAIAssistantOpen(TutorialWindow.Instance.CurrentTutorial.name, TutorialWindow.Instance.CurrentTutorial.CurrentPageIndex);
                     EditorApplication.ExecuteMenuItem(k_AIAssistantMenuEntry);
                 }
                 else
                 {
+                    AnalyticsHelper.SendAIAssistantInstallRequest(TutorialWindow.Instance.CurrentTutorial.name, TutorialWindow.Instance.CurrentTutorial.CurrentPageIndex);
                     var win = InstallAIWarningWindow.OpenNew(Localization.Tr("AIInstallPopup"));
 
                     win.OnClosed += () =>
