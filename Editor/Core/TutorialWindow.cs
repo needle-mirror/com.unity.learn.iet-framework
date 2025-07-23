@@ -110,7 +110,6 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         internal bool FrontendIsReadyToBeInitialized { get; private set; }
 
-        [SerializeField]
         internal string CurrentView
         {
             get => m_Model.CurrentView;

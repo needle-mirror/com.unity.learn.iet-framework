@@ -211,16 +211,16 @@ namespace Unity.Tutorials.Core.Editor
 
         void ClearTutorialListeners(Tutorial tutorial)
         {
-            tutorial.Initiated.RemoveAllListeners();
-            tutorial.Completed.RemoveAllListeners();
-            tutorial.Quit.RemoveAllListeners();
-            tutorial.PageInitiated.RemoveAllListeners();
-            tutorial.Modified.RemoveAllListeners();
+            tutorial.Initiated.RemoveListener(OnTutorialInitiated);
+            tutorial.Completed.RemoveListener(OnTutorialCompleted);
+            tutorial.Quit.RemoveListener(OnTutorialQuit);
+            tutorial.PageInitiated.RemoveListener(OnPageInitiated);
+            tutorial.Modified.RemoveListener(OnCurrentTutorialModified);
 
             foreach (var page in tutorial.PagesCollection)
             {
-                page.MaskingSettingsChanged.RemoveAllListeners();
-                page.NonMaskingSettingsChanged.RemoveAllListeners();
+                page.MaskingSettingsChanged.RemoveListener(OnTutorialPageMaskingSettingsChanged);
+                page.NonMaskingSettingsChanged.RemoveListener(OnTutorialPageNonMaskingSettingsChanged);
             }
         }
 

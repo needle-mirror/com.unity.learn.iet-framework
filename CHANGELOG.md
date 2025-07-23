@@ -4,6 +4,14 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.1.5] - 2025-07-23
+### Fixed
+- Fixed callback cleanup that was breaking Tutorial Page navigation after maximizing and reducing the Tutorial window 
+
+## [4.1.4] - 2025-04-07
+### Fixed
+- popout icon on media now properly visible in light theme  
+
 ## [4.1.3] - 2025-04-07
 ### Fixed
 - Changed copy icon used by the code sample
