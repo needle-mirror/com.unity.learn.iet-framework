@@ -37,11 +37,6 @@
                         <ui:Label text="Label" name="ReportLabel" class="faq-report-label" />
                         <ui:Button name="ReportButton" text="Report issue" class="faq-report-button" />
                     </ui:VisualElement>
-                    <ui:VisualElement name="AskAI" class="faq-report-entry">
-                        <ui:VisualElement name="SparkleIcon" />
-                        <ui:Label text="Label" name="AskAILabel" class="faq-report-label" />
-                        <ui:Button name="AskAIButton" text="Ask AI" class="faq-report-button" />
-                    </ui:VisualElement>
                 </ui:VisualElement>
             </ui:VisualElement>
         </ui:VisualElement>

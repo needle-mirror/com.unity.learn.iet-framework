@@ -81,13 +81,6 @@ namespace Unity.Tutorials.Core.Editor
         private List<FaqEntry> m_UnitEntries = new();
         private List<FaqEntry> m_StepEntries = new();
 
-        //AI Assistant management
-        private SearchRequest m_SearchRequest = null;
-        private ListRequest m_ListRequest = null;
-        private VisualElement m_AIAssistantRoot = null;
-        private Button m_AIAssistantButton;
-        private bool m_AssistantAvailable = false;
-
         /// <summary>
         /// Initialize the Help panel, storing all references to UIElements it will need for its functionalities
         /// </summary>
@@ -134,58 +127,6 @@ namespace Unity.Tutorials.Core.Editor
             m_ReportLabel.text = Localization.Tr(LocalizationKeys.k_ReportProblemText);
             m_ReportButton = reportContainer.Q<Button>("ReportButton");
             m_ReportButton.clicked += TutorialEditorUtils.ReportLinkClicked;
-
-            m_AIAssistantRoot = root.Q<VisualElement>("AskAI");
-            var aiSparkle = m_AIAssistantRoot.Q<VisualElement>("SparkleIcon");
-            aiSparkle.style.backgroundImage = Background.FromTexture2D(EditorGUIUtility.FindTexture("AISparkle Icon"));
-
-            var label = m_AIAssistantRoot.Q<Label>("AskAILabel");
-            label.text = Localization.Tr(LocalizationKeys.k_AskAIText);
-            m_AIAssistantButton = m_AIAssistantRoot.Q<Button>("AskAIButton");
-            m_AIAssistantButton.text = "Install Assistant";
-            m_AIAssistantRoot.style.display = DisplayStyle.None;
-
-            m_AIAssistantButton.clicked += () =>
-            {
-                if (m_AssistantAvailable)
-                {
-                    AnalyticsHelper.SendAIAssistantOpen(TutorialWindow.Instance.CurrentTutorial.name, TutorialWindow.Instance.CurrentTutorial.CurrentPageIndex);
-                    EditorApplication.ExecuteMenuItem(k_AIAssistantMenuEntry);
-                }
-                else
-                {
-                    AnalyticsHelper.SendAIAssistantInstallRequest(TutorialWindow.Instance.CurrentTutorial.name, TutorialWindow.Instance.CurrentTutorial.CurrentPageIndex);
-                    var win = InstallAIWarningWindow.OpenNew(Localization.Tr("AIInstallPopup"));
-
-                    win.OnClosed += () =>
-                    {
-                        MaskingManager.Unmask();
-                    };
-
-                    GuiControlSelector selector = new GuiControlSelector();
-                    selector.SelectorMode = GuiControlSelector.Mode.VisualElement;
-                    selector.VisualElementClassName = "unity-editor-toolbar-element";
-                    selector.VisualElementName = "AIDropdown";
-                    var views = UnmaskedView.CreateInstanceForGUIView(Type.GetType("UnityEditor.Toolbar, UnityEditor.CoreModule"), new []{selector});
-
-                    var unmaskedViews = UnmaskedView.GetViewsAndRects(new[] { views });
-                    unmaskedViews.AddParentFullyUnmasked(win);
-                    var highlightedViews = UnmaskedView.GetViewsAndRects(new[] { views });
-
-                    var styles = TutorialProjectSettings.Instance.TutorialStyle;
-                    MaskingManager.Mask
-                    (
-                        unmaskedViews,
-                        styles.MaskingColor,
-                        highlightedViews,
-                        styles.HighlightColor,
-                        styles.BlockedInteractionColor,
-                        styles.HighlightThickness
-                    );
-                }
-            };
-
-            CheckAIPackage();
         }
 
         /// <summary>
@@ -247,8 +188,6 @@ namespace Unity.Tutorials.Core.Editor
 
             AnalyticsHelper.SendFaqOpenedEvent(TutorialWindow.Instance.CurrentTutorial.name,
                 TutorialWindow.Instance.CurrentTutorial.CurrentPageIndex);
-
-            UpdateAIButton();
         }
 
         /// <summary>
@@ -267,14 +206,12 @@ namespace Unity.Tutorials.Core.Editor
         {
             tutorial.PageInitiated.AddListener(OnPageInitiated);
             tutorial.Quit.AddListener(OnTutorialQuit);
-            EditorApplication.update += EditorUpdate;
         }
 
         void UnregisterEvents(Tutorial tutorial)
         {
             tutorial?.PageInitiated.RemoveListener(OnPageInitiated);
             tutorial?.Quit.RemoveListener(OnTutorialQuit);
-            EditorApplication.update -= EditorUpdate;
         }
 
         void OnTutorialQuit(Tutorial tutorial)
@@ -341,47 +278,6 @@ namespace Unity.Tutorials.Core.Editor
 
                 m_EntriesRoot.Add(newEntry);
             }
-        }
-
-        void CheckAIPackage()
-        {
-            if (m_SearchRequest != null)
-                return;
-
-            m_SearchRequest = Client.Search(k_AIAssistantPackageName);
-        }
-
-        void EditorUpdate()
-        {
-            if (m_SearchRequest is { IsCompleted: true })
-            {
-                m_AIAssistantRoot.style.display = m_SearchRequest.Result?.Length > 0 ? DisplayStyle.Flex : DisplayStyle.None;
-                m_SearchRequest = null;
-            }
-
-            if (m_ListRequest is { IsCompleted: true })
-            {
-                if (m_ListRequest.Result.Any(info => info.name == k_AIAssistantPackageName))
-                {
-                    m_AIAssistantButton.text = "Open Assistant";
-                    m_AssistantAvailable = true;
-                }
-                else
-                {
-                    m_AIAssistantButton.text = "Install Assistant";
-                    m_AssistantAvailable = false;
-                }
-
-                m_ListRequest = null;
-            }
-        }
-
-        void UpdateAIButton()
-        {
-            if (m_ListRequest != null)
-                return;
-
-            m_ListRequest = Client.List(true, false);
         }
     }
 
