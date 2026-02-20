@@ -1,6 +1,8 @@
 using System;
+using Unity.Tutorials.Editor;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Diagnostics;
 using UnityObject = UnityEngine.Object;
 
 namespace Unity.Tutorials.Core.Editor
@@ -40,7 +42,7 @@ namespace Unity.Tutorials.Core.Editor
                 case UnityEngine.Rendering.ShaderPropertyType.Range:
                     return property.rangeLimits.ToString();
                 case UnityEngine.Rendering.ShaderPropertyType.Texture:
-                    return property.textureValue.GetInstanceID().ToString();
+                    return IdUtils.GetIdFor(property.textureValue).ToString();
                 default:
                     throw new ArgumentOutOfRangeException();
             }

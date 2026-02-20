@@ -7,6 +7,10 @@
     background-color: #353535;
 }
 
+.container--tutorial-icon {
+    background-color: #414141;
+}
+
 .container--tutorial-actions {
     border-color: rgba(0,0,0,0.3);
 }

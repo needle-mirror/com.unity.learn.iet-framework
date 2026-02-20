@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Unity.Tutorials.Editor;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Serialization;
+using Object = UnityEngine.Object;
 
 namespace Unity.Tutorials.Core.Editor
 {
@@ -277,35 +279,40 @@ namespace Unity.Tutorials.Core.Editor
 
         void SyncCriteriaAndFutureReferences()
         {
-            // Find instanceIDs of referenced criteria
-            var referencedCriteriaInstanceIDs = new HashSet<int>();
+            // Find IDs of referenced criteria
+#if UNITY_6000_3_OR_NEWER
+            HashSet<EntityId> referencedCriteriaIDs = new();
+#else
+            HashSet<int> referencedCriteriaIDs = new();
+#endif
+
             foreach (var paragraph in Paragraphs)
             {
-                foreach (var typedCriterion in paragraph.Criteria)
+                foreach (TypedCriterion typedCriterion in paragraph.Criteria)
                 {
                     if (typedCriterion.Criterion != null)
-                        referencedCriteriaInstanceIDs.Add(typedCriterion.Criterion.GetInstanceID());
+                        referencedCriteriaIDs.Add(IdUtils.GetIdFor(typedCriterion.Criterion));
                 }
             }
 
             // Destroy unreferenced criteria
-            var assetPath = AssetDatabase.GetAssetPath(this);
-            var assets = AssetDatabase.LoadAllAssetsAtPath(assetPath);
-            var criteria = assets.Where(o => o is Criterion).Cast<Criterion>();
-            foreach (var criterion in criteria)
+            string assetPath = AssetDatabase.GetAssetPath(this);
+            Object[] assets = AssetDatabase.LoadAllAssetsAtPath(assetPath);
+            IEnumerable<Criterion> criteria = assets.Where(o => o is Criterion).Cast<Criterion>();
+            foreach (Criterion criterion in criteria)
             {
-                if (!referencedCriteriaInstanceIDs.Contains(criterion.GetInstanceID()))
+                if (!referencedCriteriaIDs.Contains(IdUtils.GetIdFor(criterion)))
                     DestroyImmediate(criterion, true);
             }
 
             // Update future reference names
-            var futureReferences = assets.Where(o => o is FutureObjectReference).Cast<FutureObjectReference>();
-            foreach (var futureReference in futureReferences)
+            IEnumerable<FutureObjectReference> futureReferences = assets.Where(o => o is FutureObjectReference).Cast<FutureObjectReference>();
+            foreach (FutureObjectReference futureReference in futureReferences)
             {
                 if (futureReference.Criterion == null
-                    || !referencedCriteriaInstanceIDs.Contains(futureReference.Criterion.GetInstanceID()))
+                    || !referencedCriteriaIDs.Contains(IdUtils.GetIdFor(futureReference.Criterion)))
                 {
-                    // Destroy future reference from unrefereced criteria
+                    // Destroy future reference from unreferenced criteria
                     DestroyImmediate(futureReference, true);
                 }
                 else

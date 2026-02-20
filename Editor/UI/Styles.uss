@@ -405,7 +405,6 @@
     border-bottom-left-radius: 3px;
     border-width: 1px;
     min-width: 270px;
-    background-color: var(--unity-colors-highlight-background-inactive);
 }
 
 .card--tutorial-group {
@@ -413,16 +412,15 @@
 }
 
 .container--tutorial-icon {
-    background-color: var(--unity-colors-highlight-background-inactive);
     max-width: 80px;
     min-width: 80px;
     min-height: 80px;
     border-right-width: 1px;
     border-color: #212421;
-    border-top-left-radius: 3px;
-    border-bottom-left-radius: 3px;
     align-items: center;
     justify-content: center;
+    border-top-left-radius: 3px;
+    border-bottom-left-radius: 3px;
 }
 
 .card--link .container--tutorial-icon {

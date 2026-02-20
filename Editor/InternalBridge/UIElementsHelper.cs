@@ -3,6 +3,9 @@ using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
+#if UNITY_6000_5_OR_NEWER
+using UnityEngine.Assemblies;
+#endif
 
 namespace Unity.Tutorials.Core.Editor
 {
@@ -14,7 +17,11 @@ namespace Unity.Tutorials.Core.Editor
     {
         private static Assembly GetAssemblyByName(string name)
         {
+#if UNITY_6000_5_OR_NEWER
+            var assemblies = CurrentAssemblies.GetLoadedAssemblies();
+#else
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+#endif
             foreach (var assembly in assemblies)
             {
                 if (assembly.GetName().Name.Equals(name))

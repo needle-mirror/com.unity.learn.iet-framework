@@ -3,9 +3,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Tutorials.Editor;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
+using Object = UnityEngine.Object;
 
 #endregion
 
@@ -155,19 +157,25 @@ namespace Unity.Tutorials.Core.Editor
         /// <seealso href="https://docs.unity3d.com/ScriptReference/MonoBehaviour.OnValidate.html"/>
         protected virtual void OnValidate()
         {
-            // Find instanceIDs of referenced future references
-            var referencedFutureReferenceInstanceIDs = new HashSet<int>();
-            foreach (var futureReference in GetFutureObjectReferences())
-                referencedFutureReferenceInstanceIDs.Add(futureReference.GetInstanceID());
+            // Find IDs of referenced future references
+#if UNITY_6000_3_OR_NEWER
+            HashSet<EntityId> referencedFutureReferenceIDs = new();
+#else
+            HashSet<int> referencedFutureReferenceIDs = new();
+#endif
+
+
+            foreach (FutureObjectReference futureReference in GetFutureObjectReferences())
+                referencedFutureReferenceIDs.Add(IdUtils.GetIdFor(futureReference));
 
             // Destroy unreferenced future references
-            var assetPath = AssetDatabase.GetAssetPath(this);
-            var assets = AssetDatabase.LoadAllAssetsAtPath(assetPath);
-            foreach (var asset in assets)
+            string assetPath = AssetDatabase.GetAssetPath(this);
+            Object[] assets = AssetDatabase.LoadAllAssetsAtPath(assetPath);
+            foreach (Object asset in assets)
             {
                 if (asset is FutureObjectReference
                     && ((FutureObjectReference)asset).Criterion == this
-                    && !referencedFutureReferenceInstanceIDs.Contains(asset.GetInstanceID()))
+                    && !referencedFutureReferenceIDs.Contains(IdUtils.GetIdFor(asset)))
                 {
                     DestroyImmediate(asset, true);
                 }

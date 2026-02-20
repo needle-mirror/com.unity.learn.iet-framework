@@ -4,6 +4,9 @@ using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
+#if UNITY_6000_5_OR_NEWER
+using UnityEngine.Assemblies;
+#endif
 
 namespace Unity.Tutorials.Core.Editor
 {
@@ -78,7 +81,7 @@ namespace Unity.Tutorials.Core.Editor
         public static Rect GetEditorMainWindowPos()
         {
             // NOTE Code adapted from http://answers.unity.com/answers/960709/view.html
-            var containerWinType = GetAllDerivedTypes(AppDomain.CurrentDomain, typeof(ScriptableObject))
+            var containerWinType = GetAllDerivedTypes(typeof(ScriptableObject))
                 .Where(t => t.Name == "ContainerWindow")
                 .FirstOrDefault();
             if (containerWinType == null)
@@ -109,7 +112,7 @@ namespace Unity.Tutorials.Core.Editor
         public static void SetEditorMainWindowPos(Rect pos)
         {
             // TODO copy-pasta, generalise and clean up the code with GetEditorMainWindowPos
-            var containerWinType = GetAllDerivedTypes(AppDomain.CurrentDomain, typeof(ScriptableObject))
+            var containerWinType = GetAllDerivedTypes(typeof(ScriptableObject))
                 .Where(t => t.Name == "ContainerWindow")
                 .FirstOrDefault();
             if (containerWinType == null)
@@ -133,9 +136,13 @@ namespace Unity.Tutorials.Core.Editor
             throw new NotSupportedException("Can't find internal main window. Maybe something has changed inside Unity");
         }
 
-        static IEnumerable<Type> GetAllDerivedTypes(AppDomain appDomain, Type parentType)
+        static IEnumerable<Type> GetAllDerivedTypes(Type parentType)
         {
-            return appDomain.GetAssemblies()
+#if UNITY_6000_5_OR_NEWER
+            return CurrentAssemblies.GetLoadedAssemblies()
+#else
+            return AppDomain.CurrentDomain.GetAssemblies()
+#endif
                 .SelectMany(assembly => assembly.GetTypes())
                 .Where(type => type.IsSubclassOf(parentType));
         }

@@ -6,6 +6,9 @@ using UnityEditor;
 using UnityEngine;
 using UnityObject = UnityEngine.Object;
 using static Unity.Tutorials.Core.Editor.Localization;
+#if UNITY_6000_5_OR_NEWER
+using UnityEngine.Assemblies;
+#endif
 
 namespace Unity.Tutorials.Core.Editor
 {
@@ -338,7 +341,11 @@ namespace Unity.Tutorials.Core.Editor
         public Options(string assemblyQualifiedName, Type baseType, bool ignoreAbstractTypes)
         {
             var allowedTypes = new HashSet<Type>();
+#if UNITY_6000_5_OR_NEWER
+            foreach (var assembly in CurrentAssemblies.GetLoadedAssemblies())
+#else
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+#endif
             {
                 if (assembly == null)
                     continue;

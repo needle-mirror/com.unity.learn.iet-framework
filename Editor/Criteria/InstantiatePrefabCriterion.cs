@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Tutorials.Editor;
 using UnityEditor;
 using UnityEngine;
 using UnityObject = UnityEngine.Object;
@@ -18,11 +19,19 @@ namespace Unity.Tutorials.Core.Editor
         [SerializeField]
         FuturePrefabInstanceCollection m_FuturePrefabInstances = new FuturePrefabInstanceCollection();
 
-        // InstanceID's of existing GameObject prefab instance roots we want to ignore
-        HashSet<int> m_ExistingPrefabInstances = new HashSet<int>();
+#if UNITY_6000_3_OR_NEWER
+        // EntityIDs of existing GameObject Prefab instance roots we want to ignore
+        private HashSet<EntityId> m_ExistingPrefabInstances = new();
 
-        // InstanceID of GameObject prefab instance root that initially completed this criterion
-        int m_PrefabInstance;
+        // EntityID of GameObject Prefab instance root that initially completed this criterion
+        private EntityId m_PrefabInstance;
+#else
+        // InstanceIDs of existing GameObject Prefab instance roots we want to ignore
+        private HashSet<int> m_ExistingPrefabInstances = new();
+
+        // InstanceID of GameObject Prefab instance root that initially completed this criterion
+        private int m_PrefabInstance;
+#endif
 
         /// <summary>
         /// Prefab parent.
@@ -158,12 +167,12 @@ namespace Unity.Tutorials.Core.Editor
             base.StartTesting();
             // Record existing prefab instances
             m_ExistingPrefabInstances.Clear();
-            foreach (var gameObject in EditorFindObjectUtils.FindObjectsByTypeSorted<GameObject>())
+            foreach (var gameObject in EditorFindObjectUtils.FindObjectsByType<GameObject>())
             {
                 if (PrefabUtilityShim.GetCorrespondingObjectFromSource(gameObject) != null)
                 {
                     var prefabInstanceRoot = PrefabUtility.GetOutermostPrefabInstanceRoot(gameObject);
-                    m_ExistingPrefabInstances.Add(prefabInstanceRoot.GetInstanceID());
+                    m_ExistingPrefabInstances.Add(IdUtils.GetIdFor(prefabInstanceRoot));
                 }
             }
 
@@ -192,12 +201,14 @@ namespace Unity.Tutorials.Core.Editor
             if (IsCompleted)
                 return;
 
-            foreach (var gameObject in Selection.gameObjects)
+            foreach (GameObject gameObject in Selection.gameObjects)
             {
                 if (PrefabUtilityShim.GetCorrespondingObjectFromSource(gameObject) != null)
                 {
-                    var prefabInstanceRoot = PrefabUtility.GetOutermostPrefabInstanceRoot(gameObject);
-                    if (prefabInstanceRoot == gameObject && m_ExistingPrefabInstances.Add(prefabInstanceRoot.GetInstanceID()))
+                    GameObject prefabInstanceRoot = PrefabUtility.GetOutermostPrefabInstanceRoot(gameObject);
+                    bool added = m_ExistingPrefabInstances.Add(IdUtils.GetIdFor(prefabInstanceRoot));
+
+                    if (prefabInstanceRoot == gameObject && added)
                         OnPrefabInstantiated(prefabInstanceRoot);
                 }
             }
@@ -210,7 +221,7 @@ namespace Unity.Tutorials.Core.Editor
 
             if (PrefabUtilityShim.GetCorrespondingObjectFromSource(prefabInstanceRoot) == m_PrefabParent)
             {
-                foreach (var component in prefabInstanceRoot.GetComponentsInChildren<Component>())
+                foreach (Component component in prefabInstanceRoot.GetComponentsInChildren<Component>())
                 {
                     UpdateFutureReferences(component);
 
@@ -218,7 +229,7 @@ namespace Unity.Tutorials.Core.Editor
                         UpdateFutureReferences(component.gameObject);
                 }
 
-                m_PrefabInstance = prefabInstanceRoot.GetInstanceID();
+                m_PrefabInstance = IdUtils.GetIdFor(prefabInstanceRoot);
 
                 UpdateCompletion();
             }
@@ -237,19 +248,16 @@ namespace Unity.Tutorials.Core.Editor
 
         bool EvaluateCompletionInternal()
         {
-            if (m_PrefabInstance == 0)
-                return false;
+            if (IdUtils.IsIdNull(m_PrefabInstance)) return false;
 
-            var prefabObject = EditorUtility.InstanceIDToObject(m_PrefabInstance);
-            if (prefabObject == null)
-            {
-                m_ExistingPrefabInstances.Remove(m_PrefabInstance);
-                m_PrefabInstance = 0;
+            UnityObject prefabObject = IdUtils.IdToObject(m_PrefabInstance);
 
-                return false;
-            }
+            if (prefabObject != null) return true;
 
-            return true;
+            m_ExistingPrefabInstances.Remove(m_PrefabInstance);
+            m_PrefabInstance = IdUtils.NullId;
+
+            return false;
         }
 
         /// <summary>
