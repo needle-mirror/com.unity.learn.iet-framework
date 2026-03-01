@@ -4,7 +4,7 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [6.0.0-pre.5] - 2026-03-01
+## [6.0.0-pre.6] - 2026-03-01
 ### Added
 - New paragraph format for Tutorial Pages. This new format makes for a more flexible and faster editing experience.
   - Due to the new paragraph format, data migration for pages is required. The user will be prompted when first launching the editor or updating the package. Migration can also be started manually from the top menu, or using the button on each Tutorial Page.
