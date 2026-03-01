@@ -6,7 +6,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// Runs IET project initialization logic.
@@ -14,20 +14,26 @@ namespace Unity.Tutorials.Core.Editor
     [InitializeOnLoad]
     public static class UserStartupCode
     {
-        const string k_DefaultsFolder = "Tutorial Defaults";
-        const string k_EditorLanguageInitializedState = "EditorLanguageInitialized";
-        const string k_EditorLanguagePreference = "EditorLanguage";
+        private const string k_DefaultsFolder = "Tutorial Defaults";
+        private const string k_EditorLanguageInitializedState = "EditorLanguageInitialized";
+        private const string k_EditorLanguagePreference = "EditorLanguage";
 
-        static bool DisplayWelcomeDialogOnStartup
+        private static bool DisplayWelcomeDialogOnStartup
         {
             get => TutorialFrameworkModel.s_DisplayWelcomeDialogOnStartup;
             set => TutorialFrameworkModel.s_DisplayWelcomeDialogOnStartup.SetValue(value, true);
         }
 
-        static bool IsLanguageInitialized() => SessionState.GetBool(k_EditorLanguageInitializedState, false);
-        static void SetLanguageInitialized() => SessionState.SetBool(k_EditorLanguageInitializedState, true);
-        static SystemLanguage LoadPreviousEditorLanguage() => (SystemLanguage)EditorPrefs.GetInt(k_EditorLanguagePreference, (int)SystemLanguage.English);
-        static void SaveCurrentEditorLanguage() => EditorPrefs.SetInt(k_EditorLanguagePreference, (int)LocalizationDatabaseProxy.currentEditorLanguage);
+        private static bool DataMigrationV6
+        {
+            get => TutorialFrameworkModel.s_DataMigrationToV6;
+            set => TutorialFrameworkModel.s_DataMigrationToV6.SetValue(value, true);
+        }
+
+        private static bool IsLanguageInitialized() => SessionState.GetBool(k_EditorLanguageInitializedState, false);
+        private static void SetLanguageInitialized() => SessionState.SetBool(k_EditorLanguageInitializedState, true);
+        private static SystemLanguage LoadPreviousEditorLanguage() => (SystemLanguage)EditorPrefs.GetInt(k_EditorLanguagePreference, (int)SystemLanguage.English);
+        private static void SaveCurrentEditorLanguage() => EditorPrefs.SetInt(k_EditorLanguagePreference, (int)LocalizationDatabaseProxy.currentEditorLanguage);
 
         static UserStartupCode()
         {
@@ -71,7 +77,7 @@ namespace Unity.Tutorials.Core.Editor
 
             if (TutorialEditorUtils.FindAssets<TutorialContainer>().Any())
             {
-                var existingWindow = EditorWindowUtils.FindOpenInstance<TutorialWindow>();
+                TutorialWindow existingWindow = EditorWindowUtils.FindOpenInstance<TutorialWindow>();
                 if (existingWindow)
                 {
                     existingWindow.Close();
@@ -91,7 +97,7 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
-        static void InitRunStartupCode()
+        private static void InitRunStartupCode()
         {
             if (LocalizationDatabaseProxy.enableEditorLocalization && !IsLanguageInitialized())
             {
@@ -106,6 +112,13 @@ namespace Unity.Tutorials.Core.Editor
             so we need to ensure the file paths in the layouts are correct. */
             TutorialController.PrepareWindowLayouts();
             EditorApplication.update -= InitRunStartupCode;
+
+            if (DataMigrationV6 &&
+                TutorialEditorUtils.CheckIfV6UpgradeRequired())
+            {
+                DataMigrationV6 = false; // Will prevent the popup to show each time the project is started
+                TutorialEditorUtils.StartV6Upgrade();
+            }
 
             if (!DisplayWelcomeDialogOnStartup)
             {
@@ -148,14 +161,14 @@ namespace Unity.Tutorials.Core.Editor
             }
 
             string defaultsPath = Path.Combine(Directory.GetParent(Application.dataPath).FullName, k_DefaultsFolder);
-            DirectoryInfo defaultsDirectory = new DirectoryInfo(defaultsPath);
+            DirectoryInfo defaultsDirectory = new(defaultsPath);
             if (defaultsDirectory.Exists)
             {
-                foreach (var file in defaultsDirectory.GetFiles())
+                foreach (FileInfo file in defaultsDirectory.GetFiles())
                 {
                     file.Delete();
                 }
-                foreach (var directory in defaultsDirectory.GetDirectories())
+                foreach (DirectoryInfo directory in defaultsDirectory.GetDirectories())
                 {
                     directory.Delete(true);
                 }
@@ -165,7 +178,7 @@ namespace Unity.Tutorials.Core.Editor
 
         internal static void DirectoryCopy(string sourceDirectory, string destinationDirectory, HashSet<string> dirtyMetaFiles = default)
         {
-            var sourceDir = new DirectoryInfo(sourceDirectory);
+            DirectoryInfo sourceDir = new(sourceDirectory);
             if (!sourceDir.Exists)
             {
                 return;
@@ -176,7 +189,7 @@ namespace Unity.Tutorials.Core.Editor
                 Directory.CreateDirectory(destinationDirectory);
             }
 
-            foreach (var file in sourceDir.GetFiles())
+            foreach (FileInfo file in sourceDir.GetFiles())
             {
                 string tempPath = Path.Combine(destinationDirectory, file.Name);
                 if (dirtyMetaFiles != null && string.Equals(Path.GetExtension(tempPath), ".meta", StringComparison.OrdinalIgnoreCase))
@@ -190,21 +203,11 @@ namespace Unity.Tutorials.Core.Editor
                 file.CopyTo(tempPath, true);
             }
 
-            foreach (var subdir in sourceDir.GetDirectories())
+            foreach (DirectoryInfo subdir in sourceDir.GetDirectories())
             {
                 string tempPath = Path.Combine(destinationDirectory, subdir.Name);
                 DirectoryCopy(subdir.FullName, tempPath, dirtyMetaFiles);
-            } 
-        }
-
-        /// <summary>
-        /// Shows Tutorials window using the currently specified behaviour.
-        /// </summary>
-        /// <returns>The displayed TutorialWindow</returns>
-        [Obsolete("Will be removed in v4. Use TutorialWindow.ShowWindow() instead")] //todo: remove in v4
-        public static TutorialWindow ShowTutorialWindow()
-        {
-            return TutorialWindow.ShowWindow();
+            }
         }
     }
 }

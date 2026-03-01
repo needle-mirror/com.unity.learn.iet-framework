@@ -1,6 +1,6 @@
 using UnityEditor;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     internal static class InspectorWindowProxy
     {

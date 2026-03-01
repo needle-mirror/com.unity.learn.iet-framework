@@ -2,11 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Unity.Tutorials.Editor.SerializableCallback.Attributes;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace SerializableCallback
+namespace Unity.Tutorials.Editor.SerializableCallback.Editor
 {
     /// <summary>
     /// https://github.com/Siccity/SerializableCallback
@@ -39,7 +40,7 @@ namespace SerializableCallback
             // Draw label
             Rect pos = EditorGUI.PrefixLabel(position, GUIUtility.GetControlID(FocusType.Passive), label);
 
-            Rect targetRect = new Rect(pos.x, pos.y, pos.width, EditorGUIUtility.singleLineHeight);
+            Rect targetRect = new(pos.x, pos.y, pos.width, EditorGUIUtility.singleLineHeight);
 
             // Get target
             SerializedProperty targetProp = property.FindPropertyRelative("_target");
@@ -53,13 +54,13 @@ namespace SerializableCallback
 
             if (target == null)
             {
-                Rect helpBoxRect = new Rect(position.x + 8, targetRect.max.y + EditorGUIUtility.standardVerticalSpacing, position.width - 16, EditorGUIUtility.singleLineHeight);
+                Rect helpBoxRect = new(position.x + 8, targetRect.max.y + EditorGUIUtility.standardVerticalSpacing, position.width - 16, EditorGUIUtility.singleLineHeight);
                 string msg = "Call not set. Execution will be slower.";
                 EditorGUI.HelpBox(helpBoxRect, msg, MessageType.Warning);
             }
             else if (target is MonoScript)
             {
-                Rect helpBoxRect = new Rect(position.x + 8, targetRect.max.y + EditorGUIUtility.standardVerticalSpacing, position.width - 16, EditorGUIUtility.singleLineHeight + EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing);
+                Rect helpBoxRect = new(position.x + 8, targetRect.max.y + EditorGUIUtility.standardVerticalSpacing, position.width - 16, EditorGUIUtility.singleLineHeight + EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing);
                 string msg = "Assign a GameObject, Component or a ScriptableObject, not a script.";
                 EditorGUI.HelpBox(helpBoxRect, msg, MessageType.Warning);
             }
@@ -83,11 +84,11 @@ namespace SerializableCallback
                 // Get active method
                 MethodInfo activeMethod = GetMethod(target, methodName, argTypes);
 
-                GUIContent methodlabel = new GUIContent("n/a");
+                GUIContent methodlabel = new("n/a");
                 if (activeMethod != null) methodlabel = new GUIContent(PrettifyMethod(activeMethod));
                 else if (!string.IsNullOrEmpty(methodName)) methodlabel = new GUIContent("Missing (" + PrettifyMethod(methodName, argTypes) + ")");
 
-                Rect methodRect = new Rect(position.x, targetRect.max.y + EditorGUIUtility.standardVerticalSpacing, position.width, EditorGUIUtility.singleLineHeight);
+                Rect methodRect = new(position.x, targetRect.max.y + EditorGUIUtility.standardVerticalSpacing, position.width, EditorGUIUtility.singleLineHeight);
 
                 // Method select button
                 pos = EditorGUI.PrefixLabel(methodRect, GUIUtility.GetControlID(FocusType.Passive), new GUIContent(dynamic ? "Method (dynamic)" : "Method"));
@@ -100,12 +101,12 @@ namespace SerializableCallback
                 {
                     // Args
                     ParameterInfo[] activeParameters = activeMethod.GetParameters();
-                    Rect argRect = new Rect(position.x, methodRect.max.y + EditorGUIUtility.standardVerticalSpacing, position.width, EditorGUIUtility.singleLineHeight);
+                    Rect argRect = new(position.x, methodRect.max.y + EditorGUIUtility.standardVerticalSpacing, position.width, EditorGUIUtility.singleLineHeight);
                     string[] types = new string[argProps.arraySize];
                     for (int i = 0; i < types.Length; i++)
                     {
                         SerializedProperty argProp = argProps.FindPropertyRelative("Array.data[" + i + "]");
-                        GUIContent argLabel = new GUIContent(ObjectNames.NicifyVariableName(activeParameters[i].Name));
+                        GUIContent argLabel = new(ObjectNames.NicifyVariableName(activeParameters[i].Name));
 
                         EditorGUI.BeginChangeCheck();
                         switch ((Arg.ArgType)argProp.FindPropertyRelative("argType").enumValueIndex)
@@ -149,11 +150,12 @@ namespace SerializableCallback
             public MenuItem(string path, string name, GenericMenu.MenuFunction action)
             {
                 this.action = action;
-                this.label = new GUIContent(path + '/' + name);
+                label = new GUIContent(path + '/' + name);
                 this.path = path;
             }
         }
-        void MethodSelector(SerializedProperty property)
+
+        private void MethodSelector(SerializedProperty property)
         {
             // Return type constraint
             Type returnType = null;
@@ -189,10 +191,10 @@ namespace SerializableCallback
 
             SerializedProperty targetProp = property.FindPropertyRelative("_target");
 
-            List<MenuItem> dynamicItems = new List<MenuItem>();
-            List<MenuItem> staticItems = new List<MenuItem>();
+            List<MenuItem> dynamicItems = new();
+            List<MenuItem> staticItems = new();
 
-            List<Object> targets = new List<Object>() { targetProp.objectReferenceValue };
+            List<Object> targets = new() { targetProp.objectReferenceValue };
             if (targets[0] is Component)
             {
                 targets = (targets[0] as Component).gameObject.GetComponents<Component>().ToList<Object>();
@@ -230,14 +232,14 @@ namespace SerializableCallback
                     staticItems.Add(new MenuItem(targets[c].GetType().Name + "/" + methods[i].DeclaringType.Name, methodPrettyName, () => SetMethod(property, t, method, false)));
 
                     // Skip methods with wrong constrained args
-                    if (argTypes.Length == 0 || !Enumerable.SequenceEqual(argTypes, parms)) continue;
+                    if (argTypes.Length == 0 || !argTypes.SequenceEqual(parms)) continue;
 
                     dynamicItems.Add(new MenuItem(targets[c].GetType().Name + "/" + methods[i].DeclaringType.Name, methods[i].Name, () => SetMethod(property, t, method, true)));
                 }
             }
 
             // Construct and display context menu
-            GenericMenu menu = new GenericMenu();
+            GenericMenu menu = new();
             if (dynamicItems.Count > 0)
             {
                 string[] paths = dynamicItems.GroupBy(x => x.path).Select(x => x.First().path).ToArray();
@@ -263,13 +265,13 @@ namespace SerializableCallback
             menu.ShowAsContext();
         }
 
-        string PrettifyMethod(string methodName, Type[] parmTypes)
+        private string PrettifyMethod(string methodName, Type[] parmTypes)
         {
             string parmnames = PrettifyTypes(parmTypes);
             return methodName + "(" + parmnames + ")";
         }
 
-        string PrettifyMethod(MethodInfo methodInfo)
+        private string PrettifyMethod(MethodInfo methodInfo)
         {
             if (methodInfo == null) throw new ArgumentNullException("methodInfo");
             ParameterInfo[] parms = methodInfo.GetParameters();
@@ -277,13 +279,13 @@ namespace SerializableCallback
             return GetTypeName(methodInfo.ReturnParameter.ParameterType) + " " + methodInfo.Name + "(" + parmnames + ")";
         }
 
-        string PrettifyTypes(Type[] types)
+        private string PrettifyTypes(Type[] types)
         {
             if (types == null) throw new ArgumentNullException("types");
-            return string.Join(", ", types.Select(x => GetTypeName(x)).ToArray());
+            return string.Join(", ", types.Select(GetTypeName).ToArray());
         }
 
-        MethodInfo GetMethod(object target, string methodName, Type[] types)
+        private MethodInfo GetMethod(object target, string methodName, Type[] types)
         {
             MethodInfo activeMethod = target.GetType().GetMethod(methodName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static, null, CallingConventions.Any, types, null);
             return activeMethod;
@@ -299,7 +301,7 @@ namespace SerializableCallback
             return types;
         }
 
-        private void SetMethod(SerializedProperty property, UnityEngine.Object target, MethodInfo methodInfo, bool dynamic)
+        private void SetMethod(SerializedProperty property, Object target, MethodInfo methodInfo, bool dynamic)
         {
             SerializedProperty targetProp = property.FindPropertyRelative("_target");
             targetProp.objectReferenceValue = target;
@@ -322,11 +324,11 @@ namespace SerializableCallback
         private static string GetTypeName(Type t)
         {
             if (t == typeof(int)) return "int";
-            else if (t == typeof(float)) return "float";
-            else if (t == typeof(string)) return "string";
-            else if (t == typeof(bool)) return "bool";
-            else if (t == typeof(void)) return "void";
-            else  return t.Name;
+            if (t == typeof(float)) return "float";
+            if (t == typeof(string)) return "string";
+            if (t == typeof(bool)) return "bool";
+            if (t == typeof(void)) return "void";
+            return t.Name;
         }
 
         /// <summary>
@@ -352,15 +354,12 @@ namespace SerializableCallback
         {
             string stringValue = prop.FindPropertyRelative("_typeName").stringValue;
             Type type = Type.GetType(stringValue, false);
-            SerializableCallbackBase result;
             if (type == null)
             {
                 return null;
             }
-            else
-            {
-                result = (Activator.CreateInstance(type) as SerializableCallbackBase);
-            }
+
+            SerializableCallbackBase result = (Activator.CreateInstance(type) as SerializableCallbackBase);
             return result;
         }
     }

@@ -1,8 +1,0 @@
-<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
-    <ui:Template name="VideoPlayerElement" src="project://database/Packages/com.unity.learn.iet-framework/Editor/UI/CustomControl/VideoPlayer/VideoPlayerElement.uxml?fileID=9197481963319205126&amp;guid=a0ad53befc708403ca4e9f7b281d375e&amp;type=3#VideoPlayerElement" />
-    <Style src="project://database/Packages/com.unity.learn.iet-framework/Editor/UI/Styles.uss?fileID=7433441132597879392&amp;guid=ce14d779027e2204e9428e9389c2d7b0&amp;type=3#Styles" />
-    <Style src="project://database/Packages/com.unity.learn.iet-framework/Editor/UI/Styles_Dark.uss?fileID=7433441132597879392&amp;guid=1cc9851f62063cd4ba510d60b2c81bbe&amp;type=3#Styles_Dark" />
-    <ui:VisualElement name="TutorialMediaContainer" class="container--tutorial-media" style="flex-grow: 1;">
-        <ui:Instance template="VideoPlayerElement" style="width: 100%;" />
-    </ui:VisualElement>
-</ui:UXML>

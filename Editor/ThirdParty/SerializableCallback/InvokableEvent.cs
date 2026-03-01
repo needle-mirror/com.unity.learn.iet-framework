@@ -1,6 +1,6 @@
 using System;
 
-namespace SerializableCallback
+namespace Unity.Tutorials.Editor.SerializableCallback
 {
     /// <summary>
     /// https://github.com/Siccity/SerializableCallback
@@ -10,7 +10,7 @@ namespace SerializableCallback
         /// <summary>
         /// https://github.com/Siccity/SerializableCallback
         /// </summary>
-        public System.Action action;
+        public Action action;
 
         /// <summary>
         /// https://github.com/Siccity/SerializableCallback
@@ -42,7 +42,7 @@ namespace SerializableCallback
             }
             else
             {
-                action = (System.Action)System.Delegate.CreateDelegate(typeof(System.Action), target, methodName);
+                action = (Action)Delegate.CreateDelegate(typeof(Action), target, methodName);
             }
         }
     }
@@ -89,7 +89,7 @@ namespace SerializableCallback
             }
             else
             {
-                action = (System.Action<T0>)System.Delegate.CreateDelegate(typeof(System.Action<T0>), target, methodName);
+                action = (Action<T0>)Delegate.CreateDelegate(typeof(Action<T0>), target, methodName);
             }
         }
     }
@@ -138,7 +138,7 @@ namespace SerializableCallback
             }
             else
             {
-                action = (System.Action<T0, T1>)System.Delegate.CreateDelegate(typeof(System.Action<T0, T1>), target, methodName);
+                action = (Action<T0, T1>)Delegate.CreateDelegate(typeof(Action<T0, T1>), target, methodName);
             }
         }
     }
@@ -189,7 +189,7 @@ namespace SerializableCallback
             }
             else
             {
-                action = (System.Action<T0, T1, T2>)System.Delegate.CreateDelegate(typeof(System.Action<T0, T1, T2>), target, methodName);
+                action = (Action<T0, T1, T2>)Delegate.CreateDelegate(typeof(Action<T0, T1, T2>), target, methodName);
             }
         }
     }
@@ -242,7 +242,7 @@ namespace SerializableCallback
             }
             else
             {
-                action = (System.Action<T0, T1, T2, T3>)System.Delegate.CreateDelegate(typeof(System.Action<T0, T1, T2, T3>), target, methodName);
+                action = (Action<T0, T1, T2, T3>)Delegate.CreateDelegate(typeof(Action<T0, T1, T2, T3>), target, methodName);
             }
         }
     }

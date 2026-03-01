@@ -1,21 +1,20 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// Criterion for checking a specific Play Mode state.
     /// </summary>
     public class PlayModeStateCriterion : Criterion
     {
-        enum PlayModeState
+        private enum PlayModeState
         {
             Playing,
             NotPlaying
         }
 
-        [SerializeField]
-        PlayModeState m_RequiredPlayModeState = PlayModeState.Playing;
+        [SerializeField] private PlayModeState m_RequiredPlayModeState = PlayModeState.Playing;
 
         /// <summary>
         /// Starts testing of the criterion.
@@ -37,7 +36,7 @@ namespace Unity.Tutorials.Core.Editor
             EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
         }
 
-        void OnPlayModeStateChanged(PlayModeStateChange playModeStateChange)
+        private void OnPlayModeStateChanged(PlayModeStateChange playModeStateChange)
         {
             switch (playModeStateChange)
             {

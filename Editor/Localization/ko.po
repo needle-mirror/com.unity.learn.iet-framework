@@ -30,11 +30,7 @@ msgstr "Report issue"
 
 # TODO: translate
 msgid "AskAIText"
-msgstr "Still need help? Use Unity AI to ask Assistant."
-
-# TODO: translate
-msgid "AIInstallPopup"
-msgstr "Install the Assistant package using the highlighted AI menu button. Then, open Assistant using the <b>Open Assistant</b> button."
+msgstr "Your question is not listed here? Try asking the AI Assistant"
 
 # TODO: translate
 msgid "TOCLabelTitle"
@@ -112,6 +108,10 @@ msgstr "Show tutorials closed dialog"
 # TODO: translate
 msgid "SettingsDisplayWelcomeDialogOnStartup"
 msgstr "Display welcome dialog on startup"
+
+# TODO: translate
+msgid "SettingsDataMigrationV5"
+msgstr "Run Framework v5 Paragraph migration check on startup"
 
 # TODO: translate
 msgid "SettingsShowSimplifiedTypeNames"

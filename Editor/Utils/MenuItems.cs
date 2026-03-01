@@ -1,7 +1,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// Contains the names for the menu items used by the In-Editor Tutorials packages.
@@ -15,28 +15,28 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Path for menu. Append menu item names to this string.
         /// </summary>
-        public const string MenuPath = Menu + "/";
+        private const string MenuPath = Menu + "/";
         /// <summary>
         /// The default menu item for showing the tutorials in the project.
         /// </summary>
-        public const string ShowTutorials = "Show Tutorials";
+        public const string ShowTutorials = "Show Tutorial Window";
         /// <summary>
         /// Menu path for the authoring submenu.
         /// </summary>
         public const string AuthoringMenuPath = Menu + "/Authoring/";
 
         [MenuItem(MenuPath + "Welcome Dialog")]
-        static void OpenWelcomeDialog()
+        private static void OpenWelcomeDialog()
         {
-            var welcomePage = TutorialProjectSettings.Instance.WelcomePage;
+            TutorialWelcomePage welcomePage = TutorialProjectSettings.Instance.WelcomePage;
             if (welcomePage != null)
                 TutorialModalWindow.Show(welcomePage);
             else
-                Debug.LogError("No TutorialProjectSettings.WelcomePage set.");
+                Debug.LogError("No WelcomePage set in TutorialProjectSettings.");
         }
 
         [MenuItem(MenuPath + ShowTutorials)]
-        static void OpenTutorialWindow()
+        private static void OpenTutorialWindow()
         {
             TutorialWindow.ShowWindow();
         }

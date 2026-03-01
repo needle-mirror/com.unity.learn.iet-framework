@@ -1,4 +1,4 @@
-namespace SerializableCallback
+namespace Unity.Tutorials.Editor.SerializableCallback
 {
     /// <summary>
     /// https://github.com/Siccity/SerializableCallback
@@ -18,10 +18,8 @@ namespace SerializableCallback
                 InvokableCallback<TReturn> call = func as InvokableCallback<TReturn>;
                 return call.Invoke();
             }
-            else
-            {
-                return func.Invoke(Args);
-            }
+
+            return func.Invoke(Args);
         }
 
         /// <summary>
@@ -67,10 +65,8 @@ namespace SerializableCallback
                 InvokableCallback<T0, TReturn> call = func as InvokableCallback<T0, TReturn>;
                 return call.Invoke(arg0);
             }
-            else
-            {
-                return func.Invoke(Args);
-            }
+
+            return func.Invoke(Args);
         }
 
         /// <summary>
@@ -118,10 +114,8 @@ namespace SerializableCallback
                 InvokableCallback<T0, T1, TReturn> call = func as InvokableCallback<T0, T1, TReturn>;
                 return call.Invoke(arg0, arg1);
             }
-            else
-            {
-                return func.Invoke(Args);
-            }
+
+            return func.Invoke(Args);
         }
 
         /// <summary>
@@ -171,10 +165,8 @@ namespace SerializableCallback
                 InvokableCallback<T0, T1, T2, TReturn> call = func as InvokableCallback<T0, T1, T2, TReturn>;
                 return call.Invoke(arg0, arg1, arg2);
             }
-            else
-            {
-                return func.Invoke(Args);
-            }
+
+            return func.Invoke(Args);
         }
 
         /// <summary>
@@ -226,10 +218,8 @@ namespace SerializableCallback
                 InvokableCallback<T0, T1, T2, T3, TReturn> call = func as InvokableCallback<T0, T1, T2, T3, TReturn>;
                 return call.Invoke(arg0, arg1, arg2, arg3);
             }
-            else
-            {
-                return func.Invoke(Args);
-            }
+
+            return func.Invoke(Args);
         }
 
         /// <summary>

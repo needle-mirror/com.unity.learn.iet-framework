@@ -1,8 +1,9 @@
+using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// A set of common utilities that tutorial authors can use as callbacks.
@@ -52,25 +53,25 @@ namespace Unity.Tutorials.Core.Editor
         /// <param name="name"></param>
         public void SelectGameObject(string name)
         {
-            var go = GameObject.Find(name);
+            GameObject go = GameObject.Find(name);
             if (go != null)
                 Selection.activeGameObject = go;
         }
 
-        static string GetFirstAssetPathInFolder(string folder, bool includeFolders)
+        private static string GetFirstAssetPathInFolder(string folder, bool includeFolders)
         {
             try
             {
                 if (includeFolders)
                 {
-                    string path = GetFirstValidAssetPath(System.IO.Directory.GetDirectories(folder));
+                    string path = GetFirstValidAssetPath(Directory.GetDirectories(folder));
                     if (path != null)
                     {
                         return path;
                     }
                 }
 
-                return GetFirstValidAssetPath(System.IO.Directory.GetFiles(folder));
+                return GetFirstValidAssetPath(Directory.GetFiles(folder));
             }
             catch
             {
@@ -78,7 +79,7 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
-        static string GetFirstValidAssetPath(string[] paths) =>
+        private static string GetFirstValidAssetPath(string[] paths) =>
             paths.Where(path => AssetDatabase.AssetPathToGUID(path).IsNotNullOrEmpty()).FirstOrDefault();
     }
 }

@@ -1,25 +1,30 @@
 using UnityEditor;
-using UnityEditorInternal;
+using UnityEngine.UIElements;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
+    /// <summary>
+    /// Custom PropertyDrawer for <see cref="TypedCriterionCollection"/>.
+    /// </summary>
     [CustomPropertyDrawer(typeof(TypedCriterionCollection))]
-    class TypedCriterionCollectionDrawer : CollectionWrapperDrawer
+    internal class TypedCriterionCollectionDrawer : CollectionWrapperDrawer
     {
-        const string k_TypeNamePath = "Type.m_TypeName";
-        const string k_CriterionPropertyPath = "Criterion";
+        private const string k_TypeNamePath = "Type.m_TypeName";
+        private const string k_CriterionPropertyPath = "Criterion";
 
-        protected override void OnReorderableListCreated(ReorderableList list)
+        protected override void OnListViewCreated(ListView listView)
         {
-            base.OnReorderableListCreated(list);
-            list.onAddCallback = delegate(ReorderableList lst) {
-                ++lst.serializedProperty.arraySize;
-                lst.serializedProperty.serializedObject.ApplyModifiedProperties();
-                var lastElement = lst.serializedProperty.GetArrayElementAtIndex(lst.serializedProperty.arraySize - 1);
+            listView.onAdd += view =>
+            {
+                ++m_ItemsProperty.arraySize;
+                m_ItemsProperty.serializedObject.ApplyModifiedProperties();
+                SerializedProperty lastElement = m_ItemsProperty.GetArrayElementAtIndex(m_ItemsProperty.arraySize - 1);
                 lastElement.FindPropertyRelative(k_TypeNamePath).stringValue = "";
                 lastElement.FindPropertyRelative(k_CriterionPropertyPath).objectReferenceValue = null;
-                list.serializedProperty.serializedObject.ApplyModifiedProperties();
+                m_ItemsProperty.serializedObject.ApplyModifiedProperties();
             };
+
+            base.OnListViewCreated(listView);
         }
     }
 }

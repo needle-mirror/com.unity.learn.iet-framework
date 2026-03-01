@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.EditorCoroutines.Editor;
+using Unity.Tutorials.Editor.Paragraphs;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -10,35 +11,33 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 using Object = UnityEngine.Object;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     internal class TutorialView : View
     {
-        const string k_NextButtonBorderElementName = "NextButtonBase";
+        private const string k_NextButtonBorderElementName = "NextButtonBase";
         internal const string k_Name = "Tutorial";
         internal override string Name => k_Name;
-        TutorialModel Model => Application?.Model?.Tutorial;
-        TutorialPage CurrentPage => Model?.CurrentTutorial?.CurrentPage;
-        string PageTitle => CurrentPage.Title;
+        private TutorialModel Model => Application?.Model?.Tutorial;
+        private TutorialPage CurrentPage => Model?.CurrentTutorial?.CurrentPage;
+        private string PageTitle => CurrentPage.Title;
 
-        VisualElement m_Root;
-        VisualElement tutorialPageContainer;
-        VisualElement tutorialParagraphsContainer;
-        VisualElement footer;
-        ScrollView tutorialScrollview;
-        Button btnNext;
-        EditorCoroutine m_NextButtonBlinkRoutine;
+        private VisualElement m_Root;
+        private VisualElement tutorialPageContainer;
+        private VisualElement tutorialParagraphsContainer;
+        private VisualElement footer;
+        private ScrollView tutorialScrollview;
+        private Button ButtonNext;
+        private EditorCoroutine m_NextButtonBlinkRoutine;
 
-        Dictionary<ParagraphType, VisualTreeAsset> paragraphsRepresentationsPrefabs = new Dictionary<ParagraphType, VisualTreeAsset>();
-        Dictionary<TutorialParagraph, VisualElement> instructionParagraphs = new Dictionary<TutorialParagraph, VisualElement>();
+        private Dictionary<ParagraphType, VisualTreeAsset> paragraphsRepresentationsPrefabs = new();
+        private Dictionary<TutorialParagraph, VisualElement> instructionParagraphs = new();
 
-        VideoPlaybackManager VideoPlaybackManager { get; } = new VideoPlaybackManager();
-        private List<VisualElement> playButtons = new List<VisualElement>();
-        private List<VisualElement> playOverlays = new List<VisualElement>();
+        private VideoPlaybackManager VideoPlaybackManager { get; } = new();
+        private List<VisualElement> playButtons = new();
+        private List<VisualElement> playOverlays = new();
 
         private HelpPanelHandler m_HelpPanelHandler = new();
-
-        public TutorialView() : base() { }
 
         public override void SubscribeEvents()
         {
@@ -51,9 +50,9 @@ namespace Unity.Tutorials.Core.Editor
             EditorSceneManager.sceneOpened += SceneOpened;
         }
 
-        public override void UnubscribeEvents()
+        public override void UnsubscribeEvents()
         {
-            base.UnubscribeEvents();
+            base.UnsubscribeEvents();
             GUIViewProxy.PositionChanged -= OnGUIViewPositionChanged;
             EditorApplication.projectChanged -= RefreshMasking;
             EditorApplication.hierarchyChanged -= RefreshMaskingOnHierarchyChange;
@@ -64,8 +63,6 @@ namespace Unity.Tutorials.Core.Editor
             Application.StopAndNullifyEditorCoroutine(ref m_NextButtonBlinkRoutine);
             VideoPlaybackManager.OnDisable();
             ApplyMaskingSettings(false);
-
-            Application.Model.IsFaqOpen = false;
         }
 
         internal void Initialize(VisualElement root)
@@ -81,7 +78,7 @@ namespace Unity.Tutorials.Core.Editor
             {
                 foreach (ParagraphType paragraphType in Enum.GetValues(typeof(ParagraphType)))
                 {
-                    paragraphsRepresentationsPrefabs.Add(paragraphType, UIElementsUtils.LoadUXML($"Paragraphs/{paragraphType}"));
+                    paragraphsRepresentationsPrefabs.Add(paragraphType, UIUtils.LoadUXML($"Paragraphs/{paragraphType}"));
                 }
             }
 
@@ -93,16 +90,14 @@ namespace Unity.Tutorials.Core.Editor
 
             m_HelpPanelHandler.Initialize(m_Root);
 
-            if(Application.Model.IsFaqOpen)
-                m_HelpPanelHandler.Open(Application.CurrentTutorial);
-
             Refresh();
             SubscribeEvents();
         }
 
         private void RefreshMaskingOnHierarchyChange()
         {
-            if (!CurrentPage.ShouldRefreshMaskingOnHierarchyChange) { return; }
+            //TODO : fix?
+            //if (!CurrentPage.ShouldRefreshMaskingOnHierarchyChange) { return; }
             RefreshMasking();
         }
 
@@ -136,25 +131,25 @@ namespace Unity.Tutorials.Core.Editor
             EditorCoroutineUtility.StartCoroutineOwnerless(RefreshPlayerCoroutine());
         }
 
-        IEnumerator RefreshPlayerCoroutine()
+        private IEnumerator RefreshPlayerCoroutine()
         {
             m_Root.style.display = DisplayStyle.None;
             yield return null;
             m_Root.style.display = DisplayStyle.Flex;
 
-            foreach (var playButton in playButtons)
+            foreach (VisualElement playButton in playButtons)
             {
                 playButton.RemoveFromClassList("video-pause-button");
                 playButton.AddToClassList("video-play-button");
             }
 
-            foreach (var playOverlay in playOverlays)
+            foreach (VisualElement playOverlay in playOverlays)
             {
                 playOverlay.visible = true;
             }
         }
 
-        void OnGUIViewPositionChanged(Object sender)
+        private void OnGUIViewPositionChanged(Object sender)
         {
             if (Model.CurrentTutorial == null
             || Model.IsLoadingLayout
@@ -167,28 +162,28 @@ namespace Unity.Tutorials.Core.Editor
 
         internal void Refresh()
         {
-            UIElementsUtils.SetupLabel("lblTutorialName", Model.CurrentTutorial.TutorialTitle, m_Root, false);
-            UIElementsUtils.SetupLabel("lblStepCount", $"Steps {Model.CurrentTutorial.CurrentPageIndex + 1} / {Model.CurrentTutorial.PagesCollection.Count}", m_Root, false);
+            UIUtils.SetupLabel("LabelTutorialName", Model.CurrentTutorial.TutorialTitle, m_Root, false);
+            UIUtils.SetupLabel("LabelStepCount", $"Steps {Model.CurrentTutorial.CurrentPageIndex + 1} / {Model.CurrentTutorial.PagesCollection.Count}", m_Root, false);
 
-            m_Root.Q("btnQuit").RegisterCallback<MouseUpEvent>(_ => ExitTutorial());
+            m_Root.Q("ButtonQuit").RegisterCallback<MouseUpEvent>(_ => ExitTutorial());
 
-            UIElementsUtils.SetupButton("btnPrevious", OnPreviousButtonClicked, true, footer, LocalizationKeys.k_TutorialButtonPrevious, localize: true);
+            UIUtils.SetupButton("ButtonPrevious", OnPreviousButtonClicked, true, footer, LocalizationKeys.k_TutorialButtonPrevious, localize: true);
 
             string nextButtonText = Model.CurrentTutorial.CurrentPageIndex + 1 == Model.CurrentTutorial.PagesCollection.Count ? CurrentPage.DoneButton
                                                                                                                       : CurrentPage.NextButton;
-            btnNext = UIElementsUtils.SetupButton("btnNext", OnNextButtonClicked, Model.CanMoveToNextPage, footer, nextButtonText, localize: true);
+            ButtonNext = UIUtils.SetupButton("ButtonNext", OnNextButtonClicked, Model.CanMoveToNextPage, footer, nextButtonText, localize: true);
 
             ShowCurrentTutorialContent();
             ApplyMaskingSettings(true);
         }
 
-        void QueueMaskUpdate()
+        private void QueueMaskUpdate()
         {
             EditorApplication.update -= ApplyQueuedMask;
             EditorApplication.update += ApplyQueuedMask;
         }
 
-        void ApplyQueuedMask()
+        private void ApplyQueuedMask()
         {
             if (!Application || Application.IsParentNull())
             {
@@ -216,8 +211,7 @@ namespace Unity.Tutorials.Core.Editor
                 }
                 else
                 {
-                    bool foundAncestorProperty;
-                    var unmaskedViews = UnmaskedView.GetViewsAndRects(maskingSettings.UnmaskedViews, out foundAncestorProperty);
+                    UnmaskedView.MaskData unmaskedViews = UnmaskedView.GetViewsAndRects(maskingSettings.UnmaskedViews, out bool foundAncestorProperty);
                     if (foundAncestorProperty)
                     {
                         // Keep updating mask when target property is not unfolded
@@ -246,8 +240,8 @@ namespace Unity.Tutorials.Core.Editor
                     }
                     else // otherwise, highlight manually specified control rects if there are any
                     {
-                        var unmaskedControls = new List<GuiControlSelector>();
-                        var unmaskedViewsWithControlsSpecified =
+                        List<GuiControlSelector> unmaskedControls = new();
+                        UnmaskedView[] unmaskedViewsWithControlsSpecified =
                             maskingSettings.UnmaskedViews.Where(v => v.GetUnmaskedControls(unmaskedControls) > 0).ToArray();
                         // if there are no manually specified control rects, highlight all unmasked views
                         highlightedViews = UnmaskedView.GetViewsAndRects(
@@ -294,19 +288,18 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
-        void ExitTutorial()
+        private void ExitTutorial()
         {
-            Application.Model.IsFaqOpen = false;
             m_HelpPanelHandler.Close();
             Application.Broadcast(new TutorialQuitEvent());
         }
 
-        void ScrollToTop()
+        private void ScrollToTop()
         {
             tutorialScrollview.scrollOffset = Vector2.zero;
         }
 
-        void SetupParagraphUI(VisualElement paragraphUI, TutorialParagraph paragraph, string pageName)
+        private void SetupParagraphUI(VisualElement paragraphUI, TutorialParagraph paragraph, string pageName)
         {
             const string instructionContainerElementName = "InstructionContainer";
             const string startLinkedTutorialElementName = "btnStartLinkedTutorial";
@@ -319,24 +312,24 @@ namespace Unity.Tutorials.Core.Editor
             {
                 case ParagraphType.Narrative:
 
-                    var label = new Label(paragraph.Text);
+                    Label label = new(paragraph.Text);
                     //ensure we got word wrap
                     label.style.whiteSpace = WhiteSpace.Normal;
                     paragraphUI.Q("TutorialStepBox1").Add(label);
 
                     if (paragraph.CodeSample.IsNotNullOrEmpty())
                     {
-                        UIElementsUtils.Show(codeSampleScrollViewElementName, paragraphUI);
-                        var codeSample = paragraphUI.Q<Label>(codeSampleLabelElementName);
+                        UIUtils.Show(codeSampleScrollViewElementName, paragraphUI);
+                        Label codeSample = paragraphUI.Q<Label>(codeSampleLabelElementName);
 
-                        var codeSampleScrollView = paragraphUI.Q<VisualElement>(codeSampleScrollViewElementName);
-                        var btn = new VisualElement();
+                        VisualElement codeSampleScrollView = paragraphUI.Q<VisualElement>(codeSampleScrollViewElementName);
+                        VisualElement btn = new();
                         btn.tooltip = Localization.Tr("CopyCodeTooltip");
                         btn.AddToClassList("code-sample-copy-button");
 
-                        var overlay = new VisualElement();
+                        VisualElement overlay = new();
                         overlay.AddToClassList("code-sample-copied-notice");
-                        var copyLabel = new Label(Localization.Tr("CodeCopiedWarning"));
+                        Label copyLabel = new(Localization.Tr("CodeCopiedWarning"));
                         overlay.Add(copyLabel);
 
                         //we need to bypass the normal Add by using hierarchy.Add because we want the button to be on
@@ -358,9 +351,9 @@ namespace Unity.Tutorials.Core.Editor
                             GUIUtility.systemCopyBuffer = paragraph.CodeSample;
 
                             overlay.style.display = DisplayStyle.Flex;
-                            overlay.style.transitionDuration = new List<TimeValue>(){new(0.5f, TimeUnit.Second)};
-                            overlay.style.transitionProperty = new List<StylePropertyName>() { new("opacity") };
-                            overlay.style.transitionTimingFunction = new List<EasingFunction>() { EasingMode.Linear };
+                            overlay.style.transitionDuration = new List<TimeValue> {new(0.5f, TimeUnit.Second)};
+                            overlay.style.transitionProperty = new List<StylePropertyName> { new("opacity") };
+                            overlay.style.transitionTimingFunction = new List<EasingFunction> { EasingMode.Linear };
 
                             overlay.style.display = DisplayStyle.Flex;
                         }));
@@ -369,16 +362,16 @@ namespace Unity.Tutorials.Core.Editor
                     }
                     else
                     {
-                        UIElementsUtils.Hide(codeSampleScrollViewElementName, paragraphUI);
+                        UIUtils.Hide(codeSampleScrollViewElementName, paragraphUI);
                     }
 
                     if (paragraph.PostInstructionImage != null)
                     {
-                        UIElementsUtils.Show(tutorialMediaContainerElementName, paragraphUI);
-                        var media = paragraphUI.Q("TutorialMedia");
+                        UIUtils.Show(tutorialMediaContainerElementName, paragraphUI);
+                        VisualElement media = paragraphUI.Q("TutorialMedia");
                         media.style.backgroundImage = paragraph.PostInstructionImage;
 
-                        var popout = paragraphUI.Q<VisualElement>("PopoutButton");
+                        VisualElement popout = paragraphUI.Q<VisualElement>("PopoutButton");
                         //Popout button
                         popout.AddManipulator(new Clickable(() =>
                         {
@@ -387,28 +380,28 @@ namespace Unity.Tutorials.Core.Editor
                     }
                     else
                     {
-                        UIElementsUtils.Hide(tutorialMediaContainerElementName, paragraphUI);
+                        UIUtils.Hide(tutorialMediaContainerElementName, paragraphUI);
                     }
                     break;
                 case ParagraphType.Instruction:
                     if (string.IsNullOrEmpty(paragraph.Text) && string.IsNullOrEmpty(paragraph.Title))
                     {
-                        UIElementsUtils.Hide(instructionContainerElementName, paragraphUI);
+                        UIUtils.Hide(instructionContainerElementName, paragraphUI);
                     }
                     else
                     {
-                        UIElementsUtils.Show(instructionContainerElementName, paragraphUI);
+                        UIUtils.Show(instructionContainerElementName, paragraphUI);
                         if (string.IsNullOrEmpty(paragraph.Title))
                         {
-                            UIElementsUtils.Hide("InstructionTitle", paragraphUI);
+                            UIUtils.Hide("InstructionTitle", paragraphUI);
                         }
                         else
                         {
-                            UIElementsUtils.Show("InstructionTitle", paragraphUI);
+                            UIUtils.Show("InstructionTitle", paragraphUI);
                         }
-                        UIElementsUtils.SetupLabel("InstructionTitle", paragraph.Title, paragraphUI, false);
+                        UIUtils.SetupLabel("InstructionTitle", paragraph.Title, paragraphUI, false);
 
-                        var paragraphLabel = new Label(paragraph.Text);
+                        Label paragraphLabel = new(paragraph.Text);
                         //ensure we got word wrapping
                         paragraphLabel.style.whiteSpace = WhiteSpace.Normal;
                         paragraphUI.Q("InstructionDescription").Add(paragraphLabel);
@@ -418,18 +411,18 @@ namespace Unity.Tutorials.Core.Editor
 
                     if (paragraph.CodeSample.IsNotNullOrEmpty())
                     {
-                        UIElementsUtils.Show(codeSampleScrollViewElementName, paragraphUI);
-                        var codeSample = paragraphUI.Q<Label>(codeSampleLabelElementName);
+                        UIUtils.Show(codeSampleScrollViewElementName, paragraphUI);
+                        Label codeSample = paragraphUI.Q<Label>(codeSampleLabelElementName);
                         codeSample.text = CodeSampleUtils.HighlightCode(paragraph.CodeSample);
 
-                        var codeSampleScrollView = paragraphUI.Q<VisualElement>(codeSampleScrollViewElementName);
-                        var btn = new VisualElement();
+                        VisualElement codeSampleScrollView = paragraphUI.Q<VisualElement>(codeSampleScrollViewElementName);
+                        VisualElement btn = new();
                         btn.tooltip = Localization.Tr("CopyCodeTooltip");
                         btn.AddToClassList("code-sample-copy-button");
 
-                        var overlay = new VisualElement();
+                        VisualElement overlay = new();
                         overlay.AddToClassList("code-sample-copied-notice");
-                        var copyLabel = new Label(Localization.Tr("CodeCopiedWarning"));
+                        Label copyLabel = new(Localization.Tr("CodeCopiedWarning"));
                         overlay.Add(copyLabel);
 
                         //we need to bypass the normal Add by using hierarchy.Add because we want the button to be on
@@ -452,9 +445,9 @@ namespace Unity.Tutorials.Core.Editor
                             GUIUtility.systemCopyBuffer = paragraph.CodeSample;
 
                             overlay.style.display = DisplayStyle.Flex;
-                            overlay.style.transitionDuration = new List<TimeValue>(){new(0.5f, TimeUnit.Second)};
-                            overlay.style.transitionProperty = new List<StylePropertyName>() { new("opacity") };
-                            overlay.style.transitionTimingFunction = new List<EasingFunction>() { EasingMode.Linear };
+                            overlay.style.transitionDuration = new List<TimeValue> {new(0.5f, TimeUnit.Second)};
+                            overlay.style.transitionProperty = new List<StylePropertyName> { new("opacity") };
+                            overlay.style.transitionTimingFunction = new List<EasingFunction> { EasingMode.Linear };
 
                             overlay.style.display = DisplayStyle.Flex;
                             overlay.style.opacity = 0.0f;
@@ -462,16 +455,16 @@ namespace Unity.Tutorials.Core.Editor
                     }
                     else
                     {
-                        UIElementsUtils.Hide(codeSampleScrollViewElementName, paragraphUI);
+                        UIUtils.Hide(codeSampleScrollViewElementName, paragraphUI);
                     }
 
                     if (paragraph.PostInstructionImage != null)
                     {
-                        UIElementsUtils.Show(tutorialMediaContainerElementName, paragraphUI);
-                        var media = paragraphUI.Q("TutorialMedia");
+                        UIUtils.Show(tutorialMediaContainerElementName, paragraphUI);
+                        VisualElement media = paragraphUI.Q("TutorialMedia");
                         media.style.backgroundImage = paragraph.PostInstructionImage;
 
-                        var popout = paragraphUI.Q<VisualElement>("PopoutButton");
+                        VisualElement popout = paragraphUI.Q<VisualElement>("PopoutButton");
                         //Popout button
                         popout.AddManipulator(new Clickable(() =>
                         {
@@ -480,33 +473,33 @@ namespace Unity.Tutorials.Core.Editor
                     }
                     else
                     {
-                        UIElementsUtils.Hide(tutorialMediaContainerElementName, paragraphUI);
+                        UIUtils.Hide(tutorialMediaContainerElementName, paragraphUI);
                     }
 
                     break;
                 case ParagraphType.SwitchTutorial:
                     if (paragraph.m_Tutorial == null)
                     {
-                        UIElementsUtils.Hide(startLinkedTutorialElementName, paragraphUI);
+                        UIUtils.Hide(startLinkedTutorialElementName, paragraphUI);
                         Debug.LogError($"Target tutorial of paragraph 'Switch Tutorial' of the page '{pageName}' is null. Did you forget to specify to which tutorial the user should transition to?");
                     }
                     else if (paragraph.m_Tutorial == Model.CurrentTutorial)
                     {
-                        UIElementsUtils.Hide(startLinkedTutorialElementName, paragraphUI);
+                        UIUtils.Hide(startLinkedTutorialElementName, paragraphUI);
                         Debug.LogError($"Target tutorial of paragraph 'Switch Tutorial' of the page '{pageName}' is the current tutorial, but it needs to be a different one.");
                     }
                     else
                     {
-                        UIElementsUtils.SetupButton(startLinkedTutorialElementName, () => SwitchTutorial(paragraph.m_Tutorial), true, paragraphUI, paragraph.Text, localize: true);
+                        UIUtils.SetupButton(startLinkedTutorialElementName, () => SwitchTutorial(paragraph.m_Tutorial), true, paragraphUI, paragraph.Text, localize: true);
                     }
                     break;
                 case ParagraphType.Image:
                     if (paragraph.Image != null)
                     {
-                        UIElementsUtils.Show(tutorialMediaContainerElementName, paragraphUI);
+                        UIUtils.Show(tutorialMediaContainerElementName, paragraphUI);
                         paragraphUI.Q("TutorialMedia").style.backgroundImage = paragraph.Image;
 
-                        var popout = paragraphUI.Q<VisualElement>("PopoutButton");
+                        VisualElement popout = paragraphUI.Q<VisualElement>("PopoutButton");
                         //Popout button
                         popout.AddManipulator(new Clickable(() =>
                         {
@@ -515,16 +508,16 @@ namespace Unity.Tutorials.Core.Editor
                     }
                     else
                     {
-                        UIElementsUtils.Hide(tutorialMediaContainerElementName, paragraphUI);
+                        UIUtils.Hide(tutorialMediaContainerElementName, paragraphUI);
                     }
                     break;
                 case ParagraphType.Video:
                 case ParagraphType.VideoUrl:
                     if (paragraph.Video != null || paragraph.VideoUrl != null)
                     {
-                        UIElementsUtils.Show(tutorialMediaContainerElementName, paragraphUI);
+                        UIUtils.Show(tutorialMediaContainerElementName, paragraphUI);
 
-                        var vidPlayer = paragraphUI.Q<VideoPlayerElement>();
+                        VideoPlayerElement vidPlayer = paragraphUI.Q<VideoPlayerElement>();
 
                         if(paragraph.Type == ParagraphType.Video)
                         {
@@ -543,7 +536,7 @@ namespace Unity.Tutorials.Core.Editor
                     }
                     else
                     {
-                        UIElementsUtils.Hide(tutorialMediaContainerElementName, paragraphUI);
+                        UIUtils.Hide(tutorialMediaContainerElementName, paragraphUI);
                     }
                     break;
                 case ParagraphType.Media:
@@ -551,13 +544,13 @@ namespace Unity.Tutorials.Core.Editor
                     {
                         if (paragraph.Media.IsValid())
                         {
-                            UIElementsUtils.Show(tutorialMediaContainerElementName, paragraphUI);
+                            UIUtils.Show(tutorialMediaContainerElementName, paragraphUI);
                             //hide the video part
-                            UIElementsUtils.Hide("VideoPlayerRoot", paragraphUI);
+                            UIUtils.Hide("VideoPlayerRoot", paragraphUI);
 
                             paragraphUI.Q("TutorialMedia").style.backgroundImage = paragraph.Media.Image;
 
-                            var popout = paragraphUI.Q<VisualElement>("PopoutButton");
+                            VisualElement popout = paragraphUI.Q<VisualElement>("PopoutButton");
                             //Popout button
                             popout.AddManipulator(new Clickable(() =>
                             {
@@ -566,18 +559,18 @@ namespace Unity.Tutorials.Core.Editor
                         }
                         else
                         {
-                            UIElementsUtils.Hide(tutorialMediaContainerElementName, paragraphUI);
+                            UIUtils.Hide(tutorialMediaContainerElementName, paragraphUI);
                         }
                     }
                     else
                     {
                         if (paragraph.Media.IsValid())
                         {
-                            UIElementsUtils.Show(tutorialMediaContainerElementName, paragraphUI);
+                            UIUtils.Show(tutorialMediaContainerElementName, paragraphUI);
                             //Hide the image part
-                            UIElementsUtils.Hide("TutorialMedia", paragraphUI);
+                            UIUtils.Hide("TutorialMedia", paragraphUI);
 
-                            var vidPlayer = paragraphUI.Q<VideoPlayerElement>();
+                            VideoPlayerElement vidPlayer = paragraphUI.Q<VideoPlayerElement>();
 
                             if (paragraph.Media.ContentType == MediaContent.MediaContentType.VideoClip)
                             {
@@ -592,23 +585,22 @@ namespace Unity.Tutorials.Core.Editor
                         }
                         else
                         {
-                            UIElementsUtils.Hide(tutorialMediaContainerElementName, paragraphUI);
+                            UIUtils.Hide(tutorialMediaContainerElementName, paragraphUI);
                         }
                     }
                     break;
-                default: break;
             }
         }
 
-        void SwitchTutorial(Tutorial newTutorial)
+        private void SwitchTutorial(Tutorial newTutorial)
         {
             Application.Broadcast(new TutorialStartRequestedEvent(newTutorial, Model.CurrentTutorial));
         }
 
-        void ShowCurrentTutorialContent()
+        private void ShowCurrentTutorialContent()
         {
             instructionParagraphs.Clear();
-            var lblPageTitle = UIElementsUtils.SetupLabel("lblPageTitle", PageTitle, tutorialScrollview, false);
+            Label lblPageTitle = UIUtils.SetupLabel("lblPageTitle", PageTitle, tutorialScrollview, false);
             for (int i = tutorialParagraphsContainer.childCount - 1; i >= 0; i--) //remove all containers
             {
                 if (tutorialParagraphsContainer.ElementAt(i) != lblPageTitle)
@@ -618,12 +610,10 @@ namespace Unity.Tutorials.Core.Editor
             }
 
             ScrollToTop();
-            string currentPageName = Model.CurrentTutorial.CurrentPage.name;
-            foreach (TutorialParagraph paragraph in Model.CurrentTutorial.CurrentPage.Paragraphs)
+
+            foreach (ParagraphBase paragraph in Model.CurrentTutorial.CurrentPage.Paragraphs)
             {
-                VisualElement paragraphUI = paragraphsRepresentationsPrefabs[paragraph.Type].CloneTree();
-                SetupParagraphUI(paragraphUI, paragraph, currentPageName);
-                tutorialParagraphsContainer.Add(paragraphUI);
+                tutorialParagraphsContainer.Add(paragraph.GetDisplayRoot());
             }
 
             if (Model.CurrentTutorial.CurrentPageIsFirst())
@@ -633,12 +623,12 @@ namespace Unity.Tutorials.Core.Editor
             else
             {
                 Application.StopAndNullifyEditorCoroutine(ref m_NextButtonBlinkRoutine);
-                UIElementsUtils.ShowOrHide(k_NextButtonBorderElementName, btnNext, false);
+                UIUtils.ShowOrHide(k_NextButtonBorderElementName, ButtonNext, false);
             }
 
-            var faqContainer = m_Root.Q<VisualElement>("FAQContainer");
-            var faqLabel = m_Root.Q<Label>("FAQLabelTitle");
-            var faqFoldoutArrow = m_Root.Q<VisualElement>("FoldoutArrow");
+            VisualElement faqContainer = m_Root.Q<VisualElement>("FAQContainer");
+            Label faqLabel = m_Root.Q<Label>("FAQLabelTitle");
+            VisualElement faqFoldoutArrow = m_Root.Q<VisualElement>("FoldoutArrow");
 
             faqLabel.text = Localization.Tr(LocalizationKeys.k_FaqOpenText);
             faqContainer.AddManipulator(new Clickable(() =>
@@ -646,36 +636,34 @@ namespace Unity.Tutorials.Core.Editor
                 if (!m_HelpPanelHandler.IsOpened)
                 {
                     faqFoldoutArrow.AddToClassList("open");
-                    Application.Model.IsFaqOpen = true;
                     m_HelpPanelHandler.Open(Model.CurrentTutorial);
                 }
                 else
                 {
                     faqFoldoutArrow.RemoveFromClassList("open");
-                    Application.Model.IsFaqOpen = false;
                     m_HelpPanelHandler.Close();
                 }
             }));
         }
 
-        IEnumerator MakeNextButtonBlink()
+        private IEnumerator MakeNextButtonBlink()
         {
             bool highlightBorder = true;
             while (Model.CurrentTutorial)
             {
-                UIElementsUtils.ShowOrHide(k_NextButtonBorderElementName, btnNext, highlightBorder && Model.CanMoveToNextPage);
+                UIUtils.ShowOrHide(k_NextButtonBorderElementName, ButtonNext, highlightBorder && Model.CanMoveToNextPage);
                 highlightBorder = !highlightBorder;
                 yield return new EditorWaitForSeconds(1);
             }
         }
 
-        void OnPreviousButtonClicked()
+        private void OnPreviousButtonClicked()
         {
             MediaPopoutWindow.EnsureClosed();
             Application.Broadcast(new TutorialNavigationEvent(false));
         }
 
-        void OnNextButtonClicked()
+        private void OnNextButtonClicked()
         {
             //we ensure we close any stray open pop media
             MediaPopoutWindow.EnsureClosed();
@@ -693,17 +681,17 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
-        void UpdateInstructionBox(VisualElement paragraphUI, bool allParagraphCriteriaCompleted)
+        private void UpdateInstructionBox(VisualElement paragraphUI, bool allParagraphCriteriaCompleted)
         {
-            UIElementsUtils.ShowOrHide("green", paragraphUI, allParagraphCriteriaCompleted);
-            UIElementsUtils.ShowOrHide("imgCheckmark", paragraphUI, allParagraphCriteriaCompleted);
-            UIElementsUtils.ShowOrHide("blue", paragraphUI, !allParagraphCriteriaCompleted);
-            UIElementsUtils.ShowOrHide("imgArrow", paragraphUI, !allParagraphCriteriaCompleted);
+            UIUtils.ShowOrHide("green", paragraphUI, allParagraphCriteriaCompleted);
+            UIUtils.ShowOrHide("imgCheckmark", paragraphUI, allParagraphCriteriaCompleted);
+            UIUtils.ShowOrHide("blue", paragraphUI, !allParagraphCriteriaCompleted);
+            UIUtils.ShowOrHide("imgArrow", paragraphUI, !allParagraphCriteriaCompleted);
         }
 
         internal void UpdateStateOfFooterButtons()
         {
-            btnNext.SetEnabled(Model.CanMoveToNextPage);
+            ButtonNext.SetEnabled(Model.CanMoveToNextPage);
         }
     }
 }

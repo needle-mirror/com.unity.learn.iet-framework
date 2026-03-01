@@ -1,4 +1,4 @@
-﻿# Tutorial Framework Documentation
+# Tutorial Framework Documentation
 
 The purpose of this documentation is to provide additional details about the features of the Tutorial Framework.
 
@@ -16,7 +16,7 @@ You can find more details below on how to use ```<wordwrap>```and other rich tex
 
 ### Using rich text in tutorial instructions and narratives
 
-The system support any rich text tags supported by UI Toolkit. See [the Unity Manual page on the subject](https://docs.unity3d.com/Manual/UIE-supported-tags.html) 
+The system support any rich text tags supported by UI Toolkit. See [the Unity Manual page on the subject](https://docs.unity3d.com/Manual/UIE-supported-tags.html)
 
 ## Tutorial media
 
@@ -27,11 +27,11 @@ You can choose to show image or video at the top of a tutorial page by choosing 
 - for video, WebM VP8 is recommended ([read more](https://docs.unity3d.com/Manual/VideoSources-FileCompatibility.html))
 - the type Video URL allows to use a web url as a video source. The url needs to point directly to the video file.
 
-## Future Prefabs and Criteria 
+## Future Prefabs and Criteria
 
 A good way to review many of the concepts within this guide is to create a "Future Prefab Instance". This is useful for tutorials that ask the user to spawn a prefab in the scene, and then modify values of said prefab within the scene. However, since the prefab doesn't exist in the scene until it's initialized, it requires some work, as follows.
 
-First, let's create a new scene and a new Tutorial with at least two **Narrative with Instructions** tutorial pages, and the scene, attached to it: 
+First, let's create a new scene and a new Tutorial with at least two **Narrative with Instructions** tutorial pages, and the scene, attached to it:
 
 ![](images/index050.png)
 
@@ -39,7 +39,7 @@ And assign it to the list of tutorials in the Tutorials file. For this tutorial,
 
 ![](images/index051.png)
 
-Make sure the prefab isn't currently spawned in the scene (you can have multiples of the same prefab, but this example is easier to explain using only one). Then, go to your first tutorial page and set it up similarly to this: 
+Make sure the prefab isn't currently spawned in the scene (you can have multiples of the same prefab, but this example is easier to explain using only one). Then, go to your first tutorial page and set it up similarly to this:
 
 ![](images/index052.png)
 
@@ -47,7 +47,7 @@ With the following masking settings:
 
 ![](images/index053.png)
 
-The criterion used is Unity.InteractiveTutorials.InstantiatePrefabCriterion. For the Prefab Parent, drag in the Prefab from the Project window. Click the **Add** (**+**) button next to "Future Prefab Instances: List is Empty" twice. This will create two new slots: None (Object) 
+The criterion used is Unity.InteractiveTutorials.InstantiatePrefabCriterion. For the Prefab Parent, drag in the Prefab from the Project window. Click the **Add** (**+**) button next to "Future Prefab Instances: List is Empty" twice. This will create two new slots: None (Object)
 
 ![](images/index054.png)
 
@@ -60,123 +60,123 @@ Then drag the **PrefabComponent** script from the Inspector to the second one an
 
 ![](images/index055.png)
 
-You should now see two new children object appear in the tutorial page in the Project window, the first one being the reference to the GameObject, the second being a reference to the Prefab script. 
+You should now see two new children object appear in the tutorial page in the Project window, the first one being the reference to the GameObject, the second being a reference to the Prefab script.
 
-The newly created children of the tutorial page are the Future Prefab Instance's references. The names depends on where they were created (Paragraph 1, Criterion 1, 1: Prefab (GameObject). Depending on which paragraph, how many criteria, or what the object is, these might change. Avoid changing the names, to ensure that they work correctly. You will need to use these object in the next tutorial page.  
+The newly created children of the tutorial page are the Future Prefab Instance's references. The names depends on where they were created (Paragraph 1, Criterion 1, 1: Prefab (GameObject). Depending on which paragraph, how many criteria, or what the object is, these might change. Avoid changing the names, to ensure that they work correctly. You will need to use these object in the next tutorial page.
 
-In the second tutorial page, let's add another instruction paragraph. We want the user to modify the magicNumber property on our prefab, so we'll add a PropertyModificationCriterion as criteria. Within this criteria are a couple of options we need to modify.  
+In the second tutorial page, let's add another instruction paragraph. We want the user to modify the magicNumber property on our prefab, so we'll add a PropertyModificationCriterion as criteria. Within this criteria are a couple of options we need to modify.
 
 Firstly, the **Property Path** is the name of the property. In the current prefab, it's named "magicNumber". If the property is derived from a different script, you can still access it, "Otherscript.magicNumber", for instance (Tip: If you're ever unsure what the property path is - for internal properties for instance - you can set your Inspector to Debug mode and alt-left click on the name of the property).
 
 ![](images/index056.png)
 
-Next, the **Target Value Mode** can either be set to **Target Value** or to **Different Than Initial**. This setting is fairly self-explanatory - if you want a user to set a property to a specific value, enter the desired value in the **Target Value** property. If you just want the user to change a property without anything specific in mind, set it to **Different Than Initial** and you can ignore the Target Value property below. Remember to set a Target Value if you're using Target Value in Target Value Mode. 
+Next, the **Target Value Mode** can either be set to **Target Value** or to **Different Than Initial**. This setting is fairly self-explanatory - if you want a user to set a property to a specific value, enter the desired value in the **Target Value** property. If you just want the user to change a property without anything specific in mind, set it to **Different Than Initial** and you can ignore the Target Value property below. Remember to set a Target Value if you're using Target Value in Target Value Mode.
 
-In combination with that, you must set the **Target Value Type**. This denotes what type of property the user is changing. This has to be set correctly so make sure the type matches the property. In case of our magicNumber this would be an int, so set Target Value Type to integer.  
+In combination with that, you must set the **Target Value Type**. This denotes what type of property the user is changing. This has to be set correctly so make sure the type matches the property. In case of our magicNumber this would be an int, so set Target Value Type to integer.
 
-Lastly and most importantly is the **Target**, where a reference needs to be set. Try to drag the component reference created earlier to the Target: 
+Lastly and most importantly is the **Target**, where a reference needs to be set. Try to drag the component reference created earlier to the Target:
 
 ![](images/index057.png)
 
 It is worth noting that for this type of Criteria, the IET Framework relies on assigning the component as target rather than the GameObject. If you simply assigned the GameObject, the system would not be able to detect changes on the **PrefabComponent** component.
 
-You can now close the second Inspector window we opened and unlock the original Inspector on the right.  
+You can now close the second Inspector window we opened and unlock the original Inspector on the right.
 
-Make sure your scene is saved. If you're running the tutorial, you can click the **Run Startup Code** in the tutorial authoring toolbar to restart the tutorial. This resets the tutorial progress, displays the first page, and reloads the scene.  
+Make sure your scene is saved. If you're running the tutorial, you can click the **Run Startup Code** in the tutorial authoring toolbar to restart the tutorial. This resets the tutorial progress, displays the first page, and reloads the scene.
 
-If you go through the tutorial now, you'll be able to set the magicNumber to 50 and see that this results in successful completion of the task.  
+If you go through the tutorial now, you'll be able to set the magicNumber to 50 and see that this results in successful completion of the task.
 
-To finish, let's set up masking for this second page so that it only lets the user edit the property. 
+To finish, let's set up masking for this second page so that it only lets the user edit the property.
 
-Enable Masking on the second Tutorial page. Set **Selector Type** to Editor Window, **Editor Window Type** to InspectorWindow, **Mask Type** to Fully Unmasked and **Mask Size Modifier** to No Modifications. We also need to add an "Unmasked Controls", so click the **Add** (**+**) button. 
+Enable Masking on the second Tutorial page. Set **Selector Type** to Editor Window, **Editor Window Type** to InspectorWindow, **Mask Type** to Fully Unmasked and **Mask Size Modifier** to No Modifications. We also need to add an "Unmasked Controls", so click the **Add** (**+**) button.
 
-Within the Unmasked Controls, set **Selector Mode** to Property. The next step is to correctly set up the **Target Type**.  
+Within the Unmasked Controls, set **Selector Mode** to Property. The next step is to correctly set up the **Target Type**.
 
 ![](images/index058.png)
 
-The Target Type within this Unmasked Controls lists every single script that exists within Unity and any packages in your project. Your custom-created scripts should be towards the top of this list, unless you have Cinemachine installed, in which case they'll be below those. Note that your scripts don't include any inheritance - so your PrefabScript will be listed as just that, as opposed to other scripts which are listed as UnityEngine.Something.  Select the PrefabScript from this list of Target Types. Lastly, set the **Property Path** to magicNumber.  
+The Target Type within this Unmasked Controls lists every single script that exists within Unity and any packages in your project. Your custom-created scripts should be towards the top of this list, unless you have Cinemachine installed, in which case they'll be below those. Note that your scripts don't include any inheritance - so your PrefabScript will be listed as just that, as opposed to other scripts which are listed as UnityEngine.Something.  Select the PrefabScript from this list of Target Types. Lastly, set the **Property Path** to magicNumber.
 
 ![](images/index059.png)
 
 Restart the Tutorial - but make sure you don't save! Saving the scene would mean that the tutorial would start with a Prefab already existing in the Hierarchy and therefore in the scene.
 
-You should be able to go through the tutorial now with everything masked correctly.  
+You should be able to go through the tutorial now with everything masked correctly.
 
-Remember that it's a best practice to have these two instructions on the same page. Though we have masked everything out, there's always a chance something will go awry when instructions for selecting an object and modifying it are on two separate pages.   
+Remember that it's a best practice to have these two instructions on the same page. Though we have masked everything out, there's always a chance something will go awry when instructions for selecting an object and modifying it are on two separate pages.
 
-## Criteria Descriptions 
+## Criteria Descriptions
 
-Here's a list of all other criteria with brief descriptions of what they do.  
+Here's a list of all other criteria with brief descriptions of what they do.
 
 Remember to save the scene any time that you assign an object reference from the scene. This adds a hidden component ([SceneObjectGuid](xref:Unity.Tutorials.Core.SceneObjectGuid)) to the scene that holds the reference required for this framework to work correctly.
 
-**ActiveToolCriterion** 
+**ActiveToolCriterion**
 
 This criterion checks which tool the user currently has active - View, Move, Rotate, Scale, Rect, or Transform. You can use it to ensure that a user currently has the appropriate tool selected.
 
-**ArbitraryCriterion** 
+**ArbitraryCriterion**
 
 This is a special criterion which allows the tutorial author to specify any kind of logic by writing code in ScriptableObject or MonoBehaviour and assigning an instance of an object and a function that returns a boolean as a callback. It was added in 0.5.1.
 
-**BuildStartedCriterion** 
+**BuildStartedCriterion**
 
 This checks if the user has initiated a build.
 
-**ComponentAddedCriterion** 
+**ComponentAddedCriterion**
 
-This criterion requires a user to add a specific component to a specific game object. You can assign a target game object normally, and pick a required component from a list of all available components (pre-existing in the engine, packages and custom ones) 
+This criterion requires a user to add a specific component to a specific game object. You can assign a target game object normally, and pick a required component from a list of all available components (pre-existing in the engine, packages and custom ones)
 
-**EditorWindowCriterion** 
+**EditorWindowCriterion**
 
-This criterion is useful for asking a user to open a specific window within the editor. You can select the window from the **Editor Window Type** list, and have the option to close the window if it's currently open thus forcing the user to open it themselves. 
+This criterion is useful for asking a user to open a specific window within the editor. You can select the window from the **Editor Window Type** list, and have the option to close the window if it's currently open thus forcing the user to open it themselves.
 
-**FrameSelectedCriterion** 
+**FrameSelectedCriterion**
 
-This ensures that the user Frame Selects a particular Game Object. This only requires an Object Reference.  
+This ensures that the user Frame Selects a particular Game Object. This only requires an Object Reference.
 
-**InstantiatePrefabCriterion** 
+**InstantiatePrefabCriterion**
 
 As described above, you can check if a user has instantiated an object, and also create a Future Prefab Instance to use in other Tutorial Criteria. Future Prefab Instances can be created for components as well, so make sure you're creating the appropriate reference!
 
-**MaterialPropertyModifiedCriterion** 
+**MaterialPropertyModifiedCriterion**
 
 Assigns a Material in the Target Slot and sets Material Property Path to "_Color" to check whether a user has changed the color of a material.
 
-**PackageInstalledCriterion** 
+**PackageInstalledCriterion**
 
 Checks whether a Unity Package Manager (UPM) package is installed in the project.
 
-**PlayModeStateCriterion** 
+**PlayModeStateCriterion**
 
 Checks which Play mode the Editor is in. It can be toggled between Playing or Not Playing.
 
-**PrefabInstanceCountCriterion** 
+**PrefabInstanceCountCriterion**
 
-Checks how many prefabs exist within a scene. Can change **Comparison Mode** to decide how **Instance Count** works. You can set it to check if the amount of a certain prefab within a scene is at least "x" amount, exactly "x" amount or no more than "x" amount. The "x" amount is set in Instance Count and ranges between 0 and 100. 
+Checks how many prefabs exist within a scene. Can change **Comparison Mode** to decide how **Instance Count** works. You can set it to check if the amount of a certain prefab within a scene is at least "x" amount, exactly "x" amount or no more than "x" amount. The "x" amount is set in Instance Count and ranges between 0 and 100.
 
 <!-- Dev note: PreprocessBuildCriterion exists as a side effect of BuildStartedCriterion implementation but it's not meant to be used by the end user. -->
 
-**PropertyModificationCriterion** 
+**PropertyModificationCriterion**
 
 Checks whether a Property within a GameObject has been modified. You need the exact property path (tip: putting the editor into Debug mode and alt-left clicking on a property name will give you the correct name).
 
-Set the Target Value Mode to be either a Target Value or to be Different Than Initial. This lets you decide if you want the user to set the property to be a specific value or just something different than it was at the beginning.  
+Set the Target Value Mode to be either a Target Value or to be Different Than Initial. This lets you decide if you want the user to set the property to be a specific value or just something different than it was at the beginning.
 
-The Target Value field is where you enter the required target value, if necessary.  
+The Target Value field is where you enter the required target value, if necessary.
 
 Target Value Type has to be set appropriately (Integer, Decimal, Text, Boolean or Color) for this to work.
 
-**RequiredSelectionCriterion** 
+**RequiredSelectionCriterion**
 
-Checks to ensure the user has selected the correct GameObject/asset. This can be an object in the Hierarchy or an asset from the Project window. Especially helpful to appear ahead of ModifyProperty criteria, etc. 
+Checks to ensure the user has selected the correct GameObject/asset. This can be an object in the Hierarchy or an asset from the Project window. Especially helpful to appear ahead of ModifyProperty criteria, etc.
 
-**SceneAddedToBuildCriterion** 
+**SceneAddedToBuildCriterion**
 
 This allows you to check whether a specific scene exists in the Project Build Settings. If the scene already exists in the Build Settings, the criteria will automatically be completed upon reaching it. Otherwise, the user has to drag the scene in as expected.
 
-**SceneViewCameraMovedCriterion** 
+**SceneViewCameraMovedCriterion**
 
-Checks if the user has moved, zoomed or orbited around within the current scene view. 
+Checks if the user has moved, zoomed or orbited around within the current scene view.
 
 <!-- Dev note: MockCriterion exists for the devs but it's not visible for the end user. -->
 
@@ -186,7 +186,7 @@ The Tutorial Styles asset can be created within the Project window by right-clic
 
 ![](images/index062.png)
 
-In order for any of these changes to take effect, this asset must be assigned within the Tutorial Project Settings asset. 
+In order for any of these changes to take effect, this asset must be assigned within the Tutorial Project Settings asset.
 
 ### Tutorial Style Sheets
 
@@ -212,9 +212,9 @@ If set, this scene will be loaded when the project is started for the first time
 
 If enabled, allows for tweaking of the position/rotation of the camera of the Initial Scene
 
-**Restore Default Assets On Tutorial Reload** 
+**Restore Default Assets On Tutorial Reload**
 
-When enabled, a backup of your project's `Assets` folder is made into `Tutorial Defaults` folder when the tutorial project is started for the first time in non-authoring mode, 
+When enabled, a backup of your project's `Assets` folder is made into `Tutorial Defaults` folder when the tutorial project is started for the first time in non-authoring mode,
 meaning, the Tutorial Authoring Tools package is not present. Every time a tutorial is started, the backup is restored, meaning that any modifications to the original tutorial project assets will be lost.
 With this option disabled (the default), changes made to assets will remain as usual.
 

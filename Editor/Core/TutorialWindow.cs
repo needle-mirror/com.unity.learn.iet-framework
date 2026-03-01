@@ -3,31 +3,24 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.EditorCoroutines.Editor;
+using Unity.Tutorials.Editor.Paragraphs;
 using UnityEditor;
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
+using Object = UnityEngine.Object;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// The window used to display tutorials and their content
     /// </summary>
 #pragma warning disable 0618 //suppress obsolete warning for us, keep them active for users
-    public sealed class TutorialWindow : EditorWindowProxy
+    public sealed class TutorialWindow : EditorWindow
 #pragma warning restore 0618
     {
-        static readonly Vector2 k_MinWindowSize = new Vector2(400, 600f);
-        static readonly Vector2 k_MaxWindowSize = new Vector2(600, 1200f);
-
-        /// <summary>
-        /// Should we show the Close Tutorials info dialog for the user for the current project.
-        /// By default the dialog is shown once per project and disabled after that.
-        /// </summary>
-        /// <remarks>
-        /// You want to set this typically to false when running unit tests.
-        /// </remarks>
-        [Obsolete("Has no effect in v3, and will be removed in v4.")] //moved to TutorialFrameworkModel.s_ShowTutorialsWindowClosedDialog //todo: remove in v4
-        public static ProjectSetting<bool> ShowTutorialsClosedDialog = new ProjectSetting<bool>("IET.ShowTutorialsClosedDialog", "Show info dialog when the window is closed", true);
+        private static readonly Vector2 k_MinWindowSize = new(400, 600f);
+        private static readonly Vector2 k_MaxWindowSize = new(600, 1200f);
 
         /// <summary>
         /// Are we currently (during this frame) transitioning from one tutorial to another?
@@ -45,39 +38,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// The category of which tutorial are being displayed. Null if the project and its packages contains no categories, meaning all tutorials are being displayed.
         /// </summary>
-        public TutorialContainer CurrentCategory => Model.TableOfContent.CurrentCategory;
-
-        /// <summary>
-        /// Active container of which tutorials we are viewing.
-        /// </summary>
-        [Obsolete("Will be removed in v4. Use CurrentCategory instead")] //todo: remove in v4
-        public TutorialContainer ActiveContainer
-        {
-            get { return Model.TableOfContent.CurrentCategory; }
-            set
-            {
-                Broadcast(new CategoryClickedEvent(value));
-            }
-        }
-
-        /// <summary>
-        /// Sets the containers as available for selection as tutorial projects.
-        /// </summary>
-        /// <param name="containers">Container selection.</param>
-        /// <remarks>
-        /// ActiveContainer must be set to null in order to view the selection.
-        /// </remarks>
-        [Obsolete("Will be removed in v4. Categories loading/unloading is now managed automatically by the TutorialWindow")] //todo: remove in v4
-        public void SetContainers(IEnumerable<TutorialContainer> containers) { }
-
-        /// <summary>
-        /// Clears any containers this window might be showing as available tutorial projects.
-        /// </summary>
-        /// <remarks>
-        /// If we were viewing the container selection, the window is cleared.
-        /// </remarks>
-        [Obsolete("Will be removed in v4.  Categories loading/unloading is now managed automatically by the TutorialWindow")] //todo: remove in v4
-        public void ClearContainers() { }
+        public TutorialContainer CurrentContainer => Model.TableOfContent.CurrentContainer;
 
         /// <summary>
         /// Are we currently loading a window layout.
@@ -93,14 +54,15 @@ namespace Unity.Tutorials.Core.Editor
         /// Should the UI be rebuilt even if the layout has been reloaded?
         /// Usually needed when opening a closed tutorial window from the menu item.
         /// </summary>
-        internal static bool s_RebuildFrontendEvenIfIsLoadingLayout = false;
+        internal static bool s_RebuildFrontendEvenIfIsLoadingLayout;
 
-        internal EventManager EventManager = new EventManager();
+        internal EventManager EventManager = new();
         /// <summary>
         /// The active instance of this window
         /// </summary>
         public static TutorialWindow Instance { get; set; }
-        static TutorialWindow FindInstance() => Resources.FindObjectsOfTypeAll<TutorialWindow>().FirstOrDefault();
+
+        private static TutorialWindow FindInstance() => Resources.FindObjectsOfTypeAll<TutorialWindow>().FirstOrDefault();
         /// <summary>
         /// Returns true or false depending if localization is still initializing or not
         /// </summary>
@@ -109,7 +71,7 @@ namespace Unity.Tutorials.Core.Editor
         /// True if the basic frontend data of the Window is set, meaning that specific Views can be loaded
         /// </summary>
         internal bool FrontendIsReadyToBeInitialized { get; private set; }
-        
+
         internal string CurrentView
         {
             get => m_Model.CurrentView;
@@ -122,24 +84,24 @@ namespace Unity.Tutorials.Core.Editor
 
         internal TutorialFrameworkModel Model => m_Model;
 
-        TutorialFrameworkController m_Controller;
-        TutorialFrameworkModel m_Model;
-        HashSet<IModel> m_Models;
-        HashSet<Controller> m_Controllers;
-        TableOfContentModel m_TableOfContentModel;
-        TutorialModel m_TutorialModel;
+        private TutorialFrameworkController m_Controller;
+        private TutorialFrameworkModel m_Model;
+        private HashSet<IModel> m_Models;
+        private HashSet<Controller> m_Controllers;
+        private TableOfContentModel m_TableOfContentModel;
+        private TutorialModel m_TutorialModel;
 
-        VisualElement m_Root;
-        HashSet<View> m_Views;
+        private VisualElement m_Root;
+        private HashSet<View> m_Views;
         internal TableOfContentView TableOfContentView { get; private set; }
         internal TutorialView TutorialView { get; private set; }
 
-        StyleSheet m_LastCommonStyleSheet; // Dark/Light theme
+        private StyleSheet m_LastCommonStyleSheet; // Dark/Light theme
 
         /// <summary>
         /// Holds all the Frontend setup methods of the available tabs
         /// </summary>
-        Dictionary<string, Action> m_ViewFrontendSetupMethods;
+        private Dictionary<string, Action> m_ViewFrontendSetupMethods;
 
         /// <summary>
         /// Shows Tutorials window using the currently specified behaviour.
@@ -170,11 +132,12 @@ namespace Unity.Tutorials.Core.Editor
         /// <returns>The created, or already existing, window instance.</returns>
         public static TutorialWindow ShowWindow(bool shouldRefreshLayout)
         {
-            var rootCategories = TutorialEditorUtils.FindAssets<TutorialContainer>()
-                                                    .Where(category => category.ParentContainer is null);
-            var defaultCategory = rootCategories.FirstOrDefault();
-            var projectLayout = defaultCategory?.ProjectLayout;
-            if (rootCategories.Any(category => category.ProjectLayout != projectLayout))
+            List<TutorialContainer> rootContainers = TutorialEditorUtils.FindAssets<TutorialContainer>()
+                                                    .Where(category => category.ParentContainer is null).ToList();
+
+            TutorialContainer defaultCategory = rootContainers.FirstOrDefault();
+            Object projectLayout = defaultCategory?.ProjectLayout;
+            if (rootContainers.Any(category => category.ProjectLayout != projectLayout))
             {
                 Debug.LogWarningFormat(
                     "There is more than one TutorialContainers asset with different Project Layout setting in the project. " +
@@ -184,7 +147,7 @@ namespace Unity.Tutorials.Core.Editor
             }
 
             TutorialWindow window = null;
-            if (!rootCategories.Any() || defaultCategory.ProjectLayout == null)
+            if (!rootContainers.Any() || defaultCategory!.ProjectLayout == null)
             {
                 window = GetOrCreateWindowNextToInspector();
             }
@@ -207,13 +170,14 @@ namespace Unity.Tutorials.Core.Editor
         /// <returns></returns>
         internal static TutorialWindow GetOrCreateWindowNextToInspector()
         {
-            var inspectorWindow = Resources.FindObjectsOfTypeAll<EditorWindow>()
+            EditorWindow inspectorWindow = Resources.FindObjectsOfTypeAll<EditorWindow>()
                                            .FirstOrDefault(w => w.GetType().Name == "InspectorWindow");
 
             Type windowToAnchorTo = inspectorWindow != null ? inspectorWindow.GetType() : null;
+            bool wasWindowPresent = Instance is not null;
             Instance = GetOrCreateWindow(windowToAnchorTo); // create & anchor or simply focus
             // If Inspector not visible/opened, Tutorials window will be created as a free-floating window
-            if (inspectorWindow)
+            if (!wasWindowPresent && inspectorWindow)
             {
                 inspectorWindow.DockWindow(Instance, EditorWindowUtils.DockPosition.Right);
             }
@@ -264,10 +228,11 @@ namespace Unity.Tutorials.Core.Editor
             Instance = GetWindow<TutorialWindow>(Localization.Tr(LocalizationKeys.k_WindowTitle), windowToAnchorTo);
             Instance.minSize = k_MinWindowSize; // NOTE minSize has no effect on docked windows on 2021.2 and newer
             Instance.maxSize = k_MaxWindowSize;
+            Instance.titleContent.image = UIUtils.LoadIcon("TutorialsWindowIcon.png", true, true);
             return Instance;
         }
 
-        void OnEnable()
+        private void OnEnable()
         {
             FrontendIsReadyToBeInitialized = false;
             IsWaitingForLocalizationToBeReady = true;
@@ -276,7 +241,7 @@ namespace Unity.Tutorials.Core.Editor
             IsWaitingForLocalizationToBeReady = false;
         }
 
-        void OnDisable()
+        private void OnDisable()
         {
             if (TutorialFrameworkModel.s_ShowTutorialsWindowClosedDialog
             && !m_Model.Tutorial.IsLoadingLayout
@@ -298,7 +263,7 @@ namespace Unity.Tutorials.Core.Editor
             TeardownBackend();
         }
 
-        void SetupBackend()
+        private void SetupBackend()
         {
             if (!Instance)
             {
@@ -318,8 +283,8 @@ namespace Unity.Tutorials.Core.Editor
             LoadModelsState();
 
             m_Controller = new TutorialFrameworkController(m_Model);
-            var tableOfContentController = new TableOfContentController();
-            var tutorialController = new TutorialController();
+            TableOfContentController tableOfContentController = new();
+            TutorialController tutorialController = new();
             m_Controllers = new HashSet<Controller> { m_Controller, tableOfContentController, tutorialController };
 
             SubscribeEvents();
@@ -351,7 +316,7 @@ namespace Unity.Tutorials.Core.Editor
         }
 
 
-        void SetupFrontend()
+        private void SetupFrontend()
         {
             //The root is not the root of the window, as we want an always present bottom bar to report problem at the
             //bottom
@@ -367,7 +332,7 @@ namespace Unity.Tutorials.Core.Editor
             RebuildFrontend();
         }
 
-        void RebuildFrontend()
+        private void RebuildFrontend()
         {
             if (s_IsLoadingLayout && !s_RebuildFrontendEvenIfIsLoadingLayout)
             {
@@ -397,10 +362,10 @@ namespace Unity.Tutorials.Core.Editor
 
             if (TutorialModel.s_AuthoringModeEnabled)
             {
-                m_Root.Add(new IMGUIContainer(DrawAuthoringToolbar));
+                m_Root.Add(DrawAuthoringToolbar());
             }
 
-            VisualTreeAsset windowContent = UIElementsUtils.LoadUXML(viewName);
+            VisualTreeAsset windowContent = UIUtils.LoadUXML(viewName);
             windowContent.CloneTree(m_Root);
 
             //preserve the base style, remove all styles defined in UXML and apply new skin
@@ -409,16 +374,16 @@ namespace Unity.Tutorials.Core.Editor
                 m_Root.styleSheets.Remove(m_Root.styleSheets[i]);
             }
 
-            UIElementsUtils.LoadCommonStyleSheet(m_Root);
+            UIUtils.LoadCommonStyleSheet(m_Root);
             UpdateWindowSkin();
 
             m_ViewFrontendSetupMethods[viewName].Invoke();
         }
 
-        void UpdateWindowSkin()
+        private void UpdateWindowSkin()
         {
-            UIElementsUtils.RemoveStyleSheet(m_LastCommonStyleSheet, m_Root);
-            UIElementsUtils.LoadSkinStyleSheet(out m_LastCommonStyleSheet, m_Root);
+            UIUtils.RemoveStyleSheet(m_LastCommonStyleSheet, m_Root);
+            UIUtils.LoadEditorThemeStyleSheet(out m_LastCommonStyleSheet, m_Root);
 
             if (TutorialProjectSettings.Instance != null && TutorialProjectSettings.Instance.TutorialStyle != null)
             {
@@ -426,26 +391,26 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
-        void SubscribeEvents()
+        private void SubscribeEvents()
         {
             AssemblyReloadEvents.beforeAssemblyReload += OnBeforeAssemblyReload;
             AssemblyReloadEvents.afterAssemblyReload += OnAfterAssemblyReload;
         }
 
-        void UnsubscribeEvents()
+        private void UnsubscribeEvents()
         {
             AssemblyReloadEvents.beforeAssemblyReload -= OnBeforeAssemblyReload;
             AssemblyReloadEvents.afterAssemblyReload -= OnAfterAssemblyReload;
             if (m_Views != null)
             {
-                foreach (var view in m_Views)
+                foreach (View view in m_Views)
                 {
-                    view.UnubscribeEvents();
+                    view.UnsubscribeEvents();
                 }
             }
         }
 
-        void OnDestroy() //aka: "When the user closes the window"
+        private void OnDestroy() //aka: "When the user closes the window"
         {
             if (!m_Model.IsOpen)
             {
@@ -458,12 +423,12 @@ namespace Unity.Tutorials.Core.Editor
             Instance = null;
         }
 
-        void TeardownBackend()
+        private void TeardownBackend()
         {
             m_Model.IsOpen = false;
             if (m_Models != null)
             {
-                foreach (var model in m_Models)
+                foreach (IModel model in m_Models)
                 {
                     model.OnStop();
                 }
@@ -476,7 +441,7 @@ namespace Unity.Tutorials.Core.Editor
 
             if (m_Controllers != null)
             {
-                foreach (var controller in m_Controllers)
+                foreach (Controller controller in m_Controllers)
                 {
                     controller.RemoveListeners();
                 }
@@ -487,14 +452,14 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Restore window state after assembly reload.
         /// </summary>
-        void LoadModelsState()
+        private void LoadModelsState()
         {
-            foreach (var model in m_Models)
+            foreach (IModel model in m_Models)
             {
                 model.RestoreState(WindowCache.Instance);
             }
 
-            foreach (var model in m_Models)
+            foreach (IModel model in m_Models)
             {
                 model.OnStart();
             }
@@ -505,7 +470,7 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         internal void SaveModelsState()
         {
-            foreach (var model in m_Models)
+            foreach (IModel model in m_Models)
             {
                 model.SaveState(WindowCache.Instance);
             }
@@ -527,7 +492,7 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
-        bool CanSwitchToView(string viewName)
+        private bool CanSwitchToView(string viewName)
         {
             if (m_Model.DomainReloadOccured
             && viewName != TutorialView.Name) //TutorialView triggers domain reload frequently and its initialization flow is strictly managed by the controller, so we don't want to accidentally re-reload it
@@ -540,8 +505,8 @@ namespace Unity.Tutorials.Core.Editor
                 || viewName != CurrentView;
         }
 
-        void SetupTableOfContentView() { TableOfContentView.Initialize(m_Root); }
-        void SetupTutorialView() { TutorialView.Initialize(m_Root); }
+        private void SetupTableOfContentView() { TableOfContentView.Initialize(m_Root); }
+        private void SetupTutorialView() { TutorialView.Initialize(m_Root); }
 
         /// <summary>
         /// Notifies an event to the component's of the app
@@ -563,82 +528,85 @@ namespace Unity.Tutorials.Core.Editor
             return m_Models.Where(m => m.GetType() == modelType).FirstOrDefault();
         }
 
-        void DrawAuthoringToolbar()
+        private VisualElement DrawAuthoringToolbar()
         {
-            EditorGUILayout.BeginHorizontal(EditorStyles.toolbar, GUILayout.ExpandWidth(true));
+            VisualTreeAsset toolbarUxml = UIUtils.LoadUXML("AuthoringToolbar");
+            VisualElement toolbar = toolbarUxml.CloneTree();
 
-            using (new EditorGUI.DisabledScope(Model.TableOfContent.CurrentCategory == null))
+            toolbar.style.flexShrink = 0; // Prevents vertical squashing at low resolutions and/or when there are many Containers
+
+            // Select Category button
+            ToolbarButton selectContainerBtn = toolbar.Q<ToolbarButton>("SelectContainerButton");
+            selectContainerBtn.clicked += () => Selection.activeObject = Model.TableOfContent.CurrentContainer;
+            selectContainerBtn.tooltip = Localization.Tr(LocalizationKeys.k_AuthoringButtonSelectCategory);
+            selectContainerBtn.enabledSelf = Model.TableOfContent.CurrentContainer != null;
+
+            // Select Tutorial button
+            ToolbarButton selectTutorialBtn = toolbar.Q<ToolbarButton>("SelectTutorialButton");
+            selectTutorialBtn.clicked += () => Selection.activeObject = Model.Tutorial.CurrentTutorial;
+            selectTutorialBtn.tooltip = Localization.Tr(LocalizationKeys.k_AuthoringButtonSelectTutorial);
+            selectTutorialBtn.enabledSelf = Model.Tutorial.CurrentTutorial != null;
+
+            // Select Tutorial Page button
+            ToolbarButton selectTutorialPageBtn = toolbar.Q<ToolbarButton>("SelectTutorialPageButton");
+            selectTutorialPageBtn.clicked += () => Selection.activeObject = Model.Tutorial.CurrentTutorial?.CurrentPage;
+            selectTutorialPageBtn.tooltip = Localization.Tr(LocalizationKeys.k_AuthoringButtonSelectPage);
+            selectTutorialPageBtn.enabledSelf = Model.Tutorial.CurrentTutorial != null;
+
+            // Skip to End button
+            ToolbarButton skipToEndBtn = toolbar.Q<ToolbarButton>("SkipToEndButton");
+            skipToEndBtn.clicked += () =>
             {
-                if (Button("VerticalLayoutGroup Icon", Localization.Tr(LocalizationKeys.k_AuthoringButtonSelectCategory)))
-                {
-                    Selection.activeObject = Model.TableOfContent.CurrentCategory;
-                }
-            }
+                Model.Tutorial.CurrentTutorial.SkipToLastPage();
+                Model.Tutorial.CurrentTutorial.TryGoToNextPage(); // Needed to trigger completion event
+            };
+            skipToEndBtn.tooltip = Localization.Tr(LocalizationKeys.k_AuthoringButtonSkipToEnd);
+            skipToEndBtn.enabledSelf = Model.Tutorial.CurrentTutorial != null;
 
-            using (new EditorGUI.DisabledScope(Model.Tutorial.CurrentTutorial == null))
+            // Autocomplete button
+            ToolbarButton autocompleteBtn = toolbar.Q<ToolbarButton>("AutocompleteButton");
+            autocompleteBtn.clicked += () =>
             {
-                if (Button("HorizontalLayoutGroup Icon", Localization.Tr(LocalizationKeys.k_AuthoringButtonSelectTutorial)))
+                IEnumerable<ParagraphBase> paragraphsToComplete =
+                    Model.Tutorial.CurrentTutorial.CurrentPage.Paragraphs.Where(p => !p.IsCompleted());
+                foreach (ParagraphBase instructiveParagraph in paragraphsToComplete)
                 {
-                    Selection.activeObject = Model.Tutorial.CurrentTutorial;
+                    // TODO: UPDATE
+                    // foreach (var criterion in instructiveParagraph.Criteria)
+                    // {
+                    //     criterion.Criterion.AutoComplete();
+                    //     criterion.Criterion.UpdateCompletion();
+                    // }
                 }
 
-                using (new EditorGUI.DisabledScope(Model.Tutorial.CurrentTutorial?.CurrentPage == null))
+                if (!Model.Tutorial.CurrentTutorial.CurrentPage.AutoAdvanceOnComplete)
                 {
-                    if (Button("UnityEditor.ConsoleWindow", Localization.Tr(LocalizationKeys.k_AuthoringButtonSelectPage)))
-                    {
-                        Selection.activeObject = Model.Tutorial.CurrentTutorial.CurrentPage;
-                    }
+                    Model.Tutorial.CurrentTutorial.TryGoToNextPage();
                 }
+            };
+            autocompleteBtn.tooltip = Localization.Tr(LocalizationKeys.k_AuthoringButtonAutocompletePage);
+            autocompleteBtn.enabledSelf = Model.Tutorial.CurrentTutorial != null;
 
-                if (Button("endButton", Localization.Tr(LocalizationKeys.k_AuthoringButtonSkipToEnd)))
-                {
-                    Model.Tutorial.CurrentTutorial.SkipToLastPage();
-                    Model.Tutorial.CurrentTutorial.TryGoToNextPage(); // needed to trigger completion event
-                }
-
-                if (Button("Animation.NextKey", Localization.Tr(LocalizationKeys.k_AuthoringButtonAutocompletePage)))
-                {
-                    var paragraphsToComplete = Model.Tutorial.CurrentTutorial.CurrentPage.Paragraphs.Where(p => !p.Completed);
-                    foreach (var instructiveParagraph in paragraphsToComplete)
-                    {
-                        foreach (var criterion in instructiveParagraph.Criteria)
-                        {
-                            criterion.Criterion.AutoComplete();
-                            criterion.Criterion.UpdateCompletion();
-                        }
-                    }
-
-                    if (!Model.Tutorial.CurrentTutorial.CurrentPage.AutoAdvanceOnComplete)
-                    {
-                        Model.Tutorial.CurrentTutorial.TryGoToNextPage();
-                    }
-                }
-            }
-
-            GUILayout.FlexibleSpace();
-
-            using (new EditorGUI.DisabledScope(Model.Tutorial.CurrentTutorial == null))
+            // Masking button
+            ToolbarToggle maskPreviewToggle = toolbar.Q<ToolbarToggle>("MaskingToggle");
+            maskPreviewToggle.RegisterValueChangedCallback(evt =>
             {
-                EditorGUI.BeginChangeCheck();
-                Model.Tutorial.MaskingEnabled = GUILayout.Toggle(
-                    Model.Tutorial.MaskingEnabled, IconContent("Mask Icon", Localization.Tr(LocalizationKeys.k_IconPreviewMaskingTooltip)),
-                    EditorStyles.toolbarButton, GUILayout.Width(k_AuthoringButtonWidth)
-                );
-                if (EditorGUI.EndChangeCheck())
-                {
-                    TutorialView.ApplyMaskingSettings(true);
-                    GUIUtility.ExitGUI();
-                    return;
-                }
-            }
+                Model.Tutorial.MaskingEnabled = evt.newValue;
+                TutorialView.ApplyMaskingSettings(true);
+            });
+            maskPreviewToggle.value = Model.Tutorial.MaskingEnabled;
+            maskPreviewToggle.tooltip = Localization.Tr(LocalizationKeys.k_IconPreviewMaskingTooltip);
 
-            if (Button("Refresh", Localization.Tr(LocalizationKeys.k_ButtonRunStartupCode)))
+            // Run Startup code button
+            ToolbarButton runStartupCodeBtn = toolbar.Q<ToolbarButton>("RunStartupCodeButton");
+            runStartupCodeBtn.clicked += () =>
             {
                 Broadcast(new TutorialQuitEvent());
                 UserStartupCode.RunStartupCode(TutorialProjectSettings.Instance);
-            }
+            };
+            runStartupCodeBtn.tooltip = Localization.Tr(LocalizationKeys.k_ButtonRunStartupCode);
 
-            EditorGUILayout.EndHorizontal();
+            return toolbar;
         }
 
         /// <summary>
@@ -676,10 +644,10 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         internal void MarkAllTutorialsUncompleted()
         {
-            var allTutorials = TutorialEditorUtils.FindAssets<Tutorial>()
+            IEnumerable<Tutorial> allTutorials = TutorialEditorUtils.FindAssets<Tutorial>()
                                                   .Where(t => t.ProgressTrackingEnabled);
 
-            foreach (var tutorial in allTutorials)
+            foreach (Tutorial tutorial in allTutorials)
             {
                 tutorial.CompletedByUser = false;
             }
@@ -702,7 +670,7 @@ namespace Unity.Tutorials.Core.Editor
             Instance.Broadcast(new TutorialStartRequestedEvent(tutorial, null));
         }
 
-        static IEnumerator StartTutorialWhenFrontendIsReady(Tutorial tutorial)
+        private static IEnumerator StartTutorialWhenFrontendIsReady(Tutorial tutorial)
         {
             while (!Instance.Model.IsOpen || !Instance.FrontendIsReadyToBeInitialized)
             {
@@ -729,18 +697,6 @@ namespace Unity.Tutorials.Core.Editor
         public static void ClearLocalizationCache()
         {
             LocalizationDatabaseProxy.ClearLocalizationCache();
-        }
-
-        /// <summary>
-        /// Re-find our instance if we've lost it
-        /// This occurs when a window is maximized
-        /// </summary>
-        protected override void OnResized_Internal()
-        {
-            if (!Instance)
-            {
-                Instance = FindInstance();
-            }
         }
     }
 }

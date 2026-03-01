@@ -1,0 +1,11 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
+    <ui:VisualElement>
+        <ui:VisualElement name="imgTitleHeader" class="container--header-large">
+            <ui:VisualElement name="FlexibleSpace" class="flexible-space" />
+            <ui:Label text="In-Editor Tutorials" name="ContainerTitle" class="label--header-large" />
+            <ui:Label name="ContainerSubtitle" class="label--header-subtitle" />
+            <ui:Button display-tooltip-when-elided="true" enable-rich-text="false" name="ButtonExitCategory"  />
+        </ui:VisualElement>
+        <ui:ScrollView name="TutorialsList" class="scrollview--tutorial-list" />
+    </ui:VisualElement>
+</ui:UXML>

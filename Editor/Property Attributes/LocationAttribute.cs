@@ -1,16 +1,16 @@
 using System;
 using UnityEditorInternal;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     [AttributeUsage(AttributeTargets.Class)]
     internal sealed class LocationAttribute : Attribute
     {
         public enum Location { PreferencesFolder, LibraryFolder }
 
-        string m_RelativePath;
-        readonly Location m_Location;
-        string m_FilePath;
+        private string m_RelativePath;
+        private readonly Location m_Location;
+        private string m_FilePath;
 
         public string FilePath
         {

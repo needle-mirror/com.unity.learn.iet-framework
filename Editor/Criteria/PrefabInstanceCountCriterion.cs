@@ -5,7 +5,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// Criterion for checking that a specific amount of prefab instances are created.
@@ -50,8 +50,7 @@ namespace Unity.Tutorials.Core.Editor
         [FormerlySerializedAs("instanceCount")]
         public int InstanceCount = 1;
 
-        [SerializeField, HideInInspector]
-        FutureObjectReference m_FutureReference;
+        [SerializeField, HideInInspector] private FutureObjectReference m_FutureReference;
 
         /// <summary>
         /// Starts testing of the criterion.
@@ -82,15 +81,15 @@ namespace Unity.Tutorials.Core.Editor
             if (PrefabParent == null)
                 return false;
 
-            var matches = EditorFindObjectUtils.FindObjectsByTypeSorted<GameObject>().Where(go => PrefabUtilityShim.GetCorrespondingObjectFromSource(go) == PrefabParent);
-            var count = matches.Count();
+            IEnumerable<GameObject> matches = FindObjectUtils.FindObjectsByType<GameObject>().Where(go => PrefabUtilityShim.GetCorrespondingObjectFromSource(go) == PrefabParent);
+            int count = matches.Count();
             switch (ComparisonMode)
             {
                 case InstanceCountComparison.AtLeast:
                     return count >= InstanceCount;
 
                 case InstanceCountComparison.Exactly:
-                    var complete = count == InstanceCount;
+                    bool complete = count == InstanceCount;
                     if (complete && InstanceCount == 1 && m_FutureReference != null)
                         m_FutureReference.SceneObjectReference.Update(matches.First());
                     return complete;
@@ -124,7 +123,7 @@ namespace Unity.Tutorials.Core.Editor
             base.OnValidate();
 
             // Update future reference
-            var needsUpdate = false;
+            bool needsUpdate = false;
             if (ComparisonMode == InstanceCountComparison.Exactly && InstanceCount == 1)
             {
                 if (m_FutureReference == null)
@@ -147,9 +146,9 @@ namespace Unity.Tutorials.Core.Editor
         /// <returns>True if the auto-completion succeeded.</returns>
         public override bool AutoComplete()
         {
-            var prefabInstances = EditorFindObjectUtils.FindObjectsByTypeSorted<GameObject>().Where(go => PrefabUtilityShim.GetCorrespondingObjectFromSource(go) == PrefabParent);
-            var actualInstanceCount = prefabInstances.Count();
-            var difference = actualInstanceCount - InstanceCount;
+            IEnumerable<GameObject> prefabInstances = FindObjectUtils.FindObjectsByType<GameObject>().Where(go => PrefabUtilityShim.GetCorrespondingObjectFromSource(go) == PrefabParent);
+            int actualInstanceCount = prefabInstances.Count();
+            int difference = actualInstanceCount - InstanceCount;
 
             if (difference == 0)
                 return true;
@@ -167,12 +166,12 @@ namespace Unity.Tutorials.Core.Editor
 
             if (difference < 0)
             {
-                for (var i = 0; i < -difference; i++)
+                for (int i = 0; i < -difference; i++)
                     PrefabUtility.InstantiatePrefab(PrefabParent);
             }
             else
             {
-                foreach (var prefabInstance in prefabInstances.Take(difference))
+                foreach (GameObject prefabInstance in prefabInstances.Take(difference))
                     DestroyImmediate(prefabInstance);
             }
 

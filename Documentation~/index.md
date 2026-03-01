@@ -8,7 +8,7 @@ This package is used to display interactive in-Editor tutorials (IET) in tutoria
 
 Simply search for "Tutorial Framework" in the Package Manager.
 
-Make sure to update to the latest version of the package whose major version is the closest one to the one you're currently using. 
+Make sure to update to the latest version of the package whose major version is the closest one to the one you're currently using.
 I.E: if you're using version 1 of the package and the latest available is version 3, be sure to update to version 2 first, and then to version 3.
 This ensures that existing tutorials are properly converted and updated without any data loss.
 
@@ -31,6 +31,6 @@ Note however that is is only discoverable in the package manager for Unity 6 and
     This issue can addressed by following the instructions [here](framework-documentation.md#ui-implementation-differences-between-unity-versions).
 
 # Using Tutorial Framework
-To actually develop any tutorials, the Tutorial Authoring Tools package is needed. Install it by adding the following line to `Packages/manifest.json`:  
-`"com.unity.learn.iet-framework.authoring": "1.2.1"`  
+To actually develop any tutorials, the Tutorial Authoring Tools package is needed. Install it by adding the following line to `Packages/manifest.json`:
+`"com.unity.learn.iet-framework.authoring": "1.2.1"`
 Make sure to update to the latest version of the package. After the installation, refer to the Tutorial Authoring Tools' documentation for more information.

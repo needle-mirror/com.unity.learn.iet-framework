@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// A serializable string that is localized at run-time.
@@ -23,7 +23,7 @@ namespace Unity.Tutorials.Core.Editor
         }
 
         [SerializeField, FormerlySerializedAs(OldPropertyPath)]
-        string m_Untranslated;
+        private string m_Untranslated;
 
         /// <summary>
         /// The localized strings, if it exists.
@@ -49,7 +49,7 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         /// <param name="untranslated">The untranslated string of text</param>
         /// <returns>The LocalizedString from an untranslated entry</returns>
-        public static implicit operator LocalizableString(string untranslated) => new LocalizableString(untranslated);
+        public static implicit operator LocalizableString(string untranslated) => new(untranslated);
         /// <summary>
         /// Implicit conversion to string returns the Value.
         /// </summary>
@@ -75,7 +75,7 @@ namespace Unity.Tutorials.Core.Editor
     /// <summary>
     /// Same as TextAreaAttribute but used for LocalizableStrings.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Field, Inherited = true, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Field)]
     public class LocalizableTextAreaAttribute : PropertyAttribute
     {
         /// <summary>

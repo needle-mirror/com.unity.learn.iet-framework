@@ -1,6 +1,6 @@
 using System;
 
-namespace SerializableCallback
+namespace Unity.Tutorials.Editor.SerializableCallback
 {
     /// <summary>
     /// https://github.com/Siccity/SerializableCallback
@@ -51,7 +51,7 @@ namespace SerializableCallback
                 default:
                     throw new ArgumentException(types.Length + "args");
             }
-            return Activator.CreateInstance(genericType, new object[] { target, methodName }) as InvokableEventBase;
+            return Activator.CreateInstance(genericType, target, methodName) as InvokableEventBase;
         }
     }
 }

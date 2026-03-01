@@ -2,19 +2,16 @@ using System;
 using UnityEditor;
 using UnityEngine;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// Criterion for checking that Scene View Camera has moved.
     /// </summary>
     public class SceneViewCameraMovedCriterion : Criterion
     {
-        [NonSerialized]
-        bool m_InitialPositionInitialized = false;
-        [NonSerialized]
-        Vector3 m_InitialCameraPosition;
-        [NonSerialized]
-        Quaternion m_InitialCameraOrientation;
+        [NonSerialized] private bool m_InitialPositionInitialized;
+        [NonSerialized] private Vector3 m_InitialCameraPosition;
+        [NonSerialized] private Quaternion m_InitialCameraOrientation;
 
         /// <summary>
         /// Starts testing of the criterion.
@@ -28,7 +25,7 @@ namespace Unity.Tutorials.Core.Editor
             EditorApplication.update += UpdateCompletion;
         }
 
-        void UpdateInitialCameraPositionIfNeeded()
+        private void UpdateInitialCameraPositionIfNeeded()
         {
             if (m_InitialPositionInitialized)
                 return;
@@ -61,8 +58,8 @@ namespace Unity.Tutorials.Core.Editor
                 return false;
 
             UpdateInitialCameraPositionIfNeeded();
-            var currentPosition = SceneView.lastActiveSceneView.camera.transform.position;
-            var currentOrientation = SceneView.lastActiveSceneView.camera.transform.localRotation;
+            Vector3 currentPosition = SceneView.lastActiveSceneView.camera.transform.position;
+            Quaternion currentOrientation = SceneView.lastActiveSceneView.camera.transform.localRotation;
             return m_InitialCameraPosition != currentPosition || m_InitialCameraOrientation != currentOrientation;
         }
 

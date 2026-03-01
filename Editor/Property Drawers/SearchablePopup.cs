@@ -8,7 +8,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// A popup window that displays a list of options and may use a search
@@ -19,17 +19,17 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Height of each element in the popup list.
         /// </summary>
-        const float k_RowHeight = 16.0f;
+        private const float k_RowHeight = 16.0f;
 
         /// <summary>
         /// How far to indent list entries.
         /// </summary>
-        const float k_RowIndent = 8.0f;
+        private const float k_RowIndent = 8.0f;
 
         /// <summary>
         /// Name to use for the text field for search.
         /// </summary>
-        const string k_SearchControlName = "EnumSearchText";
+        private const string k_SearchControlName = "EnumSearchText";
 
         /// <summary>
         /// Show a new SearchablePopup.
@@ -40,7 +40,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <param name="onSelectionMade"> Callback to trigger when a choice is made. </param>
         public static void Show(Rect activatorRect, string[] options, int current, Action<int> onSelectionMade)
         {
-            SearchablePopup win = new SearchablePopup(options, current, onSelectionMade);
+            SearchablePopup win = new(options, current, onSelectionMade);
             PopupWindow.Show(activatorRect, win);
         }
 
@@ -60,14 +60,14 @@ namespace Unity.Tutorials.Core.Editor
         /// Force the focused window to redraw. This can be used to make the
         /// popup more responsive to mouse movement.
         /// </summary>
-        static void Repaint() { EditorWindow.focusedWindow.Repaint(); }
+        private static void Repaint() { EditorWindow.focusedWindow.Repaint(); }
 
         /// <summary>
         /// Draw a generic box.
         /// </summary>
         /// <param name="rect">Where to draw.</param>
         /// <param name="tint">Color to tint the box.</param>
-        static void DrawBox(Rect rect, Color tint)
+        private static void DrawBox(Rect rect, Color tint)
         {
             Color c = GUI.color;
             GUI.color = tint;
@@ -79,7 +79,7 @@ namespace Unity.Tutorials.Core.Editor
         /// Stores a list of strings and can return a subset of that list that
         /// matches a given filter string.
         /// </summary>
-        class FilteredList
+        private class FilteredList
         {
             /// <summary>
             /// An entry in the filtererd list, mapping the text to the
@@ -94,7 +94,7 @@ namespace Unity.Tutorials.Core.Editor
             /// <summary>
             /// All posibile items in the list.
             /// </summary>
-            readonly string[] m_AllItems;
+            private readonly string[] m_AllItems;
 
             /// <summary>
             /// Create a new filtered list.
@@ -118,7 +118,7 @@ namespace Unity.Tutorials.Core.Editor
             /// <summary>
             /// Total possible entries in the list.
             /// </summary>
-            public int MaxLength { get { return m_AllItems.Length; } }
+            public int MaxLength => m_AllItems.Length;
 
             /// <summary>
             /// Sets a new filter string and updates the Entries that match the
@@ -140,7 +140,7 @@ namespace Unity.Tutorials.Core.Editor
                 {
                     if (string.IsNullOrEmpty(Filter) || m_AllItems[i].ToLower().Contains(Filter.ToLower()))
                     {
-                        Entry entry = new Entry
+                        Entry entry = new()
                         {
                             Index = i,
                             Text = m_AllItems[i]
@@ -162,50 +162,50 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Callback to trigger when an item is selected.
         /// </summary>
-        readonly Action<int> m_OnSelectionMade;
+        private readonly Action<int> m_OnSelectionMade;
 
         /// <summary>
         /// Index of the item that was selected when the list was opened.
         /// </summary>
-        readonly int m_CurrentIndex;
+        private readonly int m_CurrentIndex;
 
         /// <summary>
         /// Container for all available options that does the actual string
         /// filtering of the content.
         /// </summary>
-        readonly FilteredList m_List;
+        private readonly FilteredList m_List;
 
         /// <summary>
         /// Scroll offset for the vertical scroll area.
         /// </summary>
-        Vector2 m_Scroll;
+        private Vector2 m_Scroll;
 
         /// <summary>
         /// Index of the item under the mouse or selected with the keyboard.
         /// </summary>
-        int m_HoverIndex;
+        private int m_HoverIndex;
 
         /// <summary>
         /// An item index to scroll to on the next draw.
         /// </summary>
-        int m_ScrollToIndex;
+        private int m_ScrollToIndex;
 
         /// <summary>
         /// An offset to apply after scrolling to scrollToIndex. This can be
         /// used to control if the selection appears at the top, bottom, or
         /// center of the popup.
         /// </summary>
-        float m_ScrollOffset;
+        private float m_ScrollOffset;
 
         // GUIStyles implicitly cast from a string. This triggers a lookup into
         // the current skin which will be the editor skin and lets us get some
         // built-in styles.
-        static GUIStyle s_SearchBox = "ToolbarSeachTextField";
-        static GUIStyle s_CancelButton = "ToolbarSeachCancelButton";
-        static GUIStyle s_DisabledCancelButton = "ToolbarSeachCancelButtonEmpty";
-        static GUIStyle s_Selection = "SelectionRect";
+        private static GUIStyle s_SearchBox = "ToolbarSeachTextField";
+        private static GUIStyle s_CancelButton = "ToolbarSeachCancelButton";
+        private static GUIStyle s_DisabledCancelButton = "ToolbarSeachCancelButtonEmpty";
+        private static GUIStyle s_Selection = "SelectionRect";
 
-        SearchablePopup(string[] names, int currentIndex, Action<int> onSelectionMade)
+        private SearchablePopup(string[] names, int currentIndex, Action<int> onSelectionMade)
         {
             m_List = new FilteredList(names);
             m_CurrentIndex = currentIndex;
@@ -252,7 +252,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <param name="rect">The rect of the window to be drawn</param>
         public override void OnGUI(Rect rect)
         {
-            Rect searchRect = new Rect(0, 0, rect.width, EditorStyles.toolbar.fixedHeight);
+            Rect searchRect = new(0, 0, rect.width, EditorStyles.toolbar.fixedHeight);
             Rect scrollRect = Rect.MinMaxRect(0, searchRect.yMax, rect.xMax, rect.yMax);
 
             HandleKeyboard();
@@ -260,14 +260,14 @@ namespace Unity.Tutorials.Core.Editor
             DrawSelectionArea(scrollRect);
         }
 
-        void DrawSearch(Rect rect)
+        private void DrawSearch(Rect rect)
         {
             if (Event.current.type == EventType.Repaint)
             {
                 EditorStyles.toolbar.Draw(rect, false, false, false, false);
             }
 
-            Rect searchRect = new Rect(rect);
+            Rect searchRect = new(rect);
             searchRect.xMin += 6;
             searchRect.xMax -= 6;
             searchRect.y += 2;
@@ -297,22 +297,22 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
-        void DrawSelectionArea(Rect scrollRect)
+        private void DrawSelectionArea(Rect scrollRect)
         {
-            Rect contentRect = new Rect(0, 0,
+            Rect contentRect = new(0, 0,
                 scrollRect.width - GUI.skin.verticalScrollbar.fixedWidth,
                 m_List.Entries.Count * k_RowHeight);
 
             m_Scroll = GUI.BeginScrollView(scrollRect, m_Scroll, contentRect);
 
-            Rect rowRect = new Rect(0, 0, scrollRect.width, k_RowHeight);
+            Rect rowRect = new(0, 0, scrollRect.width, k_RowHeight);
 
             for (int i = 0; i < m_List.Entries.Count; i++)
             {
                 if (m_ScrollToIndex == i
                     && (Event.current.type == EventType.Repaint || Event.current.type == EventType.Layout))
                 {
-                    Rect r = new Rect(rowRect);
+                    Rect r = new(rowRect);
                     r.y += m_ScrollOffset;
                     GUI.ScrollTo(r);
                     m_ScrollToIndex = -1;
@@ -341,7 +341,7 @@ namespace Unity.Tutorials.Core.Editor
             GUI.EndScrollView();
         }
 
-        void DrawRow(Rect rowRect, int i)
+        private void DrawRow(Rect rowRect, int i)
         {
             if (m_List.Entries[i].Index == m_CurrentIndex)
             {
@@ -352,7 +352,7 @@ namespace Unity.Tutorials.Core.Editor
                 DrawBox(rowRect, Color.white);
             }
 
-            Rect labelRect = new Rect(rowRect);
+            Rect labelRect = new(rowRect);
             labelRect.xMin += k_RowIndent;
 
             GUI.Label(labelRect, m_List.Entries[i].Text);
@@ -361,7 +361,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Process keyboard input to navigate the choices or make a selection.
         /// </summary>
-        void HandleKeyboard()
+        private void HandleKeyboard()
         {
             if (Event.current.type != EventType.KeyDown)
                 return;

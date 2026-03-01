@@ -5,9 +5,9 @@ using Unity.EditorCoroutines.Editor;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
-using static Unity.Tutorials.Core.Editor.Localization;
+using static Unity.Tutorials.Editor.Localization;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// A modal/utility window that can display TutorialWelcomePage as its content.
@@ -15,13 +15,14 @@ namespace Unity.Tutorials.Core.Editor
     /// </summary>
     public class TutorialModalWindow : EditorWindow
     {
-        static readonly Vector2 k_windowSize = new Vector2(700, 500);
+        private static readonly Vector2 k_windowSize = new(700, 500);
 
         /// <summary>
         /// The current instance of this window
         /// </summary>
         public static TutorialModalWindow Instance { get; set; }
-        static TutorialModalWindow FindInstance() => Resources.FindObjectsOfTypeAll<TutorialModalWindow>().FirstOrDefault();
+
+        private static TutorialModalWindow FindInstance() => Resources.FindObjectsOfTypeAll<TutorialModalWindow>().FirstOrDefault();
         internal TutorialStyles Styles => TutorialProjectSettings.Instance.TutorialStyle;
 
         /// <summary>
@@ -30,13 +31,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <remarks>
         /// Remember to set prior to calling TryToShow().
         /// </remarks>
-        public static bool MaskingEnabled { get; set; } = false;
-
-        /// <summary>
-        /// Is the window currently visible.
-        /// </summary>
-        [Obsolete("Will be removed in v4. Check the status of 'Instance' instead")] //todo: remove in v4
-        public static bool Visible => Instance != null;
+        public static bool MaskingEnabled { get; set; }
 
         /// <summary>
         /// In order to set the welcome page, use the Show() function instead.
@@ -59,32 +54,31 @@ namespace Unity.Tutorials.Core.Editor
                 }
             }
         }
-        [SerializeField]
-        TutorialWelcomePage m_WelcomePage;
+        [SerializeField] private TutorialWelcomePage m_WelcomePage;
 
-        Action m_OnClose;
-        VisualElement m_Root;
-        StyleSheet m_LastCommonStyleSheet; // Dark/Light theme
+        private Action m_OnClose;
+        private VisualElement m_Root;
+        private StyleSheet m_currentEditorThemeStyleSheet; // Dark/Light theme
 
-        void OnEnable()
+        private void OnEnable()
         {
             SetupBackend();
             SetupFrontend();
         }
 
-        void OnDisable()
+        private void OnDisable()
         {
             TeardownBackend();
         }
 
-        void OnDestroy() //aka: "When the user closes the window"
+        private void OnDestroy() //aka: "When the user closes the window"
         {
             m_OnClose?.Invoke();
             Unmask();
             Instance = null;
         }
 
-        void SetupBackend()
+        private void SetupBackend()
         {
             if (!Instance)
             {
@@ -93,7 +87,7 @@ namespace Unity.Tutorials.Core.Editor
             SubscribeEvents();
         }
 
-        void SetupFrontend()
+        private void SetupFrontend()
         {
             m_Root = rootVisualElement;
             minSize = k_windowSize;
@@ -101,7 +95,7 @@ namespace Unity.Tutorials.Core.Editor
             RebuildFrontend();
         }
 
-        void RebuildFrontend()
+        private void RebuildFrontend()
         {
             if (TutorialWindow.s_IsLoadingLayout) { return; }
             LoadUIStructure();
@@ -116,7 +110,7 @@ namespace Unity.Tutorials.Core.Editor
                 rootVisualElement.Add(new IMGUIContainer(OnGuiToolbar));
             }
 
-            VisualTreeAsset windowContent = UIElementsUtils.LoadUXML("WelcomeDialog");
+            VisualTreeAsset windowContent = UIUtils.LoadUXML("WelcomeDialog");
             windowContent.CloneTree(m_Root);
 
             //preserve the base style, remove all styles defined in UXML and apply new skin
@@ -125,14 +119,14 @@ namespace Unity.Tutorials.Core.Editor
                 m_Root.styleSheets.Remove(m_Root.styleSheets[i]);
             }
 
-            UIElementsUtils.LoadCommonStyleSheet(m_Root);
+            UIUtils.LoadCommonStyleSheet(m_Root);
             UpdateWindowSkin();
 
             EditorCoroutineUtility.StartCoroutine(LoadContent(), this);
         }
 
 
-        IEnumerator LoadContent()
+        private IEnumerator LoadContent()
         {
             while (m_WelcomePage == null)
             {
@@ -145,10 +139,10 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
-        void UpdateWindowSkin()
+        private void UpdateWindowSkin()
         {
-            UIElementsUtils.RemoveStyleSheet(m_LastCommonStyleSheet, m_Root);
-            UIElementsUtils.LoadSkinStyleSheet(out m_LastCommonStyleSheet, m_Root);
+            UIUtils.RemoveStyleSheet(m_currentEditorThemeStyleSheet, m_Root);
+            UIUtils.LoadEditorThemeStyleSheet(out m_currentEditorThemeStyleSheet, m_Root);
 
             if (TutorialProjectSettings.Instance != null && TutorialProjectSettings.Instance.TutorialStyle != null)
             {
@@ -156,7 +150,7 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
-        void SubscribeEvents()
+        private void SubscribeEvents()
         {
             if (m_WelcomePage)
             {
@@ -164,7 +158,7 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
-        void UnsubscribeEvents()
+        private void UnsubscribeEvents()
         {
             if (m_WelcomePage)
             {
@@ -172,7 +166,7 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
-        void TeardownBackend()
+        private void TeardownBackend()
         {
             UnsubscribeEvents();
         }
@@ -188,7 +182,7 @@ namespace Unity.Tutorials.Core.Editor
         public static void Show(TutorialWelcomePage welcomePage, Action onClose = null)
         {
             Hide();
-            var window = CreateInstance<TutorialModalWindow>();
+            TutorialModalWindow window = CreateInstance<TutorialModalWindow>();
             window.titleContent = new GUIContent(welcomePage.WindowTitle);
             window.minSize = k_windowSize;
             window.maxSize = k_windowSize;
@@ -207,7 +201,7 @@ namespace Unity.Tutorials.Core.Editor
             Instance?.Close();
         }
 
-        void UpdateContent()
+        private void UpdateContent()
         {
             if (!WelcomePage)
             {
@@ -219,7 +213,7 @@ namespace Unity.Tutorials.Core.Editor
 
             if (!WelcomePage.HeaderContent.IsValid())
             {
-                UIElementsUtils.ShowOrHide("HeaderContainer", m_Root, false);
+                UIUtils.ShowOrHide("HeaderContainer", m_Root, false);
             }
             else
             {
@@ -230,14 +224,14 @@ namespace Unity.Tutorials.Core.Editor
                 switch (WelcomePage.HeaderContent.ContentType)
                 {
                     case MediaContent.MediaContentType.Image:
-                        UIElementsUtils.ShowOrHide("HeaderMedia", m_Root, WelcomePage.HeaderContent.IsValid());
-                        UIElementsUtils.ShowOrHide("VideoPlayerContainer", m_Root, false);
+                        UIUtils.ShowOrHide("HeaderMedia", m_Root, WelcomePage.HeaderContent.IsValid());
+                        UIUtils.ShowOrHide("VideoPlayerContainer", m_Root, false);
                         header.style.backgroundImage = Background.FromTexture2D(WelcomePage.HeaderContent.Image);
                         break;
                     case MediaContent.MediaContentType.VideoClip:
                     case MediaContent.MediaContentType.VideoUrl:
-                        UIElementsUtils.ShowOrHide("VideoPlayerContainer", m_Root, WelcomePage.HeaderContent.IsValid());
-                        UIElementsUtils.ShowOrHide("HeaderMedia", m_Root, false);
+                        UIUtils.ShowOrHide("VideoPlayerContainer", m_Root, WelcomePage.HeaderContent.IsValid());
+                        UIUtils.ShowOrHide("HeaderMedia", m_Root, false);
 
                         if (WelcomePage.HeaderContent.ContentType == MediaContent.MediaContentType.VideoClip)
                             videoPlayer.SetVideoClip(WelcomePage.HeaderContent.VideoClip,
@@ -247,14 +241,12 @@ namespace Unity.Tutorials.Core.Editor
 
                         videoPlayer.SetLooping(WelcomePage.HeaderContent.Loop);
                         break;
-                    default:
-                        break;
                 }
             }
 
-            UIElementsUtils.SetupLabel("Heading", WelcomePage.Title, m_Root, false);
+            UIUtils.SetupLabel("Heading", WelcomePage.Title, m_Root, false);
 
-            var welcomeLabel = new Label(WelcomePage.Description);
+            Label welcomeLabel = new(WelcomePage.Description);
             //ensure we got word wrapping
             welcomeLabel.style.whiteSpace = WhiteSpace.Normal;
             m_Root.Q("Description").Add(welcomeLabel);
@@ -266,14 +258,14 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
-        void AddDynamicButtonsToContent()
+        private void AddDynamicButtonsToContent()
         {
             VisualElement buttonContainer = m_Root.Q("ButtonContainer");
             buttonContainer.Clear();
 
-            foreach (var buttonData in WelcomePage.Buttons.Where(buttonData => buttonData.Text.Value.IsNotNullOrEmpty()))
+            foreach (TutorialWelcomePage.ButtonData buttonData in WelcomePage.Buttons.Where(buttonData => buttonData.Text.Value.IsNotNullOrEmpty()))
             {
-                var button = new Button(() => buttonData.OnClick?.Invoke())
+                Button button = new(() => buttonData.OnClick?.Invoke())
                 {
                     text = buttonData.Text,
                     tooltip = buttonData.Tooltip
@@ -282,7 +274,7 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
-        void OnGuiToolbar()
+        private void OnGuiToolbar()
         {
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar, GUILayout.ExpandWidth(true));
 
@@ -309,11 +301,11 @@ namespace Unity.Tutorials.Core.Editor
             EditorGUILayout.EndHorizontal();
         }
 
-        void Mask()
+        private void Mask()
         {
-            var unmaskedViews = new UnmaskedView.MaskData();
+            UnmaskedView.MaskData unmaskedViews = new();
             unmaskedViews.AddParentFullyUnmasked(this);
-            var highlightedViews = new UnmaskedView.MaskData();
+            UnmaskedView.MaskData highlightedViews = new();
 
             MaskingManager.Mask
             (
@@ -328,13 +320,13 @@ namespace Unity.Tutorials.Core.Editor
             MaskingEnabled = true;
         }
 
-        void Unmask()
+        private void Unmask()
         {
             MaskingManager.Unmask();
             MaskingEnabled = false;
         }
 
-        void OnWelcomePageModified(TutorialWelcomePage sender)
+        private void OnWelcomePageModified(TutorialWelcomePage sender)
         {
             UpdateContent();
         }

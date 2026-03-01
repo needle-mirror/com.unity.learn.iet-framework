@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
-using UnityEditor.Toolbars;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UIElements;
+using Object = UnityEngine.Object;
 using PopupWindow = UnityEditor.PopupWindow;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     internal enum MaskType
     {
@@ -31,7 +31,7 @@ namespace Unity.Tutorials.Core.Editor
 
         internal static MaskViewData CreateEmpty(MaskType type)
         {
-            return new MaskViewData()
+            return new MaskViewData
             {
                 maskType = type,
                 rects = null,
@@ -40,7 +40,7 @@ namespace Unity.Tutorials.Core.Editor
     }
 
     [Serializable]
-    class UnmaskedView
+    internal class UnmaskedView
     {
         public class MaskData : ICloneable
         {
@@ -48,7 +48,7 @@ namespace Unity.Tutorials.Core.Editor
 
             public MaskData() : this(null) { }
 
-            public int Count { get { return m_MaskData.Count; } }
+            public int Count => m_MaskData.Count;
 
             internal MaskData(Dictionary<GUIViewProxy, MaskViewData> maskData)
             {
@@ -70,16 +70,16 @@ namespace Unity.Tutorials.Core.Editor
 
             public void AddTooltipViews()
             {
-                var allViews = new List<GUIViewProxy>();
+                List<GUIViewProxy> allViews = new();
                 GUIViewDebuggerHelperProxy.GetViews(allViews);
 
-                foreach (var tooltipView in allViews.Where(v => v.IsGUIViewAssignableTo(GUIViewProxy.TooltipViewType)))
+                foreach (GUIViewProxy tooltipView in allViews.Where(v => v.IsGUIViewAssignableTo(GUIViewProxy.TooltipViewType)))
                     m_MaskData[tooltipView] = MaskViewData.CreateEmpty(MaskType.FullyUnmasked);
             }
 
             public void RemoveTooltipViews()
             {
-                foreach (var view in m_MaskData.Keys.ToArray())
+                foreach (GUIViewProxy view in m_MaskData.Keys.ToArray())
                 {
                     if (view.IsGUIViewAssignableTo(GUIViewProxy.TooltipViewType))
                         m_MaskData.Remove(view);
@@ -88,18 +88,18 @@ namespace Unity.Tutorials.Core.Editor
 
             public void AddPopoutWindow()
             {
-                var allViews = new List<GUIViewProxy>();
+                List<GUIViewProxy> allViews = new();
                 GUIViewDebuggerHelperProxy.GetViews(allViews);
 
-                foreach (var tooltipView in allViews.Where(v => v.IsActualViewAssignableTo(typeof(MediaPopoutWindow))))
+                foreach (GUIViewProxy tooltipView in allViews.Where(v => v.IsActualViewAssignableTo(typeof(MediaPopoutWindow))))
                 {
                     m_MaskData[tooltipView] = MaskViewData.CreateEmpty(MaskType.FullyUnmasked);
                 }
 
                 // Check if the AI install popup is displayed, we do not want to hide it
-                foreach (var editorPopup in allViews.Where(v => v.IsActualViewAssignableTo(typeof(PopupWindow))))
+                foreach (GUIViewProxy editorPopup in allViews.Where(v => v.IsActualViewAssignableTo(typeof(PopupWindow))))
                 {
-                    var popupWindow = editorPopup.GetActualEditorWindow() as PopupWindow;
+                    PopupWindow popupWindow = editorPopup.GetActualEditorWindow() as PopupWindow;
 
                     if (popupWindow != null)
                     {
@@ -110,11 +110,11 @@ namespace Unity.Tutorials.Core.Editor
                     }
                 }
 
-                var assistantWindowType = Type.GetType("Unity.AI.Assistant.UI.Editor.Scripts.AssistantWindow, Unity.AI.Assistant.UI.Editor");
+                Type assistantWindowType = Type.GetType("Unity.AI.Assistant.UI.Editor.Scripts.AssistantWindow, Unity.AI.Assistant.UI.Editor");
                 if (assistantWindowType != null)
                 {
                     //if the AI Assistant Window type exist, we also need to unmask it
-                    foreach (var assistantWindow in allViews.Where(v => v.IsActualViewAssignableTo(assistantWindowType)))
+                    foreach (GUIViewProxy assistantWindow in allViews.Where(v => v.IsActualViewAssignableTo(assistantWindowType)))
                     {
                         m_MaskData[assistantWindow] = MaskViewData.CreateEmpty(MaskType.FullyUnmasked);
                     }
@@ -123,7 +123,7 @@ namespace Unity.Tutorials.Core.Editor
 
             public void RemovePopoutWindow()
             {
-                foreach (var view in m_MaskData.Keys.ToArray())
+                foreach (GUIViewProxy view in m_MaskData.Keys.ToArray())
                 {
                     if (view.IsGUIViewAssignableTo(typeof(MediaPopoutWindow)))
                         m_MaskData.Remove(view);
@@ -146,16 +146,16 @@ namespace Unity.Tutorials.Core.Editor
         {
             foundAncestorProperty = false;
 
-            var allViews = new List<GUIViewProxy>();
+            List<GUIViewProxy> allViews = new();
             GUIViewDebuggerHelperProxy.GetViews(allViews);
 
             // initialize result
-            var result = new Dictionary<GUIViewProxy, MaskViewData>();
-            var unmaskedControls = new Dictionary<GUIViewProxy, List<GuiControlSelector>>();
-            var viewsWithWindows = new Dictionary<GUIViewProxy, HashSet<EditorWindow>>();
-            foreach (var unmaskedView in unmaskedViews)
+            Dictionary<GUIViewProxy, MaskViewData> result = new();
+            Dictionary<GUIViewProxy, List<GuiControlSelector>> unmaskedControls = new();
+            Dictionary<GUIViewProxy, HashSet<EditorWindow>> viewsWithWindows = new();
+            foreach (UnmaskedView unmaskedView in unmaskedViews)
             {
-                foreach (var view in GetMatchingViews(unmaskedView, allViews, viewsWithWindows))
+                foreach (GUIViewProxy view in GetMatchingViews(unmaskedView, allViews, viewsWithWindows))
                 {
                     MaskViewData maskViewData;
                     if (!result.TryGetValue(view, out maskViewData))
@@ -169,8 +169,7 @@ namespace Unity.Tutorials.Core.Editor
                         };
                     }
 
-                    List<GuiControlSelector> controls;
-                    if (!unmaskedControls.TryGetValue(view, out controls))
+                    if (!unmaskedControls.TryGetValue(view, out List<GuiControlSelector> controls))
                         unmaskedControls[view] = controls = new List<GuiControlSelector>();
 
                     controls.AddRange(unmaskedView.m_UnmaskedControls);
@@ -178,7 +177,7 @@ namespace Unity.Tutorials.Core.Editor
             }
 
             // validate input
-            foreach (var viewWithWindow in viewsWithWindows)
+            foreach (KeyValuePair<GUIViewProxy, HashSet<EditorWindow>> viewWithWindow in viewsWithWindows)
             {
                 if (viewWithWindow.Value.Count > 1)
                 {
@@ -193,23 +192,22 @@ namespace Unity.Tutorials.Core.Editor
             }
 
             // populate result
-            var drawInstructions = new List<IMGUIDrawInstructionProxy>(32);
-            var namedControlInstructions = new List<IMGUINamedControlInstructionProxy>(32);
-            var propertyInstructions = new List<IMGUIPropertyInstructionProxy>(32);
+            List<IMGUIDrawInstructionProxy> drawInstructions = new(32);
+            List<IMGUINamedControlInstructionProxy> namedControlInstructions = new(32);
+            List<IMGUIPropertyInstructionProxy> propertyInstructions = new(32);
 
-            foreach (var viewRects in result)
+            foreach (KeyValuePair<GUIViewProxy, MaskViewData> viewRects in result)
             {
                 // prevents null exception when repainting in case e.g., user has accidentally maximized view
                 if (!viewRects.Key.IsWindowAndRootViewValid)
                     continue;
 
-                var unmaskedControlSelectors = unmaskedControls[viewRects.Key];
+                List<GuiControlSelector> unmaskedControlSelectors = unmaskedControls[viewRects.Key];
                 if (unmaskedControlSelectors.Count == 0)
                     continue;
 
                 // if the view refers to an InspectorWindow, flush the optimized GUI blocks so that Editor control rects will be updated
-                HashSet<EditorWindow> windows;
-                if (viewsWithWindows.TryGetValue(viewRects.Key, out windows) && windows.Count > 0)
+                if (viewsWithWindows.TryGetValue(viewRects.Key, out HashSet<EditorWindow> windows) && windows.Count > 0)
                     InspectorWindowProxy.DirtyAllEditors(windows.First());
 
                 // TODO: use actual selectors when API is in place
@@ -221,22 +219,20 @@ namespace Unity.Tutorials.Core.Editor
                 GUIViewDebuggerHelperProxy.GetNamedControlInstructions(namedControlInstructions);
                 GUIViewDebuggerHelperProxy.GetPropertyInstructions(propertyInstructions);
 
-                foreach (var controlSelector in unmaskedControls[viewRects.Key])
+                foreach (GuiControlSelector controlSelector in unmaskedControls[viewRects.Key])
                 {
                     bool reverse = controlSelector.SelectorMatchType == GuiControlSelector.MatchType.Last;
                     bool selectAll = controlSelector.SelectorMatchType == GuiControlSelector.MatchType.All;
 
-                    var regionRects = new List<Rect>();
+                    List<Rect> regionRects = new();
                     switch (controlSelector.SelectorMode)
                     {
                         case GuiControlSelector.Mode.GuiContent:
-                            bool IsGuiContentMatch(IMGUIDrawInstructionProxy instruction, GUIContent content) =>
-                                AreEquivalent(instruction.usedGUIContent, content);
 
                             if (reverse)
                                 drawInstructions.Reverse();
 
-                            foreach (var instruction in drawInstructions)
+                            foreach (IMGUIDrawInstructionProxy instruction in drawInstructions)
                             {
                                 if (IsGuiContentMatch(instruction, controlSelector.GuiContent))
                                 {
@@ -247,14 +243,15 @@ namespace Unity.Tutorials.Core.Editor
                             }
                             break;
 
+                            bool IsGuiContentMatch(IMGUIDrawInstructionProxy instruction, GUIContent content) =>
+                                AreEquivalent(instruction.usedGUIContent, content);
+
                         case GuiControlSelector.Mode.GuiStyleName:
-                            bool IsGuiStyleNameMatch(IMGUIDrawInstructionProxy instruction, string styleName) =>
-                                instruction.usedGUIStyleName == styleName;
 
                             if (reverse)
                                 drawInstructions.Reverse();
 
-                            foreach (var instruction in drawInstructions)
+                            foreach (IMGUIDrawInstructionProxy instruction in drawInstructions)
                             {
                                 if (IsGuiStyleNameMatch(instruction, controlSelector.GuiStyleName))
                                 {
@@ -265,14 +262,15 @@ namespace Unity.Tutorials.Core.Editor
                             }
                             break;
 
+                            bool IsGuiStyleNameMatch(IMGUIDrawInstructionProxy instruction, string styleName) =>
+                                instruction.usedGUIStyleName == styleName;
+
                         case GuiControlSelector.Mode.NamedControl:
-                            bool IsControlNameMatch(IMGUINamedControlInstructionProxy instruction, string controlName) =>
-                                instruction.name == controlName;
 
                             if (reverse)
                                 namedControlInstructions.Reverse();
 
-                            foreach (var instruction in namedControlInstructions)
+                            foreach (IMGUINamedControlInstructionProxy instruction in namedControlInstructions)
                             {
                                 if (IsControlNameMatch(instruction, controlSelector.ControlName))
                                 {
@@ -283,9 +281,10 @@ namespace Unity.Tutorials.Core.Editor
                             }
                             break;
 
+                            bool IsControlNameMatch(IMGUINamedControlInstructionProxy instruction, string controlName) =>
+                                instruction.name == controlName;
+
                         case GuiControlSelector.Mode.Property:
-                            bool IsPropertyMatch(IMGUIPropertyInstructionProxy instruction, string typeName, string propertyPath) =>
-                                (instruction.targetTypeName == typeName && instruction.path == controlSelector.PropertyPath);
 
                             if (controlSelector.TargetType == null)
                                 continue;
@@ -293,8 +292,8 @@ namespace Unity.Tutorials.Core.Editor
                             if (reverse)
                                 propertyInstructions.Reverse();
 
-                            var targetTypeName = controlSelector.TargetType.AssemblyQualifiedName;
-                            foreach (var instruction in propertyInstructions)
+                            string targetTypeName = controlSelector.TargetType.AssemblyQualifiedName;
+                            foreach (IMGUIPropertyInstructionProxy instruction in propertyInstructions)
                             {
                                 if (IsPropertyMatch(instruction, targetTypeName, controlSelector.PropertyPath))
                                 {
@@ -317,21 +316,22 @@ namespace Unity.Tutorials.Core.Editor
                             }
                             break;
 
+                            bool IsPropertyMatch(IMGUIPropertyInstructionProxy instruction, string typeName, string propertyPath) =>
+                                (instruction.targetTypeName == typeName && instruction.path == controlSelector.PropertyPath);
+
                         case GuiControlSelector.Mode.ObjectReference:
-                            bool IsObjectNameMatch(IMGUIDrawInstructionProxy instruction, string objectName) =>
-                                instruction.usedGUIContent.text == objectName;
 
                             if (controlSelector.ObjectReference == null)
                                 continue;
 
-                            var referencedObject = controlSelector.ObjectReference.SceneObjectReference.ReferencedObject;
+                            Object referencedObject = controlSelector.ObjectReference.SceneObjectReference.ReferencedObject;
                             if (referencedObject == null)
                                 continue;
 
                             if (reverse)
                                 drawInstructions.Reverse();
 
-                            foreach (var instruction in drawInstructions)
+                            foreach (IMGUIDrawInstructionProxy instruction in drawInstructions)
                             {
                                 if (IsObjectNameMatch(instruction, referencedObject.name))
                                 {
@@ -342,29 +342,46 @@ namespace Unity.Tutorials.Core.Editor
                             }
                             break;
 
+                            bool IsObjectNameMatch(IMGUIDrawInstructionProxy instruction, string objectName) =>
+                                instruction.usedGUIContent.text == objectName;
+
                         case GuiControlSelector.Mode.VisualElement:
                             // At least one of the three properties must be specified in order to make a sensible query.
                             if (controlSelector.VisualElementTypeName.IsNotNullOrWhiteSpace() ||
                                 controlSelector.VisualElementClassName.IsNotNullOrWhiteSpace() ||
                                 controlSelector.VisualElementName.IsNotNullOrWhiteSpace())
                             {
-                                var visualTree = UIElementsHelper.GetVisualTree(viewRects.Key);
-                                // Passing null as name or class will make the query to consider it as an optional argument.
-                                var queryBuilder = visualTree.Query(
-                                    controlSelector.VisualElementName.AsNullIfWhiteSpace(),
-                                    controlSelector.VisualElementClassName.AsNullIfWhiteSpace()
-                                );
-                                // Apply type, if valid type specified.
+                                VisualElement visualTree = UIElementsHelper.GetVisualTree(viewRects.Key);
+
+                                UQueryBuilder<VisualElement> queryBuilder;
+                                
+                                if (controlSelector.VisualElementTypeName.IsNotNullOrWhiteSpace() &&
+                                    controlSelector.VisualElementClassName.IsNullOrWhiteSpace() &&
+                                    controlSelector.VisualElementName.IsNullOrWhiteSpace())
+                                {
+                                    // The type is the only one specified, then it's not to be treated as a filter but as a positive
+                                    queryBuilder = visualTree.Query<VisualElement>();
+                                }
+                                else
+                                {
+                                    // Passing null as name or class will make the query to consider it as an optional argument
+                                    queryBuilder = visualTree.Query(
+                                        controlSelector.VisualElementName.AsNullIfWhiteSpace(),
+                                        controlSelector.VisualElementClassName.AsNullIfWhiteSpace()
+                                    );
+                                }
+                                
+                                // Filter by type, if valid type specified
                                 if (controlSelector.VisualElementTypeName.IsNotNullOrWhiteSpace())
                                 {
                                     queryBuilder = queryBuilder.Where(elem => elem.GetType().ToString() == controlSelector.VisualElementTypeName);
                                 }
-
-                                var elements = queryBuilder.Build().ToList();
+                                
+                                List<VisualElement> elements = queryBuilder.Build().ToList();
                                 if (reverse)
                                     elements.Reverse();
 
-                                foreach (var element in elements)
+                                foreach (VisualElement element in elements)
                                 {
                                     regionRects.Add(element.worldBound);
                                     if (!selectAll)
@@ -402,14 +419,14 @@ namespace Unity.Tutorials.Core.Editor
             return new MaskData(result);
         }
 
-        static bool FindAncestorPropertyRegion(string propertyPath, string targetTypeName,
+        private static bool FindAncestorPropertyRegion(string propertyPath, string targetTypeName,
             List<IMGUIDrawInstructionProxy> drawInstructions, List<IMGUIPropertyInstructionProxy> propertyInstructions,
             ref Rect regionRect)
         {
             while (true)
             {
                 // Remove last component of property path
-                var lastIndexOfDelimiter = propertyPath.LastIndexOf(".");
+                int lastIndexOfDelimiter = propertyPath.LastIndexOf(".");
                 if (lastIndexOfDelimiter < 1)
                 {
                     // No components left, give up
@@ -417,7 +434,7 @@ namespace Unity.Tutorials.Core.Editor
                 }
                 propertyPath = propertyPath.Substring(0, lastIndexOfDelimiter);
 
-                foreach (var instruction in propertyInstructions)
+                foreach (IMGUIPropertyInstructionProxy instruction in propertyInstructions)
                 {
                     if (instruction.targetTypeName == targetTypeName &&
                         instruction.path == propertyPath)
@@ -426,11 +443,11 @@ namespace Unity.Tutorials.Core.Editor
 
                         // The property rect itself does not contain the foldout arrow
                         // Expand region to include all draw instructions for this property
-                        var unifiedInstructions = new List<IMGUIInstructionProxy>(128);
+                        List<IMGUIInstructionProxy> unifiedInstructions = new(128);
                         GUIViewDebuggerHelperProxy.GetUnifiedInstructions(unifiedInstructions);
-                        var collectDrawInstructions = false;
-                        var propertyBeginLevel = 0;
-                        foreach (var unifiedInstruction in unifiedInstructions)
+                        bool collectDrawInstructions = false;
+                        int propertyBeginLevel = 0;
+                        foreach (IMGUIInstructionProxy unifiedInstruction in unifiedInstructions)
                         {
                             if (collectDrawInstructions)
                             {
@@ -439,7 +456,7 @@ namespace Unity.Tutorials.Core.Editor
 
                                 if (unifiedInstruction.type == InstructionTypeProxy.StyleDraw)
                                 {
-                                    var drawRect = drawInstructions[unifiedInstruction.typeInstructionIndex].rect;
+                                    Rect drawRect = drawInstructions[unifiedInstruction.typeInstructionIndex].rect;
                                     if (drawRect.xMin < regionRect.xMin)
                                         regionRect.xMin = drawRect.xMin;
                                     if (drawRect.yMin < regionRect.yMin)
@@ -454,7 +471,7 @@ namespace Unity.Tutorials.Core.Editor
                             {
                                 if (unifiedInstruction.type == InstructionTypeProxy.PropertyBegin)
                                 {
-                                    var propertyInstruction = propertyInstructions[unifiedInstruction.typeInstructionIndex];
+                                    IMGUIPropertyInstructionProxy propertyInstruction = propertyInstructions[unifiedInstruction.typeInstructionIndex];
                                     if (propertyInstruction.targetTypeName == targetTypeName
                                         && propertyInstruction.path == propertyPath)
                                     {
@@ -471,7 +488,7 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
-        static bool AreEquivalent(GUIContent gc1, GUIContent gc2)
+        private static bool AreEquivalent(GUIContent gc1, GUIContent gc2)
         {
             return
                 gc1.image == gc2.image &&
@@ -479,17 +496,17 @@ namespace Unity.Tutorials.Core.Editor
                 (string.IsNullOrEmpty(gc1.tooltip) ? string.IsNullOrEmpty(gc2.tooltip) : gc1.tooltip == gc2.tooltip);
         }
 
-        static IEnumerable<GUIViewProxy> GetMatchingViews(
+        private static IEnumerable<GUIViewProxy> GetMatchingViews(
             UnmaskedView unmaskedView,
             List<GUIViewProxy> allViews,
             Dictionary<GUIViewProxy, HashSet<EditorWindow>> viewsWithWindows)
         {
-            var matchingViews = new HashSet<GUIViewProxy>(new GUIViewProxyComparer());
+            HashSet<GUIViewProxy> matchingViews = new(new GUIViewProxyComparer());
 
             switch (unmaskedView.m_SelectorType)
             {
                 case SelectorType.EditorWindow:
-                    var targetEditorWindowType = unmaskedView.ResolvedEditorWindowType;
+                    Type targetEditorWindowType = unmaskedView.ResolvedEditorWindowType;
                     if (unmaskedView.m_EditorWindowType.IsSpecified && targetEditorWindowType == null)
                     {
                         throw new ArgumentException(
@@ -500,7 +517,7 @@ namespace Unity.Tutorials.Core.Editor
                     if (targetEditorWindowType != null)
                     {
                         EditorWindow window = null;
-                        window = unmaskedView.m_FocusEditorWindow ?
+                        window = unmaskedView.m_OpenAndFocus ?
                             EditorWindow.GetWindow(targetEditorWindowType) :
                             Resources.FindObjectsOfTypeAll(targetEditorWindowType).Cast<EditorWindow>().FirstOrDefault();
 
@@ -514,7 +531,7 @@ namespace Unity.Tutorials.Core.Editor
                             allViews.Add(window.GetParent());
                         }
 
-                        foreach (var view in allViews)
+                        foreach (GUIViewProxy view in allViews)
                         {
                             if (!view.IsActualViewAssignableTo(targetEditorWindowType))
                             {
@@ -532,7 +549,7 @@ namespace Unity.Tutorials.Core.Editor
                     }
                     break;
                 case SelectorType.GUIView:
-                    var targetViewType = unmaskedView.m_ViewType.Type;
+                    Type targetViewType = unmaskedView.m_ViewType.Type;
                     if (unmaskedView.m_ViewType.IsSpecified && targetViewType == null)
                     {
                         throw new ArgumentException(
@@ -542,7 +559,7 @@ namespace Unity.Tutorials.Core.Editor
                     }
                     if (targetViewType != null)
                     {
-                        foreach (var view in allViews)
+                        foreach (GUIViewProxy view in allViews)
                         {
                             if (view.IsGUIViewAssignableTo(targetViewType))
                             {
@@ -570,33 +587,33 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         [SerializedTypeGuiViewFilter]
         [SerializeField]
-        internal SerializedType m_ViewType = new SerializedType(null);
+        internal SerializedType m_ViewType = new(null);
 
         /// <summary>
         /// Applicable when SelectorType == EditorWindow.
         /// </summary>
-        [Tooltip("If set to false, if the highlighted window is not visible or open, it won't open it")]
-        [SerializeField]
-        internal bool m_FocusEditorWindow = false;
+        [Tooltip("If the specified window is not already visible, open it and bring it to the front.")]
+        [SerializeField, FormerlySerializedAs("m_FocusEditorWindow")]
+        internal bool m_OpenAndFocus;
 
         /// <summary>
         /// Applicable when SelectorType == EditorWindow.
         /// </summary>
         [SerializedTypeFilter(typeof(EditorWindow), false)]
         [SerializeField]
-        internal SerializedType m_EditorWindowType = new SerializedType(null);
+        internal SerializedType m_EditorWindowType = new(null);
 
-        Type ResolvedEditorWindowType
+        private Type ResolvedEditorWindowType
         {
             get
             {
                 // Use main EditorWindow type if it can be resolved
-                var type = m_EditorWindowType.Type;
+                Type type = m_EditorWindowType.Type;
                 if (type != null)
                     return type;
 
                 // Otherwise use first alternate type that resolves
-                foreach (var editorWindowTypeWrapper in m_AlternateEditorWindowTypes)
+                foreach (EditorWindowType editorWindowTypeWrapper in m_AlternateEditorWindowTypes)
                 {
                     type = editorWindowTypeWrapper.Type.Type;
                     if (type != null)
@@ -611,7 +628,7 @@ namespace Unity.Tutorials.Core.Editor
         /// Applicable when SelectorType == EditorWindow. Used as the back-up type if primary EditorWindowType cannot be resolved.
         /// </summary>
         [SerializeField]
-        internal EditorWindowTypeCollection m_AlternateEditorWindowTypes = new EditorWindowTypeCollection();
+        internal EditorWindowTypeCollection m_AlternateEditorWindowTypes = new();
 
         [SerializeField]
         internal MaskType m_MaskType = MaskType.FullyUnmasked;
@@ -620,7 +637,7 @@ namespace Unity.Tutorials.Core.Editor
         internal MaskSizeModifier m_MaskSizeModifier = MaskSizeModifier.NoModifications;
 
         [SerializeField]
-        internal List<GuiControlSelector> m_UnmaskedControls = new List<GuiControlSelector>();
+        internal List<GuiControlSelector> m_UnmaskedControls = new();
 
         public int GetUnmaskedControls(List<GuiControlSelector> unmaskedControls)
         {
@@ -636,7 +653,7 @@ namespace Unity.Tutorials.Core.Editor
             if (!GUIViewProxy.IsAssignableFrom(type))
                 throw new InvalidOperationException("Type must be assignable to GUIView");
 
-            UnmaskedView result = new UnmaskedView();
+            UnmaskedView result = new();
             result.m_SelectorType = SelectorType.GUIView;
             result.m_ViewType.Type = type;
             if (unmaskedControls != null)
@@ -649,7 +666,7 @@ namespace Unity.Tutorials.Core.Editor
             if (!typeof(EditorWindow).IsAssignableFrom(type))
                 throw new InvalidOperationException("Type must be assignable to EditorWindow");
 
-            UnmaskedView result = new UnmaskedView();
+            UnmaskedView result = new();
             result.m_SelectorType = SelectorType.EditorWindow;
             result.m_EditorWindowType.Type = type;
             if (unmaskedControls != null)
@@ -659,7 +676,7 @@ namespace Unity.Tutorials.Core.Editor
     }
 
     [Serializable]
-    class EditorWindowType
+    internal class EditorWindowType
     {
         [SerializeField, FormerlySerializedAs("editorWindowType")]
         [SerializedTypeFilter(typeof(EditorWindow), false)]
@@ -672,9 +689,9 @@ namespace Unity.Tutorials.Core.Editor
     }
 
     [Serializable]
-    class EditorWindowTypeCollection : CollectionWrapper<EditorWindowType>
+    internal class EditorWindowTypeCollection : CollectionWrapper<EditorWindowType>
     {
-        public EditorWindowTypeCollection() : base()
+        public EditorWindowTypeCollection()
         {
         }
 

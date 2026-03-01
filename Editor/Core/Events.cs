@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using static Unity.Tutorials.Core.Editor.TutorialContainer;
+using static Unity.Tutorials.Editor.TutorialContainer;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     internal class AppEvent { }
     internal class CategoriesRefreshRequestedEvent : AppEvent { }
@@ -58,14 +58,14 @@ namespace Unity.Tutorials.Core.Editor
     /// </summary>
     internal class EventManager
     {
-        readonly Dictionary<Type, Action<AppEvent>> s_Events = new Dictionary<Type, Action<AppEvent>>();
-        readonly Dictionary<Delegate, Action<AppEvent>> s_EventLookups = new Dictionary<Delegate, Action<AppEvent>>();
+        private readonly Dictionary<Type, Action<AppEvent>> s_Events = new();
+        private readonly Dictionary<Delegate, Action<AppEvent>> s_EventLookups = new();
 
         public void AddListener<T>(Action<T> evt) where T : AppEvent
         {
             if (s_EventLookups.ContainsKey(evt)) { return; }
 
-            Action<AppEvent> newAction = (e) => evt((T)e);
+            Action<AppEvent> newAction = e => evt((T)e);
             s_EventLookups[evt] = newAction;
 
             if (s_Events.TryGetValue(typeof(T), out Action<AppEvent> internalAction))
@@ -80,9 +80,9 @@ namespace Unity.Tutorials.Core.Editor
 
         public void RemoveListener<T>(Action<T> evt) where T : AppEvent
         {
-            if (!s_EventLookups.TryGetValue(evt, out var action)) { return; }
+            if (!s_EventLookups.TryGetValue(evt, out Action<AppEvent> action)) { return; }
 
-            if (s_Events.TryGetValue(typeof(T), out var tempAction))
+            if (s_Events.TryGetValue(typeof(T), out Action<AppEvent> tempAction))
             {
                 tempAction -= action;
                 if (tempAction == null)
@@ -96,7 +96,7 @@ namespace Unity.Tutorials.Core.Editor
 
         public void Broadcast(AppEvent evt)
         {
-            if (s_Events.TryGetValue(evt.GetType(), out var action))
+            if (s_Events.TryGetValue(evt.GetType(), out Action<AppEvent> action))
                 action.Invoke(evt);
         }
 

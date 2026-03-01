@@ -1,16 +1,16 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     [CustomPropertyDrawer(typeof(SceneObjectReference))]
-    class SceneObjectReferencePropertyDrawer : PropertyDrawer
+    internal class SceneObjectReferencePropertyDrawer : PropertyDrawer
     {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            var sor = new SceneObjectReference(property);
+            SceneObjectReference sor = new(property);
 
-            var origColor = GUI.color;
+            Color origColor = GUI.color;
             if (!sor.ReferenceResolved)
             {
                 label.text = "(Not resolved) " + label.text;
@@ -28,7 +28,7 @@ namespace Unity.Tutorials.Core.Editor
             }
 
             EditorGUI.BeginChangeCheck();
-            var newObj = EditorGUI.ObjectField(position, obj, typeof(Object), true);
+            Object newObj = EditorGUI.ObjectField(position, obj, typeof(Object), true);
             if (EditorGUI.EndChangeCheck())
             {
                 sor.Update(newObj);

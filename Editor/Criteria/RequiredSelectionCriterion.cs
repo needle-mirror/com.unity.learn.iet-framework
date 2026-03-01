@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// Criterion for checking that specific objects are selected.
@@ -12,12 +13,11 @@ namespace Unity.Tutorials.Core.Editor
     public class RequiredSelectionCriterion : Criterion
     {
         [Serializable]
-        class ObjectReferenceCollection : CollectionWrapper<ObjectReference>
+        private class ObjectReferenceCollection : CollectionWrapper<ObjectReference>
         {
         }
 
-        [SerializeField]
-        ObjectReferenceCollection m_ObjectReferences = new ObjectReferenceCollection();
+        [SerializeField] private ObjectReferenceCollection m_ObjectReferences = new();
 
         /// <summary>
         /// Sets object references.
@@ -57,9 +57,9 @@ namespace Unity.Tutorials.Core.Editor
             if (m_ObjectReferences.Count() != Selection.objects.Length)
                 return false;
 
-            foreach (var objectReference in m_ObjectReferences)
+            foreach (ObjectReference objectReference in m_ObjectReferences)
             {
-                var referencedObject = objectReference.SceneObjectReference.ReferencedObject;
+                Object referencedObject = objectReference.SceneObjectReference.ReferencedObject;
                 if (referencedObject == null)
                     return false;
 
@@ -76,7 +76,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <returns>True if the auto-completion succeeded.</returns>
         public override bool AutoComplete()
         {
-            var referencedObjects = m_ObjectReferences.Select(or => or.SceneObjectReference.ReferencedObject);
+            IEnumerable<Object> referencedObjects = m_ObjectReferences.Select(or => or.SceneObjectReference.ReferencedObject);
             if (referencedObjects.Any(obj => obj == null))
             {
                 Debug.LogWarning("Cannot auto-complete RequiredSelectionCriterion with unresolved object references");

@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// Used to refer Unity Objects in different Criterion implementations.
@@ -9,11 +9,9 @@ namespace Unity.Tutorials.Core.Editor
     [Serializable]
     public class ObjectReference
     {
-        [SerializeField]
-        SceneObjectReference m_SceneObjectReference;
+        [SerializeField] private SceneObjectReference m_SceneObjectReference;
 
-        [SerializeField]
-        FutureObjectReference m_FutureObjectReference = default;
+        [SerializeField] private FutureObjectReference m_FutureObjectReference;
 
         /// <summary>
         /// Is this ObjectReference a FutureObjectReference instead of a SceneObjectReference;.

@@ -4,9 +4,11 @@ using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UIElements;
+using Object = UnityEngine.Object;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// Contains different utilities used in Tutorials custom editors
@@ -35,11 +37,29 @@ namespace Unity.Tutorials.Core.Editor
         }
 
         /// <summary>
+        /// Gets a unique asset name by appending _n,
+        /// in order to save new assets even when the specified name already exists.
+        /// </summary>
+        /// <param name="folder">The folder to look for files into.</param>
+        /// <param name="baseName">The desired asset base name.</param>
+        /// <param name="extension">The asset extension to look for (defaults to .asset for SOs).</param>
+        /// <returns>The unique asset name, without folder path, but with extension.</returns>
+        internal static string GetUniqueAssetName(string folder, string baseName, string extension = "asset")
+        {
+            if (!AssetDatabase.AssetPathExists($"{folder}/{baseName}.{extension}"))
+                return $"{baseName}.{extension}";
+
+            int counter = 1;
+            while (AssetDatabase.AssetPathExists($"{folder}/{baseName}_{counter}.{extension}")) counter++;
+            return $"{baseName}_{counter}.{extension}";
+        }
+
+        /// <summary>
         /// Find assets of type T in the project.
         /// </summary>
         /// <typeparam name="T">Type of assets to look for.</typeparam>
         /// <returns>Assets of type T found in the project.</returns>
-        public static IEnumerable<T> FindAssets<T>() where T : UnityEngine.Object =>
+        public static IEnumerable<T> FindAssets<T>() where T : Object =>
             AssetDatabase.FindAssets($"t:{typeof(T).FullName}")
                 .Select(AssetDatabase.GUIDToAssetPath)
                 .Select(AssetDatabase.LoadAssetAtPath<T>);
@@ -50,7 +70,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <param name="eventProperty">A property representing the UnityEvent (or derived class)</param>
         /// <param name="state"></param>
         /// <returns>True if the event is in the expected state</returns>
-        internal static bool EventIsNotInState(SerializedProperty eventProperty, UnityEngine.Events.UnityEventCallState state)
+        internal static bool EventIsNotInState(SerializedProperty eventProperty, UnityEventCallState state)
         {
             SerializedProperty persistentCalls = eventProperty.FindPropertyRelative("m_PersistentCalls.m_Calls");
             for (int i = 0; i < persistentCalls.arraySize; i++)
@@ -74,11 +94,15 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// VisualElement version of RenderEventStateWarning. Renders a warning box for when event are set to runtime only
         /// </summary>
-        /// <returns>The created helpbox (useful to show/hide it if needed)</returns>
+        /// <returns>The created HelpBox (useful to show/hide it if needed)</returns>
         internal static HelpBox RenderEventStateWarningElement(VisualElement root)
         {
-            var helpBox = new HelpBox(Localization.Tr(LocalizationKeys.k_TutorialPageLabelEventStateWarning),
-                HelpBoxMessageType.Warning);
+            HelpBox helpBox = new(Localization.Tr(LocalizationKeys.k_TutorialPageLabelEventStateWarning),
+                HelpBoxMessageType.Warning)
+            {
+                style = { marginBottom = 6 }
+            };
+
             root.Add(helpBox);
 
             return helpBox;
@@ -113,7 +137,7 @@ namespace Unity.Tutorials.Core.Editor
 
         internal static string EnsureProtocolPrefixIsPresent(string url, string protocol)
         {
-            if (url.StartsWith(protocol, System.StringComparison.OrdinalIgnoreCase))
+            if (url.StartsWith(protocol, StringComparison.OrdinalIgnoreCase))
             {
                 return url;
             }
@@ -127,9 +151,9 @@ namespace Unity.Tutorials.Core.Editor
         /// <returns>The url without the protocol prefix</returns>
         internal static string RemoveHttpProtocolPrefix(string url)
         {
-            if (url.StartsWith("http", System.StringComparison.OrdinalIgnoreCase))
+            if (url.StartsWith("http", StringComparison.OrdinalIgnoreCase))
             {
-                return url.Split(new string[] { "//" }, System.StringSplitOptions.None)[1];
+                return url.Split(new[] { "//" }, StringSplitOptions.None)[1];
             }
             return url;
         }
@@ -143,15 +167,69 @@ namespace Unity.Tutorials.Core.Editor
         {
             // TODO Genesis will provide an API where we can keep a list of Unity URLs that we want to support.
             url = RemoveHttpProtocolPrefix(url);
-            var splitUrl = url.Split('/')[0].ToLower();
+            string splitUrl = url.Split('/')[0].ToLower();
 
-            return (url.StartsWith("unity.", System.StringComparison.OrdinalIgnoreCase) || splitUrl.Contains(".unity."))
+            return (url.StartsWith("unity.", StringComparison.OrdinalIgnoreCase) || splitUrl.Contains(".unity."))
                    && !splitUrl.Contains("assetstore");
+        }
+
+        internal static bool CheckIfV6UpgradeRequired()
+        {
+            TutorialPage[] allTutorialPages = AssetDatabase.FindAssets("t:TutorialPage")
+                .Select(AssetDatabase.GUIDToAssetPath)
+                .Select(AssetDatabase.LoadAssetAtPath<TutorialPage>)
+                .ToArray();
+
+            return allTutorialPages.Any(tutorialPage => tutorialPage.LegacyParagraphs.Count > 0);
+        }
+
+        /// <summary>
+        /// Will gather all tutorials pages in the project and trigger an update of them to V6 paragraph format if the
+        /// users accept the update. Also, it will embed TutorialPages into Tutorials as sub-assets,
+        /// and add Section Type to all Sections within Tutorial Containers.
+        /// </summary>
+        /// <returns>True if the upgrade has been accepted, false if the user canceled.</returns>
+        internal static bool StartV6Upgrade()
+        {
+            string[] allTutorialPages = AssetDatabase.FindAssets($"t:{nameof(TutorialPage)}");
+
+            if (EditorUtility.DisplayDialog("Upgrade", $"{allTutorialPages.Length} Tutorial Pages found using a legacy format. " +
+                                                       "Upgrade them to v6 now? All data will be preserved.",
+                    "Upgrade", "Cancel"))
+            {
+                foreach (string page in allTutorialPages)
+                {
+                    TutorialPage loadedPage = AssetDatabase.LoadAssetAtPath<TutorialPage>(AssetDatabase.GUIDToAssetPath(page));
+                    loadedPage.MigrateToV6();
+                }
+                AssetDatabase.SaveAssets();
+
+                string[] allTutorials = AssetDatabase.FindAssets($"t:{nameof(Tutorial)}");
+                foreach (string tutorialPath in allTutorials)
+                {
+                    Tutorial tutorial = AssetDatabase.LoadAssetAtPath<Tutorial>(AssetDatabase.GUIDToAssetPath(tutorialPath));
+                    tutorial.EmbedPagesAsSubAssetsV6();
+                    tutorial.MigrateSceneBehaviourV6();
+                }
+                AssetDatabase.SaveAssets();
+
+                string[] allContainers = AssetDatabase.FindAssets($"t:{nameof(TutorialContainer)}");
+                foreach (string containerPath in allContainers)
+                {
+                    TutorialContainer container = AssetDatabase.LoadAssetAtPath<TutorialContainer>(AssetDatabase.GUIDToAssetPath(containerPath));
+                    container.DecideSectionTypeV6();
+                }
+                AssetDatabase.SaveAssets();
+
+                return true;
+            }
+
+            return false;
         }
 
         internal static void ReportLinkClicked()
         {
-            var reportingUrl = TutorialProjectSettings.Instance?.ReportUrl;
+            string reportingUrl = TutorialProjectSettings.Instance?.ReportUrl;
 
             if (string.IsNullOrEmpty(reportingUrl))
             {
@@ -162,8 +240,8 @@ namespace Unity.Tutorials.Core.Editor
 
             if (TutorialProjectSettings.Instance.AppendDataToReport)
             {
-                var data = new ReportData();
-                data.ContainerTitle = TutorialWindow.Instance?.CurrentCategory?.Title.Untranslated;
+                ReportData data = new();
+                data.ContainerTitle = TutorialWindow.Instance?.CurrentContainer?.Title.Untranslated;
                 data.TutorialTitle = TutorialWindow.Instance?.CurrentTutorial?.TutorialTitle.Untranslated;
                 data.PageTitle = TutorialWindow.Instance?.CurrentTutorial?.CurrentPage?.Title.Untranslated;
 
@@ -174,7 +252,7 @@ namespace Unity.Tutorials.Core.Editor
         }
     }
 
-    [System.Serializable]
+    [Serializable]
     internal class ReportData
     {
         public string ContainerTitle;

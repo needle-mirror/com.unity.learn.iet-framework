@@ -1,71 +1,174 @@
 using System.Collections.Generic;
 using UnityEditor;
-using UnityEditorInternal;
+using UnityEditor.UIElements;
 using UnityEngine;
+using UnityEngine.UIElements;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     [CustomPropertyDrawer(typeof(MaskingSettings))]
-    class MaskingSettingsDrawer : PropertyDrawer
+    internal class MaskingSettingsDrawer : PropertyDrawer
     {
-        const string k_EnabledPath = "m_MaskingEnabled";
-        const string k_UnmaskedViewsPath = "m_UnmaskedViews";
+        private const string k_EnabledPath = "m_MaskingEnabled";
+        private const string k_UnmaskedViewsPath = "m_UnmaskedViews";
 
-        readonly Dictionary<string, ReorderableList> m_UnmaskedViewsPerPropertyPath =
-            new Dictionary<string, ReorderableList>();
+        private SerializedProperty m_Property;
+        private SerializedProperty m_unmaskedViewsProperty;
+        private SerializedProperty m_presetProperty;
 
-        public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
+        private ListView m_unmaskedViewsList;
+        private VisualElement m_collapsableVisualElement;
+        private ObjectField m_maskingPresetField;
+
+        public override VisualElement CreatePropertyGUI(SerializedProperty property)
         {
-            var enabled = property.FindPropertyRelative(k_EnabledPath);
-            var height = EditorGUI.GetPropertyHeight(enabled);
-            if (enabled.boolValue)
-                height += EditorGUIUtility.standardVerticalSpacing + GetListControl(property).GetHeight();
-            return height;
-        }
+            m_Property = property;
+            SerializedProperty enabledProperty = property.FindPropertyRelative(k_EnabledPath);
+            m_unmaskedViewsProperty = m_Property.FindPropertyRelative(k_UnmaskedViewsPath);
+            m_presetProperty = m_Property.FindPropertyRelative(nameof(MaskingSettings.MaskPreset));
 
-        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
-        {
-            var enabled = property.FindPropertyRelative(k_EnabledPath);
-            position.height = EditorGUI.GetPropertyHeight(enabled);
-            using (new EditorGUI.PropertyScope(position, label, enabled))
-                property.isExpanded = enabled.boolValue = EditorGUI.ToggleLeft(position, label, enabled.boolValue);
+            VisualElement root = new();
 
-            if (!property.isExpanded)
-                return;
+            PropertyField enableField = new(enabledProperty);
+            root.Add(enableField);
 
-            position.y += position.height + EditorGUIUtility.standardVerticalSpacing;
-            var listControl = GetListControl(property);
-            position.height = listControl.GetHeight();
-            using (new EditorGUI.IndentLevelScope())
-                position = EditorGUI.IndentedRect(position);
-            using (new EditorGUI.IndentLevelScope(-EditorGUI.indentLevel))
-                listControl.DoList(position);
-        }
+            m_collapsableVisualElement = new(){ name = "Collapsable" };
+            UIUtils.PrepareElementAsCollapsable(m_collapsableVisualElement, enabledProperty.boolValue);
 
-        ReorderableList GetListControl(SerializedProperty parentProperty)
-        {
-            string key = parentProperty.propertyPath;
-            ReorderableList list;
-            if (!m_UnmaskedViewsPerPropertyPath.TryGetValue(key, out list))
+            // Presets line
+            m_maskingPresetField = new("Preset")
             {
-                list = new ReorderableList(parentProperty.serializedObject, parentProperty.FindPropertyRelative(k_UnmaskedViewsPath));
-                list.drawHeaderCallback = rect => EditorGUI.LabelField(rect, "Unmasked Views");
-                list.elementHeightCallback = (index) => GetElementHeightForListIndex(list, index);
-                list.drawElementCallback = (rect, index, isActive, isFocused) =>
-                    EditorGUI.PropertyField(rect, list.serializedProperty.GetArrayElementAtIndex(index), true);
-                m_UnmaskedViewsPerPropertyPath[key] = list;
-            }
-            return list;
+                objectType = typeof(MaskingPreset),
+            };
+            m_maskingPresetField.Q<VisualElement>(className: "unity-base-field__input").style.height = 20;
+            m_maskingPresetField.BindProperty(property.FindPropertyRelative(nameof(MaskingSettings.MaskPreset)));
+            m_maskingPresetField.AddToClassList(ObjectField.alignedFieldUssClassName);
+            m_maskingPresetField.RegisterValueChangedCallback(OnPresetChanged);
+
+            Button saveAsPresetButton = new(OnSaveAsPresetButtonClicked)
+            {
+                text = "Save as Preset",
+                tooltip = "Save the MaskingSettings below as a new MaskingPreset, to be able to reuse them in different pages.",
+                style = { flexShrink = 1 }
+            };
+            m_maskingPresetField.Add(saveAsPresetButton);
+
+            m_collapsableVisualElement.Add(m_maskingPresetField);
+
+            // List of UnmaskedViews
+            m_unmaskedViewsList = GetListControlVisualElement();
+            m_collapsableVisualElement.Add(m_unmaskedViewsList);
+
+            root.Add(m_collapsableVisualElement);
+
+            EditorApplication.delayCall += () =>
+            {
+                enableField.RegisterValueChangeCallback(evt => OnShowHideSettings(evt.changedProperty.boolValue));
+            };
+
+            return root;
         }
 
-        float GetElementHeightForListIndex(ReorderableList list, int index)
+        /// <summary>
+        /// Saves the current MaskingSettings as a new MaskingPreset ScriptableObject,
+        /// and connects it as the current preset in the preset field.
+        /// </summary>
+        private void OnSaveAsPresetButtonClicked()
         {
-            if (list.count <= index) //this happens from 2021 LTS onward
+            m_Property.serializedObject.Update();
+
+            string path = EditorUtility.SaveFilePanelInProject("Save MaskingPreset", "New Masking Preset",
+                "asset", "Save current masking settings as a re-usable preset.");
+
+            bool isValidPreset = !string.IsNullOrEmpty(path);
+            if (isValidPreset)
             {
-                return EditorGUIUtility.standardVerticalSpacing;
+                MaskingPreset newSO = ScriptableObject.CreateInstance<MaskingPreset>();
+                MaskingSettings maskingSettings = (MaskingSettings)m_Property.boxedValue;
+                newSO.m_unmaskedViews = new List<UnmaskedView>();
+                foreach (UnmaskedView view in maskingSettings.UnmaskedViews)
+                    newSO.m_unmaskedViews.Add(view);
+
+                AssetDatabase.CreateAsset(newSO, path);
+                AssetDatabase.SaveAssets();
+                AssetDatabase.Refresh();
+
+                m_maskingPresetField.SetValueWithoutNotify(newSO);
+                m_presetProperty.objectReferenceValue = newSO;
             }
-            return EditorGUI.GetPropertyHeight(list.serializedProperty.GetArrayElementAtIndex(index), true) +
-            EditorGUIUtility.standardVerticalSpacing;
+            else
+                m_presetProperty.objectReferenceValue = null;
+
+            UpdateListInteractivity(!isValidPreset);
+
+            m_Property.serializedObject.ApplyModifiedProperties();
+        }
+
+        private void OnShowHideSettings(bool val)
+        {
+            UIUtils.ShowOrHide_Animated(m_collapsableVisualElement, val);
+        }
+
+        private ListView GetListControlVisualElement()
+        {
+            ListView listView = new()
+            {
+                name = m_Property.displayName,
+                virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight,
+                showBorder = true,
+                showFoldoutHeader = false,
+                showAddRemoveFooter = true,
+                headerTitle = "Unmasked Views"
+            };
+            listView.AddToClassList("inspector-list");
+
+            listView.makeHeader = () =>
+            {
+                Label header = new("Unmasked Views");
+                header.AddToClassList("inspector-list-header");
+                return header;
+            };
+
+            listView.makeItem = () =>
+            {
+                PropertyField element = new();
+                element.AddToClassList("inspector-list-element");
+                return element;
+            };
+
+            listView.BindProperty(m_unmaskedViewsProperty);
+
+            return listView;
+        }
+
+        private void OnPresetChanged(ChangeEvent<Object> evt)
+        {
+            m_Property.serializedObject.Update();
+
+            UpdateListInteractivity(evt.newValue == null);
+
+            if (evt.newValue != null)
+            {
+                MaskingPreset preset = (MaskingPreset)evt.newValue;
+                m_unmaskedViewsProperty.arraySize = preset.m_unmaskedViews.Count;
+                for (int i = 0; i < preset.m_unmaskedViews.Count; i++)
+                {
+                    m_unmaskedViewsProperty.GetArrayElementAtIndex(i).boxedValue = preset.m_unmaskedViews[i];
+                }
+            }
+
+            m_Property.serializedObject.ApplyModifiedProperties();
+        }
+
+        /// <summary>
+        /// Enables/disables the ability to modify the list of UnmaskedViews,
+        /// based on whether there is an assigned MaskingPreset or not.
+        /// </summary>
+        private void UpdateListInteractivity(bool isEnabled)
+        {
+            m_unmaskedViewsList.SetEnabled(isEnabled);
+            m_unmaskedViewsList.tooltip = isEnabled ? "" : "Masking Settings for this paragraph are contained in the Masking Preset referenced above.\n\n" +
+                                                           "Remove the Masking Preset to be able to edit Masking Settings for this paragraph independently.";
         }
     }
 }

@@ -1,0 +1,100 @@
+.inspector-paragraph-container {
+    margin-top: 5px;
+    margin-bottom: 5px;
+    padding: 4px;
+    padding-bottom: 8px;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.inspector-paragraph-type-title {
+    -unity-font-style: bold;
+    margin-bottom: 3px;
+}
+
+.inspector-list {
+    margin-top: 3px;
+    margin-bottom: 5px;
+    margin-left: 2px;
+}
+
+.inspector-list-header {
+    background-color: var(--unity-colors-headerbar-background);
+    border-color: var(--unity-colors-default-border);
+    border-width: 1px 1px 0 1px;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+    padding-left: 5px;
+    padding-top: 3px;
+    padding-bottom: 4px;
+    margin-bottom: -3px;
+}
+
+.inspector-list-element {
+    padding-left: 3px;
+    padding-right: 6px;
+    margin-right: -1px;
+}
+
+.inspector-list-element .unity-foldout--depth-0 {
+    margin-left: 13px;
+}
+
+.inspector-list-element-basic {
+    padding-top: 1px;
+    padding-bottom: 3px;
+}
+
+.inspector-localization-icon {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    margin-right: 2px;
+    margin-left: -18px;
+    padding: 0;
+    background-image: url("project://database/Packages/com.unity.learn.iet-framework/Editor/UI/Images/Icons/Localization@2x.png?fileID=2800000&guid=d6a950b55021246639f5fb0a78f01005&type=3#Localization@2x");
+    -unity-background-scale-mode: scale-and-crop;
+    -unity-background-image-tint-color: var(--unity-colors-label-text);
+    opacity: 0.4;
+}
+
+.collapsable {
+    overflow: hidden;
+    transition-property: max-height;
+    transition-timing-function: ease-in-out;
+}
+
+.foldout-bold-title Label.unity-foldout__text {
+    -unity-font-style: bold;
+}
+
+.foldout-bold-title Foldout.unity-foldout--depth-1 Label.unity-foldout__text {
+    -unity-font-style: initial;
+}
+
+.unity-header-drawer__label {
+    margin-top: 8px;
+}
+
+.callbacks-foldout {
+    margin-top: 8px;
+}
+
+.callbacks-foldout #unity-content {
+    margin-left: 0px;
+    margin-top: 3px;
+}
+
+.callbacks-foldout #unity-content PropertyField {
+    margin-bottom: 5px;
+}
+
+.button-md {
+    height: 24px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.indented-property {
+    margin-left: 15px;
+}

@@ -1,6 +1,4 @@
-using System;
-
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// Can be used to query the mode of the Tutorial Project.
@@ -13,10 +11,11 @@ namespace Unity.Tutorials.Core.Editor
         /// <returns>True if the Framework is in Authoring mode, false otherwise</returns>
         public static bool IsAuthoringMode()
         {
-            return Type.GetType(
-                "Unity.Tutorials.Authoring.Editor.TutorialExporterWindow, " +
-                "Unity.Tutorials.Authoring.Editor, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"
-                ) != null;
+#if TUTORIAL_AUTHORING
+            return true;
+#else
+            return false;
+#endif
         }
     }
 }

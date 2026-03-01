@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1057e5dd5ba4c75b1c3d0d7ed0b256e, type: 3}
+  m_Name: Mask_PlayButton
+  m_EditorClassIdentifier: Unity.Tutorials.Core.Editor::Unity.Tutorials.Core.Editor.MaskingPreset
+  m_unmaskedViews:
+  - m_SelectorType: 0
+    m_ViewType:
+      m_TypeName: UnityEditor.Toolbar, UnityEditor.CoreModule, Version=0.0.0.0, Culture=neutral,
+        PublicKeyToken=null
+    m_OpenAndFocus: 0
+    m_EditorWindowType:
+      m_TypeName: UnityEditor.SceneHierarchyWindow, UnityEditor.CoreModule, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+    m_AlternateEditorWindowTypes:
+      m_Items: []
+    m_MaskType: 0
+    m_MaskSizeModifier: 0
+    m_UnmaskedControls:
+    - m_SelectorMode: 5
+      m_SelectorMatchType: 0
+      m_GUIContent:
+        m_Text: 
+        m_Image: {fileID: 0}
+        m_Tooltip: 
+        m_TextWithWhitespace: 
+      m_ControlName: 
+      m_PropertyPath: 
+      m_TargetType:
+        m_TypeName: 
+      m_GUIStyleName: 
+      m_ObjectReference:
+        m_SceneObjectReference:
+          m_SceneGuid: 
+          m_GameObjectGuid: 
+          m_SerializedComponentType:
+            m_TypeName: 
+          m_ComponentIndex: 0
+          m_AssetObject: {fileID: 0}
+          m_Prefab: {fileID: 0}
+        m_FutureObjectReference: {fileID: 0}
+      m_VisualElementClassName: 
+      m_VisualElementName: Play
+      m_VisualElementTypeName: 

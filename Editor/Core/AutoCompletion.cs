@@ -1,26 +1,27 @@
 using System;
+using Unity.Tutorials.Editor.Paragraphs;
 using UnityEditor;
 using UnityEngine;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     [Serializable]
-    class AutoCompletion
+    internal class AutoCompletion
     {
-        Tutorial m_Tutorial;
+        private Tutorial m_Tutorial;
 
-        bool m_Running;
-        bool m_Continue;
+        private bool m_Running;
+        private bool m_Continue;
 
-        const double k_TimeoutDuration = 10f;
-        double m_CompletionDeadline;
+        private const double k_TimeoutDuration = 10f;
+        private double m_CompletionDeadline;
 
         public AutoCompletion(Tutorial tutorial)
         {
             m_Tutorial = tutorial;
         }
 
-        public bool running { get { return m_Running; } }
+        public bool running => m_Running;
 
         public void OnEnable()
         {
@@ -74,12 +75,12 @@ namespace Unity.Tutorials.Core.Editor
                 Debug.Log("Tutorial was did not complete automatically.");
         }
 
-        void OnCriterionCompleted(Criterion completedCriterion)
+        private void OnCriterionCompleted(Criterion completedCriterion)
         {
             m_Continue = true;
         }
 
-        void OnUpdate()
+        private void OnUpdate()
         {
             if (m_CompletionDeadline != 0f && EditorApplication.timeSinceStartup > m_CompletionDeadline)
             {
@@ -91,7 +92,7 @@ namespace Unity.Tutorials.Core.Editor
                 AutoCompleteNextIncompleteCriterion();
         }
 
-        void AutoCompleteNextIncompleteCriterion()
+        private void AutoCompleteNextIncompleteCriterion()
         {
             m_Continue = false;
 
@@ -99,7 +100,7 @@ namespace Unity.Tutorials.Core.Editor
             {
             }
 
-            var nextIncompleteCriterion = GetNextIncompleteCriterion();
+            Criterion nextIncompleteCriterion = GetNextIncompleteCriterion();
             if (nextIncompleteCriterion == null)
             {
                 Stop();
@@ -116,17 +117,20 @@ namespace Unity.Tutorials.Core.Editor
             m_CompletionDeadline = EditorApplication.timeSinceStartup + k_TimeoutDuration;
         }
 
-        Criterion GetNextIncompleteCriterion()
+        private Criterion GetNextIncompleteCriterion()
         {
-            foreach (var page in m_Tutorial.PagesCollection)
+            foreach (TutorialPage page in m_Tutorial.PagesCollection)
             {
-                foreach (var paragraph in page.Paragraphs)
+                foreach (ParagraphBase paragraph in page.Paragraphs)
                 {
-                    foreach (var typedCriterion in paragraph.Criteria)
+                    if (paragraph.HasCriteria())
                     {
-                        var criterion = typedCriterion.Criterion;
-                        if (!criterion.IsCompleted)
-                            return criterion;
+                        foreach (TypedCriterion typedCriterion in paragraph.Criterias())
+                        {
+                            Criterion criterion = typedCriterion.Criterion;
+                            if (!criterion.IsCompleted)
+                                return criterion;
+                        }
                     }
                 }
             }

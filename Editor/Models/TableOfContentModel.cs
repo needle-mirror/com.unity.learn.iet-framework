@@ -4,8 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
 using Unity.EditorCoroutines.Editor;
+using UnityEngine;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// Holds all data of the Table Of Content View that the controller needs to access or that should be exposed
@@ -13,10 +14,10 @@ namespace Unity.Tutorials.Core.Editor
     [Serializable]
     internal class TableOfContentModel : IModel
     {
-        internal static List<TutorialContainer> CategoriesOfProjectDuringTests = new List<TutorialContainer>();
+        internal static List<TutorialContainer> CategoriesOfProjectDuringTests = new();
         internal IEnumerable<TutorialContainer> RootCategoriesOfProject;
-        internal TutorialContainer CurrentCategory;
-        internal bool FetchedTutorialStates { get; private set; } = false;
+        internal TutorialContainer CurrentContainer;
+        internal bool FetchedTutorialStates { get; private set; }
 
         /// <inheritdoc />
         public event Action StateChanged;
@@ -43,14 +44,14 @@ namespace Unity.Tutorials.Core.Editor
         {
             if (TutorialFrameworkModel.s_AreTestsRunning)
             {
-                UnityEngine.Debug.Log("Not fetching tutorial states since tests are running");
+                Debug.Log("Not fetching tutorial states since tests are running");
                 FetchedTutorialStates = true;
                 return;
             }
             TutorialWindow.Instance.StartCoroutine(FetchAllTutorialStatesRoutine());
         }
 
-        IEnumerator FetchAllTutorialStatesRoutine()
+        private IEnumerator FetchAllTutorialStatesRoutine()
         {
             FetchedTutorialStates = false;
 
@@ -67,7 +68,7 @@ namespace Unity.Tutorials.Core.Editor
 
             if (userId.IsNullOrEmpty() || userId == UnityConnectSession.k_NotSignedInUserUsername)
             {
-                UnityEngine.Debug.LogWarning("User not signed in. Please sign in if you want your tutorials progress to be tracked");
+                Debug.LogWarning("User not signed in. Please sign in if you want your tutorials progress to be tracked");
                 UpdateLocalCompletionStatusOfAllTutorials(new List<GenesisHelper.TutorialProgressStatus>());
                 yield break;
             }
@@ -75,13 +76,13 @@ namespace Unity.Tutorials.Core.Editor
             GenesisHelper.GetAllTutorials(UpdateLocalCompletionStatusOfAllTutorials);
         }
 
-        void UpdateLocalCompletionStatusOfAllTutorials(List<GenesisHelper.TutorialProgressStatus> tutorialsCompletionData)
+        private void UpdateLocalCompletionStatusOfAllTutorials(List<GenesisHelper.TutorialProgressStatus> tutorialsCompletionData)
         {
-            var allTutorials = TutorialEditorUtils.FindAssets<Tutorial>()
+            IEnumerable<Tutorial> allTutorials = TutorialEditorUtils.FindAssets<Tutorial>()
                                                       .Where(t => t.ProgressTrackingEnabled);
-            foreach (var tutorial in allTutorials)
+            foreach (Tutorial tutorial in allTutorials)
             {
-                var completionDataOfTtutorial = tutorialsCompletionData.FirstOrDefault(tcd => tcd.lessonId == tutorial.LessonId);
+                GenesisHelper.TutorialProgressStatus completionDataOfTtutorial = tutorialsCompletionData.FirstOrDefault(tcd => tcd.lessonId == tutorial.LessonId);
                 if (completionDataOfTtutorial == default)
                 {
                     tutorial.CompletedByUser = false;

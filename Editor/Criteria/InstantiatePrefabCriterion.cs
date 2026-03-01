@@ -5,24 +5,30 @@ using UnityEditor;
 using UnityEngine;
 using UnityObject = UnityEngine.Object;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     /// <summary>
-    /// Criterion for checking that a specific prefab is instantiated.
+    /// Criterion for checking that a specific Prefab is instantiated.
     /// </summary>
     public class InstantiatePrefabCriterion : Criterion
     {
-        [SerializeField]
-        GameObject m_PrefabParent;
+        [SerializeField] private GameObject m_PrefabParent;
 
-        [SerializeField]
-        FuturePrefabInstanceCollection m_FuturePrefabInstances = new FuturePrefabInstanceCollection();
+        [SerializeField] private FuturePrefabInstanceCollection m_FuturePrefabInstances = new();
 
-        // InstanceID's of existing GameObject prefab instance roots we want to ignore
-        HashSet<int> m_ExistingPrefabInstances = new HashSet<int>();
+#if UNITY_6000_3_OR_NEWER
+        // EntityIDs of existing GameObject Prefab instance roots we want to ignore
+        private HashSet<EntityId> m_ExistingPrefabInstances = new();
 
-        // InstanceID of GameObject prefab instance root that initially completed this criterion
-        int m_PrefabInstance;
+        // EntityID of GameObject Prefab instance root that initially completed this criterion
+        private EntityId m_PrefabInstance;
+#else
+        // InstanceIDs of existing GameObject Prefab instance roots we want to ignore
+        private HashSet<int> m_ExistingPrefabInstances = new();
+
+        // InstanceID of GameObject Prefab instance root that initially completed this criterion
+        private int m_PrefabInstance;
+#endif
 
         /// <summary>
         /// Prefab parent.
@@ -38,12 +44,12 @@ namespace Unity.Tutorials.Core.Editor
         }
 
         /// <summary>
-        /// Sets future prefab instances.
+        /// Sets future Prefab instances.
         /// </summary>
-        /// <param name="prefabParents">A list of Object the prefab will be child of</param>
+        /// <param name="prefabParents">A list of Object the Prefab will be child of</param>
         public void SetFuturePrefabInstances(IList<UnityObject> prefabParents)
         {
-            var futurePrefabInstances = prefabParents.Select(prefabParent => new FuturePrefabInstance(prefabParent));
+            IEnumerable<FuturePrefabInstance> futurePrefabInstances = prefabParents.Select(prefabParent => new FuturePrefabInstance(prefabParent));
             m_FuturePrefabInstances.SetItems(futurePrefabInstances.ToList());
             OnValidate();
         }
@@ -58,40 +64,40 @@ namespace Unity.Tutorials.Core.Editor
             if (m_PrefabParent == null)
                 return;
 
-            // Ensure prefab parent is infact a prefab parent
+            // Ensure Prefab parent is in fact a Prefab parent
             if (PrefabUtility.GetPrefabAssetType(m_PrefabParent) != PrefabAssetType.NotAPrefab)
             {
-                // Ensure prefab parent is the prefab root
-                var prefabRoot = m_PrefabParent.transform.root.gameObject;
+                // Ensure Prefab parent is the Prefab root
+                GameObject prefabRoot = m_PrefabParent.transform.root.gameObject;
                 if (m_PrefabParent != prefabRoot)
                     m_PrefabParent = prefabRoot;
             }
             else
             {
-                Debug.LogWarning("Prefab parent must either be a prefab parent or a prefab instance.");
+                Debug.LogWarning("Prefab parent must either be a Prefab parent or a Prefab instance.");
                 m_PrefabParent = null;
             }
 
             // Prevent aliasing of future reference whenever the last item is copied
-            var count = m_FuturePrefabInstances.Count;
+            int count = m_FuturePrefabInstances.Count;
             if (count >= 2)
             {
-                var last = m_FuturePrefabInstances[count - 1];
-                var secondLast = m_FuturePrefabInstances[count - 2];
+                FuturePrefabInstance last = m_FuturePrefabInstances[count - 1];
+                FuturePrefabInstance secondLast = m_FuturePrefabInstances[count - 2];
                 if (last.FutureReference == secondLast.FutureReference)
                     last.FutureReference = null;
             }
 
-            var updateFutureReferenceNames = false;
-            var futurePrefabInstanceIndex = -1;
+            bool updateFutureReferenceNames = false;
+            int futurePrefabInstanceIndex = -1;
 
-            foreach (var futurePrefabInstance in m_FuturePrefabInstances)
+            foreach (FuturePrefabInstance futurePrefabInstance in m_FuturePrefabInstances)
             {
                 futurePrefabInstanceIndex++;
 
-                // Destroy future reference if prefab parent is null or it changed
-                var prefabParent = futurePrefabInstance.PrefabParent;
-                var previousPrefabParent = futurePrefabInstance.PreviousPrefabParent;
+                // Destroy future reference if Prefab parent is null or it changed
+                UnityObject prefabParent = futurePrefabInstance.PrefabParent;
+                UnityObject previousPrefabParent = futurePrefabInstance.PreviousPrefabParent;
                 futurePrefabInstance.PreviousPrefabParent = prefabParent;
                 if (prefabParent == null || (previousPrefabParent != null && prefabParent != previousPrefabParent))
                 {
@@ -105,29 +111,29 @@ namespace Unity.Tutorials.Core.Editor
                 if (prefabParent == null)
                     continue;
 
-                // Ensure future prefab parent is infact a prefab parent
+                // Ensure future Prefab parent is in fact a Prefab parent
                 if (PrefabUtility.GetPrefabAssetType(prefabParent) != PrefabAssetType.NotAPrefab)
                 {
-                    // Find root game object of future prefab parent
+                    // Find root game object of future Prefab parent
                     GameObject futurePrefabParentRoot = null;
                     if (prefabParent is GameObject)
                     {
-                        var gameObject = (GameObject)prefabParent;
+                        GameObject gameObject = (GameObject)prefabParent;
                         futurePrefabParentRoot = gameObject.transform.root.gameObject;
                     }
                     else if (prefabParent is Component)
                     {
-                        var component = (Component)prefabParent;
+                        Component component = (Component)prefabParent;
                         futurePrefabParentRoot = component.transform.root.gameObject;
                     }
 
-                    // Ensure prefab parent and future prefab parent belong to the same prefab
+                    // Ensure Prefab parent and future Prefab parent belong to the same Prefab
                     if (futurePrefabParentRoot == m_PrefabParent)
                     {
                         // Create new future reference if it doesn't exist yet
                         if (futurePrefabInstance.FutureReference == null)
                         {
-                            var referenceName = string.Format("{0}: {1} ({2})", futurePrefabInstanceIndex + 1,
+                            string referenceName = string.Format("{0}: {1} ({2})", futurePrefabInstanceIndex + 1,
                                 prefabParent.name, prefabParent.GetType().Name);
                             futurePrefabInstance.FutureReference = CreateFutureObjectReference(referenceName);
                             updateFutureReferenceNames = true;
@@ -135,13 +141,13 @@ namespace Unity.Tutorials.Core.Editor
                     }
                     else
                     {
-                        Debug.LogWarning("Prefab parent and future prefab parent have different prefab objects.");
+                        Debug.LogWarning("Prefab parent and future Prefab parent have different Prefab objects.");
                         futurePrefabInstance.PrefabParent = null;
                     }
                 }
                 else
                 {
-                    Debug.LogWarning("Future prefab parent must be either a prefab parent or a prefab instance.");
+                    Debug.LogWarning("Future Prefab parent must be either a Prefab parent or a Prefab instance.");
                     futurePrefabInstance.PrefabParent = null;
                 }
             }
@@ -156,14 +162,14 @@ namespace Unity.Tutorials.Core.Editor
         public override void StartTesting()
         {
             base.StartTesting();
-            // Record existing prefab instances
+            // Record existing Prefab instances
             m_ExistingPrefabInstances.Clear();
-            foreach (var gameObject in EditorFindObjectUtils.FindObjectsByTypeSorted<GameObject>())
+            foreach (GameObject gameObject in FindObjectUtils.FindObjectsByType<GameObject>())
             {
                 if (PrefabUtilityShim.GetCorrespondingObjectFromSource(gameObject) != null)
                 {
-                    var prefabInstanceRoot = PrefabUtility.GetOutermostPrefabInstanceRoot(gameObject);
-                    m_ExistingPrefabInstances.Add(prefabInstanceRoot.GetInstanceID());
+                    GameObject prefabInstanceRoot = PrefabUtility.GetOutermostPrefabInstanceRoot(gameObject);
+                    m_ExistingPrefabInstances.Add(IdUtils.GetIdFor(prefabInstanceRoot));
                 }
             }
 
@@ -187,30 +193,32 @@ namespace Unity.Tutorials.Core.Editor
             EditorApplication.update -= OnUpdateWhenCompleted;
         }
 
-        void OnSelectionChanged()
+        private void OnSelectionChanged()
         {
             if (IsCompleted)
                 return;
 
-            foreach (var gameObject in Selection.gameObjects)
+            foreach (GameObject gameObject in Selection.gameObjects)
             {
                 if (PrefabUtilityShim.GetCorrespondingObjectFromSource(gameObject) != null)
                 {
-                    var prefabInstanceRoot = PrefabUtility.GetOutermostPrefabInstanceRoot(gameObject);
-                    if (prefabInstanceRoot == gameObject && m_ExistingPrefabInstances.Add(prefabInstanceRoot.GetInstanceID()))
+                    GameObject prefabInstanceRoot = PrefabUtility.GetOutermostPrefabInstanceRoot(gameObject);
+                    bool added = m_ExistingPrefabInstances.Add(IdUtils.GetIdFor(prefabInstanceRoot));
+                    
+                    if (prefabInstanceRoot == gameObject && added)
                         OnPrefabInstantiated(prefabInstanceRoot);
                 }
             }
         }
 
-        void OnPrefabInstantiated(GameObject prefabInstanceRoot)
+        private void OnPrefabInstantiated(GameObject prefabInstanceRoot)
         {
             if (m_PrefabParent == null)
                 return;
 
             if (PrefabUtilityShim.GetCorrespondingObjectFromSource(prefabInstanceRoot) == m_PrefabParent)
             {
-                foreach (var component in prefabInstanceRoot.GetComponentsInChildren<Component>())
+                foreach (Component component in prefabInstanceRoot.GetComponentsInChildren<Component>())
                 {
                     UpdateFutureReferences(component);
 
@@ -218,13 +226,13 @@ namespace Unity.Tutorials.Core.Editor
                         UpdateFutureReferences(component.gameObject);
                 }
 
-                m_PrefabInstance = prefabInstanceRoot.GetInstanceID();
-
+                m_PrefabInstance = IdUtils.GetIdFor(prefabInstanceRoot);
+                
                 UpdateCompletion();
             }
         }
 
-        void OnUpdateWhenCompleted()
+        private void OnUpdateWhenCompleted()
         {
             if (!IsCompleted)
             {
@@ -235,21 +243,19 @@ namespace Unity.Tutorials.Core.Editor
             UpdateCompletion();
         }
 
-        bool EvaluateCompletionInternal()
+        private bool EvaluateCompletionInternal()
         {
-            if (m_PrefabInstance == 0)
-                return false;
+            if (IdUtils.IsIdNull(m_PrefabInstance)) return false;
 
-            var prefabObject = EditorUtility.InstanceIDToObject(m_PrefabInstance);
-            if (prefabObject == null)
-            {
-                m_ExistingPrefabInstances.Remove(m_PrefabInstance);
-                m_PrefabInstance = 0;
+            UnityObject prefabObject = IdUtils.IdToObject(m_PrefabInstance);
 
-                return false;
-            }
+            if (prefabObject != null) return true;
+            
+            m_ExistingPrefabInstances.Remove(m_PrefabInstance);
+            m_PrefabInstance = IdUtils.NullId;
 
-            return true;
+            return false;
+
         }
 
         /// <summary>
@@ -258,17 +264,17 @@ namespace Unity.Tutorials.Core.Editor
         /// <returns>True when completed</returns>
         protected override bool EvaluateCompletion()
         {
-            var willBeCompleted = EvaluateCompletionInternal();
+            bool willBeCompleted = EvaluateCompletionInternal();
             if (!IsCompleted && willBeCompleted)
                 EditorApplication.update += OnUpdateWhenCompleted;
 
             return willBeCompleted;
         }
 
-        void UpdateFutureReferences(UnityObject prefabInstance)
+        private void UpdateFutureReferences(UnityObject prefabInstance)
         {
             UnityObject prefabParent = PrefabUtilityShim.GetCorrespondingObjectFromSource(prefabInstance);
-            foreach (var futurePrefabInstance in m_FuturePrefabInstances)
+            foreach (FuturePrefabInstance futurePrefabInstance in m_FuturePrefabInstances)
             {
                 if (futurePrefabInstance.PrefabParent == prefabParent)
                     futurePrefabInstance.FutureReference.SceneObjectReference.Update(prefabInstance);
@@ -301,18 +307,16 @@ namespace Unity.Tutorials.Core.Editor
         }
 
         /// <summary>
-        /// Future prefab instance.
+        /// Future Prefab instance.
         /// </summary>
         [Serializable]
         public class FuturePrefabInstance
         {
-            [SerializeField]
-            UnityObject m_PrefabParent;
+            [SerializeField] private UnityObject m_PrefabParent;
 
-            UnityObject m_PreviousPrefabParent;
+            private UnityObject m_PreviousPrefabParent;
 
-            [SerializeField, HideInInspector]
-            FutureObjectReference m_FutureReference;
+            [SerializeField, HideInInspector] private FutureObjectReference m_FutureReference;
 
             /// <summary>
             /// Prefab parent.
@@ -320,7 +324,7 @@ namespace Unity.Tutorials.Core.Editor
             public UnityObject PrefabParent { get => m_PrefabParent; set => m_PrefabParent = value; }
 
             /// <summary>
-            /// Previous prefab parent.
+            /// Previous Prefab parent.
             /// </summary>
             public UnityObject PreviousPrefabParent { get => m_PreviousPrefabParent; set => m_PreviousPrefabParent = value; }
 
@@ -330,7 +334,7 @@ namespace Unity.Tutorials.Core.Editor
             public FutureObjectReference FutureReference { get => m_FutureReference; set => m_FutureReference = value; }
 
             /// <summary>
-            /// Constructs with a specific prefab parent.
+            /// Constructs with a specific Prefab parent.
             /// </summary>
             /// <param name="prefabParent">The parent Object of this FuturePrefabInstance</param>
             public FuturePrefabInstance(UnityObject prefabParent)
@@ -340,7 +344,7 @@ namespace Unity.Tutorials.Core.Editor
         }
 
         [Serializable]
-        class FuturePrefabInstanceCollection : CollectionWrapper<FuturePrefabInstance>
+        private class FuturePrefabInstanceCollection : CollectionWrapper<FuturePrefabInstance>
         {
         }
     }

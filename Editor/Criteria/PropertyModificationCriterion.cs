@@ -6,7 +6,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityObject = UnityEngine.Object;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// Criterion for checking a property modification.
@@ -29,30 +29,25 @@ namespace Unity.Tutorials.Core.Editor
         }
 
         internal string PropertyPath { get => m_PropertyPath; set => m_PropertyPath = value; }
-        [SerializeField]
-        string m_PropertyPath;
+        [SerializeField] private string m_PropertyPath;
 
         internal ValueMode TargetValueMode { get => m_TargetValueMode; set => m_TargetValueMode = value; }
 
-        [SerializeField]
-        ValueMode m_TargetValueMode = ValueMode.TargetValue;
+        [SerializeField] private ValueMode m_TargetValueMode = ValueMode.TargetValue;
 
         // TODO: Make this more like TypedCriterion
         internal string TargetValue { get => m_TargetValue; set => m_TargetValue = value; }
         [SerializeField]
         [Tooltip("This value only applies if the TargetValueMode is set to TargetValue. This field will have no effects in other modes.")]
-        string m_TargetValue;
+        private string m_TargetValue;
 
         internal ValueType TargetValueType { get => m_TargetValueType; set => m_TargetValueType = value; }
-        [SerializeField]
-        ValueType m_TargetValueType;
+        [SerializeField] private ValueType m_TargetValueType;
 
         internal SceneObjectReference Target { get => m_Target.SceneObjectReference; set => m_Target.SceneObjectReference = value; }
-        [SerializeField]
-        ObjectReference m_Target = new ObjectReference();
+        [SerializeField] private ObjectReference m_Target = new();
 
-        [NonSerialized]
-        string m_InitialValue;
+        [NonSerialized] private string m_InitialValue;
 
         /// <summary>
         /// Starts testing of the criterion.
@@ -60,13 +55,13 @@ namespace Unity.Tutorials.Core.Editor
         public override void StartTesting()
         {
             base.StartTesting();
-            var target = m_Target.SceneObjectReference.ReferencedObject;
+            UnityObject target = m_Target.SceneObjectReference.ReferencedObject;
             if (m_TargetValueMode == ValueMode.TargetValue)
                 IsCompleted = PropertyFulfillCriterion(target, m_PropertyPath);
             else
             {
-                var so = new SerializedObject(target);
-                var sp = so.FindProperty(PropertyPath);
+                SerializedObject so = new(target);
+                SerializedProperty sp = so.FindProperty(PropertyPath);
 
                 if (sp == null)
                     Debug.LogWarningFormat("PropertyModificationCriterion: Cannot find property \"{0}\" on \"{1}\"", PropertyPath, target);
@@ -94,14 +89,14 @@ namespace Unity.Tutorials.Core.Editor
         /// <returns>True if the right property were modified, false otherwise</returns>
         protected override bool EvaluateCompletion()
         {
-            var targetObject = m_Target.SceneObjectReference.ReferencedObject;
+            UnityObject targetObject = m_Target.SceneObjectReference.ReferencedObject;
             return PropertyFulfillCriterion(targetObject, m_PropertyPath);
         }
 
-        UndoPropertyModification[] PostprocessModifications(UndoPropertyModification[] modifications)
+        private UndoPropertyModification[] PostprocessModifications(UndoPropertyModification[] modifications)
         {
-            var targetObject = m_Target.SceneObjectReference.ReferencedObject;
-            var modificationsToTest = GetPropertiesToTest(modifications, targetObject);
+            UnityObject targetObject = m_Target.SceneObjectReference.ReferencedObject;
+            IEnumerable<PropertyModification> modificationsToTest = GetPropertiesToTest(modifications, targetObject);
             if (modificationsToTest.Any())
             {
                 IsCompleted = modificationsToTest.Any(m => PropertyFulfillCriterion(m.target, m.propertyPath));
@@ -110,16 +105,16 @@ namespace Unity.Tutorials.Core.Editor
             return modifications;
         }
 
-        IEnumerable<PropertyModification> GetPropertiesToTest(UndoPropertyModification[] modifications, UnityObject target)
+        private IEnumerable<PropertyModification> GetPropertiesToTest(UndoPropertyModification[] modifications, UnityObject target)
         {
-            var result = new List<PropertyModification>();
-            foreach (var m in modifications)
+            List<PropertyModification> result = new();
+            foreach (UndoPropertyModification m in modifications)
             {
                 if (m.currentValue.target == target)
                 {
                     if (IsCompoundPropertyMatch(m.currentValue.propertyPath))
                     {
-                        var propertyModification = m.currentValue;
+                        PropertyModification propertyModification = m.currentValue;
                         propertyModification.propertyPath = PropertyPath;
                         result.Add(m.currentValue);
                     }
@@ -130,18 +125,18 @@ namespace Unity.Tutorials.Core.Editor
             return result;
         }
 
-        bool IsCompoundPropertyMatch(string propertyPath)
+        private bool IsCompoundPropertyMatch(string propertyPath)
         {
             if (m_TargetValueType == ValueType.Color)
             {
-                Regex coloRegex = new Regex(m_PropertyPath + "\\.[rgba]");
+                Regex coloRegex = new(m_PropertyPath + "\\.[rgba]");
                 if (coloRegex.IsMatch(propertyPath))
                     return true;
             }
             return propertyPath == m_PropertyPath;
         }
 
-        bool DoPropertyTypeMatches(SerializedProperty property)
+        private bool DoPropertyTypeMatches(SerializedProperty property)
         {
             switch (m_TargetValueType)
             {
@@ -161,7 +156,7 @@ namespace Unity.Tutorials.Core.Editor
             throw new Exception("unknown TargetValueType");
         }
 
-        string GetPropertyValueAsString(SerializedProperty property)
+        private string GetPropertyValueAsString(SerializedProperty property)
         {
             switch (TargetValueType)
             {
@@ -180,21 +175,19 @@ namespace Unity.Tutorials.Core.Editor
             throw new Exception("unknown TargetValueType");
         }
 
-        bool DoesPropertyMatches(SerializedProperty property, string value)
+        private bool DoesPropertyMatches(SerializedProperty property, string value)
         {
             switch (TargetValueType)
             {
                 case ValueType.Decimal:
                 {
-                    float convertedValue;
-                    return float.TryParse(value, out convertedValue) &&
-                        Mathf.Approximately(property.floatValue, convertedValue);
+                    return float.TryParse(value, out float convertedValue) &&
+                           Mathf.Approximately(property.floatValue, convertedValue);
                 }
 
                 case ValueType.Integer:
                 {
-                    int convertedValue;
-                    return int.TryParse(value, out convertedValue) && property.intValue == convertedValue;
+                    return int.TryParse(value, out int convertedValue) && property.intValue == convertedValue;
                 }
                 case ValueType.Text:
                 {
@@ -202,27 +195,24 @@ namespace Unity.Tutorials.Core.Editor
                 }
                 case ValueType.Boolean:
                 {
-                    bool convertedValue;
-                    return bool.TryParse(value, out convertedValue) && property.boolValue == convertedValue;
+                    return bool.TryParse(value, out bool convertedValue) && property.boolValue == convertedValue;
                 }
                 case ValueType.Color:
                 {
-                    Color convertedValue;
-                    return ColorUtility.TryParseHtmlString(value, out convertedValue) && property.colorValue == convertedValue;
+                    return ColorUtility.TryParseHtmlString(value, out Color convertedValue) && property.colorValue == convertedValue;
                 }
             }
 
             return false;
         }
 
-        bool SetPropertyTo(SerializedProperty property, string value)
+        private bool SetPropertyTo(SerializedProperty property, string value)
         {
             switch (TargetValueType)
             {
                 case ValueType.Decimal:
                 {
-                    float convertedTargetValue;
-                    if (!float.TryParse(value, out convertedTargetValue))
+                    if (!float.TryParse(value, out float convertedTargetValue))
                         return false;
 
                     property.floatValue = convertedTargetValue;
@@ -230,8 +220,7 @@ namespace Unity.Tutorials.Core.Editor
                 }
                 case ValueType.Integer:
                 {
-                    int convertedTargetValue;
-                    if (!int.TryParse(value, out convertedTargetValue))
+                    if (!int.TryParse(value, out int convertedTargetValue))
                         return false;
 
                     property.intValue = convertedTargetValue;
@@ -244,16 +233,14 @@ namespace Unity.Tutorials.Core.Editor
                 }
                 case ValueType.Boolean:
                 {
-                    bool convertedTargetValue;
-                    if (!bool.TryParse(value, out convertedTargetValue))
+                    if (!bool.TryParse(value, out bool convertedTargetValue))
                         return false;
                     property.boolValue = convertedTargetValue;
                     return true;
                 }
                 case ValueType.Color:
                 {
-                    Color convertedTargetValue;
-                    if (!ColorUtility.TryParseHtmlString(value, out convertedTargetValue))
+                    if (!ColorUtility.TryParseHtmlString(value, out Color convertedTargetValue))
                         return false;
                     property.colorValue = convertedTargetValue;
                     return true;
@@ -262,14 +249,13 @@ namespace Unity.Tutorials.Core.Editor
             return false;
         }
 
-        bool SetPropertyToDifferentValueThan(SerializedProperty property, string value)
+        private bool SetPropertyToDifferentValueThan(SerializedProperty property, string value)
         {
             switch (TargetValueType)
             {
                 case ValueType.Decimal:
                 {
-                    float convertedTargetValue;
-                    if (!float.TryParse(value, out convertedTargetValue))
+                    if (!float.TryParse(value, out float convertedTargetValue))
                         return false;
 
                     property.floatValue = convertedTargetValue + 1.0f;
@@ -277,8 +263,7 @@ namespace Unity.Tutorials.Core.Editor
                 }
                 case ValueType.Integer:
                 {
-                    int convertedTargetValue;
-                    if (!int.TryParse(value, out convertedTargetValue))
+                    if (!int.TryParse(value, out int convertedTargetValue))
                         return false;
 
                     property.intValue = convertedTargetValue + 1;
@@ -291,16 +276,14 @@ namespace Unity.Tutorials.Core.Editor
                 }
                 case ValueType.Boolean:
                 {
-                    bool convertedTargetValue;
-                    if (!bool.TryParse(value, out convertedTargetValue))
+                    if (!bool.TryParse(value, out bool convertedTargetValue))
                         return false;
                     property.boolValue = !convertedTargetValue;
                     return true;
                 }
                 case ValueType.Color:
                 {
-                    Color convertedTargetValue;
-                    if (!ColorUtility.TryParseHtmlString(value, out convertedTargetValue))
+                    if (!ColorUtility.TryParseHtmlString(value, out Color convertedTargetValue))
                         return false;
                     property.colorValue = convertedTargetValue + Color.gray;
                     return true;
@@ -309,7 +292,7 @@ namespace Unity.Tutorials.Core.Editor
             return false;
         }
 
-        bool PropertyFulfillCriterion(UnityObject target, string propertyPath)
+        private bool PropertyFulfillCriterion(UnityObject target, string propertyPath)
         {
             if (target == null)
                 return false;
@@ -317,8 +300,8 @@ namespace Unity.Tutorials.Core.Editor
             if (m_TargetValueMode == ValueMode.TargetValue &&  m_TargetValueType != ValueType.Text && string.IsNullOrEmpty(m_TargetValue))
                 return true;
 
-            var serializedObject = new SerializedObject(target);
-            var property = serializedObject.FindProperty(propertyPath);
+            SerializedObject serializedObject = new(target);
+            SerializedProperty property = serializedObject.FindProperty(propertyPath);
 
             if (property == null)
                 return false;
@@ -343,15 +326,15 @@ namespace Unity.Tutorials.Core.Editor
         /// <returns>True if the auto-completion succeeded.</returns>
         public override bool AutoComplete()
         {
-            var target = m_Target.SceneObjectReference.ReferencedObject;
+            UnityObject target = m_Target.SceneObjectReference.ReferencedObject;
             if (target == null)
                 return false;
 
             if (m_TargetValueMode == ValueMode.TargetValue && m_TargetValueType != ValueType.Text && string.IsNullOrEmpty(m_TargetValue))
                 return false;
 
-            var serializedObject = new SerializedObject(target);
-            var property = serializedObject.FindProperty(m_PropertyPath);
+            SerializedObject serializedObject = new(target);
+            SerializedProperty property = serializedObject.FindProperty(m_PropertyPath);
 
             if (property == null)
                 return false;

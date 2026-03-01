@@ -1,43 +1,44 @@
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UIElements;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
-    class ComponentAddedCriterionDrawers
+    internal class ComponentAddedCriterionDrawers
     {
         [CustomPropertyDrawer(typeof(ComponentAddedCriterion.TypeAndFutureReference))]
-        class TypeAndFutureReferenceDrawer : PropertyDrawer
+        private class TypeAndFutureReferenceDrawer : PropertyDrawer
         {
-            static string s_SerializedTypeField = "SerializedType";
+            private static string s_SerializedTypeField = "SerializedType";
 
             public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
             {
-                var serializedTypeProperty = property.FindPropertyRelative(s_SerializedTypeField);
+                SerializedProperty serializedTypeProperty = property.FindPropertyRelative(s_SerializedTypeField);
                 return EditorGUI.GetPropertyHeight(serializedTypeProperty);
             }
 
             public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
             {
-                var serializedTypeProperty = property.FindPropertyRelative(s_SerializedTypeField);
+                SerializedProperty serializedTypeProperty = property.FindPropertyRelative(s_SerializedTypeField);
                 EditorGUI.PropertyField(position, serializedTypeProperty, GUIContent.none);
             }
         }
 
         [CustomPropertyDrawer(typeof(ComponentAddedCriterion.SerializedTypeCollection))]
-        class TypedCriterionCollectionDrawer : CollectionWrapperDrawer
+        private class TypedCriterionCollectionDrawer : CollectionWrapperDrawer
         {
-            const string k_FutureReferencePath = "FutureReference";
+            private const string k_FutureReferencePath = "FutureReference";
 
-            protected override void OnReorderableListCreated(UnityEditorInternal.ReorderableList list)
+            protected override void OnListViewCreated(ListView listView)
             {
-                base.OnReorderableListCreated(list);
-                list.onAddCallback = lst =>
+                base.OnListViewCreated(listView);
+                listView.onAdd += view =>
                 {
-                    ++lst.serializedProperty.arraySize;
-                    lst.serializedProperty.serializedObject.ApplyModifiedProperties();
-                    var lastElement = lst.serializedProperty.GetArrayElementAtIndex(lst.serializedProperty.arraySize - 1);
+                    ++m_ListProperty.arraySize;
+                    m_ListProperty.serializedObject.ApplyModifiedProperties();
+                    SerializedProperty lastElement = m_ListProperty.GetArrayElementAtIndex(m_ListProperty.arraySize - 1);
                     lastElement.FindPropertyRelative(k_FutureReferencePath).objectReferenceValue = null;
-                    list.serializedProperty.serializedObject.ApplyModifiedProperties();
+                    m_ListProperty.serializedObject.ApplyModifiedProperties();
                 };
             }
         }

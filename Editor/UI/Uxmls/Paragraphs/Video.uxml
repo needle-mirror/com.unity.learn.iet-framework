@@ -1,0 +1,6 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
+    <ui:Template name="VideoPlayerElement" src="project://database/Packages/com.unity.learn.iet-framework/Editor/UI/CustomControls/VideoPlayer/VideoPlayerElement.uxml?fileID=9197481963319205126&amp;guid=a0ad53befc708403ca4e9f7b281d375e&amp;type=3#VideoPlayerElement" />
+    <ui:VisualElement name="TutorialMediaContainer" class="container--tutorial-media" style="flex-grow: 1;">
+        <ui:Instance template="VideoPlayerElement" style="width: 100%;" />
+    </ui:VisualElement>
+</ui:UXML>

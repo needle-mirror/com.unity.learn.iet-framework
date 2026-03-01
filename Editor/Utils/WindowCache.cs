@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     internal interface IWindowCache
     {
@@ -11,7 +11,6 @@ namespace Unity.Tutorials.Core.Editor
         string PreviousView { get; set; }
         bool DomainReloadOccured { get; set; }
         bool IsOpen { get; set; }
-        bool IsFaqOpen { get; set; }
         bool AreTestsRunning { get; set; }
         bool PlayModeChanging { get; set; }
         Tutorial CurrentTutorial { get; set; }
@@ -36,7 +35,6 @@ namespace Unity.Tutorials.Core.Editor
             PreviousView = default;
             DomainReloadOccured = default;
             IsOpen = default;
-            IsFaqOpen = default;
             AreTestsRunning = default;
             PlayModeChanging = default;
             CurrentTutorial = default;
@@ -66,12 +64,6 @@ namespace Unity.Tutorials.Core.Editor
         {
             get => IsOpen;
             set => IsOpen = value;
-        }
-
-        bool IWindowCache.IsFaqOpen
-        {
-            get => IsFaqOpen;
-            set => IsFaqOpen = value;
         }
 
         bool IWindowCache.AreTestsRunning
@@ -115,9 +107,6 @@ namespace Unity.Tutorials.Core.Editor
 
         [SerializeField]
         internal bool IsOpen;
-
-        [SerializeField]
-        internal bool IsFaqOpen;
 
         [SerializeField]
         internal bool AreTestsRunning;

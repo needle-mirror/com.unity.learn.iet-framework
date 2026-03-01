@@ -1,7 +1,7 @@
 # Highlighting Guide
 
 The IET framework can darken the editor and block interaction and only highlight some part.
-This is done on a per Tutorial Page basis, at the bottom of the Tutorial Page inspector. 
+This is done on a per Tutorial Page basis, at the bottom of the Tutorial Page inspector.
 
 ![Enable masking option](images/enable_masking_location.png)
 
@@ -47,7 +47,7 @@ This allow to select a control in imgui that was given a name with the function 
 
 This allow to select a property in the currently selected window. This is mainly useful when highlighting the Inspector. **It mean you need to have set the InspectorWindow as the Selected Editor Window and the object on which the property is need to be selected**. TODO : ADD A GUIDE ON USING CALLBACK TO SELECT
 
-- **Target Type** : the type of the object you'll look for the 
+- **Target Type** : the type of the object you'll look for the
 - **Property Path** : The property path is **not** the display name, but the internal name of the property. This can be found by right clicking on the property you want to display and select "Copy property path". Often this will be in the form of `m_Propertyname`
 
 ### Gui Style Name
@@ -70,7 +70,7 @@ This will probably be the selector you need to use. This allow to select a Visua
 - **Visual Element Type Name** : the name of the type of VisualElement (Label, Button, Image etc.)
 - **Visual Element Name** : the name of the VisualElement itself.
 
-Thankfully there is an easy way to select the right element you want: 
+Thankfully there is an easy way to select the right element you want:
 
 By clicking the **Pick Visual Element** button, you enter a picking mode and the next element you click on will fill each of the settings with its own value (if it exist). **Remember that the selected Editor Window needs to be the one in which the element you picked is, this won't be made automatically**
 
@@ -124,4 +124,4 @@ By clicking on an entry it will highlight in editor which part was drawn.
 
 This can be used to help selecting the element.
 - Each draw call line will have the GUIContent of that element, and the Style, both can be used in the Control Selection
-- Using the dropdown next to the Inspected View one, you can have other info on that view, like Named Control, which are all the controls with a specificaly given name, and that name can be used in the Control Selection settings too. For our example of finding the search bar, if you switch to *Named Control*, you will see that this is the only named control, and we can used that named to highlight that search bar. 
+- Using the dropdown next to the Inspected View one, you can have other info on that view, like Named Control, which are all the controls with a specificaly given name, and that name can be used in the Control Selection settings too. For our example of finding the search bar, if you switch to *Named Control*, you will see that this is the only named control, and we can used that named to highlight that search bar.

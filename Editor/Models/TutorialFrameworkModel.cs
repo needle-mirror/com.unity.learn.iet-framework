@@ -1,7 +1,8 @@
 using System;
 using JetBrains.Annotations;
+using UnityEngine;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// Holds all data of the application that the controller needs to access or that should be exposed
@@ -9,20 +10,18 @@ namespace Unity.Tutorials.Core.Editor
     [Serializable]
     internal class TutorialFrameworkModel : IModel
     {
-        /// <summary>
-        /// Should we show the Close Tutorials info dialog for the user for the current project.
-        /// By default the dialog is shown once per project and disabled after that.
-        /// </summary>
-        /// <remarks>
-        /// You want to set this typically to false when running unit tests.
-        /// </remarks>
-        internal static UserSetting<bool> s_ShowTutorialsWindowClosedDialog = new UserSetting<bool>("IET.ShowTutorialsWindowClosedDialog", Localization.Tr(LocalizationKeys.k_SettingsShowTutorialsWindowClosedDialog), true);
-        internal static ProjectSetting<bool> s_DisplayWelcomeDialogOnStartup = new ProjectSetting<bool>("IET.DisplayWelcomeDialogOnStartup", Localization.Tr(LocalizationKeys.k_SettingsDisplayWelcomeDialogOnStartup), true);
+        /// <summary>Should we show the Close Tutorials info dialog for the user for the current project.
+        /// By default the dialog is shown once per project and disabled after that.</summary>
+        /// <remarks>You want to set this typically to false when running unit tests.</remarks>
+        internal static UserSetting<bool> s_ShowTutorialsWindowClosedDialog = new("IET.ShowTutorialsWindowClosedDialog", Localization.Tr(LocalizationKeys.k_SettingsShowTutorialsWindowClosedDialog), true);
+        internal static ProjectSetting<bool> s_DisplayWelcomeDialogOnStartup = new("IET.DisplayWelcomeDialogOnStartup", Localization.Tr(LocalizationKeys.k_SettingsDisplayWelcomeDialogOnStartup), true);
+        [Tooltip("If on, it will ask the user to migrate paragraph data for Tutorial Pages to the v6 format, at editor startup.")]
+        internal static ProjectSetting<bool> s_DataMigrationToV6 = new("IET.DataMigrationV6", Localization.Tr(LocalizationKeys.k_SettingsDataMigrationV6), true);
 
         internal TableOfContentModel TableOfContent => Application.GetModel(typeof(TableOfContentModel)) as TableOfContentModel;
         internal TutorialModel Tutorial => Application.GetModel(typeof(TutorialModel)) as TutorialModel;
 
-        TutorialWindow Application => TutorialWindow.Instance;
+        private TutorialWindow Application => TutorialWindow.Instance;
         internal static bool s_AreTestsRunning;
         /// <summary>
         /// Only used for test purposes
@@ -30,7 +29,6 @@ namespace Unity.Tutorials.Core.Editor
         internal bool AreTestsRunning;
 
         internal bool IsOpen;
-        internal bool IsFaqOpen;
         internal bool DomainReloadOccured;
         internal string CurrentView;
         internal string PreviousView;
@@ -52,7 +50,6 @@ namespace Unity.Tutorials.Core.Editor
             DomainReloadOccured = cache.DomainReloadOccured;
 
             IsOpen = cache.IsOpen;
-            IsFaqOpen = cache.IsFaqOpen;
             s_AreTestsRunning = cache.AreTestsRunning || s_AreTestsRunning;
 
             StateChanged?.Invoke();
@@ -80,7 +77,6 @@ namespace Unity.Tutorials.Core.Editor
             cache.PreviousView = PreviousView;
             cache.DomainReloadOccured = DomainReloadOccured;
             cache.IsOpen = IsOpen;
-            cache.IsFaqOpen = IsFaqOpen;
             cache.AreTestsRunning = s_AreTestsRunning;
         }
     }

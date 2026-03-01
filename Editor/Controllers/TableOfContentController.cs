@@ -1,12 +1,13 @@
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     internal class TableOfContentController : Controller
     {
-        TableOfContentModel m_Model => Application.Model.TableOfContent;
-        TableOfContentView m_View => Application.TableOfContentView;
+        private TableOfContentModel m_Model => Application.Model.TableOfContent;
+        private TableOfContentView m_View => Application.TableOfContentView;
 
         internal TableOfContentController()
         {
@@ -32,7 +33,7 @@ namespace Unity.Tutorials.Core.Editor
             EditorApplication.update -= OnEditorUpdate;
         }
 
-        void OnTutorialsCompletionStatusUpdated(TutorialsCompletionStatusUpdatedEvent evt)
+        private void OnTutorialsCompletionStatusUpdated(TutorialsCompletionStatusUpdatedEvent evt)
         {
             if (Application.CurrentView != m_View.Name)
             {
@@ -41,11 +42,11 @@ namespace Unity.Tutorials.Core.Editor
             m_View.Refresh();
         }
 
-        void SetupCategories()
+        private void SetupCategories()
         {
-            var allCategories = TutorialFrameworkModel.s_AreTestsRunning ? TableOfContentModel.CategoriesOfProjectDuringTests
+            IEnumerable<TutorialContainer> allCategories = TutorialFrameworkModel.s_AreTestsRunning ? TableOfContentModel.CategoriesOfProjectDuringTests
                                                                          : TutorialEditorUtils.FindAssets<TutorialContainer>();
-            var rootCategories = allCategories.Where(category => category.ParentContainer is null);
+            IEnumerable<TutorialContainer> rootCategories = allCategories.Where(category => category.ParentContainer is null);
 
             TutorialContainer defaultCategory = rootCategories.FirstOrDefault();
 
@@ -54,10 +55,10 @@ namespace Unity.Tutorials.Core.Editor
             m_Model.RootCategoriesOfProject = rootCategories;
             if (rootCategories.Count() < 2)
             {
-                m_Model.CurrentCategory = defaultCategory;
+                m_Model.CurrentContainer = defaultCategory;
             }
 
-            foreach (var category in allCategories)
+            foreach (TutorialContainer category in allCategories)
             {
                 category.Modified.RemoveListener(OnTutorialCategoryModified);
                 category.Modified.AddListener(OnTutorialCategoryModified);
@@ -66,12 +67,12 @@ namespace Unity.Tutorials.Core.Editor
             m_Model.FetchAllTutorialStates();
         }
 
-        void OnEditorUpdate()
+        private void OnEditorUpdate()
         {
             MaskingManager.OnEditorUpdate();
         }
 
-        void OnTutorialCategoryModified(TutorialContainer category)
+        private void OnTutorialCategoryModified(TutorialContainer category)
         {
             if (Application == null
             || Application.CurrentView != m_View.Name)
@@ -79,51 +80,51 @@ namespace Unity.Tutorials.Core.Editor
                 return;
             }
 
-            if (m_Model.CurrentCategory == category
-            || m_Model.CurrentCategory == category.ParentContainer)
+            if (m_Model.CurrentContainer == category
+            || m_Model.CurrentContainer == category.ParentContainer)
             {
                 m_View.Refresh();
             }
         }
 
-        void OnCategoriesRefreshRequested(CategoriesRefreshRequestedEvent evt)
+        private void OnCategoriesRefreshRequested(CategoriesRefreshRequestedEvent evt)
         {
             SetupCategories();
         }
 
-        void OnCategoryClicked(CategoryClickedEvent evt)
+        private void OnCategoryClicked(CategoryClickedEvent evt)
         {
             EnterCategory(evt.Category);
         }
 
-        void EnterCategory(TutorialContainer category)
+        private void EnterCategory(TutorialContainer category)
         {
             MaskingManager.Unmask();
 
-            if (m_Model.CurrentCategory == category) { return; }
-            m_Model.CurrentCategory = category;
+            if (m_Model.CurrentContainer == category) { return; }
+            m_Model.CurrentContainer = category;
             m_View.Refresh();
         }
 
-        void OnBackButtonClicked(BackButtonClickedEvent evt)
+        private void OnBackButtonClicked(BackButtonClickedEvent evt)
         {
             ExitCategory();
         }
 
-        void ExitCategory()
+        private void ExitCategory()
         {
-            if (m_Model.CurrentCategory && m_Model.CurrentCategory.ParentContainer)
+            if (m_Model.CurrentContainer && m_Model.CurrentContainer.ParentContainer)
             {
-                m_Model.CurrentCategory = m_Model.CurrentCategory.ParentContainer;
+                m_Model.CurrentContainer = m_Model.CurrentContainer.ParentContainer;
             }
             else
             {
-                m_Model.CurrentCategory = null;
+                m_Model.CurrentContainer = null;
             }
             m_View.Refresh();
         }
 
-        void OnSectionClicked(SectionClickedEvent evt)
+        private void OnSectionClicked(SectionClickedEvent evt)
         {
             if (evt.Section.IsTutorial)
             {
@@ -133,7 +134,7 @@ namespace Unity.Tutorials.Core.Editor
             evt.Section.OpenUrl();
         }
 
-        void StartTutorial(Tutorial tutorial)
+        private void StartTutorial(Tutorial tutorial)
         {
             Application.Broadcast(new TutorialStartRequestedEvent(tutorial, null));
         }

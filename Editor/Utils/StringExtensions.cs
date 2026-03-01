@@ -1,4 +1,4 @@
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// Extension methods for System.String.

@@ -5,11 +5,11 @@ using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Assertions;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     internal class ScriptableObjectSingleton<T> : ScriptableObject where T : ScriptableObject
     {
-        static T s_Instance;
+        private static T s_Instance;
         public static T Instance
         {
             get
@@ -33,11 +33,11 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
-        static void CreateAndLoad()
+        private static void CreateAndLoad()
         {
             Assert.IsTrue(s_Instance == null);
 
-            var filePath = GetFilePath();
+            string filePath = GetFilePath();
             if (!string.IsNullOrEmpty(filePath) && File.Exists(filePath))
             {
                 InternalEditorUtility.LoadSerializedFileAndForget(filePath);
@@ -45,7 +45,7 @@ namespace Unity.Tutorials.Core.Editor
 
             if (s_Instance == null)
             {
-                var inst = CreateInstance<T>() as ScriptableObjectSingleton<T>;
+                ScriptableObjectSingleton<T> inst = CreateInstance<T>() as ScriptableObjectSingleton<T>;
                 Assert.IsFalse(inst == null);
                 inst.hideFlags = HideFlags.HideAndDontSave;
                 inst.Save();
@@ -62,11 +62,11 @@ namespace Unity.Tutorials.Core.Editor
                 return;
             }
 
-            var locationFilePath = GetFilePath();
-            var directoryName = Path.GetDirectoryName(locationFilePath);
+            string locationFilePath = GetFilePath();
+            string directoryName = Path.GetDirectoryName(locationFilePath);
             if (directoryName == null)
             {
-                Debug.LogError($"Could not save cache because target directory for the save file is empty");
+                Debug.LogError("Could not save cache because target directory for the save file is empty");
                 return;
             }
             Directory.CreateDirectory(directoryName);
@@ -74,9 +74,9 @@ namespace Unity.Tutorials.Core.Editor
         }
 
         [CanBeNull]
-        static string GetFilePath()
+        private static string GetFilePath()
         {
-            var attr = typeof(T).GetCustomAttributes(true)
+            LocationAttribute attr = typeof(T).GetCustomAttributes(true)
                                 .OfType<LocationAttribute>()
                                 .FirstOrDefault();
             return attr?.FilePath;

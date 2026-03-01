@@ -2,8 +2,9 @@ using UnityEditor;
 using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.Requests;
 using UnityEngine;
+using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// Criterion for checking that a specific package is installed in the project
@@ -21,15 +22,15 @@ namespace Unity.Tutorials.Core.Editor
         }
 
         [SerializeField, Tooltip("The name of the package that will be searched (I.E: 'com.unity.learn.iet-framework', without quotes)")]
-        string m_PackageName;
+        private string m_PackageName;
         [SerializeField, Tooltip("Specifies whether or not the Package Manager requests the latest information about the project's packages from the remote Unity package registry. When offlineMode is true, the PackageInfo objects in the PackageCollection returned by the Package Manager contain information obtained from the local package cache, which could be out of date.")]
-        bool m_OfflineMode;
+        private bool m_OfflineMode;
         [SerializeField, Tooltip("Indirect dependencies include packages referenced in the manifests of project packages or in the manifests of other indirect dependencies. Set this flag to false to include only the packages listed directly in the project manifest.")]
-        bool m_IncludeIndirectDependencies;
+        private bool m_IncludeIndirectDependencies;
 
-        bool m_PackageIsInstalled;
-        ListRequest m_PackagesListRequest;
-        AddRequest m_PackagesAddRequest;
+        private bool m_PackageIsInstalled;
+        private ListRequest m_PackagesListRequest;
+        private AddRequest m_PackagesAddRequest;
 
         /// <inheritdoc />
         public override void StartTesting()
@@ -61,7 +62,7 @@ namespace Unity.Tutorials.Core.Editor
             return m_PackageIsInstalled;
         }
 
-        void CheckPackageListRequest()
+        private void CheckPackageListRequest()
         {
             if (!m_PackagesListRequest.IsCompleted)
             {
@@ -76,7 +77,7 @@ namespace Unity.Tutorials.Core.Editor
             }
 
             PackageCollection installedPackages = m_PackagesListRequest.Result;
-            foreach (var package in installedPackages)
+            foreach (PackageInfo package in installedPackages)
             {
                 if (package.name == m_PackageName)
                 {
@@ -88,7 +89,7 @@ namespace Unity.Tutorials.Core.Editor
             ResultIsAccurate = true;
         }
 
-        void InitiatePackageListRequest()
+        private void InitiatePackageListRequest()
         {
             ResultIsAccurate = false;
             m_PackageIsInstalled = false;
@@ -96,14 +97,14 @@ namespace Unity.Tutorials.Core.Editor
             EditorApplication.update += CheckPackageListRequest;
         }
 
-        void InitiatePackageAddRequest()
+        private void InitiatePackageAddRequest()
         {
             ResultIsAccurate = false;
             m_PackagesAddRequest = Client.Add(m_PackageName);
             EditorApplication.update += CheckPackageAddRequest;
         }
 
-        void CheckPackageAddRequest()
+        private void CheckPackageAddRequest()
         {
             if (!m_PackagesAddRequest.IsCompleted)
             {

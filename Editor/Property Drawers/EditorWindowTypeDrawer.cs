@@ -1,9 +1,9 @@
 using UnityEditor;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     [CustomPropertyDrawer(typeof(EditorWindowType))]
-    class EditorWindowTypeDrawer : FlushChildrenDrawer
+    internal class EditorWindowTypeDrawer : FlushChildrenDrawer
     {
     }
 }

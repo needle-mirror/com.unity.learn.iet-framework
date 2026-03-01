@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
-using UnityEngine.UIElements;
-using UnityEditor.PackageManager.Requests;
 using UnityEditor.PackageManager;
+using UnityEditor.PackageManager.Requests;
 using UnityEngine;
+using UnityEngine.UIElements;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// An entry for the FAQ Array in the tutorial and tutorial page. A question with its associated answer
@@ -30,9 +30,6 @@ namespace Unity.Tutorials.Core.Editor
     /// </summary>
     public class HelpPanelHandler
     {
-        private const string k_AIAssistantMenuEntry = "Window/AI/Assistant";
-        private const string k_AIAssistantPackageName = "com.unity.ai.assistant";
-
         /// <summary>
         /// Section of the TutorialContainer hierarchy
         /// </summary>
@@ -62,7 +59,7 @@ namespace Unity.Tutorials.Core.Editor
         private Button m_TutorialSectionButton;
         private Button m_UnitSectionButton;
         private Button m_StepSectionButton;
-        private Button m_CurrentSectionButtonEnabled = null;
+        private Button m_CurrentSectionButtonEnabled;
 
         private VisualElement m_FaqRoot;
         private ScrollView m_FaqScrollView;
@@ -74,7 +71,7 @@ namespace Unity.Tutorials.Core.Editor
 
         private Tutorial m_Tutorial;
 
-        private bool m_IsOpened = false;
+        private bool m_IsOpened;
         private Section m_CurrentSection = Section.Page;
 
         private List<FaqEntry> m_TutorialEntries = new();
@@ -87,7 +84,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <param name="root">The VisualElement of which the panel is a child</param>
         public void Initialize(VisualElement root)
         {
-            m_EntryTemplate = UIElementsUtils.LoadUXML("FaqEntry");
+            m_EntryTemplate = UIUtils.LoadUXML("FaqEntry");
 
             //use parent because as its a template
             m_FaqRoot = root.Q<VisualElement>("FaqBackground");
@@ -122,11 +119,57 @@ namespace Unity.Tutorials.Core.Editor
             m_FaqScrollView = root.Q<ScrollView>("FaqScrollView");
             m_EntriesRoot = m_FaqScrollView.Q<VisualElement>("Entries");
 
-            var reportContainer = root.Q<VisualElement>("ReportEntry");
+            VisualElement reportContainer = root.Q<VisualElement>("ReportEntry");
             m_ReportLabel = reportContainer.Q<Label>("ReportLabel");
             m_ReportLabel.text = Localization.Tr(LocalizationKeys.k_ReportProblemText);
             m_ReportButton = reportContainer.Q<Button>("ReportButton");
             m_ReportButton.clicked += TutorialEditorUtils.ReportLinkClicked;
+
+            VisualElement askAiContainer = root.Q<VisualElement>("AskAI");
+            Label askAILabel = askAiContainer.Q<Label>("AskAILabel");
+            askAILabel.text = Localization.Tr(LocalizationKeys.k_AskAIText);
+            Button askAIButton = askAiContainer.Q<Button>("AskAIButton");
+            askAIButton.clicked += () =>
+            {
+                ListRequest listRequest = Client.List(true, false);
+                while (!listRequest.IsCompleted) ;
+
+                if (listRequest.Result.Any(info => info.name == "com.unity.muse.chat"))
+                {
+                    EditorApplication.ExecuteMenuItem("Muse/Chat");
+                }
+                else
+                {
+                    InstallAIWarningWindow win = InstallAIWarningWindow.OpenNew(
+                        "To use the AI Assistant tool,\nyou need to install the AI packages\n\n" +
+                        "Click on the highlighted button to install it");
+
+                    win.OnClosed += MaskingManager.Unmask;
+
+                    GuiControlSelector selector = new();
+                    selector.SelectorMode = GuiControlSelector.Mode.VisualElement;
+                    selector.VisualElementClassName = "unity-editor-toolbar-element";
+                    selector.VisualElementName = "AIDropdown";
+                    UnmaskedView views = UnmaskedView.CreateInstanceForGUIView(Type.GetType("UnityEditor.Toolbar, UnityEditor.CoreModule"), new []{selector});
+
+                    UnmaskedView.MaskData unmaskedViews = UnmaskedView.GetViewsAndRects(new[] { views });
+                    unmaskedViews.AddParentFullyUnmasked(win);
+                    UnmaskedView.MaskData highlightedViews = UnmaskedView.GetViewsAndRects(new[] { views });
+
+                    TutorialStyles styles = TutorialProjectSettings.Instance.TutorialStyle;
+                    MaskingManager.Mask
+                    (
+                        unmaskedViews,
+                        styles.MaskingColor,
+                        highlightedViews,
+                        styles.HighlightColor,
+                        styles.BlockedInteractionColor,
+                        styles.HighlightThickness
+                    );
+                }
+            };
+
+            askAiContainer.style.display = Unsupported.IsDeveloperMode() ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
         /// <summary>
@@ -202,32 +245,32 @@ namespace Unity.Tutorials.Core.Editor
             m_Tutorial = null;
         }
 
-        void RegisterEvents(Tutorial tutorial)
+        private void RegisterEvents(Tutorial tutorial)
         {
             tutorial.PageInitiated.AddListener(OnPageInitiated);
             tutorial.Quit.AddListener(OnTutorialQuit);
         }
 
-        void UnregisterEvents(Tutorial tutorial)
+        private void UnregisterEvents(Tutorial tutorial)
         {
             tutorial?.PageInitiated.RemoveListener(OnPageInitiated);
             tutorial?.Quit.RemoveListener(OnTutorialQuit);
         }
 
-        void OnTutorialQuit(Tutorial tutorial)
+        private void OnTutorialQuit(Tutorial tutorial)
         {
             if(m_Tutorial == null)
                 return;
 
-            Close();
+            UnregisterEvents(m_Tutorial);
         }
 
-        void OnPageInitiated(Tutorial tutorial, TutorialPage page, int pageIndex)
+        private void OnPageInitiated(Tutorial tutorial, TutorialPage page, int pageIndex)
         {
-            Close();
+            RefreshEntries();
         }
 
-        void SwitchCategory(Button categoryButton, Section newSection)
+        private void SwitchCategory(Button categoryButton, Section newSection)
         {
             if (m_CurrentSection == newSection)
                 return;
@@ -246,17 +289,17 @@ namespace Unity.Tutorials.Core.Editor
             RefreshEntries();
         }
 
-        void RefreshEntries()
+        private void RefreshEntries()
         {
             m_EntriesRoot.Clear();
 
-            TutorialWindow.Instance.CurrentTutorial.GetFaqQuestions(m_CurrentSection, out var questions);
+            TutorialWindow.Instance.CurrentTutorial.GetFaqQuestions(m_CurrentSection, out List<FaqEntry> questions);
 
-            foreach (var question in questions)
+            foreach (FaqEntry question in questions)
             {
-                var newEntry = m_EntryTemplate.CloneTree();
+                TemplateContainer newEntry = m_EntryTemplate.CloneTree();
 
-                var entryQuestion = newEntry.Q<Foldout>("Entry");
+                Foldout entryQuestion = newEntry.Q<Foldout>("Entry");
                 entryQuestion.text = question.Question;
 
                 entryQuestion.RegisterValueChangedCallback(evt =>
@@ -273,7 +316,7 @@ namespace Unity.Tutorials.Core.Editor
                     }
                 });
 
-                var entryAnswer = newEntry.Q<Label>("Answer");
+                Label entryAnswer = newEntry.Q<Label>("Answer");
                 entryAnswer.text = question.Answer;
 
                 m_EntriesRoot.Add(newEntry);
@@ -283,17 +326,17 @@ namespace Unity.Tutorials.Core.Editor
 
     internal class InstallAIWarningWindow : EditorWindow
     {
-        internal System.Action OnClosed;
+        internal Action OnClosed;
 
         private string m_Content = "Default";
 
         internal static InstallAIWarningWindow OpenNew(string content)
         {
-            var win = CreateInstance<InstallAIWarningWindow>();
+            InstallAIWarningWindow win = CreateInstance<InstallAIWarningWindow>();
             win.m_Content = content;
 
-            var p = EditorGUIUtility.GetMainWindowPosition();
-            var popupSize = new Vector2(500, 200);
+            Rect p = EditorGUIUtility.GetMainWindowPosition();
+            Vector2 popupSize = new(500, 200);
             win.ShowAsDropDown(new Rect(p.center - new Vector2(popupSize.x * 0.5f, 0), popupSize), popupSize);
             win.position =
                 new Rect(new Rect(p.center - new Vector2(popupSize.x * 0.5f, popupSize.y * 0.5f), popupSize));
@@ -308,12 +351,11 @@ namespace Unity.Tutorials.Core.Editor
 
         private void CreateGUI()
         {
-            var label = new Label();
+            Label label = new();
             label.text = m_Content;
 
             label.style.flexGrow = 1;
             label.style.unityTextAlign = TextAnchor.MiddleCenter;
-            label.style.whiteSpace = WhiteSpace.Normal;
             label.style.fontSize = 20;
 
             rootVisualElement.Add(label);

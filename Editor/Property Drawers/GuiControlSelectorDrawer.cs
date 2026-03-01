@@ -1,15 +1,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     [CustomPropertyDrawer(typeof(GuiControlSelector))]
-    class GuiControlSelectorDrawer : PropertyDrawer
+    internal class GuiControlSelectorDrawer : PropertyDrawer
     {
-        const string k_SelectorTypePath = nameof(GuiControlSelector.m_SelectorMatchType);
+        private const string k_SelectorTypePath = nameof(GuiControlSelector.m_SelectorMatchType);
         // TODO use nameof()
         private const string k_SelectorModePath = "m_SelectorMode";
         private const string k_GUIContentPath = "m_GUIContent";
@@ -18,23 +19,24 @@ namespace Unity.Tutorials.Core.Editor
         private const string k_TargetTypePath = "m_TargetType";
         private const string k_GUIStyleNamePath = "m_GUIStyleName";
         private const string k_ObjectReferencePath = "m_ObjectReference";
-        const string k_VisualElementNamePath = nameof(GuiControlSelector.m_VisualElementName);
-        const string k_VisualElementClassNamePath = nameof(GuiControlSelector.m_VisualElementClassName);
-        const string k_VisualElementTypeNamePath = nameof(GuiControlSelector.m_VisualElementTypeName);
+        private const string k_VisualElementNamePath = nameof(GuiControlSelector.m_VisualElementName);
+        private const string k_VisualElementClassNamePath = nameof(GuiControlSelector.m_VisualElementClassName);
+        private const string k_VisualElementTypeNamePath = nameof(GuiControlSelector.m_VisualElementTypeName);
 
         // For visual element picker
-        List<EditorWindow> registeredWindows = new List<EditorWindow>();
-        List<VisualElement> guiViewVisualElements = new List<VisualElement>();
-        EventCallback<MouseDownEvent> pickerCallback;
-        static readonly GUIContent k_PickButtonContent = new GUIContent(
+        private List<EditorWindow> registeredWindows = new();
+        private List<VisualElement> guiViewVisualElements = new();
+        private EventCallback<MouseDownEvent> pickerCallback;
+
+        private static readonly GUIContent k_PickButtonContent = new(
             Localization.Tr(LocalizationKeys.k_GuiControlSelectorButtonPickElement),
             Localization.Tr(LocalizationKeys.k_GuiControlSelectorButtonPickElementTooltip)
         );
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            var selectorMode = property.FindPropertyRelative(k_SelectorModePath);
-            var height = EditorGUI.GetPropertyHeight(selectorMode);
+            SerializedProperty selectorMode = property.FindPropertyRelative(k_SelectorModePath);
+            float height = EditorGUI.GetPropertyHeight(selectorMode);
             height += EditorGUI.GetPropertyHeight(property.FindPropertyRelative(k_SelectorTypePath));
 
             switch ((GuiControlSelector.Mode)selectorMode.intValue)
@@ -76,14 +78,14 @@ namespace Unity.Tutorials.Core.Editor
             return height;
         }
 
-        void BeginPicking(SerializedProperty property)
+        private void BeginPicking(SerializedProperty property)
         {
             // Look through all Editor Windows and GUIViews
             registeredWindows = Resources.FindObjectsOfTypeAll<EditorWindow>().ToList();
             guiViewVisualElements = GUIViewProxy.FindAllGuiViewVisualElements();
-            pickerCallback = (evt) => PickCurrentHoveredElement(evt.target as VisualElement, evt, property);
+            pickerCallback = evt => PickCurrentHoveredElement(evt.target as VisualElement, evt, property);
 
-            foreach (var targetWindow in registeredWindows)
+            foreach (EditorWindow targetWindow in registeredWindows)
             {
                 if (targetWindow != null)
                 {
@@ -91,7 +93,7 @@ namespace Unity.Tutorials.Core.Editor
                 }
             }
 
-            foreach (var targetVis in guiViewVisualElements)
+            foreach (VisualElement targetVis in guiViewVisualElements)
             {
                 if (targetVis != null)
                 {
@@ -100,14 +102,14 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
-        void PickCurrentHoveredElement(VisualElement element, MouseDownEvent evt, SerializedProperty property)
+        private void PickCurrentHoveredElement(VisualElement element, MouseDownEvent evt, SerializedProperty property)
         {
             // Prefer picking something distinguishable with a name specified.
             if (element.name.IsNullOrEmpty())
             {
                 const int numParentsToSearch = 10;
                 // Try going up in the hierachy until one with a name is found
-                var elem = element;
+                VisualElement elem = element;
                 for (int i = 0; i < numParentsToSearch; i++)
                 {
                     if (elem == null)
@@ -124,7 +126,7 @@ namespace Unity.Tutorials.Core.Editor
             }
 
             property.FindPropertyRelative(k_VisualElementNamePath).stringValue = element.name;
-            property.FindPropertyRelative(k_VisualElementClassNamePath).stringValue = element.GetClasses().LastOrDefault()?.ToString();
+            property.FindPropertyRelative(k_VisualElementClassNamePath).stringValue = element.GetClasses().LastOrDefault();
             property.FindPropertyRelative(k_VisualElementTypeNamePath).stringValue = element.GetType().ToString();
             // Apply modifications before serializedObject.Update(); call in TutorialPageEditor would dismiss them.
             property.serializedObject.ApplyModifiedProperties();
@@ -134,14 +136,14 @@ namespace Unity.Tutorials.Core.Editor
             EndPicking();
         }
 
-        void EndPicking()
+        private void EndPicking()
         {
-            foreach (var window in registeredWindows)
+            foreach (EditorWindow window in registeredWindows)
             {
                 window.rootVisualElement.UnregisterCallback(pickerCallback, TrickleDown.TrickleDown);
             }
 
-            foreach (var targetVis in guiViewVisualElements)
+            foreach (VisualElement targetVis in guiViewVisualElements)
             {
                 if (targetVis != null)
                 {
@@ -159,17 +161,17 @@ namespace Unity.Tutorials.Core.Editor
                 EndPicking();
             }
 
-            var selectorType = property.FindPropertyRelative(k_SelectorTypePath);
+            SerializedProperty selectorType = property.FindPropertyRelative(k_SelectorTypePath);
             position.height = EditorGUI.GetPropertyHeight(selectorType);
             EditorGUI.PropertyField(position, selectorType);
             position.y += position.height + EditorGUIUtility.standardVerticalSpacing;
 
-            var selectorMode = property.FindPropertyRelative(k_SelectorModePath);
+            SerializedProperty selectorMode = property.FindPropertyRelative(k_SelectorModePath);
             position.height = EditorGUI.GetPropertyHeight(selectorMode);
             EditorGUI.PropertyField(position, selectorMode);
             position.y += position.height + EditorGUIUtility.standardVerticalSpacing;
 
-            var mode = (GuiControlSelector.Mode)selectorMode.intValue;
+            GuiControlSelector.Mode mode = (GuiControlSelector.Mode)selectorMode.intValue;
             if (mode == GuiControlSelector.Mode.VisualElement)
             {
                 if (GUI.Button(position, k_PickButtonContent, EditorStyles.miniButton))
@@ -189,7 +191,7 @@ namespace Unity.Tutorials.Core.Editor
                     selectorData = property.FindPropertyRelative(k_ControlNamePath);
                     break;
                 case GuiControlSelector.Mode.Property:
-                    var targetType = property.FindPropertyRelative(k_TargetTypePath);
+                    SerializedProperty targetType = property.FindPropertyRelative(k_TargetTypePath);
                     position.height = EditorGUI.GetPropertyHeight(targetType);
                     EditorGUI.PropertyField(position, targetType);
                     position.y += position.height + EditorGUIUtility.standardVerticalSpacing;
@@ -203,11 +205,11 @@ namespace Unity.Tutorials.Core.Editor
                     selectorData = property.FindPropertyRelative(k_ObjectReferencePath);
                     break;
                 case GuiControlSelector.Mode.VisualElement:
-                    var className = property.FindPropertyRelative(k_VisualElementClassNamePath);
+                    SerializedProperty className = property.FindPropertyRelative(k_VisualElementClassNamePath);
                     position.height = EditorGUI.GetPropertyHeight(className);
                     EditorGUI.PropertyField(position, className);
                     position.y += position.height + EditorGUIUtility.standardVerticalSpacing;
-                    var typeName = property.FindPropertyRelative(k_VisualElementTypeNamePath);
+                    SerializedProperty typeName = property.FindPropertyRelative(k_VisualElementTypeNamePath);
                     position.height = EditorGUI.GetPropertyHeight(typeName);
                     EditorGUI.PropertyField(position, typeName);
                     position.y += position.height + EditorGUIUtility.standardVerticalSpacing;
@@ -229,6 +231,88 @@ namespace Unity.Tutorials.Core.Editor
                     MessageType.Error
                 );
             }
+        }
+
+        public override VisualElement CreatePropertyGUI(SerializedProperty property)
+        {
+            VisualElement root = new();
+
+            SerializedProperty selectorType = property.FindPropertyRelative(k_SelectorTypePath);
+            PropertyField selectorTypeField = new(selectorType);
+            root.Add(selectorTypeField);
+
+            SerializedProperty selectorMode = property.FindPropertyRelative(k_SelectorModePath);
+            PropertyField selectorModeField = new(selectorMode);
+            root.Add(selectorModeField);
+
+            Button pickButton = new();
+            pickButton.text = k_PickButtonContent.text;
+            pickButton.tooltip = k_PickButtonContent.tooltip;
+            root.Add(pickButton);
+            SerializedProperty classNameProperty = property.FindPropertyRelative(k_VisualElementClassNamePath);
+            PropertyField classNameField = new(classNameProperty);
+            root.Add(classNameField);
+            SerializedProperty typeNameProperty = property.FindPropertyRelative(k_VisualElementTypeNamePath);
+            PropertyField typeNameField = new(typeNameProperty);
+            root.Add(typeNameField);
+            SerializedProperty visualElementNameProperty = property.FindPropertyRelative(k_VisualElementNamePath);
+            PropertyField visualElementNameField = new(visualElementNameProperty);
+            root.Add(visualElementNameField);
+
+            SerializedProperty guiContentProperty = property.FindPropertyRelative(k_GUIContentPath);
+            guiContentProperty.isExpanded = true;
+            PropertyField guiContentField = new(guiContentProperty);
+            root.Add(guiContentField);
+
+            SerializedProperty controlNameProperty = property.FindPropertyRelative(k_ControlNamePath);
+            PropertyField controlNameField = new(controlNameProperty);
+            root.Add(controlNameField);
+
+            SerializedProperty targetTypeProperty = property.FindPropertyRelative(k_TargetTypePath);
+            PropertyField targetTypeField = new(targetTypeProperty);
+            root.Add(targetTypeField);
+            SerializedProperty propertyPathProperty = property.FindPropertyRelative(k_PropertyPathPath);
+            PropertyField propertyPathField = new(propertyPathProperty);
+            root.Add(propertyPathField);
+
+            SerializedProperty guiStyleNameProperty = property.FindPropertyRelative(k_GUIStyleNamePath);
+            PropertyField guiStyleNameField = new(guiStyleNameProperty);
+            root.Add(guiStyleNameField);
+
+            SerializedProperty objectReferenceProperty = property.FindPropertyRelative(k_ObjectReferencePath);
+            PropertyField objectReferenceField = new(objectReferenceProperty);
+            root.Add(objectReferenceField);
+
+            selectorModeField.RegisterValueChangeCallback(evt => { ModeChanged(); });
+            ModeChanged();
+
+            return root;
+
+            // To simplify not having to store the element somewhere, we use local function to avoid repetition
+            void ModeChanged()
+            {
+                GuiControlSelector.Mode mode = (GuiControlSelector.Mode)selectorMode.intValue;
+                ShowElement(pickButton, mode == GuiControlSelector.Mode.VisualElement);
+                ShowElement(classNameField,mode == GuiControlSelector.Mode.VisualElement);
+                ShowElement(typeNameField,mode == GuiControlSelector.Mode.VisualElement);
+                ShowElement(visualElementNameField,mode == GuiControlSelector.Mode.VisualElement);
+
+                ShowElement(guiContentField,mode == GuiControlSelector.Mode.GuiContent);
+
+                ShowElement(controlNameField,mode == GuiControlSelector.Mode.NamedControl);
+
+                ShowElement(targetTypeField,mode == GuiControlSelector.Mode.Property);
+                ShowElement(propertyPathField,mode == GuiControlSelector.Mode.Property);
+
+                ShowElement(guiStyleNameField,mode == GuiControlSelector.Mode.GuiStyleName);
+
+                ShowElement(objectReferenceField,mode == GuiControlSelector.Mode.ObjectReference);
+            }
+        }
+
+        private void ShowElement(VisualElement element, bool show)
+        {
+            element.style.display = show? DisplayStyle.Flex : DisplayStyle.None;
         }
     }
 }

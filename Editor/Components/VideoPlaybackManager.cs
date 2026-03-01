@@ -7,7 +7,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.Video;
 using Object = UnityEngine.Object;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     internal class VideoPlaybackManager
     {
@@ -53,7 +53,7 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
-        struct CacheEntry
+        private struct CacheEntry
         {
             public Texture2D Texture2D;
             public VideoPlayer VideoPlayer;
@@ -63,7 +63,7 @@ namespace Unity.Tutorials.Core.Editor
 
         // NOTE Static reference fixes a peculiar NRE issue when a tutorial which has Window Layout set
         // is exited by Tutorials > Show Tutorials instead of exiting the tutorial regularly.
-        static GameObject m_GameObject;
+        private static GameObject m_GameObject;
 
         // This is to fix a bug in the videoplayer in edit mode in Unity : audio isn't initialized properly until you
         // enter play mode. Audio Source seems to properly initialize the audio subsystem, so we play a dummy clip
@@ -71,18 +71,18 @@ namespace Unity.Tutorials.Core.Editor
         private static AudioSource s_BugFixAudioSource;
         private static AudioClip s_BugFixClip;
 
-        Dictionary<CacheKey, CacheEntry> m_Cache = new Dictionary<CacheKey, CacheEntry>();
+        private Dictionary<CacheKey, CacheEntry> m_Cache = new();
 
         public void OnEnable()
         {
             if (!m_GameObject)
             {
-                m_GameObject = new GameObject() { hideFlags = HideFlags.HideAndDontSave };
+                m_GameObject = new GameObject { hideFlags = HideFlags.HideAndDontSave };
                 EditorApplication.playModeStateChanged += PlayModeStateChange;
                 EditorSceneManager.sceneOpened += SceneLoaded;
 
                 s_BugFixClip = AudioClip.Create("testClip", 44000, 1, 44000, false);
-                var sourceGo = new GameObject() { hideFlags = HideFlags.HideAndDontSave };
+                GameObject sourceGo = new() { hideFlags = HideFlags.HideAndDontSave };
                 s_BugFixAudioSource = sourceGo.AddComponent<AudioSource>();
                 s_BugFixAudioSource.clip = s_BugFixClip;
             }
@@ -102,7 +102,7 @@ namespace Unity.Tutorials.Core.Editor
             EditorSceneManager.sceneOpened -= SceneLoaded;
         }
 
-        void PlayModeStateChange(PlayModeStateChange stateChange)
+        private void PlayModeStateChange(PlayModeStateChange stateChange)
         {
             //exiting playmode and entering edit mode will destroy the Texture2D, so we need to clear the cache so that
             //the dangling reference get cleared and a new one will be created by the GetTextureForVideoClip call
@@ -114,16 +114,15 @@ namespace Unity.Tutorials.Core.Editor
 
         // Opening a scene destroy the objects like changing the play state, so we need to clear the cache so it get
         // recreated here too
-        void SceneLoaded(Scene scene, OpenSceneMode loadMode)
+        private void SceneLoaded(Scene scene, OpenSceneMode loadMode)
         {
             ClearCache();
         }
 
         public bool IsPrepared(CacheKey cacheKey)
         {
-            CacheEntry cacheEntry;
             //url player can fail to prepare
-            if (m_Cache.TryGetValue(cacheKey, out cacheEntry))
+            if (m_Cache.TryGetValue(cacheKey, out CacheEntry cacheEntry))
             {
                 return cacheEntry.VideoPlayer.isPrepared;
             }
@@ -134,10 +133,9 @@ namespace Unity.Tutorials.Core.Editor
         // onError will be invoked if the player encounter an error playing
         public Texture2D GetTextureForVideoClip(CacheKey cacheKey, Action<string> onError = null)
         {
-            CacheEntry cacheEntry;
-            if (!m_Cache.TryGetValue(cacheKey, out cacheEntry))
+            if (!m_Cache.TryGetValue(cacheKey, out CacheEntry cacheEntry))
             {
-                var videoPlayer = m_GameObject.AddComponent<VideoPlayer>();
+                VideoPlayer videoPlayer = m_GameObject.AddComponent<VideoPlayer>();
 
                 if (cacheKey.Url != null)
                     videoPlayer.url = cacheKey.Url;
@@ -163,7 +161,7 @@ namespace Unity.Tutorials.Core.Editor
                     source.targetTexture = new RenderTexture((int)source.width, (int)source.height, 32);
                     source.prepareCompleted -= PreparedFunc;
 
-                    var localCacheEntry = m_Cache[cacheKey];
+                    CacheEntry localCacheEntry = m_Cache[cacheKey];
                     localCacheEntry.Texture2D = new Texture2D((int)cacheEntry.VideoPlayer.width, (int)cacheEntry.VideoPlayer.height, TextureFormat.RGBA32, false);
                     m_Cache[cacheKey] = localCacheEntry;
                 }
@@ -197,12 +195,11 @@ namespace Unity.Tutorials.Core.Editor
 
         public void Play(CacheKey cacheKey)
         {
-            CacheEntry cacheEntry;
-            if (m_Cache.TryGetValue(cacheKey, out cacheEntry) && cacheEntry.VideoPlayer.isPrepared)
+            if (m_Cache.TryGetValue(cacheKey, out CacheEntry cacheEntry) && cacheEntry.VideoPlayer.isPrepared)
             {
                 s_BugFixAudioSource.Play();
                 cacheEntry.VideoPlayer.Play();
-                
+
                 //A button in GameView can mute audio and direct audio respect that. So we need to save if it was disable
                 //so we can disable it again when the video is stopped/destroyed
                 cacheEntry.SceneAudioWasMuted = EditorUtility.audioMasterMute;
@@ -216,8 +213,7 @@ namespace Unity.Tutorials.Core.Editor
 
         public void Pause(CacheKey cacheKey)
         {
-            CacheEntry cacheEntry;
-            if (m_Cache.TryGetValue(cacheKey, out cacheEntry) && cacheEntry.VideoPlayer.isPrepared)
+            if (m_Cache.TryGetValue(cacheKey, out CacheEntry cacheEntry) && cacheEntry.VideoPlayer.isPrepared)
             {
                 cacheEntry.VideoPlayer.Pause();
 
@@ -228,8 +224,7 @@ namespace Unity.Tutorials.Core.Editor
 
         public void SetVolume(CacheKey cacheKey, float newVolume)
         {
-            CacheEntry cacheEntry;
-            if (m_Cache.TryGetValue(cacheKey, out cacheEntry) && cacheEntry.VideoPlayer.isPrepared)
+            if (m_Cache.TryGetValue(cacheKey, out CacheEntry cacheEntry) && cacheEntry.VideoPlayer.isPrepared)
             {
                 cacheEntry.VideoPlayer.SetDirectAudioVolume(0, newVolume);
             }
@@ -237,8 +232,7 @@ namespace Unity.Tutorials.Core.Editor
 
         public bool IsPlaying(CacheKey cacheKey)
         {
-            CacheEntry cacheEntry;
-            if (m_Cache.TryGetValue(cacheKey, out cacheEntry))
+            if (m_Cache.TryGetValue(cacheKey, out CacheEntry cacheEntry))
             {
                 return cacheEntry.VideoPlayer.isPlaying;
             }
@@ -248,10 +242,9 @@ namespace Unity.Tutorials.Core.Editor
 
         public float GetPlayPercent(CacheKey cacheKey)
         {
-            CacheEntry cacheEntry;
-            if (m_Cache.TryGetValue(cacheKey, out cacheEntry))
+            if (m_Cache.TryGetValue(cacheKey, out CacheEntry cacheEntry))
             {
-                var player = cacheEntry.VideoPlayer;
+                VideoPlayer player = cacheEntry.VideoPlayer;
                 return (float)(player.time/player.length);
             }
 
@@ -260,15 +253,14 @@ namespace Unity.Tutorials.Core.Editor
 
         public void SetPlayPercent(CacheKey cacheKey, float percent)
         {
-            CacheEntry cacheEntry;
-            if (m_Cache.TryGetValue(cacheKey, out cacheEntry))
+            if (m_Cache.TryGetValue(cacheKey, out CacheEntry cacheEntry))
             {
-                var player = cacheEntry.VideoPlayer;
+                VideoPlayer player = cacheEntry.VideoPlayer;
                 player.time = percent * player.length;
             }
         }
 
-        static void TextureToTexture2D(Texture texture, ref Texture2D texture2D)
+        private static void TextureToTexture2D(Texture texture, ref Texture2D texture2D)
         {
             RenderTexture currentRT = RenderTexture.active;
             RenderTexture renderTexture = RenderTexture.GetTemporary(texture.width, texture.height, 32);
@@ -284,7 +276,7 @@ namespace Unity.Tutorials.Core.Editor
 
         public void ClearCache()
         {
-            foreach (var cacheEntry in m_Cache.Values)
+            foreach (CacheEntry cacheEntry in m_Cache.Values)
             {
                 if(cacheEntry.SceneAudioWasMuted)
                     EditorUtility.audioMasterMute = true;

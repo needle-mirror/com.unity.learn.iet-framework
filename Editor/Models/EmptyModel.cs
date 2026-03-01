@@ -5,7 +5,7 @@ using JetBrains.Annotations;
 
 #endregion
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// This is a template class for new Models

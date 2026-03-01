@@ -1,6 +1,6 @@
 using System;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// Base class for different SerializedTypeFilter attribute implementations.

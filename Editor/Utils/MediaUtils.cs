@@ -1,35 +1,36 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.Video;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     /// <summary>
-    /// Container class for a type of media used in a TutorialPage. Can be either an image, or a video (clip or url)
+    /// Container class for a type of media used in a TutorialPage. Can be either an image, or a video (clip or url).
     /// </summary>
-    [System.Serializable]
+    [Serializable]
     public class MediaContent
     {
         /// <summary>
-        /// The type of Media this define
+        /// The type of media contained.
         /// </summary>
         public enum MediaContentType
         {
             /// <summary>
-            /// An Image
+            /// An Image.
             /// </summary>
             Image,
             /// <summary>
-            /// A Video from a file clip
+            /// A Video from a file clip.
             /// </summary>
             VideoClip,
             /// <summary>
-            /// A video from a Url
+            /// A video from a Url.
             /// </summary>
             VideoUrl
         }
 
         /// <summary>
-        /// Which type of source this content media uses
+        /// Which type of source this content media uses.
         /// </summary>
         public MediaContentType ContentType
         {
@@ -40,7 +41,7 @@ namespace Unity.Tutorials.Core.Editor
         private MediaContentType m_ContentType;
 
         /// <summary>
-        /// The Texture2D used as Image if the Content Type is set to Image
+        /// The Texture2D used as Image if the Content Type is set to Image.
         /// </summary>
         public Texture2D Image
         {
@@ -51,7 +52,7 @@ namespace Unity.Tutorials.Core.Editor
         private Texture2D m_Image;
 
         /// <summary>
-        /// The Clip used if the source type is set to VideoClip
+        /// The Clip used if the source type is set to VideoClip.
         /// </summary>
         public VideoClip VideoClip
         {
@@ -62,7 +63,7 @@ namespace Unity.Tutorials.Core.Editor
         private VideoClip m_VideoClip;
 
         /// <summary>
-        /// The URL to the video if the source type is set to VideoURL
+        /// The URL to the video if the source type is set to VideoURL.
         /// </summary>
         public string Url
         {
@@ -73,7 +74,7 @@ namespace Unity.Tutorials.Core.Editor
         private string m_Url;
 
         /// <summary>
-        /// If the Content type is video, does it auto start on load, or require the user to press play to start
+        /// If the Content type is video, does it auto start on load, or require the user to press play to start.
         /// </summary>
         public bool AutoStart
         {
@@ -97,9 +98,9 @@ namespace Unity.Tutorials.Core.Editor
 
         /// <summary>
         /// A Media Content is considered valid if the associated media to its set type is not null (e.g. an Image Media
-        /// Content Image properties is not null or a VideoUrl Media url is not null or empty
+        /// Content Image properties is not null or a VideoUrl Media url is not null or empty).
         /// </summary>
-        /// <returns>True if contains the right media, false otherwise</returns>
+        /// <returns>True if contains the right media, false otherwise.</returns>
         public bool IsValid()
         {
             return (m_ContentType == MediaContentType.Image && m_Image != null) ||

@@ -2,7 +2,7 @@ using System;
 using UnityEditor;
 using UnityEngine;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// The Scene View camera mode
@@ -17,7 +17,7 @@ namespace Unity.Tutorials.Core.Editor
         /// 3D view.
         /// </summary>
         SceneView3D
-    };
+    }
 
     /// <summary>
     /// Determines how the camera position is applied when loaded
@@ -32,7 +32,7 @@ namespace Unity.Tutorials.Core.Editor
         /// A specific object is framed automatically.
         /// </summary>
         FrameObject
-    };
+    }
 
     /// <summary>
     /// Used to store and apply scene view camera settings
@@ -44,65 +44,57 @@ namespace Unity.Tutorials.Core.Editor
         /// The Scene View camera mode
         /// </summary>
         public SceneViewCameraMode CameraMode => m_CameraMode;
-        [SerializeField]
-        SceneViewCameraMode m_CameraMode = SceneViewCameraMode.SceneView2D;
+        [SerializeField] private SceneViewCameraMode m_CameraMode = SceneViewCameraMode.SceneView2D;
 
         /// <summary>
         /// Determines how the camera position is applied when loaded
         /// </summary>
         public SceneViewFocusMode FocusMode => m_FocusMode;
-        [SerializeField]
-        SceneViewFocusMode m_FocusMode = SceneViewFocusMode.Manual;
+        [SerializeField] private SceneViewFocusMode m_FocusMode = SceneViewFocusMode.Manual;
 
         /// <summary>
         /// Is the camera ortographic?
         /// </summary>
         public bool Orthographic => m_Orthographic;
-        [SerializeField]
-        bool m_Orthographic = false;
+        [SerializeField] private bool m_Orthographic;
 
         /// <summary>
         /// Ortographic size of the camera
         /// </summary>
         public float Size => m_Size;
-        [SerializeField]
-        float m_Size = default;
+        [SerializeField] private float m_Size;
 
         /// <summary>
         /// The point the camera will look at
         /// </summary>
         public Vector3 Pivot => m_Pivot;
-        [SerializeField]
-        Vector3 m_Pivot = default;
+        [SerializeField] private Vector3 m_Pivot;
 
         /// <summary>
         /// The rotation of the camera
         /// </summary>
         public Quaternion Rotation => m_Rotation;
-        [SerializeField]
-        Quaternion m_Rotation = default;
+        [SerializeField] private Quaternion m_Rotation;
 
         /// <summary>
         /// The object that can be framed by the camera.
         /// Applicable if SceneViewFocusMode.FrameObject used as FocusMode.
         /// </summary>
         public SceneObjectReference FrameObject => m_FrameObject;
-        [SerializeField]
-        SceneObjectReference m_FrameObject = null;
+        [SerializeField] private SceneObjectReference m_FrameObject;
 
         /// <summary>
         /// Are these camera settings going to be used?
         /// </summary>
         public bool Enabled => m_Enabled;
-        [SerializeField]
-        bool m_Enabled = false;
+        [SerializeField] private bool m_Enabled;
 
         /// <summary>
         /// Applies the saved camera settings to the current scene camera
         /// </summary>
         public void Apply()
         {
-            var sceneView = EditorWindow.GetWindow<SceneView>(null, false);
+            SceneView sceneView = EditorWindow.GetWindow<SceneView>(null, false);
             sceneView.in2DMode = (CameraMode == SceneViewCameraMode.SceneView2D);
             switch (FocusMode)
             {
@@ -110,7 +102,7 @@ namespace Unity.Tutorials.Core.Editor
                     GameObject go = FrameObject.ReferencedObjectAsGameObject;
                     if (go == null)
                         throw new InvalidOperationException("Error looking up frame object");
-                    sceneView.Frame(GameObjectProxy.CalculateBounds(go), true);
+                    sceneView.Frame(GameObjectProxy.CalculateBounds(go));
                     break;
                 case SceneViewFocusMode.Manual:
                     sceneView.LookAt(Pivot, Rotation, Size, Orthographic, false);

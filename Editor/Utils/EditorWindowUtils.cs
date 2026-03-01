@@ -1,11 +1,17 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
+#if UNITY_6000_5_OR_NEWER
+using UnityEngine.Assemblies;
+#endif
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// Utilities for EditorWindows.
@@ -51,7 +57,7 @@ namespace Unity.Tutorials.Core.Editor
         public static void DockWindow(this EditorWindow anchor, EditorWindow docked, DockPosition position)
         {
             // NOTE Code adapted from https://gist.github.com/Thundernerd/5085ec29819b2960f5ff2ee32ad57cbb#gistcomment-2834853
-            var anchorParent = WindowLayoutProxy.GetParentOf(anchor);
+            object anchorParent = WindowLayoutProxy.GetParentOf(anchor);
             SetDragSource(anchorParent, WindowLayoutProxy.GetParentOf(docked));
             WindowLayoutProxy.PerformDrop(anchorParent, docked, GetFakeMousePosition(anchor, position));
         }
@@ -62,8 +68,8 @@ namespace Unity.Tutorials.Core.Editor
         /// <param name="win">The window to center</param>
         public static void CenterOnMainWindow(EditorWindow win)
         {
-            var main = GetEditorMainWindowPos();
-            var pos = win.position;
+            Rect main = GetEditorMainWindowPos();
+            Rect pos = win.position;
             float w = (main.width - pos.width) * 0.5f;
             float h = (main.height - pos.height) * 0.5f;
             pos.x = main.x + w;
@@ -78,23 +84,23 @@ namespace Unity.Tutorials.Core.Editor
         public static Rect GetEditorMainWindowPos()
         {
             // NOTE Code adapted from http://answers.unity.com/answers/960709/view.html
-            var containerWinType = GetAllDerivedTypes(AppDomain.CurrentDomain, typeof(ScriptableObject))
+            Type containerWinType = GetAllDerivedTypes(typeof(ScriptableObject))
                 .Where(t => t.Name == "ContainerWindow")
                 .FirstOrDefault();
             if (containerWinType == null)
                 throw new MissingMemberException("Can't find internal type ContainerWindow. Maybe something has changed inside Unity");
 
-            var showModeField = containerWinType.GetField("m_ShowMode", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var positionProperty = containerWinType.GetProperty("position", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+            FieldInfo showModeField = containerWinType.GetField("m_ShowMode", BindingFlags.NonPublic | BindingFlags.Instance);
+            PropertyInfo positionProperty = containerWinType.GetProperty("position", BindingFlags.Public | BindingFlags.Instance);
             if (showModeField == null || positionProperty == null)
                 throw new MissingFieldException("Can't find internal fields 'm_ShowMode' or 'position'. Maybe something has changed inside Unity");
 
-            foreach (var win in Resources.FindObjectsOfTypeAll(containerWinType))
+            foreach (Object win in Resources.FindObjectsOfTypeAll(containerWinType))
             {
-                var showmode = (int)showModeField.GetValue(win);
-                if (showmode == 4) // main window
+                int showMode = (int)showModeField.GetValue(win);
+                if (showMode == 4) // main window
                 {
-                    var pos = (Rect)positionProperty.GetValue(win, null);
+                    Rect pos = (Rect)positionProperty.GetValue(win, null);
                     return pos;
                 }
             }
@@ -109,20 +115,20 @@ namespace Unity.Tutorials.Core.Editor
         public static void SetEditorMainWindowPos(Rect pos)
         {
             // TODO copy-pasta, generalise and clean up the code with GetEditorMainWindowPos
-            var containerWinType = GetAllDerivedTypes(AppDomain.CurrentDomain, typeof(ScriptableObject))
+            Type containerWinType = GetAllDerivedTypes(typeof(ScriptableObject))
                 .Where(t => t.Name == "ContainerWindow")
                 .FirstOrDefault();
             if (containerWinType == null)
                 throw new MissingMemberException("Can't find internal type ContainerWindow. Maybe something has changed inside Unity");
 
-            var showModeField = containerWinType.GetField("m_ShowMode", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var positionProperty = containerWinType.GetProperty("position", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+            FieldInfo showModeField = containerWinType.GetField("m_ShowMode", BindingFlags.NonPublic | BindingFlags.Instance);
+            PropertyInfo positionProperty = containerWinType.GetProperty("position", BindingFlags.Public | BindingFlags.Instance);
             if (showModeField == null || positionProperty == null)
                 throw new MissingFieldException("Can't find internal fields 'm_ShowMode' or 'position'. Maybe something has changed inside Unity");
 
-            foreach (var win in Resources.FindObjectsOfTypeAll(containerWinType))
+            foreach (Object win in Resources.FindObjectsOfTypeAll(containerWinType))
             {
-                var showmode = (int)showModeField.GetValue(win);
+                int showmode = (int)showModeField.GetValue(win);
                 if (showmode == 4) // main window
                 {
                     positionProperty.SetValue(win, pos);
@@ -133,9 +139,13 @@ namespace Unity.Tutorials.Core.Editor
             throw new NotSupportedException("Can't find internal main window. Maybe something has changed inside Unity");
         }
 
-        static IEnumerable<Type> GetAllDerivedTypes(AppDomain appDomain, Type parentType)
+        private static IEnumerable<Type> GetAllDerivedTypes(Type parentType)
         {
-            return appDomain.GetAssemblies()
+#if UNITY_6000_5_OR_NEWER
+            return CurrentAssemblies.GetLoadedAssemblies()
+#else
+            return AppDomain.CurrentDomain.GetAssemblies()
+#endif
                 .SelectMany(assembly => assembly.GetTypes())
                 .Where(type => type.IsSubclassOf(parentType));
         }
@@ -149,7 +159,7 @@ namespace Unity.Tutorials.Core.Editor
             // TODO assert types used by GetEditorMainWindowPos() also.
 
             // DockArea
-            var type = Type.GetType("UnityEditor.DockArea, UnityEditor, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null");
+            Type type = Type.GetType("UnityEditor.DockArea, UnityEditor, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null");
             Debug.Assert(type != null);
             Debug.Assert(
                 type.GetField("s_OriginalDragSource", BindingFlags.Static | BindingFlags.NonPublic) != null,
@@ -157,7 +167,7 @@ namespace Unity.Tutorials.Core.Editor
             );
         }
 
-        static Vector2 GetFakeMousePosition(EditorWindow window, DockPosition position)
+        private static Vector2 GetFakeMousePosition(EditorWindow window, DockPosition position)
         {
             Vector2 mousePosition = Vector2.zero;
 
@@ -186,10 +196,25 @@ namespace Unity.Tutorials.Core.Editor
             return new Vector2(window.position.x + mousePosition.x, window.position.y + mousePosition.y);
         }
 
-        static void SetDragSource(object target, object source)
+        private static void SetDragSource(object target, object source)
         {
-            var field = target.GetType().GetField("s_OriginalDragSource", BindingFlags.Static | BindingFlags.NonPublic);
-            field.SetValue(null, source);
+            FieldInfo field = target.GetType().GetField("s_OriginalDragSource", BindingFlags.Static | BindingFlags.NonPublic);
+            field!.SetValue(null, source);
+        }
+
+        /// <summary>
+        /// Creates a filename from a string, replacing all invalid characters with "_",
+        /// or optionally with a custom character.
+        /// </summary>
+        /// <param name="originalName">The original name to transform into a valid filename.</param>
+        /// <param name="replacementChar">The character to use in place of invalid characters.</param>
+        /// <returns>The cleaned up filename string.</returns>
+        public static string MakeValidFileName(string originalName, char replacementChar = '_')
+        {
+            string invalidChars = Regex.Escape(new string(Path.GetInvalidFileNameChars()));
+            string invalidRegStr = string.Format(@"([{0}\s]*\.+$)|([{0}\s]+)", invalidChars);
+
+            return Regex.Replace(originalName, invalidRegStr, replacementChar.ToString());
         }
     }
 }

@@ -1,4 +1,4 @@
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// Wrapper class for TutorialWindow public APIs
@@ -33,7 +33,7 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         /// <param name="tutorial">The tutorial to be started.</param>
         /// <remarks>
-        /// The caller of the funtion is responsible for positioning the TutorialWindow for the tutorials.
+        /// The caller of the function is responsible for positioning the TutorialWindow for the tutorials.
         /// If no TutorialWindow is visible, it is created and shown as a free-floating window.
         /// If the currently active scene has unsaved changes, the user is asked to save them.
         /// If we are in Play Mode, it is exited.

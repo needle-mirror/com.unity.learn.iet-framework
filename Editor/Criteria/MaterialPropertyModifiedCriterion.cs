@@ -1,9 +1,11 @@
 using System;
+using System.Globalization;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityObject = UnityEngine.Object;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// Criterion for checking a Material's property modification.
@@ -11,36 +13,35 @@ namespace Unity.Tutorials.Core.Editor
     public class MaterialPropertyModifiedCriterion : Criterion
     {
         internal SceneObjectReference Target { get => m_Target.SceneObjectReference; set => m_Target.SceneObjectReference = value; }
-        [SerializeField]
-        ObjectReference m_Target = new ObjectReference();
+        [SerializeField] private ObjectReference m_Target = new();
 
-        internal string MaterialPropertyPath { get => m_MaterialPropertyPath; set => m_MaterialPropertyPath = value; }
-        [SerializeField]
-        string m_MaterialPropertyPath = "";
+        [SerializeField] private string m_MaterialPropertyPath = "";
 
-        string m_InitialValue = null;
+        private string m_InitialValue;
 
-        static MaterialProperty FindProperty(string path, Material material)
+        private static MaterialProperty FindProperty(string path, Material material)
         {
-            UnityObject[] mats = new[] { material };
+            UnityObject[] mats = { material };
             return MaterialEditor.GetMaterialProperty(mats, path);
         }
 
-        static string GetPropertyValueToString(MaterialProperty property)
+        private static string GetPropertyValueToString(MaterialProperty property)
         {
 #if UNITY_6000_1_OR_NEWER
             switch (property.propertyType)
             {
-                case UnityEngine.Rendering.ShaderPropertyType.Color:
+                case ShaderPropertyType.Color:
                     return property.colorValue.ToString();
-                case UnityEngine.Rendering.ShaderPropertyType.Vector:
+                case ShaderPropertyType.Vector:
                     return property.vectorValue.ToString();
-                case UnityEngine.Rendering.ShaderPropertyType.Float:
-                    return property.floatValue.ToString();
-                case UnityEngine.Rendering.ShaderPropertyType.Range:
+                case ShaderPropertyType.Float:
+                    return property.floatValue.ToString(CultureInfo.InvariantCulture);
+                case ShaderPropertyType.Range:
                     return property.rangeLimits.ToString();
-                case UnityEngine.Rendering.ShaderPropertyType.Texture:
-                    return property.textureValue.GetInstanceID().ToString();
+                case ShaderPropertyType.Texture:
+                {
+                    return IdUtils.GetIdFor(property.textureValue).ToString();
+                }
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -74,7 +75,7 @@ namespace Unity.Tutorials.Core.Editor
             EditorApplication.update += UpdateCompletion;
         }
 
-        void InitializeRequiredStateIfNeeded()
+        private void InitializeRequiredStateIfNeeded()
         {
             if (m_InitialValue != null)
                 return;
@@ -82,7 +83,7 @@ namespace Unity.Tutorials.Core.Editor
             if (string.IsNullOrEmpty(m_MaterialPropertyPath) || Target.ReferencedObject == null)
                 return;
 
-            var property = FindProperty(m_MaterialPropertyPath, (Material)Target.ReferencedObject);
+            MaterialProperty property = FindProperty(m_MaterialPropertyPath, (Material)Target.ReferencedObject);
 
             m_InitialValue = GetPropertyValueToString(property);
         }
@@ -111,12 +112,12 @@ namespace Unity.Tutorials.Core.Editor
             if (m_MaterialPropertyPath == null || Target.ReferencedObject == null)
                 return false;
 
-            var property = FindProperty(m_MaterialPropertyPath, (Material)Target.ReferencedObject);
+            MaterialProperty property = FindProperty(m_MaterialPropertyPath, (Material)Target.ReferencedObject);
 
             if (property == null)
                 return false;
 
-            var currentValue = GetPropertyValueToString(property);
+            string currentValue = GetPropertyValueToString(property);
 
             if (currentValue != m_InitialValue)
                 return true;

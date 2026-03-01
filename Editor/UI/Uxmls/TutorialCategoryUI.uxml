@@ -1,0 +1,25 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <ui:VisualElement name="TutorialCategoryUI" class="container--card">
+        <ui:VisualElement name="TutorialImage" class="container-button">
+            <ui:VisualElement name="ContentContainer" class="container--tutorialcontainer">
+                <ui:VisualElement name="TextContainer">
+                    <ui:VisualElement class="image--base" />
+                    <ui:Label name="lblName" class="label--header-large" />
+                    <ui:Label name="lblDescription" class="label--header-subtitle" />
+                </ui:VisualElement>
+                <ui:VisualElement name="HorizontalFlexibleSpace" class="flexible-space" />
+                <ui:VisualElement name="ForwardArrowContainer" class="label--header-subtitle">
+                    <ui:VisualElement name="FlexibleSpace" class="flexible-space" />
+                    <ui:VisualElement name="EnterTutorials" class="image--forward" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="CategoryCompletionBarContainer" class="category-completion-bar-container">
+                <ui:VisualElement name="CategoryCompletionBar" class="category-completion-bar"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="CompletionInfoContainer" class="category-completion-info-container">
+                <ui:Label name="CategoryCompletionLabel" class="category-completion-label" text="Completion Loading..."/>
+                <ui:VisualElement name="Checkmark" class="category-completion-checkmark" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

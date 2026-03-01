@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// Used to serialize System.Type using Type.AssemblyQualifiedName.
@@ -9,7 +9,7 @@ namespace Unity.Tutorials.Core.Editor
     [Serializable]
     public class SerializedType : ISerializationCallbackReceiver
     {
-        static readonly bool k_IsAuthoringMode = ProjectMode.IsAuthoringMode();
+        private static readonly bool k_IsAuthoringMode = ProjectMode.IsAuthoringMode();
 
         /// <summary>
         /// Is the type specified, meaning, the assembly-qualified type name is stored.
@@ -24,8 +24,8 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         public Type Type
         {
-            get { return string.IsNullOrEmpty(m_TypeName) ? null : Type.GetType(m_TypeName); }
-            set { m_TypeName = value == null ? "" : value.AssemblyQualifiedName; }
+            get => string.IsNullOrEmpty(m_TypeName) ? null : Type.GetType(m_TypeName);
+            set => m_TypeName = value == null ? "" : value.AssemblyQualifiedName;
         }
 
         /// <summary>
@@ -60,11 +60,11 @@ namespace Unity.Tutorials.Core.Editor
             }
 
             // Backwards-compatibility for IET < 2.0 when the namespace and assemblies were Unity.InteractiveTutorials.*
-            // instead of Unity.Tutorials.Core(.Editor).
+            // instead of Unity.Tutorials(.Editor).
             if (IsSpecified)
             {
-                m_TypeName = m_TypeName.Replace("Unity.InteractiveTutorials.Core", "Unity.Tutorials.Core.Editor");
-                m_TypeName = m_TypeName.Replace("Unity.InteractiveTutorials", "Unity.Tutorials.Core.Editor");
+                m_TypeName = m_TypeName.Replace("Unity.InteractiveTutorials.Core", "Unity.Tutorials.Editor");
+                m_TypeName = m_TypeName.Replace("Unity.InteractiveTutorials", "Unity.Tutorials.Editor");
             }
 
             // TODO figure out how to log these issues: we don't want to log warnings/errors always, and especially

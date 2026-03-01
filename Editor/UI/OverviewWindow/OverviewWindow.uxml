@@ -1,0 +1,19 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <Style src="project://database/Packages/com.unity.learn.iet-framework/Editor/UI/OverviewWindow/OverviewWindow.uss?fileID=7433441132597879392&amp;guid=f71a9dec1179f4873899604a7cc4417d&amp;type=3#OverviewWindow" />
+    <ui:VisualElement name="Container" style="flex-grow: 1;">
+        <ui:VisualElement class="row">
+            <ui:Button text="Refresh" name="RefreshButton" class="big-button" />
+            <ui:Button text="Collapse Containers" name="CollapseContainersButton" class="big-button" />
+            <ui:Button text="Collapse Tutorials" name="CollapseTutorialsButton" class="big-button" />
+        </ui:VisualElement>
+        <ui:TreeView name="ContainersTree" reorderable="true" auto-expand="true" show-border="true" view-data-key="StructureTreeView" />
+        <ui:VisualElement>
+            <ui:Label text="Display Options" enable-rich-text="false" selectable="false" name="VizOptions" style="display: none;" />
+            <ui:VisualElement class="row">
+                <ui:Toggle label="Titles" name="DisplayTitlesToggle" tooltip="Whether to display the title of the items in the tree." value="true" />
+                <ui:Toggle label="Asset Names" name="DisplayAssetNamesToggle" tooltip="Whether to display the asset name of the items in the tree." value="false" />
+                <ui:Toggle label="Warnings" name="DisplayWarningsToggle" tooltip="Display or hide warnings, such as Tutorials linked in multiple Containers. Warnings appear as a yellow icon next to the item&apos;s name." value="true" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

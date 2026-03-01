@@ -6,10 +6,11 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
+using Object = UnityEngine.Object;
 
 #endregion
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// A generic event for signaling changes in a criterion.
@@ -28,32 +29,32 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Raised when any Criterion is completed.
         /// </summary>
-        public static CriterionEvent CriterionCompleted = new CriterionEvent();
+        public static CriterionEvent CriterionCompleted = new();
 
         /// <summary>
         /// Raised when any Criterion is invalidated.
         /// </summary>
-        public static CriterionEvent CriterionInvalidated = new CriterionEvent();
+        public static CriterionEvent CriterionInvalidated = new();
 
         /// <summary>
         /// Raised when this criterion is completed.
         /// </summary>
         [Header("Events")]
-        public CriterionEvent Completed = new CriterionEvent();
+        public CriterionEvent Completed = new();
 
         /// <summary>
         /// Raised when this criterion is invalidated.
         /// </summary>
-        public CriterionEvent Invalidated = new CriterionEvent();
+        public CriterionEvent Invalidated = new();
 
-        bool m_Completed;
+        private bool m_Completed;
 
         /// <summary>
         /// Is the Criterion completed. Setting this raises CriterionCompleted/CriterionInvalidated.
         /// </summary>
         public bool IsCompleted
         {
-            get { return m_Completed; }
+            get => m_Completed;
             internal set
             {
                 if (performedAtLeastOneEvaluationSinceTestingStarted
@@ -106,12 +107,12 @@ namespace Unity.Tutorials.Core.Editor
         /// Is this criterion being tested right now?
         /// </summary>
         [SerializeField, HideInInspector]
-        protected bool isTesting = false;
+        protected bool isTesting;
 
         /// <summary>
         /// Has at least one evaluation been performed since testing started?
         /// </summary>
-        protected bool performedAtLeastOneEvaluationSinceTestingStarted = false;
+        protected bool performedAtLeastOneEvaluationSinceTestingStarted;
 
         /// <summary>
         /// Runs update logic for the criterion.
@@ -155,19 +156,25 @@ namespace Unity.Tutorials.Core.Editor
         /// <seealso href="https://docs.unity3d.com/ScriptReference/MonoBehaviour.OnValidate.html"/>
         protected virtual void OnValidate()
         {
-            // Find instanceIDs of referenced future references
-            var referencedFutureReferenceInstanceIDs = new HashSet<int>();
-            foreach (var futureReference in GetFutureObjectReferences())
-                referencedFutureReferenceInstanceIDs.Add(futureReference.GetInstanceID());
+            // Find IDs of referenced future references
+#if UNITY_6000_3_OR_NEWER
+            HashSet<EntityId> referencedFutureReferenceIDs = new();
+#else
+            HashSet<int> referencedFutureReferenceIDs = new();
+#endif
+            
+            
+            foreach (FutureObjectReference futureReference in GetFutureObjectReferences())
+                referencedFutureReferenceIDs.Add(IdUtils.GetIdFor(futureReference));
 
             // Destroy unreferenced future references
-            var assetPath = AssetDatabase.GetAssetPath(this);
-            var assets = AssetDatabase.LoadAllAssetsAtPath(assetPath);
-            foreach (var asset in assets)
+            string assetPath = AssetDatabase.GetAssetPath(this);
+            Object[] assets = AssetDatabase.LoadAllAssetsAtPath(assetPath);
+            foreach (Object asset in assets)
             {
                 if (asset is FutureObjectReference
                     && ((FutureObjectReference)asset).Criterion == this
-                    && !referencedFutureReferenceInstanceIDs.Contains(asset.GetInstanceID()))
+                    && !referencedFutureReferenceIDs.Contains(IdUtils.GetIdFor(asset)))
                 {
                     DestroyImmediate(asset, true);
                 }
@@ -190,11 +197,11 @@ namespace Unity.Tutorials.Core.Editor
         /// <returns>The new FutureObjectReference instance</returns>
         protected FutureObjectReference CreateFutureObjectReference(string referenceName)
         {
-            var futureReference = CreateInstance<FutureObjectReference>();
+            FutureObjectReference futureReference = CreateInstance<FutureObjectReference>();
             futureReference.Criterion = this;
             futureReference.ReferenceName = referenceName;
 
-            var assetPath = AssetDatabase.GetAssetPath(this);
+            string assetPath = AssetDatabase.GetAssetPath(this);
             AssetDatabase.AddObjectToAsset(futureReference, assetPath);
 
             return futureReference;
@@ -209,17 +216,17 @@ namespace Unity.Tutorials.Core.Editor
             EditorApplication.update += UpdateFutureObjectReferenceNamesPostponed;
         }
 
-        void UpdateFutureObjectReferenceNamesPostponed()
+        private void UpdateFutureObjectReferenceNamesPostponed()
         {
             // Unsubscribe immediately since it should only be called once
             EditorApplication.update -= UpdateFutureObjectReferenceNamesPostponed;
 
-            var assetPath = AssetDatabase.GetAssetPath(this);
-            var tutorialPage = (TutorialPage)AssetDatabase.LoadMainAssetAtPath(assetPath);
-            var futureReferences = AssetDatabase.LoadAllAssetsAtPath(assetPath)
+            string assetPath = AssetDatabase.GetAssetPath(this);
+            TutorialPage tutorialPage = (TutorialPage)AssetDatabase.LoadMainAssetAtPath(assetPath);
+            IEnumerable<FutureObjectReference> futureReferences = AssetDatabase.LoadAllAssetsAtPath(assetPath)
                 .Where(o => o is FutureObjectReference)
                 .Cast<FutureObjectReference>();
-            foreach (var futureReference in futureReferences)
+            foreach (FutureObjectReference futureReference in futureReferences)
                 tutorialPage.UpdateFutureObjectReferenceName(futureReference);
         }
     }

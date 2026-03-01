@@ -1,9 +1,11 @@
-namespace SerializableCallback
+using System;
+
+namespace Unity.Tutorials.Editor.SerializableCallback
 {
     /// <summary>
     /// https://github.com/Siccity/SerializableCallback
     /// </summary>
-    [System.Serializable]
+    [Serializable]
     public class SerializableEvent : SerializableEventBase
     {
         /// <summary>

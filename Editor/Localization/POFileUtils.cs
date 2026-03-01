@@ -7,7 +7,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// Good info on PO: http://pology.nedohodnik.net/doc/user/en_US/ch-poformat.html
@@ -17,13 +17,14 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Entries that need to be translated will have this ocmment
         /// </summary>
-        const string k_TranslatorCommentForAskingLocalization = "TODO: translate";
-        static readonly string s_IETLocalizationFilesFolder = $"Packages/{FrameworkSettings.k_PackageName}/Editor/Localization/";
+        private const string k_TranslatorCommentForAskingLocalization = "TODO: translate";
+
+        private static readonly string s_IETLocalizationFilesFolder = $"Packages/{FrameworkSettings.k_PackageName}/Editor/Localization/";
 
         /// <summary>
         /// Currently supported languages, in addition to English.
         /// </summary>
-        public static readonly Dictionary<SystemLanguage, string> SupportedLanguages = new Dictionary<SystemLanguage, string>
+        public static readonly Dictionary<SystemLanguage, string> SupportedLanguages = new()
         {
             { SystemLanguage.Japanese, "ja" },
             { SystemLanguage.Korean, "ko" },
@@ -75,8 +76,8 @@ msgstr """"
             // adapted from https://stackoverflow.com/a/14502246
             if (str.IsNullOrEmpty())
                 return str;
-            var literal = new StringBuilder(str.Length);
-            foreach (var c in str)
+            StringBuilder literal = new(str.Length);
+            foreach (char c in str)
             {
                 if (k_EscapeMapping.ContainsKey(c))
                     literal.Append(k_EscapeMapping[c]);
@@ -98,7 +99,7 @@ msgstr """"
             return Regex.Replace(str, k_SanitizeRegexString, "");
         }
 
-        static readonly Dictionary<char, string> k_EscapeMapping = new Dictionary<char, string>()
+        private static readonly Dictionary<char, string> k_EscapeMapping = new()
         {
             { '\"', "\\\"" },   // no need to sanitize
             { '\\', @"\\"},     // no need to sanitize
@@ -113,7 +114,7 @@ msgstr """"
         };
 
         // Chars to sanitize are a subset of the chars to escape
-        static readonly string k_SanitizeRegexString =
+        private static readonly string k_SanitizeRegexString =
             string.Join("|", k_EscapeMapping.Keys.Except(new[] { '\"', '\\', '\n', '\t' }).ToArray());
 
         /// <summary>
@@ -189,30 +190,30 @@ msgstr """"
             const string ecomment = "#.";
             const string tcomment = "#";
 
-            var ret = new List<POEntry>();
+            List<POEntry> ret = new();
             try
             {
-                using (var fileStream = new FileStream(filepath, FileMode.Open, FileAccess.Read))
-                using (var streamReader = new StreamReader(fileStream, Utf8WithoutBom))
+                using (FileStream fileStream = new(filepath, FileMode.Open, FileAccess.Read))
+                using (StreamReader streamReader = new(fileStream, Utf8WithoutBom))
                 {
-                    var entry = new POEntry();
+                    POEntry entry = new();
                     string line;
                     while ((line = streamReader.ReadLine()) != null)
                     {
                         if (line.StartsWith(str))
                         {
                             entry.TranslatedString = line.Substring(str.Length);
-                            entry.TranslatedString = entry.TranslatedString.Trim(new char[] { ' ', '\"' });
+                            entry.TranslatedString = entry.TranslatedString.Trim(' ', '\"');
                         }
                         if (line.StartsWith(id))
                         {
                             entry.ID = line.Substring(id.Length);
-                            entry.ID = entry.ID.Trim(new char[] { ' ', '\"' });
+                            entry.ID = entry.ID.Trim(' ', '\"');
                         }
                         if (line.StartsWith(previd))
                         {
                             entry.PreviousUntranslatedString = line.Substring(previd.Length);
-                            entry.PreviousUntranslatedString = entry.PreviousUntranslatedString.Trim(new char[] { ' ', '\"' });
+                            entry.PreviousUntranslatedString = entry.PreviousUntranslatedString.Trim(' ', '\"');
                         }
                         if (line.StartsWith(flag)) entry.Flag = line.Substring(flag.Length).Trim();
                         if (line.StartsWith(reference)) entry.Reference = line.Substring(reference.Length).Trim();
@@ -248,13 +249,13 @@ msgstr """"
         {
             try
             {
-                using (var sw = new StreamWriter(filepath, append: false, Utf8WithoutBom))
+                using (StreamWriter sw = new(filepath, append: false, Utf8WithoutBom))
                 {
                     sw.Write(CreateHeader(langCode, projectName, projectVersion));
                     // Editor's handling of PO files seems very finicky, an empty line after the header
                     // and before the first entry required.
                     sw.WriteLine();
-                    foreach (var entry in entries)
+                    foreach (POEntry entry in entries)
                     {
                         sw.WriteLine(entry.Serialize());
                         sw.WriteLine();
@@ -270,17 +271,17 @@ msgstr """"
         }
 
         // Let's be very explicit about this, using e.g. System.Text.Encoding.UTF8 gives UTF-8 with BOM...
-        static UTF8Encoding Utf8WithoutBom => new UTF8Encoding();
+        private static UTF8Encoding Utf8WithoutBom => new();
 
         internal static void ConvertIETLocalizationFileFromV2ToV3(string languageCode)
         {
             (List<POEntry> englishEntries, List<POEntry> targetLanguageEntries) = GetSourceAndTargetLanguageExistingEntries("en", languageCode);
 
-            var outputEntries = new List<POEntry>();
-            foreach (var englishEntry in englishEntries)
+            List<POEntry> outputEntries = new();
+            foreach (POEntry englishEntry in englishEntries)
             {
                 POEntry foundEntry = targetLanguageEntries.Find(e => e.ID == englishEntry.TranslatedString);
-                POEntry resultEntry = new POEntry() { ID = englishEntry.ID };
+                POEntry resultEntry = new() { ID = englishEntry.ID };
                 if (foundEntry == null)
                 {
                     resultEntry.TranslatedString = englishEntry.TranslatedString;
@@ -296,7 +297,7 @@ msgstr """"
             WritePOFile(Application.productName, Application.version, languageCode, outputEntries, $"{s_IETLocalizationFilesFolder}{languageCode}.po");
         }
 
-        static (List<POEntry>, List<POEntry>) GetSourceAndTargetLanguageExistingEntries(string sourceLanguageCode, string targetLanguageCode)
+        private static (List<POEntry>, List<POEntry>) GetSourceAndTargetLanguageExistingEntries(string sourceLanguageCode, string targetLanguageCode)
         {
             return (ReadPOFile($"{s_IETLocalizationFilesFolder}{sourceLanguageCode}.po"), ReadPOFile($"{s_IETLocalizationFilesFolder}{targetLanguageCode}.po"));
         }
@@ -310,12 +311,12 @@ msgstr """"
         {
             (List<POEntry> englishEntries, List<POEntry> targetLanguageEntries) = GetSourceAndTargetLanguageExistingEntries("en", languageCode);
 
-            var outputEntries = new List<POEntry>();
-            foreach (var englishEntry in englishEntries)
+            List<POEntry> outputEntries = new();
+            foreach (POEntry englishEntry in englishEntries)
             {
                 string entryID = englishEntry.ID;
                 POEntry foundEntry = targetLanguageEntries.Find(e => e.ID == entryID);
-                POEntry resultEntry = new POEntry() { ID = entryID };
+                POEntry resultEntry = new() { ID = entryID };
                 if (foundEntry == null)
                 {
                     resultEntry.TranslatedString = englishEntry.TranslatedString;

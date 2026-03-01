@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// Criterion for checking that a specific object is framed in the Scene view.
@@ -12,12 +13,11 @@ namespace Unity.Tutorials.Core.Editor
     public class FrameSelectedCriterion : Criterion
     {
         [Serializable]
-        class ObjectReferenceCollection : CollectionWrapper<ObjectReference>
+        private class ObjectReferenceCollection : CollectionWrapper<ObjectReference>
         {
         }
 
-        [SerializeField]
-        ObjectReferenceCollection m_ObjectReferences = new ObjectReferenceCollection();
+        [SerializeField] private ObjectReferenceCollection m_ObjectReferences = new();
 
         /// <summary>
         /// Sets object references.
@@ -65,9 +65,9 @@ namespace Unity.Tutorials.Core.Editor
         {
         }
 
-        void OnSceneGUI(SceneView sceneView)
+        private void OnSceneGUI(SceneView sceneView)
         {
-            var evt = Event.current;
+            Event evt = Event.current;
             if (evt.type == EventType.ExecuteCommand && evt.commandName == "FrameSelected")
             {
                 if (!m_ObjectReferences.Any())
@@ -76,9 +76,9 @@ namespace Unity.Tutorials.Core.Editor
                 if (m_ObjectReferences.Count() != Selection.objects.Length)
                     return;
 
-                foreach (var objectReference in m_ObjectReferences)
+                foreach (ObjectReference objectReference in m_ObjectReferences)
                 {
-                    var referencedObject = objectReference.SceneObjectReference.ReferencedObject;
+                    Object referencedObject = objectReference.SceneObjectReference.ReferencedObject;
                     if (referencedObject == null)
                         return;
 
@@ -102,7 +102,7 @@ namespace Unity.Tutorials.Core.Editor
                 return false;
             }
 
-            var referencedObjects = m_ObjectReferences.Select(or => or.SceneObjectReference.ReferencedObject);
+            IEnumerable<Object> referencedObjects = m_ObjectReferences.Select(or => or.SceneObjectReference.ReferencedObject);
             if (referencedObjects.Any(obj => obj == null))
             {
                 Debug.LogWarning("Cannot auto-complete FrameSelectedCriterion with unresolved object references");
@@ -115,8 +115,8 @@ namespace Unity.Tutorials.Core.Editor
                 return false;
             }
 
-            var previousActiveObject = Selection.activeObject;
-            var previousSelection = Selection.objects.ToArray();
+            Object previousActiveObject = Selection.activeObject;
+            Object[] previousSelection = Selection.objects.ToArray();
 
             Selection.objects = referencedObjects.ToArray();
 

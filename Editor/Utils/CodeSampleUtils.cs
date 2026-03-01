@@ -1,7 +1,8 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     internal static class CodeSampleUtils
     {
@@ -12,9 +13,9 @@ namespace Unity.Tutorials.Core.Editor
         /// <returns>The given string as tabulated formatted code</returns>
         public static string AsFormattedCode(string originalString)
         {
-            var lines = originalString.Split('\n').Select(s => s.Trim());
+            IEnumerable<string> lines = originalString.Split('\n').Select(s => s.Trim());
 
-            var strBuilder = new StringBuilder();
+            StringBuilder strBuilder = new();
 
             int indentCount = 0;
             bool shouldIndent = false;
@@ -59,8 +60,8 @@ namespace Unity.Tutorials.Core.Editor
         /// <returns>A string containing the code with added rich text tag with color</returns>
         public static string HighlightCode(string code)
         {
-            var strBuilder = new StringBuilder();
-            var currentToken = new StringBuilder();
+            StringBuilder strBuilder = new();
+            StringBuilder currentToken = new();
 
             //as we use rich text tag, we cannot use USS class, so we have to fix them in code.
             const string keywordColor = "#6C95EB";
@@ -68,8 +69,7 @@ namespace Unity.Tutorials.Core.Editor
             const string stringColor = "#C9A26D";
             const string commentColor = "#85C46C";
 
-            var keyword = new string[]
-            {
+            string[] keyword = {
                 "bool", "byte", "sbyte", "short", "ushort", "int", "uint", "long", "ulong", "double", "float", "decimal", "char", "var",
                 "string", "char", "void", "object", "typeof", "sizeof", "null", "true", "false", "if", "else", "while", "for", "foreach", "do", "switch",
                 "case", "default", "lock", "try", "throw", "catch", "finally", "goto", "break", "continue", "return", "public", "private", "internal",
@@ -78,13 +78,13 @@ namespace Unity.Tutorials.Core.Editor
                 "namespace", "using", "class", "struct", "interface", "enum", "delegate", "checked", "unchecked", "unsafe", "operator", "implicit", "explicit"
             };
 
-            var separator = new char[] { '(', ')', '{', '}', '[', ']', '.', ',', ';'};
+            char[] separator = { '(', ')', '{', '}', '[', ']', '.', ',', ';'};
 
             char previousCharacter = ' ';
             bool singleLineCommentOpened = false;
             bool multiLineCommentOpened = false;
 
-            foreach (var c in code)
+            foreach (char c in code)
             {
                 if (multiLineCommentOpened)
                 {
@@ -134,7 +134,7 @@ namespace Unity.Tutorials.Core.Editor
                         }
                         else
                         {
-                            var token = currentToken.ToString();
+                            string token = currentToken.ToString();
                             if (keyword.Any(s => token == s))
                             {
                                 currentToken.Insert(0, $"<color={keywordColor}>");

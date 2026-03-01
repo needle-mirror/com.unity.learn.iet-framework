@@ -8,7 +8,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// Creates UIToolkit elements from a rich text.
@@ -20,7 +20,7 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         /// <param name="faultyContent">Content that contains a markdown error</param>
         /// <returns>The parsed RichText up to the error the faultyContent parameter contains</returns>
-        static string ParseUntilError(string faultyContent)
+        private static string ParseUntilError(string faultyContent)
         {
             string longestString = "";
             string previousLongestString = "";
@@ -52,7 +52,7 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         /// <param name="inputText">Text with tags</param>
         /// <returns>Text with space around tags</returns>
-        static string PreProcessRichText(string inputText)
+        private static string PreProcessRichText(string inputText)
         {
             string processed = inputText;
             processed = processed.Replace("<b>", " <b>");
@@ -77,7 +77,7 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         /// <param name="textLine">String to check for CJK letters.</param>
         /// <returns>True if it contains Chinese, Japanese or Korean characters.</returns>
-        static bool NeedSymbolWrapping(string textLine)
+        private static bool NeedSymbolWrapping(string textLine)
         {
             // Unicode range for CJK letters.
             // Range chosen from StackOverflow: https://stackoverflow.com/a/42411925
@@ -94,7 +94,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <param name="textToAdd">The text inside the word label.</param>
         /// <param name="elementList">Redundant storage, mostly used for automated testing.</param>
         /// <param name="targetContainer">Parent container for the word Label.</param>
-        static Label AddLabel<T>(string textToAdd, List<VisualElement> elementList, VisualElement targetContainer)
+        private static Label AddLabel<T>(string textToAdd, List<VisualElement> elementList, VisualElement targetContainer)
             where T : Label
         {
             Type labelType = typeof(T);
@@ -126,20 +126,20 @@ namespace Unity.Tutorials.Core.Editor
             return TrackAndAddGeneratedElement(generator, targetContainer, elementList) as Label;
         }
 
-        static VisualElement GenerateParseErrorLabel(string errorText)
+        private static VisualElement GenerateParseErrorLabel(string errorText)
         {
-            var label = new ParseErrorLabel()
+            ParseErrorLabel label = new()
             {
                 text = Localization.Tr(LocalizationKeys.k_TutorialLabelParseError),
                 tooltip = Localization.Tr(LocalizationKeys.k_TutorialLabelParseErrorTooltip)
             };
-            label.RegisterCallback<MouseUpEvent>((e) => Debug.LogError(errorText));
+            label.RegisterCallback<MouseUpEvent>(e => Debug.LogError(errorText));
             return label;
         }
 
-        static VisualElement GenerateLinkLabel(string text, string url)
+        private static VisualElement GenerateLinkLabel(string text, string url)
         {
-            var label = new HyperlinkLabel
+            HyperlinkLabel label = new()
             {
                 text = text,
                 tooltip = url
@@ -184,7 +184,7 @@ namespace Unity.Tutorials.Core.Editor
                     TutorialEditorUtils.OpenUrl(path);
                 };
             }
-            label.RegisterCallback<MouseUpEvent, string>(linkCallback, actualPath);
+            label.RegisterCallback(linkCallback, actualPath);
             return label;
         }
 
@@ -202,7 +202,7 @@ namespace Unity.Tutorials.Core.Editor
         {
             targetContainer.Clear();
 
-            var generatedElements = new List<VisualElement>();
+            List<VisualElement> generatedElements = new();
             // start streaming text per word to elements while retaining current style for each word block
             string[] lines = htmlText.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
             RenderLines(lines, targetContainer, generatedElements);
@@ -210,7 +210,7 @@ namespace Unity.Tutorials.Core.Editor
             return generatedElements;
         }
 
-        static void RenderLines(string[] lines, VisualElement targetContainer, List<VisualElement> elements)
+        private static void RenderLines(string[] lines, VisualElement targetContainer, List<VisualElement> elements)
         {
             bool boldOn = false; // <b> sets this on </b> sets off
             bool italicOn = false; // <i> </i>
@@ -271,7 +271,7 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
-        static void RenderWords(string[] words, ref bool lastLineHadText, ref bool boldOn,
+        private static void RenderWords(string[] words, ref bool lastLineHadText, ref bool boldOn,
             ref bool italicOn, ref bool forceWordWrap, ref bool linkOn, ref bool addStyle, ref string linkURL,
             ref string styleClass, List<VisualElement> elements, VisualElement targetContainer)
         {
@@ -464,7 +464,7 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
-        static VisualElement TrackAndAddGeneratedElement(Func<VisualElement> generator, VisualElement targetContainer, List<VisualElement> trackedElements)
+        private static VisualElement TrackAndAddGeneratedElement(Func<VisualElement> generator, VisualElement targetContainer, List<VisualElement> trackedElements)
         {
             VisualElement newElement = generator.Invoke();
             targetContainer.Add(newElement);
@@ -472,9 +472,9 @@ namespace Unity.Tutorials.Core.Editor
             return newElement;
         }
 
-        static VisualElement AddLinebreakToElement(VisualElement elementTo)
+        private static VisualElement AddLinebreakToElement(VisualElement elementTo)
         {
-            Label wordLabel = new Label(" ");
+            Label wordLabel = new(" ");
             wordLabel.style.flexDirection = FlexDirection.Row;
             wordLabel.style.flexGrow = 1f;
             wordLabel.style.width = 3000f;
@@ -483,9 +483,9 @@ namespace Unity.Tutorials.Core.Editor
             return wordLabel;
         }
 
-        static VisualElement AddParagraphToElement(VisualElement elementTo)
+        private static VisualElement AddParagraphToElement(VisualElement elementTo)
         {
-            Label wordLabel = new Label(" ");
+            Label wordLabel = new(" ");
             wordLabel.style.flexDirection = FlexDirection.Row;
             wordLabel.style.flexGrow = 1f;
             wordLabel.style.width = 3000f;

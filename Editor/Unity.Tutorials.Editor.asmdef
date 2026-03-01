@@ -1,0 +1,28 @@
+{
+    "name": "Unity.Tutorials.Editor",
+    "rootNamespace": "Unity.Tutorials.Editor",
+    "references": [
+        "Unity.InternalAPIEditorBridge.007",
+        "Unity.InternalAPIEngineBridge.007",
+        "Unity.Tutorials",
+        "Unity.EditorCoroutines.Editor",
+        "Unity.Settings.Editor"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.learn.iet-framework.authoring",
+            "expression": "1.0.0",
+            "define": "TUTORIAL_AUTHORING"
+        }
+    ],
+    "noEngineReferences": false
+}

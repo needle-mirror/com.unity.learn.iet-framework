@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
@@ -8,7 +9,7 @@ using UnityEngine.UIElements;
 using UnityEngine.Experimental.UIElements;
 #endif
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     using static Localization;
 
@@ -20,7 +21,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// Master control for masking and highlighting.
         /// </summary>
-        public static UserSetting<bool> MaskingEnabled = new UserSetting<bool>("IET.MaskingEnabled", Tr(LocalizationKeys.k_SettingsMaskingEnabled), true, Tr(LocalizationKeys.k_SettingsMaskingEnabledTooltip));
+        public static UserSetting<bool> MaskingEnabled = new("IET.MaskingEnabled", Tr(LocalizationKeys.k_SettingsMaskingEnabled), true, Tr(LocalizationKeys.k_SettingsMaskingEnabledTooltip));
 
         /// <summary>
         /// Delay, in seconds, before the highlight starts pulsating.
@@ -32,22 +33,21 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         public static float HighlightAnimationSpeed { get; set; }
 
-        static GUIViewProxyComparer s_GUIViewProxyComparer = new GUIViewProxyComparer();
+        private static GUIViewProxyComparer s_GUIViewProxyComparer = new();
 
-        static readonly Dictionary<GUIViewProxy, MaskViewData> s_UnmaskedViews = new Dictionary<GUIViewProxy, MaskViewData>(s_GUIViewProxyComparer);
-        static readonly Dictionary<GUIViewProxy, MaskViewData> s_HighlightedViews = new Dictionary<GUIViewProxy, MaskViewData>(s_GUIViewProxyComparer);
+        private static readonly Dictionary<GUIViewProxy, MaskViewData> s_UnmaskedViews = new(s_GUIViewProxyComparer);
+        private static readonly Dictionary<GUIViewProxy, MaskViewData> s_HighlightedViews = new(s_GUIViewProxyComparer);
 
-        static readonly List<VisualElement> s_Masks = new List<VisualElement>();
-        static readonly List<VisualElement> s_Highlighters = new List<VisualElement>();
+        private static readonly List<VisualElement> s_Masks = new();
+        private static readonly List<VisualElement> s_Highlighters = new();
 
-        static double s_LastHighlightTime;
+        private static double s_LastHighlightTime;
 
         internal static bool IsMasked(GUIViewProxy view, List<Rect> rects)
         {
             rects.Clear();
 
-            MaskViewData maskViewData;
-            if (s_UnmaskedViews.TryGetValue(view, out maskViewData))
+            if (s_UnmaskedViews.TryGetValue(view, out MaskViewData maskViewData))
             {
                 rects.AddRange(maskViewData.rects);
                 return false;
@@ -69,7 +69,7 @@ namespace Unity.Tutorials.Core.Editor
         internal static void OnEditorUpdate()
         {
             // do not animate unless enough time has passed since masking was last applied
-            var t = EditorApplication.timeSinceStartup - s_LastHighlightTime - HighlightAnimationDelay;
+            double t = EditorApplication.timeSinceStartup - s_LastHighlightTime - HighlightAnimationDelay;
             if (t < 0d)
             {
                 return;
@@ -79,7 +79,7 @@ namespace Unity.Tutorials.Core.Editor
             const float borderWidthAmplitude = 2.1f;
             float animatedBorderWidth = Mathf.Cos((float)t * HighlightAnimationSpeed) * borderWidthAmplitude + baseBorderWidth;
 
-            foreach (var highlighter in s_Highlighters)
+            foreach (VisualElement highlighter in s_Highlighters)
             {
                 if (highlighter == null) { continue; }
 
@@ -89,7 +89,7 @@ namespace Unity.Tutorials.Core.Editor
                 highlighter.style.borderBottomWidth = animatedBorderWidth;
             }
 
-            foreach (var view in s_HighlightedViews)
+            foreach (KeyValuePair<GUIViewProxy, MaskViewData> view in s_HighlightedViews)
             {
                 if (view.Key.IsValid)
                 {
@@ -103,7 +103,7 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         public static void Unmask()
         {
-            foreach (var mask in s_Masks)
+            foreach (VisualElement mask in s_Masks)
             {
                 if (mask != null && mask.parent != null)
                 {
@@ -111,7 +111,7 @@ namespace Unity.Tutorials.Core.Editor
                 }
             }
             s_Masks.Clear();
-            foreach (var highlighter in s_Highlighters)
+            foreach (VisualElement highlighter in s_Highlighters)
             {
                 if (highlighter != null && highlighter.parent != null)
                 {
@@ -121,15 +121,15 @@ namespace Unity.Tutorials.Core.Editor
             s_Highlighters.Clear();
         }
 
-        static void CopyMaskData(UnmaskedView.MaskData maskData, Dictionary<GUIViewProxy, MaskViewData> viewsAndResources)
+        private static void CopyMaskData(UnmaskedView.MaskData maskData, Dictionary<GUIViewProxy, MaskViewData> viewsAndResources)
         {
             viewsAndResources.Clear();
-            foreach (var unmaskedView in maskData.m_MaskData)
+            foreach (KeyValuePair<GUIViewProxy, MaskViewData> unmaskedView in maskData.m_MaskData)
             {
                 if (unmaskedView.Key == null) { continue; }
 
-                var maskViewData = unmaskedView.Value;
-                var unmaskedRegions = maskViewData.rects == null ? new List<Rect>(1) : maskViewData.rects.ToList();
+                MaskViewData maskViewData = unmaskedView.Value;
+                List<Rect> unmaskedRegions = maskViewData.rects == null ? new List<Rect>(1) : maskViewData.rects.ToList();
                 if (unmaskedRegions.Count == 0)
                 {
                     unmaskedRegions.Add(new Rect(0f, 0f, unmaskedView.Key.Position.width, unmaskedView.Key.Position.height));
@@ -148,26 +148,26 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         /// <param name="view"></param>
         /// <param name="child"></param>
-        static void AddMaskToView(GUIViewProxy view, VisualElement child)
+        private static void AddMaskToView(GUIViewProxy view, VisualElement child)
         {
             // Since 2019.3(?), we must suppress input to the elements behind masks.
             // TODO Doesn't suppress everything, e.g. tooltips are shown still.
-            child.RegisterCallback<MouseDownEvent>((e) => e.StopPropagation());
-            child.RegisterCallback<MouseUpEvent>((e) => e.StopPropagation());
-            child.RegisterCallback<MouseMoveEvent>((e) => e.StopPropagation());
-            child.RegisterCallback<WheelEvent>((e) => e.StopPropagation());
-            child.RegisterCallback<PointerDownEvent>((e) => e.StopPropagation());
-            child.RegisterCallback<PointerUpEvent>((e) => e.StopPropagation());
-            child.RegisterCallback<PointerMoveEvent>((e) => e.StopPropagation());
-            child.RegisterCallback<KeyDownEvent>((e) => e.StopPropagation());
-            child.RegisterCallback<KeyUpEvent>((e) => e.StopPropagation());
+            child.RegisterCallback<MouseDownEvent>(e => e.StopPropagation());
+            child.RegisterCallback<MouseUpEvent>(e => e.StopPropagation());
+            child.RegisterCallback<MouseMoveEvent>(e => e.StopPropagation());
+            child.RegisterCallback<WheelEvent>(e => e.StopPropagation());
+            child.RegisterCallback<PointerDownEvent>(e => e.StopPropagation());
+            child.RegisterCallback<PointerUpEvent>(e => e.StopPropagation());
+            child.RegisterCallback<PointerMoveEvent>(e => e.StopPropagation());
+            child.RegisterCallback<KeyDownEvent>(e => e.StopPropagation());
+            child.RegisterCallback<KeyUpEvent>(e => e.StopPropagation());
 
             if (view.IsDockedToEditor())
             {
                 UIElementsHelper.GetVisualTree(view).Add(child);
                 return;
             }
-            var viewVisualElement = UIElementsHelper.GetVisualTree(view);
+            VisualElement viewVisualElement = UIElementsHelper.GetVisualTree(view);
 
             Debug.Assert(
                 viewVisualElement.Children().Count() == 2
@@ -175,7 +175,7 @@ namespace Unity.Tutorials.Core.Editor
                 "Could not find the expected VisualElement structure"
             );
 
-            foreach (var visualElement in viewVisualElement.Children())
+            foreach (VisualElement visualElement in viewVisualElement.Children())
             {
                 if (!(visualElement is IMGUIContainer))
                 {
@@ -204,19 +204,17 @@ namespace Unity.Tutorials.Core.Editor
             CopyMaskData(unmaskedViewsAndRegionsMaskData, s_UnmaskedViews);
             CopyMaskData(highlightedRegionsMaskData, s_HighlightedViews);
 
-            List<GUIViewProxy> views = new List<GUIViewProxy>();
+            List<GUIViewProxy> views = new();
             GUIViewDebuggerHelperProxy.GetViews(views);
 
-            foreach (var view in views)
+            foreach (GUIViewProxy view in views)
             {
                 if (!view.IsValid) { continue; }
 
-                MaskViewData maskViewData;
-
-                var viewRect = new Rect(0, 0, view.Position.width, view.Position.height);
+                Rect viewRect = new(0, 0, view.Position.width, view.Position.height);
 
                 // mask everything except the unmasked view rects
-                if (s_UnmaskedViews.TryGetValue(view, out maskViewData))
+                if (s_UnmaskedViews.TryGetValue(view, out MaskViewData maskViewData))
                 {
                     // Beginning from 2021.2 the layout of floating/undocked EditorWindows has changed a bit and now contains
                     // an offset caused by the tab area which we need to take into account.
@@ -227,16 +225,16 @@ namespace Unity.Tutorials.Core.Editor
                     }
 
                     List<Rect> rects = maskViewData.rects;
-                    var maskedRects = GetNegativeSpaceRects(viewRect, rects);
-                    for (var i = 0; i < maskedRects.Count; ++i)
+                    List<Rect> maskedRects = GetNegativeSpaceRects(viewRect, rects);
+                    for (int i = 0; i < maskedRects.Count; ++i)
                     {
-                        var rect = maskedRects[i];
+                        Rect rect = maskedRects[i];
                         if (parentWindow != null && !parentWindow.IsDocked())
                         {
                             // In theory we could have an X offset also but it seems highgly unlikely.
                             rect.y -= parentWindow.rootVisualElement.layout.y;
                         }
-                        var mask = new VisualElement();
+                        VisualElement mask = new();
                         mask.style.backgroundColor = maskColor;
                         mask.SetLayout(rect);
                         AddMaskToView(view, mask);
@@ -245,9 +243,9 @@ namespace Unity.Tutorials.Core.Editor
 
                     if (maskViewData.maskType == MaskType.BlockInteractions)
                     {
-                        foreach (var rect in rects)
+                        foreach (Rect rect in rects)
                         {
-                            var mask = new VisualElement();
+                            VisualElement mask = new();
                             mask.style.backgroundColor = blockedInteractionsColor;
                             mask.SetLayout(rect);
                             AddMaskToView(view, mask);
@@ -257,7 +255,7 @@ namespace Unity.Tutorials.Core.Editor
                 }
                 else // mask the whole view
                 {
-                    var mask = new VisualElement();
+                    VisualElement mask = new();
                     mask.style.backgroundColor = maskColor;
                     mask.SetLayout(viewRect);
                     AddMaskToView(view, mask);
@@ -266,13 +264,13 @@ namespace Unity.Tutorials.Core.Editor
 
                 if (s_HighlightedViews.TryGetValue(view, out maskViewData))
                 {
-                    var rects = maskViewData.rects;
+                    List<Rect> rects = maskViewData.rects;
                     // unclip highlight to apply as "outer stroke" if it is being applied to some control(s) in the view
-                    var unclip = rects.Count > 1 || rects[0] != viewRect;
-                    var borderRadius = 5.0f;
-                    foreach (var rect in rects)
+                    bool unclip = rects.Count > 1 || rects[0] != viewRect;
+                    float borderRadius = 5.0f;
+                    foreach (Rect rect in rects)
                     {
-                        var highlighter = new VisualElement();
+                        VisualElement highlighter = new();
 #if UNITY_2019_3_OR_NEWER
                         highlighter.style.borderLeftColor = highlightColor;
                         highlighter.style.borderRightColor = highlightColor;
@@ -292,7 +290,7 @@ namespace Unity.Tutorials.Core.Editor
                         highlighter.style.borderTopRightRadius = borderRadius;
 
                         highlighter.pickingMode = PickingMode.Ignore;
-                        var layout = rect;
+                        Rect layout = rect;
                         if (unclip)
                         {
                             layout.xMin -= highlightThickness;
@@ -310,14 +308,14 @@ namespace Unity.Tutorials.Core.Editor
             s_LastHighlightTime = EditorApplication.timeSinceStartup;
         }
 
-        static EditorWindow FindOpenEditorWindowInstance(System.Type type) =>
+        private static EditorWindow FindOpenEditorWindowInstance(Type type) =>
             Resources.FindObjectsOfTypeAll(type).FirstOrDefault() as EditorWindow;
 
-        static readonly HashSet<float> s_YCoords = new HashSet<float>();
-        static readonly HashSet<float> s_XCoords = new HashSet<float>();
+        private static readonly HashSet<float> s_YCoords = new();
+        private static readonly HashSet<float> s_XCoords = new();
 
-        static readonly List<float> s_SortedYCoords = new List<float>();
-        static readonly List<float> s_SortedXCoords = new List<float>();
+        private static readonly List<float> s_SortedYCoords = new();
+        private static readonly List<float> s_SortedXCoords = new();
 
         internal static List<Rect> GetNegativeSpaceRects(Rect viewRect, List<Rect> positiveSpaceRects)
         {
@@ -328,7 +326,7 @@ namespace Unity.Tutorials.Core.Editor
 
             for (int i = 0; i < positiveSpaceRects.Count; i++)
             {
-                var hole = positiveSpaceRects[i];
+                Rect hole = positiveSpaceRects[i];
                 s_YCoords.Add(hole.y);
                 s_YCoords.Add(hole.yMax);
                 s_XCoords.Add(hole.x);
@@ -350,23 +348,23 @@ namespace Unity.Tutorials.Core.Editor
             s_SortedYCoords.Sort();
             s_SortedXCoords.Sort();
 
-            var filledRects = new List<Rect>();
+            List<Rect> filledRects = new();
 
-            for (var i = 1; i < s_SortedYCoords.Count; ++i)
+            for (int i = 1; i < s_SortedYCoords.Count; ++i)
             {
-                var minY = s_SortedYCoords[i - 1];
-                var maxY = s_SortedYCoords[i];
-                var midY = (maxY + minY) / 2;
-                var workingRect = new Rect(s_SortedXCoords[0], minY, 0, (maxY - minY));
+                float minY = s_SortedYCoords[i - 1];
+                float maxY = s_SortedYCoords[i];
+                float midY = (maxY + minY) / 2;
+                Rect workingRect = new(s_SortedXCoords[0], minY, 0, (maxY - minY));
 
-                for (var j = 1; j < s_SortedXCoords.Count; ++j)
+                for (int j = 1; j < s_SortedXCoords.Count; ++j)
                 {
-                    var minX = s_SortedXCoords[j - 1];
-                    var maxX = s_SortedXCoords[j];
-                    var midX = (maxX + minX) / 2;
+                    float minX = s_SortedXCoords[j - 1];
+                    float maxX = s_SortedXCoords[j];
+                    float midX = (maxX + minX) / 2;
 
-                    var potentialHole = positiveSpaceRects.Find((hole) => { return hole.Contains(new Vector2(midX, midY)); });
-                    var cellIsHole = potentialHole.width > 0 && potentialHole.height > 0;
+                    Rect potentialHole = positiveSpaceRects.Find(hole => { return hole.Contains(new Vector2(midX, midY)); });
+                    bool cellIsHole = potentialHole.width > 0 && potentialHole.height > 0;
 
                     if (cellIsHole)
                     {

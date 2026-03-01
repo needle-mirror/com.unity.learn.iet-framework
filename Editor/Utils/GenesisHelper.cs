@@ -7,19 +7,21 @@ using System.Text;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Networking;
+using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     [InitializeOnLoad]
     internal static class GenesisHelper
     {
-        static readonly string prodHost = @"https://api.unity.com";
-        static readonly string stagingHost = @"https://api-staging.unity.com";
+        private static readonly string prodHost = "https://api.unity.com";
+        private static readonly string stagingHost = "https://api-staging.unity.com";
 
-        static List<KeyValuePair<UnityWebRequestAsyncOperation, Action<UnityWebRequest>>> m_Requests = new List<KeyValuePair<UnityWebRequestAsyncOperation, Action<UnityWebRequest>>>();
+        private static List<KeyValuePair<UnityWebRequestAsyncOperation, Action<UnityWebRequest>>> m_Requests = new();
 
-        static HttpClient s_HttpClientInstance;
-        static HttpClient s_HttpClient
+        private static HttpClient s_HttpClientInstance;
+
+        private static HttpClient s_HttpClient
         {
             get
             {
@@ -34,14 +36,11 @@ namespace Unity.Tutorials.Core.Editor
 
         public static bool HasWarnedAboutLogin { get; set; }
 
-        static string HostAddress
-        {
-            get { return (IsStagingEnv() ? stagingHost : prodHost); }
-        }
+        private static string HostAddress => (IsStagingEnv() ? stagingHost : prodHost);
 
-        static bool IsStagingEnv()
+        private static bool IsStagingEnv()
         {
-            var commandLineArgs = Environment.GetCommandLineArgs();
+            string[] commandLineArgs = Environment.GetCommandLineArgs();
             for (int i = 0; i < commandLineArgs.Length; i++)
             {
                 if (commandLineArgs[i] == "-cloudEnvironment")
@@ -55,9 +54,9 @@ namespace Unity.Tutorials.Core.Editor
             return false;
         }
 
-        static string GetVersion()
+        private static string GetVersion()
         {
-            return UnityEditor.PackageManager.PackageInfo.FindForAssembly(Assembly.GetExecutingAssembly()).version;
+            return PackageInfo.FindForAssembly(Assembly.GetExecutingAssembly()).version;
         }
 
         static GenesisHelper()
@@ -71,13 +70,13 @@ namespace Unity.Tutorials.Core.Editor
             {
                 return;
             }
-            GetTutorial(lessonId, (list) =>
+            GetTutorial(lessonId, list =>
             {
-                var lesson = list.FirstOrDefault(s => s.lessonId == lessonId);
+                TutorialProgressStatus lesson = list.FirstOrDefault(s => s.lessonId == lessonId);
                 if (lesson == null || string.IsNullOrEmpty(lesson.status.Trim()))
                 {
                     // The fact no entries exist means the user never opened (started) this tutorial
-                    LogTutorialStatusUpdate(lessonId, TutorialProgressStatus.Status.Started.ToString());
+                    LogTutorialStatusUpdate(lessonId, nameof(TutorialProgressStatus.Status.Started));
                 }
             });
         }
@@ -90,10 +89,10 @@ namespace Unity.Tutorials.Core.Editor
             }
             // Always set the status to Finished: if we just began a tutorial and completed it very fast
             // we might not have received the up-to-date (Started) state from the backend if querying it here.
-            LogTutorialStatusUpdate(lessonId, TutorialProgressStatus.Status.Finished.ToString());
+            LogTutorialStatusUpdate(lessonId, nameof(TutorialProgressStatus.Status.Finished));
         }
 
-        static bool IsLessonIdValid(string lessonId)
+        private static bool IsLessonIdValid(string lessonId)
         {
             if (string.IsNullOrEmpty(lessonId.Trim()))
             {
@@ -103,7 +102,7 @@ namespace Unity.Tutorials.Core.Editor
             return true;
         }
 
-        static void LogWarningOnlyInAuthoringMode(string message)
+        private static void LogWarningOnlyInAuthoringMode(string message)
         {
             // We don't want to spam users with warning messages
             // but we want to catch them while creating tutorials
@@ -113,10 +112,10 @@ namespace Unity.Tutorials.Core.Editor
 
         public static void PrintAllTutorials()
         {
-            GetAllTutorials((tutorials) =>
+            GetAllTutorials(tutorials =>
             {
-                var result = "";
-                foreach (var tutorial in tutorials)
+                string result = "";
+                foreach (TutorialProgressStatus tutorial in tutorials)
                 {
                     result += tutorial.lessonId + ": " + tutorial.status + "\n";
                 }
@@ -129,7 +128,7 @@ namespace Unity.Tutorials.Core.Editor
             GetTutorial(null, action);
         }
 
-        static bool IsRequestSuccess(UnityWebRequest unityWebRequest)
+        private static bool IsRequestSuccess(UnityWebRequest unityWebRequest)
         {
 #if UNITY_2020_1_OR_NEWER
             if ((unityWebRequest.result == UnityWebRequest.Result.ConnectionError)
@@ -144,9 +143,9 @@ namespace Unity.Tutorials.Core.Editor
             return true;
         }
 
-        static void GetTutorial(string lessonId, Action<List<TutorialProgressStatus>> action)
+        private static void GetTutorial(string lessonId, Action<List<TutorialProgressStatus>> action)
         {
-            var userId = UnityConnectSession.instance.GetUserId();
+            string userId = UnityConnectSession.instance.GetUserId();
             if (userId.IsNullOrEmpty() || userId == UnityConnectSession.k_NotSignedInUserUsername)
             {
                 if (!HasWarnedAboutLogin)
@@ -156,32 +155,32 @@ namespace Unity.Tutorials.Core.Editor
                 }
                 return;
             }
-            string getLink = @"/v1/users/" + userId + @"/lessons";
+            string getLink = "/v1/users/" + userId + "/lessons";
             string url = HostAddress + getLink;
             UnityWebRequest req = MakeGetLessonsRequest(url, lessonId);
-            SendWebRequest(req, (UnityWebRequest r) =>
+            SendWebRequest(req, r =>
             {
                 if (!IsRequestSuccess(r))
                 {
                     return;
                 }
-                var lessonResponses = TutorialProgressStatus.ParseResponses(r.downloadHandler.text);
+                List<TutorialProgressStatus> lessonResponses = TutorialProgressStatus.ParseResponses(r.downloadHandler.text);
                 action(lessonResponses);
             });
         }
 
         public static async void LogTutorialStatusUpdate(string lessonId, string lessonStatus)
         {
-            var userId = UnityConnectSession.instance.GetUserId();
+            string userId = UnityConnectSession.instance.GetUserId();
             if (userId.IsNullOrEmpty()) return;
-            var getLink = @"/v1/users/" + userId + @"/lessons";
+            string getLink = "/v1/users/" + userId + "/lessons";
 
-            var jsonData = RegisterLessonRequest.GetJSONString(lessonStatus, userId, lessonId);
+            string jsonData = RegisterLessonRequest.GetJSONString(lessonStatus, userId, lessonId);
 
             // UnityWebRequests were causing memory leaks here, so they were replaced with HttpClient
-            using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, getLink))
+            using (HttpRequestMessage request = new(HttpMethod.Post, getLink))
             {
-                var data = new StringContent(jsonData, Encoding.UTF8, "application/json");
+                StringContent data = new(jsonData, Encoding.UTF8, "application/json");
 
                 request.Content = data;
 
@@ -191,37 +190,37 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
-        static void SendWebRequest(UnityWebRequest request, Action<UnityWebRequest> onFinished)
+        private static void SendWebRequest(UnityWebRequest request, Action<UnityWebRequest> onFinished)
         {
-            var pair = new KeyValuePair<UnityWebRequestAsyncOperation, Action<UnityWebRequest>>(request.SendWebRequest(), onFinished);
+            KeyValuePair<UnityWebRequestAsyncOperation, Action<UnityWebRequest>> pair = new(request.SendWebRequest(), onFinished);
             m_Requests.Add(pair);
         }
 
-        static void WebRequestProcessor()
+        private static void WebRequestProcessor()
         {
             if (!m_Requests.Any())
                 return;
 
             for (int i = 0; i < m_Requests.Count; i++)
             {
-                var request = m_Requests[i].Key;
+                UnityWebRequestAsyncOperation request = m_Requests[i].Key;
                 if (!request.isDone)
                     continue;
-                var callback = m_Requests[i].Value;
+                Action<UnityWebRequest> callback = m_Requests[i].Value;
                 m_Requests.RemoveAt(i);
                 callback(request.webRequest);
                 break;
             }
         }
 
-        static UnityWebRequest MakeGetLessonsRequest(string url, string lessonId)
+        private static UnityWebRequest MakeGetLessonsRequest(string url, string lessonId)
         {
             if (!string.IsNullOrEmpty(lessonId))
             {
                 url += "?lessonId=" + lessonId;
             }
 
-            var request = UnityWebRequest.Post(url, new WWWForm());
+            UnityWebRequest request = UnityWebRequest.Post(url, new WWWForm());
             request.SetRequestHeader("Content-Type", "application/json");
             request.SetRequestHeader("X-IET-Version", GetVersion());
             request.SetRequestHeader("Authorization", "Bearer " + UnityConnectSession.instance.GetAccessToken());
@@ -242,23 +241,23 @@ namespace Unity.Tutorials.Core.Editor
             }
 
             [Serializable]
-            class Wrapper
+            private class Wrapper
             {
-                public List<TutorialProgressStatus> statuses = null;
+                public List<TutorialProgressStatus> statuses;
             }
 
             public static List<TutorialProgressStatus> ParseResponses(string respText)
             {
-                var builder = new StringBuilder(12 + respText.Length + 1);
+                StringBuilder builder = new(12 + respText.Length + 1);
                 builder.Append("{\"statuses\":");
                 builder.Append(respText);
                 builder.Append("}");
-                var wrapper = JsonUtility.FromJson<Wrapper>(builder.ToString());
+                Wrapper wrapper = JsonUtility.FromJson<Wrapper>(builder.ToString());
                 return wrapper.statuses;
             }
         }
 
-        class RegisterLessonRequest
+        private class RegisterLessonRequest
         {
             public string status;
             public string userId;
@@ -266,7 +265,7 @@ namespace Unity.Tutorials.Core.Editor
 
             public static string GetJSONString(string status, string userId, string lessonId)
             {
-                var r = new RegisterLessonRequest();
+                RegisterLessonRequest r = new();
                 r.status = status;
                 r.userId = userId;
                 r.lessonId = lessonId;

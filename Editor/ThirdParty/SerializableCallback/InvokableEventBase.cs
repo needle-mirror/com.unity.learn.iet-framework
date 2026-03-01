@@ -1,4 +1,4 @@
-namespace SerializableCallback
+namespace Unity.Tutorials.Editor.SerializableCallback
 {
     /// <summary>
     /// https://github.com/Siccity/SerializableCallback

@@ -1,9 +1,9 @@
 using System;
-using SerializableCallback;
+using Unity.Tutorials.Editor.SerializableCallback;
 using UnityEditor;
 using UnityEngine;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// Allows tutorial author to specify arbitrary completion criterion.
@@ -25,15 +25,13 @@ namespace Unity.Tutorials.Core.Editor
         /// The callback for criterion evalution logic.
         /// </summary>
         public BoolCallback Callback { get => m_Callback; set => m_Callback = value; }
-        [SerializeField]
-        BoolCallback m_Callback = default;
+        [SerializeField] private BoolCallback m_Callback;
 
         /// <summary>
         /// The callback for auto-completion logic.
         /// </summary>
         public BoolCallback AutoCompleteCallback { get => m_AutoCompleteCallback; set => m_AutoCompleteCallback = value; }
-        [SerializeField]
-        BoolCallback m_AutoCompleteCallback = default;
+        [SerializeField] private BoolCallback m_AutoCompleteCallback;
 
         /// <summary>
         /// Evaluates if the criterion is completed.
@@ -45,8 +43,7 @@ namespace Unity.Tutorials.Core.Editor
             // Or set some internal state to completed state?
             if (m_Callback != null)
                 return m_Callback.Invoke();
-            else
-                return false;
+            return false;
         }
 
         /// <summary>
@@ -77,8 +74,7 @@ namespace Unity.Tutorials.Core.Editor
         {
             if (m_AutoCompleteCallback != null)
                 return m_AutoCompleteCallback.Invoke();
-            else
-                return false;
+            return false;
         }
     }
 }

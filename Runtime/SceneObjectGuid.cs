@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using UnityEngine;
 
-namespace Unity.Tutorials.Core
+namespace Unity.Tutorials
 {
     /// <summary>
     /// Generates a globally unique identifier (System.Guid) for a GameObject that has this component.
@@ -36,7 +36,7 @@ namespace Unity.Tutorials.Core
             }
             else
             {
-                var components = RuntimeFindObjectUtils.FindObjectsByTypeUnsorted<SceneObjectGuid>();
+                var components = RuntimeFindObjectUtils.FindObjectsByType<SceneObjectGuid>();
                 if (components.Any(c => c.m_Id == m_Id && c != this))
                 {
                     m_Id = Guid.NewGuid().ToString();
@@ -56,7 +56,7 @@ namespace Unity.Tutorials.Core
 
         void OnValidate()
         {
-            // Register in OnValidate becuase Awake in not called on domain reload in edit mode
+            // Register in OnValidate because Awake in not called on domain reload in edit mode
             Register();
         }
 

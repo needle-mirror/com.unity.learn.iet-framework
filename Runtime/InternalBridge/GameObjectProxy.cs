@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Unity.Tutorials.Core
+namespace Unity.Tutorials
 {
     internal static class GameObjectProxy
     {

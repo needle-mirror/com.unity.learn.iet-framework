@@ -10,10 +10,10 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     [Serializable]
-    struct SceneViewState
+    internal struct SceneViewState
     {
         public bool In2DMode;
         public bool Orthographic;
@@ -23,7 +23,7 @@ namespace Unity.Tutorials.Core.Editor
     }
 
     [Serializable]
-    struct SceneInfo
+    internal struct SceneInfo
     {
         public bool Active;
         public string AssetPath;
@@ -41,14 +41,14 @@ namespace Unity.Tutorials.Core.Editor
     internal class TutorialModel : IModel
     {
         /// <summary>
-        /// The original layout files are copied into this folder for modifications. 
+        /// The original layout files are copied into this folder for modifications.
         /// </summary>
-        const string k_UserLayoutDirectory = "Temp";
+        private const string k_UserLayoutDirectory = "Temp";
         /// <summary>
         /// The original/previous layout is stored into this when loading new layouts.
         /// </summary>
         internal static readonly string k_LayoutBeforeTutorialStartedPath = $"{k_UserLayoutDirectory}/LayoutBeforeTutorialStarted.dwlt";
-        internal static readonly EditorWaitForSeconds s_AutoAdvanceDelay = new EditorWaitForSeconds(0.5f);
+        internal static readonly EditorWaitForSeconds s_AutoAdvanceDelay = new(0.5f);
         internal static readonly bool s_AuthoringModeEnabled = ProjectMode.IsAuthoringMode();
         internal Tutorial CurrentTutorial;
 
@@ -80,24 +80,20 @@ namespace Unity.Tutorials.Core.Editor
         internal bool MaskingEnabled
         {
             get => MaskingManager.MaskingEnabled && (m_MaskingEnabled || !s_AuthoringModeEnabled);
-            set { m_MaskingEnabled = value; }
+            set => m_MaskingEnabled = value;
         }
 
         internal bool PlayModeChanging => m_PlayModeChanging;
 
         internal bool SkipNextAutoAdvancing = false;
 
-        [SerializeField]
-        bool m_MaskingEnabled = true;
+        [SerializeField] private bool m_MaskingEnabled = true;
 
-        [SerializeField]
-        bool m_PlayModeChanging;
+        [SerializeField] private bool m_PlayModeChanging;
 
-        [SerializeField]
-        List<SceneInfo> m_ActiveScenesBeforeTutorialStarted = new List<SceneInfo>();
+        [SerializeField] private List<SceneInfo> m_ActiveScenesBeforeTutorialStarted = new();
 
-        [SerializeField]
-        SceneViewState m_SceneViewStateBeforeTutorialStarted;
+        [SerializeField] private SceneViewState m_SceneViewStateBeforeTutorialStarted;
 
         /// <inheritdoc />
         public event Action StateChanged;
@@ -141,7 +137,7 @@ namespace Unity.Tutorials.Core.Editor
             cache.SceneViewStateBeforeTutorialStarted = m_SceneViewStateBeforeTutorialStarted;
         }
 
-        void TrackPlayModeChanging(PlayModeStateChange change)
+        private void TrackPlayModeChanging(PlayModeStateChange change)
         {
             switch (change)
             {
@@ -173,7 +169,7 @@ namespace Unity.Tutorials.Core.Editor
 
         internal void SaveSceneViewState()
         {
-            var sceneView = EditorWindow.GetWindow<SceneView>();
+            SceneView sceneView = EditorWindow.GetWindow<SceneView>();
             m_SceneViewStateBeforeTutorialStarted.In2DMode = sceneView.in2DMode;
             m_SceneViewStateBeforeTutorialStarted.Point = sceneView.pivot;
             m_SceneViewStateBeforeTutorialStarted.Direction = sceneView.rotation;
@@ -194,9 +190,9 @@ namespace Unity.Tutorials.Core.Editor
             return successful;
         }
 
-        static List<Scene> GetCurrentScenes()
+        private static List<Scene> GetCurrentScenes()
         {
-            var scenes = new List<Scene>();
+            List<Scene> scenes = new();
             for (int i = 0; i < SceneManager.sceneCount; ++i)
             {
                 scenes.Add(SceneManager.GetSceneAt(i));
@@ -235,7 +231,7 @@ namespace Unity.Tutorials.Core.Editor
                                                                                              : NewSceneMode.Additive; // prevents potential "Cannot create a new scene additively with an untitled scene unsaved" error
             Scene dummyScene = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, dummySceneMode);
 
-            GetCurrentScenes().ForEach((scene) =>
+            GetCurrentScenes().ForEach(scene =>
             {
                 if (scene != dummyScene)
                 {
@@ -244,7 +240,7 @@ namespace Unity.Tutorials.Core.Editor
             });
 
             // Load original scenes
-            foreach (var sceneInfo in m_ActiveScenesBeforeTutorialStarted)
+            foreach (SceneInfo sceneInfo in m_ActiveScenesBeforeTutorialStarted)
             {
                 if (sceneInfo.AssetPath.IsNullOrEmpty()) { continue; } // Skip new unsaved scenes
 
@@ -253,11 +249,11 @@ namespace Unity.Tutorials.Core.Editor
             }
 
             // Set original active scene
-            var originalActiveScenePath = m_ActiveScenesBeforeTutorialStarted.Where(sceneInfo => sceneInfo.Active)
+            string originalActiveScenePath = m_ActiveScenesBeforeTutorialStarted.Where(sceneInfo => sceneInfo.Active)
                                                           .Select(sceneInfo => sceneInfo.AssetPath)
                                                           .FirstOrDefault();
 
-            foreach (var scene in GetCurrentScenes())
+            foreach (Scene scene in GetCurrentScenes())
             {
                 if (scene.path == originalActiveScenePath)
                 {
@@ -277,7 +273,7 @@ namespace Unity.Tutorials.Core.Editor
 
         internal void RestoreSceneViewStateAsBeforeTutorialStarted()
         {
-            var sceneView = EditorWindow.GetWindow<SceneView>();
+            SceneView sceneView = EditorWindow.GetWindow<SceneView>();
             sceneView.in2DMode = m_SceneViewStateBeforeTutorialStarted.In2DMode;
             sceneView.LookAt
             (
@@ -324,7 +320,7 @@ namespace Unity.Tutorials.Core.Editor
                     Directory.CreateDirectory(k_UserLayoutDirectory);
                 }
 
-                var destinationPath = GetWorkingCopyWindowLayoutPath(layoutPath);
+                string destinationPath = GetWorkingCopyWindowLayoutPath(layoutPath);
                 File.Copy(layoutPath, destinationPath, overwrite: true);
 
                 const string lastProjectPathProp = "m_LastProjectPath: ";
@@ -332,8 +328,8 @@ namespace Unity.Tutorials.Core.Editor
                 const string nullObject = "{fileID: 0}";
                 string userProjectPath = Directory.GetCurrentDirectory();
 
-                var fileContents = new List<string>();
-                using (var reader = new StreamReader(destinationPath))
+                List<string> fileContents = new();
+                using (StreamReader reader = new(destinationPath))
                 {
                     string line;
                     while ((line = reader.ReadLine()) != null)
@@ -344,7 +340,7 @@ namespace Unity.Tutorials.Core.Editor
                     }
                 }
 
-                using (var writer = new StreamWriter(destinationPath, append: false))
+                using (StreamWriter writer = new(destinationPath, append: false))
                 {
                     fileContents.ForEach(writer.WriteLine);
                 }
@@ -358,8 +354,7 @@ namespace Unity.Tutorials.Core.Editor
         }
 
 
-
-        static string ReplaceAfter(string before, string replaceWithThis, string lineToRead)
+        private static string ReplaceAfter(string before, string replaceWithThis, string lineToRead)
         {
             int index = lineToRead.IndexOf(before, StringComparison.Ordinal);
             if (index > -1)

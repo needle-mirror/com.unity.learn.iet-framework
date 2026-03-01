@@ -3,35 +3,34 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.EditorCoroutines.Editor;
+using UnityEngine;
 using UnityEngine.UIElements;
-using static Unity.Tutorials.Core.Editor.TutorialContainer;
+using static Unity.Tutorials.Editor.TutorialContainer;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     internal class TableOfContentView : View
     {
         internal const string k_Name = "TableOfContent";
         internal override string Name => k_Name;
-        VisualElement m_Root;
-        VisualElement m_TutorialsContainer;
+        private VisualElement m_Root;
+        private VisualElement m_TutorialsContainer;
 
         internal int CategoriesOrTutorialsCurrentlyVisibile => m_TutorialsContainer.childCount;
 
-        TableOfContentModel Model => Application.Model.TableOfContent;
-        List<Tuple<VisualElement, Section>> m_ActiveSections;
-        bool m_SectionsInitialized = false;
-        EditorCoroutine m_CheckmarksUpdateRoutine;
+        private TableOfContentModel Model => Application.Model.TableOfContent;
+        private List<Tuple<VisualElement, Section>> m_ActiveSections;
+        private bool m_SectionsInitialized;
+        private EditorCoroutine m_CheckmarksUpdateRoutine;
 
         private EditorCoroutine m_CategoryStateLoadingRoutine;
         private bool m_CategoriesInitialized;
-        List<Tuple<VisualElement, TutorialContainer>> m_CategoryAwaitingStateUpdate;
-
-        public TableOfContentView() : base() { }
+        private List<Tuple<VisualElement, TutorialContainer>> m_CategoryAwaitingStateUpdate;
 
         internal void Initialize(VisualElement root)
         {
             m_Root = root;
-            m_TutorialsContainer = m_Root.Q("lstTutorials");
+            m_TutorialsContainer = m_Root.Q("TutorialsList");
             m_TutorialsContainer.style.alignItems = Align.Center;
             m_ActiveSections = new List<Tuple<VisualElement, Section>>();
             Refresh();
@@ -45,15 +44,15 @@ namespace Unity.Tutorials.Core.Editor
             LoadTutorialsAndLinks();
         }
 
-        void GoBackInContainerHierachy()
+        private void GoBackInContainerHierachy()
         {
             Application.Broadcast(new BackButtonClickedEvent());
         }
 
-        void LoadHeader()
+        private void LoadHeader()
         {
             VisualElement imgTitleHeader = m_Root.Q("imgTitleHeader");
-            TutorialContainer currentCategory = Model.CurrentCategory;
+            TutorialContainer currentCategory = Model.CurrentContainer;
             string subtitle = string.Empty;
             string title = string.Empty;
 
@@ -70,34 +69,34 @@ namespace Unity.Tutorials.Core.Editor
                 imgTitleHeader.style.backgroundImage = null;
             }
 
-            UIElementsUtils.SetupLabel("lblTitle", title, imgTitleHeader, false);
-            UIElementsUtils.SetupLabel("lblSubtitle", subtitle, imgTitleHeader, false);
-            bool enableBackButton = Model.CurrentCategory && (Model.CurrentCategory.ParentContainer || Model.RootCategoriesOfProject.Count() > 1);
+            UIUtils.SetupLabel("ContainerTitle", title, imgTitleHeader, false);
+            UIUtils.SetupLabel("ContainerSubtitle", subtitle, imgTitleHeader, false);
+            bool enableBackButton = Model.CurrentContainer && (Model.CurrentContainer.ParentContainer || Model.RootCategoriesOfProject.Count() > 1);
 
             if(enableBackButton)
-                UIElementsUtils.SetupButton("btnExitCategory", GoBackInContainerHierachy, enableBackButton, imgTitleHeader, string.Empty, Localization.Tr(LocalizationKeys.k_TOCButtonBackTooltip));
+                UIUtils.SetupButton("ButtonExitCategory", GoBackInContainerHierachy, enableBackButton, imgTitleHeader, string.Empty, Localization.Tr(LocalizationKeys.k_TOCButtonBackTooltip));
             else
-                UIElementsUtils.Hide("btnExitCategory", imgTitleHeader);
+                UIUtils.Hide("ButtonExitCategory", imgTitleHeader);
         }
 
-        void LoadCategories()
+        private void LoadCategories()
         {
-            IEnumerable<TutorialContainer> categoriesToLoad = Model.CurrentCategory == null ? Model.RootCategoriesOfProject
-                                                                                            : Model.CurrentCategory.FindSubCategories();
+            IEnumerable<TutorialContainer> categoriesToLoad = Model.CurrentContainer == null ? Model.RootCategoriesOfProject
+                                                                                            : Model.CurrentContainer.FindSubCategories();
 
             if (categoriesToLoad == null) { return; }
 
             //sorting category by order in view
-            categoriesToLoad = categoriesToLoad.OrderBy(container => container.OrderInView);
+            categoriesToLoad = categoriesToLoad.OrderBy(container => container.OrderInParent);
 
             m_CategoriesInitialized = false;
             m_CategoryAwaitingStateUpdate = new();
             Application.StopAndNullifyEditorCoroutine(ref m_CategoryStateLoadingRoutine);
             m_CategoryStateLoadingRoutine = EditorCoroutineUtility.StartCoroutine(UpdateTutorialsStateFetched(), Application);
 
-            VisualTreeAsset tutorialCategoryUIPrefab = UIElementsUtils.LoadUXML("TutorialCategoryUI");
+            VisualTreeAsset tutorialCategoryUIPrefab = UIUtils.LoadUXML("TutorialCategoryUI");
             VisualElement categoryUI;
-            foreach (var category in categoriesToLoad)
+            foreach (TutorialContainer category in categoriesToLoad)
             {
                 categoryUI = tutorialCategoryUIPrefab.CloneTree();
                 SetupCategoryUI(categoryUI, category);
@@ -109,10 +108,10 @@ namespace Unity.Tutorials.Core.Editor
 
         internal void SetupSectionUI(VisualElement sectionUI, Section data)
         {
-            UIElementsUtils.SetupLabel("lblName", data.Heading, sectionUI, false);
-            UIElementsUtils.SetupLabel("lblDescription", data.Text, sectionUI, false);
+            UIUtils.SetupLabel("lblName", data.Heading, sectionUI, false);
+            UIUtils.SetupLabel("lblDescription", data.Text, sectionUI, false);
 
-            UIElementsUtils.ShowOrHide("imgLink", sectionUI, !string.IsNullOrEmpty(data.Url));
+            UIUtils.ShowOrHide("imgLink", sectionUI, !string.IsNullOrEmpty(data.Url));
 
             if (data.Image != null)
             {
@@ -121,38 +120,36 @@ namespace Unity.Tutorials.Core.Editor
 
             sectionUI.UnregisterCallback<MouseUpEvent, Section>(OnSectionClicked);
 
-            UIElementsUtils.ShowOrHide("imgErrorCheckmark", sectionUI, !data.IsConfiguredCorrectly);
+            UIUtils.ShowOrHide("imgErrorCheckmark", sectionUI, !data.IsConfiguredCorrectly);
 
             if (data.IsConfiguredCorrectly)
             {
-                sectionUI.tooltip = Localization.Tr(LocalizationKeys.k_TutorialSectionTooltip) + data.Text;
                 if (data.IsTutorial)
                 {
-                    UIElementsUtils.Show("lblCompletionStatus", sectionUI);
+                    UIUtils.Show("lblCompletionStatus", sectionUI);
                     UpdateCheckmark(sectionUI, data);
                 }
                 else
                 {
-                    UIElementsUtils.Hide("lblCompletionStatus", sectionUI);
-                    UIElementsUtils.Hide("imgCheckmark", sectionUI);
+                    UIUtils.Hide("lblCompletionStatus", sectionUI);
+                    UIUtils.Hide("imgCheckmark", sectionUI);
                 }
                 sectionUI.RegisterCallback<MouseUpEvent, Section>(OnSectionClicked, data);
                 return;
             }
             sectionUI.tooltip = Localization.Tr(LocalizationKeys.k_TutorialLabelParseError);
-            UIElementsUtils.Hide("lblCompletionStatus", sectionUI);
-            UIElementsUtils.Hide("imgCheckmark", sectionUI);
+            UIUtils.Hide("lblCompletionStatus", sectionUI);
+            UIUtils.Hide("imgCheckmark", sectionUI);
         }
 
         internal void SetupCategoryUI(VisualElement categoryUI, TutorialContainer data)
         {
-            UIElementsUtils.SetupLabel("lblName", data.Title, categoryUI, false);
-            UIElementsUtils.SetupLabel("lblDescription", data.Subtitle, categoryUI, false);
+            UIUtils.SetupLabel("lblName", data.Title, categoryUI, false);
+            UIUtils.SetupLabel("lblDescription", data.Subtitle, categoryUI, false);
 
             InitCompletionUI(categoryUI, data);
             m_CategoryAwaitingStateUpdate.Add(new Tuple<VisualElement, TutorialContainer>(categoryUI, data));
 
-            categoryUI.tooltip = data.Description;
             if (data.BackgroundImage != null)
             {
                 categoryUI.Q("TutorialImage").style.backgroundImage = Background.FromTexture2D(data.BackgroundImage);
@@ -160,83 +157,83 @@ namespace Unity.Tutorials.Core.Editor
             categoryUI.RegisterCallback((MouseUpEvent evt) => OnCategoryClicked(evt, data));
         }
 
-        void InitCompletionUI(VisualElement categoryUI, TutorialContainer container)
+        private void InitCompletionUI(VisualElement categoryUI, TutorialContainer container)
         {
-            var label = categoryUI.Q<Label>("CategoryCompletionLabel");
-            var bar = categoryUI.Q<VisualElement>("CategoryCompletionBar");
+            Label label = categoryUI.Q<Label>("CategoryCompletionLabel");
+            VisualElement bar = categoryUI.Q<VisualElement>("CategoryCompletionBar");
 
             bar.style.width = 0;
             label.text = "Completion Loading...";
-            UIElementsUtils.Hide("Checkmark", categoryUI);
+            UIUtils.Hide("Checkmark", categoryUI);
         }
 
-        void UpdateCompletionUI(VisualElement categoryUI, TutorialContainer container)
+        private void UpdateCompletionUI(VisualElement categoryUI, TutorialContainer container)
         {
-            var label = categoryUI.Q<Label>("CategoryCompletionLabel");
-            var bar = categoryUI.Q<VisualElement>("CategoryCompletionBar");
+            Label label = categoryUI.Q<Label>("CategoryCompletionLabel");
+            VisualElement bar = categoryUI.Q<VisualElement>("CategoryCompletionBar");
 
             float completion = container.GetCompletionRate();
-            int completionPercent = UnityEngine.Mathf.RoundToInt(completion * 100);
+            int completionPercent = Mathf.RoundToInt(completion * 100);
 
             if (completionPercent == 100)
             {
                 label.text = "COMPLETED";
-                UIElementsUtils.Show("Checkmark", categoryUI);
+                UIUtils.Show("Checkmark", categoryUI);
             }
             else
             {
-                UIElementsUtils.Hide("Checkmark", categoryUI);
+                UIUtils.Hide("Checkmark", categoryUI);
                 label.text = string.Format($"Completion : {completionPercent}%");
             }
 
             bar.style.width = Length.Percent(completionPercent);
         }
 
-        void OnSectionClicked(MouseUpEvent evt, Section section)
+        private void OnSectionClicked(MouseUpEvent evt, Section section)
         {
             Application.Broadcast(new SectionClickedEvent(section));
         }
 
-        void OnCategoryClicked(MouseUpEvent evt, TutorialContainer category)
+        private void OnCategoryClicked(MouseUpEvent evt, TutorialContainer category)
         {
             Application.Broadcast(new CategoryClickedEvent(category));
         }
 
-        void UpdateCheckmark(VisualElement sectionUI, Section data)
+        private void UpdateCheckmark(VisualElement sectionUI, Section data)
         {
             bool progressTracking = (data.Tutorial != null && data.Tutorial.ProgressTrackingEnabled);
             bool completed = progressTracking && data.Tutorial.CompletedByUser;
 
-            UIElementsUtils.SetupLabel("lblCompletionStatus", completed ? Localization.Tr(LocalizationKeys.k_TOCLabelCompleted) : string.Empty, sectionUI, false);
+            UIUtils.SetupLabel("lblCompletionStatus", completed ? Localization.Tr(LocalizationKeys.k_TOCLabelCompleted) : string.Empty, sectionUI, false);
             VisualElement tutorialCheckmark = sectionUI.Q("imgCheckmark");
             if (completed)
             {
-                UIElementsUtils.Show(tutorialCheckmark);
+                UIUtils.Show(tutorialCheckmark);
             }
             else
             {
-                UIElementsUtils.Hide(tutorialCheckmark);
+                UIUtils.Hide(tutorialCheckmark);
             }
         }
 
-        void LoadTutorialsAndLinks()
+        private void LoadTutorialsAndLinks()
         {
             m_ActiveSections.Clear();
             m_SectionsInitialized = false;
             IEnumerable<Section> sectionsToLoad;
-            if (Model.CurrentCategory == null)
+            if (Model.CurrentContainer == null)
             {
                 if (Model.RootCategoriesOfProject.Count() > 1)
                 {
                     return; //nothing to load as we're in the 1st screen of the Table of Content
                 }
                 sectionsToLoad = Model.RootCategoriesOfProject
-                                      .OrderBy(rootCategory => rootCategory.OrderInView)
+                                      .OrderBy(rootCategory => rootCategory.OrderInParent)
                                       .SelectMany(rootCategory => rootCategory.Sections);
             }
             else
             {
-                sectionsToLoad = Model.CurrentCategory.Sections;
+                sectionsToLoad = Model.CurrentContainer.Sections;
             }
 
             if (sectionsToLoad == null)
@@ -247,7 +244,7 @@ namespace Unity.Tutorials.Core.Editor
 
             if (sectionsToLoad.Any(section => section.Tutorial?.ProgressTrackingEnabled ?? false))
             {
-                foreach (var section in sectionsToLoad)
+                foreach (Section section in sectionsToLoad)
                 {
                     section.LoadState();
                 }
@@ -255,9 +252,9 @@ namespace Unity.Tutorials.Core.Editor
                 m_CheckmarksUpdateRoutine = EditorCoroutineUtility.StartCoroutine(UpdateCheckmarksWhenStatesFetched(), Application);
             }
 
-            VisualTreeAsset sectionUIPrefab = UIElementsUtils.LoadUXML("SectionUI");
+            VisualTreeAsset sectionUIPrefab = UIUtils.LoadUXML("SectionUI");
             VisualElement sectionUI;
-            foreach (var section in sectionsToLoad)
+            foreach (Section section in sectionsToLoad)
             {
                 sectionUI = sectionUIPrefab.CloneTree();
                 SetupSectionUI(sectionUI, section);
@@ -267,14 +264,15 @@ namespace Unity.Tutorials.Core.Editor
 
             m_SectionsInitialized = true;
         }
-        IEnumerator UpdateCheckmarksWhenStatesFetched()
+
+        private IEnumerator UpdateCheckmarksWhenStatesFetched()
         {
             while (!m_SectionsInitialized || !Model.FetchedTutorialStates)
             {
                 yield return null;
             }
 
-            foreach (var sectionUIAndData in m_ActiveSections)
+            foreach (Tuple<VisualElement, Section> sectionUIAndData in m_ActiveSections)
             {
                 if (sectionUIAndData.Item2.IsConfiguredCorrectly)
                 {
@@ -283,7 +281,7 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
-        IEnumerator UpdateTutorialsStateFetched()
+        private IEnumerator UpdateTutorialsStateFetched()
         {
             // Model.FetchedTutorialStates will be set to true by the model once all state have been fetched. As this
             // potentially fetch online data, we need to wait until the answer is there
@@ -293,7 +291,7 @@ namespace Unity.Tutorials.Core.Editor
             }
 
 
-            foreach (var uiAndData in m_CategoryAwaitingStateUpdate)
+            foreach (Tuple<VisualElement, TutorialContainer> uiAndData in m_CategoryAwaitingStateUpdate)
             {
                 UpdateCompletionUI(uiAndData.Item1, uiAndData.Item2);
             }

@@ -1,7 +1,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// Criterion for checking that a specific Editor Tool is selected.
@@ -11,9 +11,10 @@ namespace Unity.Tutorials.Core.Editor
         /// <summary>
         /// The Tool we wish to test for.
         /// </summary>
-        public Tool TargetTool { get { return m_TargetTool; } set { m_TargetTool = value; } }
-        [SerializeField]
-        Tool m_TargetTool;
+        public Tool TargetTool { get => m_TargetTool;
+            set => m_TargetTool = value;
+        }
+        [SerializeField] private Tool m_TargetTool;
 
         /// <summary>
         /// Starts testing of the criterion.

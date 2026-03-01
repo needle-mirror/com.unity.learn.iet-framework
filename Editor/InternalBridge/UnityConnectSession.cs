@@ -1,6 +1,6 @@
 using UnityEditor.Connect;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     internal class UnityConnectSession
     {

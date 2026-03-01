@@ -2,20 +2,20 @@ using UnityEditor;
 using UnityEngine;
 using UnityObject = UnityEngine.Object;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     [CustomPropertyDrawer(typeof(ObjectReference))]
-    class ObjectReferencePropertyDrawer : PropertyDrawer
+    internal class ObjectReferencePropertyDrawer : PropertyDrawer
     {
-        const string k_SceneObjectReferencePath = "m_SceneObjectReference";
-        const string k_FutureObjectReferencePath = "m_FutureObjectReference";
+        private const string k_SceneObjectReferencePath = "m_SceneObjectReference";
+        private const string k_FutureObjectReferencePath = "m_FutureObjectReference";
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            var sceneObjectReferenceProperty = property.FindPropertyRelative(k_SceneObjectReferencePath);
-            var futureObjectReferenceProperty = property.FindPropertyRelative(k_FutureObjectReferencePath);
+            SerializedProperty sceneObjectReferenceProperty = property.FindPropertyRelative(k_SceneObjectReferencePath);
+            SerializedProperty futureObjectReferenceProperty = property.FindPropertyRelative(k_FutureObjectReferencePath);
 
-            var origColor = GUI.color;
+            Color origColor = GUI.color;
 
             UnityObject obj;
             SceneObjectReference sceneObjectReference = null;
@@ -49,7 +49,7 @@ namespace Unity.Tutorials.Core.Editor
             GUI.color = origColor;
 
             EditorGUI.BeginChangeCheck();
-            var newObj = EditorGUI.ObjectField(position, obj, typeof(Object), true);
+            Object newObj = EditorGUI.ObjectField(position, obj, typeof(Object), true);
             if (EditorGUI.EndChangeCheck())
             {
                 if (newObj is FutureObjectReference)

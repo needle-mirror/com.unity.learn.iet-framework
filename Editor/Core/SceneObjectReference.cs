@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// Used to reference different Unity Objects.
@@ -13,31 +13,24 @@ namespace Unity.Tutorials.Core.Editor
     [Serializable]
     public class SceneObjectReference
     {
-        [SerializeField]
-        string m_SceneGuid;
-        [SerializeField]
-        string m_GameObjectGuid;
-        [SerializeField]
-        SerializedType m_SerializedComponentType = new SerializedType(null);
-        [SerializeField]
-        int m_ComponentIndex;
-        [SerializeField]
-        Object m_AssetObject;
-        [SerializeField]
-        GameObject m_Prefab;
+        [SerializeField] private string m_SceneGuid;
+        [SerializeField] private string m_GameObjectGuid;
+        [SerializeField] private SerializedType m_SerializedComponentType = new(null);
+        [SerializeField] private int m_ComponentIndex;
+        [SerializeField] private Object m_AssetObject;
+        [SerializeField] private GameObject m_Prefab;
 
-        [NonSerialized]
-        bool m_Initialized;
-        [NonSerialized]
-        Object m_ReferencedObject;
+        [NonSerialized] private bool m_Initialized;
+        [NonSerialized] private Object m_ReferencedObject;
 
-        SerializedProperty m_SceneGuidProperty;
-        SerializedProperty m_GameObjectGuidProperty;
+        private SerializedProperty m_SceneGuidProperty;
+
+        private SerializedProperty m_GameObjectGuidProperty;
         //SerializedProperty m_ComponentTypeProperty;
-        SerializedProperty m_SerializedComponentTypeProperty;
-        SerializedProperty m_ComponentIndexProperty;
-        SerializedProperty m_AssetObjectProperty;
-        SerializedProperty m_PrefabProperty;
+        private SerializedProperty m_SerializedComponentTypeProperty;
+        private SerializedProperty m_ComponentIndexProperty;
+        private SerializedProperty m_AssetObjectProperty;
+        private SerializedProperty m_PrefabProperty;
 
         /// <summary>
         /// The referenced Object.
@@ -130,7 +123,7 @@ namespace Unity.Tutorials.Core.Editor
             Init();
         }
 
-        void Init()
+        private void Init()
         {
             m_Initialized = true;
             m_ReferencedObject = null;
@@ -155,7 +148,7 @@ namespace Unity.Tutorials.Core.Editor
                 return;
             }
 
-            var guidComponent = SceneObjectGuidManager.Instance.GetComponent(m_GameObjectGuid);
+            SceneObjectGuid guidComponent = SceneObjectGuidManager.Instance.GetComponent(m_GameObjectGuid);
             if (guidComponent == null)
             {
                 return;
@@ -164,10 +157,10 @@ namespace Unity.Tutorials.Core.Editor
             m_ReferencedObject = go = guidComponent.gameObject;
             if (m_SerializedComponentType.Type == null)
                 return;
-            var componentType = m_SerializedComponentType.Type;
+            Type componentType = m_SerializedComponentType.Type;
             if (componentType == null)
                 return;
-            var components = go.GetComponents(componentType);
+            Component[] components = go.GetComponents(componentType);
 
             if (components.Length == 0)
             {
@@ -185,12 +178,12 @@ namespace Unity.Tutorials.Core.Editor
             m_ReferencedObject = components[m_ComponentIndex];
         }
 
-        void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+        private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
             ResetInitialization();
         }
 
-        void OnSceneOpened(Scene scene, OpenSceneMode mode)
+        private void OnSceneOpened(Scene scene, OpenSceneMode mode)
         {
             ResetInitialization();
         }
@@ -255,7 +248,7 @@ namespace Unity.Tutorials.Core.Editor
             SaveProperties();
         }
 
-        void ResetReference()
+        private void ResetReference()
         {
             m_SceneGuid = m_GameObjectGuid = null;
             m_SerializedComponentType = new SerializedType(null);
@@ -265,14 +258,14 @@ namespace Unity.Tutorials.Core.Editor
             m_Prefab = null;
         }
 
-        void ResetInitialization()
+        private void ResetInitialization()
         {
             m_Initialized = false;
             EditorSceneManager.sceneOpened -= OnSceneOpened;
             SceneManager.sceneLoaded -= OnSceneLoaded;
         }
 
-        void SaveProperties()
+        private void SaveProperties()
         {
             if (m_GameObjectGuidProperty == null)
             {
@@ -288,6 +281,6 @@ namespace Unity.Tutorials.Core.Editor
             m_PrefabProperty.objectReferenceValue = m_Prefab;
         }
 
-        string GetSceneId(GameObject gameObject) => AssetDatabase.AssetPathToGUID(gameObject.scene.path);
+        private string GetSceneId(GameObject gameObject) => AssetDatabase.AssetPathToGUID(gameObject.scene.path);
     }
 }

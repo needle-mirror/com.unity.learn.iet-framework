@@ -4,7 +4,7 @@ using UnityEditor;
 
 #endregion
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// Tests if a build has started.
@@ -13,7 +13,7 @@ namespace Unity.Tutorials.Core.Editor
     // building from the default build dialog, hence IPreprocessBuildWithReport + SessionState used also.
     public class BuildStartedCriterion : Criterion
     {
-        bool BuildStarted
+        private bool BuildStarted
         {
             get => SessionState.GetBool("BuildStartedCriterion.BuildStarted", false);
             set => SessionState.SetBool("BuildStartedCriterion.BuildStarted", value);

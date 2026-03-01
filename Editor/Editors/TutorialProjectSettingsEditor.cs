@@ -1,36 +1,56 @@
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UIElements;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     [CustomEditor(typeof(TutorialProjectSettings))]
-    class TutorialProjectSettingsEditor : UnityEditor.Editor
+    internal class TutorialProjectSettingsEditor : UnityEditor.Editor
     {
-        readonly string[] k_PropertiesToHide = { "m_Script" };
+        [SerializeField] private StyleSheet m_Stylesheet;
 
-        TutorialProjectSettings Target => (TutorialProjectSettings)target;
+        private readonly string[] k_PropertiesToHide = { "m_Script" };
 
-        public override void OnInspectorGUI()
+        private TutorialProjectSettings Target => (TutorialProjectSettings)target;
+
+        public override VisualElement CreateInspectorGUI()
         {
-            TutorialProjectSettings.DrawDefaultAssetRestoreWarning();
+            VisualElement root = new();
+            root.styleSheets.Add(m_Stylesheet);
 
-            if (GUILayout.Button(Localization.Tr(LocalizationKeys.k_ButtonRunStartupCode)))
+            // TODO : Update if related setting changes while the inspector is open.
+            TutorialProjectSettings.DrawDefaultAssetRestoreWarningElement(root);
+
+            Button runStartupCodeBtn = new(OnRunStartupCodeBtnClicked)
+            {
+                text = Localization.Tr(LocalizationKeys.k_ButtonRunStartupCode)
+            };
+            runStartupCodeBtn.AddToClassList("button-md");
+            root.Add(runStartupCodeBtn);
+
+            Button showTutorialsBtn = new(OnShowTutorialsBtnClicked)
+            {
+                text = Localization.Tr(MenuItems.ShowTutorials)
+            };
+            showTutorialsBtn.AddToClassList("button-md");
+            root.Add(showTutorialsBtn);
+
+            VisualElement spacer = new() {style = { height = 8}};
+            root.Add(spacer);
+
+            UIUtils.DrawInspectorExcluding(root, serializedObject, this, k_PropertiesToHide);
+
+            return root;
+
+            void OnShowTutorialsBtnClicked()
+            {
+                TutorialWindow.GetOrCreateWindowNextToInspector();
+            }
+
+            void OnRunStartupCodeBtnClicked()
             {
                 TutorialWindow.Instance.Broadcast(new TutorialQuitEvent());
                 UserStartupCode.RunStartupCode(Target);
-            }
-
-            EditorGUILayout.Space(10);
-
-            if (SerializedTypeDrawer.UseDefaultEditors)
-            {
-                base.OnInspectorGUI();
-            }
-            else
-            {
-                serializedObject.Update();
-                DrawPropertiesExcluding(serializedObject, k_PropertiesToHide);
-                serializedObject.ApplyModifiedProperties();
             }
         }
     }

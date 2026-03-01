@@ -5,7 +5,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// Criterion for checking that specific Components are added to a GameObject.
@@ -13,10 +13,10 @@ namespace Unity.Tutorials.Core.Editor
     public class ComponentAddedCriterion : Criterion
     {
         [SerializeField, FormerlySerializedAs("targetGameObject")]
-        ObjectReference m_TargetGameObject;
+        private ObjectReference m_TargetGameObject;
 
         [SerializeField, FormerlySerializedAs("requiredComponents")]
-        SerializedTypeCollection m_RequiredComponents = new SerializedTypeCollection();
+        private SerializedTypeCollection m_RequiredComponents = new();
 
         /// <summary>
         /// Returns the target GameObject.
@@ -49,7 +49,7 @@ namespace Unity.Tutorials.Core.Editor
             }
             set
             {
-                var items = value.Select(type => new TypeAndFutureReference(new SerializedType(type))).ToList();
+                List<TypeAndFutureReference> items = value.Select(type => new TypeAndFutureReference(new SerializedType(type))).ToList();
                 m_RequiredComponents.SetItems(items);
                 OnValidate();
             }
@@ -84,12 +84,12 @@ namespace Unity.Tutorials.Core.Editor
             base.OnValidate();
 
             // Update future references
-            var requiredComponentsIndex = 0;
-            foreach (var typeAndFutureReference in m_RequiredComponents)
+            int requiredComponentsIndex = 0;
+            foreach (TypeAndFutureReference typeAndFutureReference in m_RequiredComponents)
             {
                 requiredComponentsIndex++;
 
-                var type = typeAndFutureReference.SerializedType.Type;
+                Type type = typeAndFutureReference.SerializedType.Type;
                 if (type == null)
                     continue;
 
@@ -110,14 +110,14 @@ namespace Unity.Tutorials.Core.Editor
         /// <returns>True if the target GameObject have the required component, false otherwise</returns>
         protected override bool EvaluateCompletion()
         {
-            var gameObject = TargetGameObject;
+            GameObject gameObject = TargetGameObject;
             if (gameObject == null)
                 return false;
 
             if (RequiredComponents.Count() == 0)
                 return true;
 
-            foreach (var type in RequiredComponents)
+            foreach (Type type in RequiredComponents)
             {
                 if (type == null)
                 {
@@ -130,9 +130,9 @@ namespace Unity.Tutorials.Core.Editor
             }
 
             // Update future references
-            foreach (var requiredType in m_RequiredComponents)
+            foreach (TypeAndFutureReference requiredType in m_RequiredComponents)
             {
-                var component = gameObject.GetComponent(requiredType.SerializedType.Type);
+                Component component = gameObject.GetComponent(requiredType.SerializedType.Type);
                 requiredType.FutureReference.SceneObjectReference.Update(component);
             }
 
@@ -156,13 +156,13 @@ namespace Unity.Tutorials.Core.Editor
         /// <returns>True if the auto-completion succeeded.</returns>
         public override bool AutoComplete()
         {
-            var gameObject = TargetGameObject;
+            GameObject gameObject = TargetGameObject;
             if (gameObject == null)
                 return false;
 
-            foreach (var type in RequiredComponents)
+            foreach (Type type in RequiredComponents)
             {
-                var component = gameObject.AddComponent(type);
+                Component component = gameObject.AddComponent(type);
                 if (component == null)
                     return false;
             }
@@ -200,7 +200,7 @@ namespace Unity.Tutorials.Core.Editor
             /// <param name="serializedType">The SerializedType to which that TypeAndFutureReference will point to</param>
             public TypeAndFutureReference(SerializedType serializedType)
             {
-                this.SerializedType = serializedType;
+                SerializedType = serializedType;
             }
 
             /// <summary>

@@ -5,30 +5,26 @@ using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 using UnityObject = UnityEngine.Object;
-using static Unity.Tutorials.Core.Editor.Localization;
+using static Unity.Tutorials.Editor.Localization;
+#if UNITY_6000_5_OR_NEWER
+using UnityEngine.Assemblies;
+#endif
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     [CustomPropertyDrawer(typeof(SerializedType))]
-    class SerializedTypeDrawer : PropertyDrawerExtended<SerializedTypeDrawerData>
+    internal class SerializedTypeDrawer : PropertyDrawerExtended<SerializedTypeDrawerData>
     {
-        const string k_TypeNamePath = nameof(SerializedType.m_TypeName);
+        private const string k_TypeNamePath = nameof(SerializedType.m_TypeName);
 
-        internal static UserSetting<bool> ShowSimplifiedTypeNames = new UserSetting<bool>(
+        internal static UserSetting<bool> ShowSimplifiedTypeNames = new(
             "IET.ShowSimplifiedTypeNames",
             Tr(LocalizationKeys.k_SettingsShowSimplifiedTypeNames),
             true,
             Tr(LocalizationKeys.k_SettingsShowSimplifiedTypeNamesTooltip)
         );
 
-        internal static UserSetting<bool> UseDefaultEditors = new UserSetting<bool>(
-            "IET.UseDefaultEditors",
-            Tr(LocalizationKeys.k_SettingsUseDefaultEditors),
-            false,
-            Tr(LocalizationKeys.k_SettingsUseDefaultEditorsTooltip)
-        );
-
-        static GUIStyle preDropGlow
+        private static GUIStyle preDropGlow
         {
             get
             {
@@ -41,15 +37,16 @@ namespace Unity.Tutorials.Core.Editor
                 return s_PreDropGlow;
             }
         }
-        static GUIStyle s_PreDropGlow;
+
+        private static GUIStyle s_PreDropGlow;
 
 
         //NOTE: for lists, class fields' data is shared between all instances drawed
 
-        Dictionary<string, Options> m_PropertyPathToOptions = new Dictionary<string, Options>();
+        private Dictionary<string, Options> m_PropertyPathToOptions = new();
 
         // Cached value for triggering renegeneration of the Options.
-        bool m_ShowSimplifiedNames = ShowSimplifiedTypeNames;
+        private bool m_ShowSimplifiedNames = ShowSimplifiedTypeNames;
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
@@ -146,23 +143,22 @@ namespace Unity.Tutorials.Core.Editor
                 m_PropertyPathToOptions.Clear();
             }
 
-            var typeNameProperty = property.FindPropertyRelative(k_TypeNamePath);
-            var assemblyQualifiedName = typeNameProperty.stringValue;
+            SerializedProperty typeNameProperty = property.FindPropertyRelative(k_TypeNamePath);
+            string assemblyQualifiedName = typeNameProperty.stringValue;
 
-            Options options;
-            if (!m_PropertyPathToOptions.TryGetValue(property.propertyPath, out options))
+            if (!m_PropertyPathToOptions.TryGetValue(property.propertyPath, out Options options))
             {
-                var filterAttribute = Attribute.GetCustomAttribute(fieldInfo, typeof(SerializedTypeFilterAttributeBase), true) as SerializedTypeFilterAttributeBase;
+                SerializedTypeFilterAttributeBase filterAttribute = Attribute.GetCustomAttribute(fieldInfo, typeof(SerializedTypeFilterAttributeBase), true) as SerializedTypeFilterAttributeBase;
                 options = new Options(assemblyQualifiedName, filterAttribute.BaseType, filterAttribute.HideAbstractTypes);
                 m_PropertyPathToOptions[property.propertyPath] = options;
             }
 
-            var origBgColor = GUI.backgroundColor;
+            Color origBgColor = GUI.backgroundColor;
 
             label = EditorGUI.BeginProperty(position, label, property);
             position = EditorGUI.PrefixLabel(position, id, label);
 
-            var resolvedType = Type.GetType(assemblyQualifiedName);
+            Type resolvedType = Type.GetType(assemblyQualifiedName);
             if (resolvedType == null && assemblyQualifiedName.IsNotNullOrEmpty())
             {
                 GUI.backgroundColor = Color.red;
@@ -174,13 +170,13 @@ namespace Unity.Tutorials.Core.Editor
                 GUI.backgroundColor = Color.yellow;
             }
 
-            var selectedIndex = ArrayUtility.IndexOf(options.assemblyQualifiedNames, assemblyQualifiedName);
+            int selectedIndex = ArrayUtility.IndexOf(options.assemblyQualifiedNames, assemblyQualifiedName);
             if (selectedIndex < 0)
                 selectedIndex = 0; // Not Found
             GUIContent buttonText = options.displayedOptions[selectedIndex];
             if (DropdownButton(id, position, buttonText))
             {
-                Action<int> onItemSelected = (i) => OnItemSelected(i, position, options, property, typeNameProperty);
+                Action<int> onItemSelected = i => OnItemSelected(i, position, options, property, typeNameProperty);
                 SearchablePopup.Show(position, options.displayedOptions, selectedIndex, onItemSelected);
             }
 
@@ -202,7 +198,7 @@ namespace Unity.Tutorials.Core.Editor
             GUI.backgroundColor = origBgColor;
         }
 #endif
-        void OnItemSelected(int indexInOptions, Rect position, Options options, SerializedProperty property, SerializedProperty typeNameProperty)
+        private void OnItemSelected(int indexInOptions, Rect position, Options options, SerializedProperty property, SerializedProperty typeNameProperty)
         {
             HandleDraggingToPopup(position, options, ref indexInOptions, property, typeNameProperty);
 
@@ -217,7 +213,7 @@ namespace Unity.Tutorials.Core.Editor
         /// sync the button ID and the label ID to allow for keyboard
         /// navigation like the built-in enum drawers.
         /// </summary>
-        static bool DropdownButton(int id, Rect position, GUIContent content)
+        private static bool DropdownButton(int id, Rect position, GUIContent content)
         {
             Event current = Event.current;
             switch (current.type)
@@ -243,12 +239,12 @@ namespace Unity.Tutorials.Core.Editor
             return false;
         }
 
-        void RebuildOptions(SerializedProperty property)
+        private void RebuildOptions(SerializedProperty property)
         {
             m_PropertyPathToOptions.Remove(property.propertyPath);
         }
 
-        void HandleDraggingToPopup(Rect dropPosition, Options options, ref int index, SerializedProperty property, SerializedProperty typeNameProperty)
+        private void HandleDraggingToPopup(Rect dropPosition, Options options, ref int index, SerializedProperty property, SerializedProperty typeNameProperty)
         {
             if (dropPosition.Contains(Event.current.mousePosition))
             {
@@ -272,7 +268,7 @@ namespace Unity.Tutorials.Core.Editor
                             UnityObject selection = DragAndDrop.objectReferences.FirstOrDefault(o => o != null);
                             if (selection != null)
                             {
-                                var type = selection.GetType();
+                                Type type = selection.GetType();
                                 if (type == null)
                                 {
                                     index = 0;
@@ -314,7 +310,7 @@ namespace Unity.Tutorials.Core.Editor
 
         public override SerializedTypeDrawerData CreatePropertyData(SerializedProperty property)
         {
-            return new SerializedTypeDrawerData() { HasChanged = false, NewTypeIndex = -1 };
+            return new SerializedTypeDrawerData { HasChanged = false, NewTypeIndex = -1 };
         }
 
         public override float GetPropertyHeight(SerializedTypeDrawerData hasChanged, SerializedProperty property, GUIContent label)
@@ -323,29 +319,33 @@ namespace Unity.Tutorials.Core.Editor
         }
     }
 
-    class Options
+    internal class Options
     {
         public GUIContent[] displayedOptions;
         public string[] assemblyQualifiedNames;
         public bool dragging;
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="assemblyQualifiedName">The currently used assembly-qualified name for the type we are providing options for, if available.</param>
         /// <param name="baseType">Base type of the options.</param>
         /// <param name="ignoreAbstractTypes">Should we ignore abstract types from the options.</param>
         public Options(string assemblyQualifiedName, Type baseType, bool ignoreAbstractTypes)
         {
-            var allowedTypes = new HashSet<Type>();
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            HashSet<Type> allowedTypes = new();
+#if UNITY_6000_5_OR_NEWER
+            foreach (Assembly assembly in CurrentAssemblies.GetLoadedAssemblies())
+#else
+            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+#endif
             {
                 if (assembly == null)
                     continue;
 
                 try
                 {
-                    foreach (var type in assembly.GetTypes())
+                    foreach (Type type in assembly.GetTypes())
                     {
                         if (!baseType.IsAssignableFrom(type))
                             continue;
@@ -365,13 +365,13 @@ namespace Unity.Tutorials.Core.Editor
 
             allowedTypes.Remove(baseType);
 
-            var optionCount = allowedTypes.Count() + 1; // None
+            int optionCount = allowedTypes.Count() + 1; // None
 
-            var resolvedType = Type.GetType(assemblyQualifiedName);
+            Type resolvedType = Type.GetType(assemblyQualifiedName);
             bool typeNotFound = resolvedType == null && assemblyQualifiedName.IsNotNullOrEmpty();
             // Resolved type's AQN different than the original AQN: for example, SceneView behaves like this when upgrading from 2019.4
             // to 2020 or newer (moved from UnityEngine to UnityEngine.CoreModule assembly).
-            var typeWithDifferentAqn = resolvedType != null && resolvedType.AssemblyQualifiedName != assemblyQualifiedName ? resolvedType : null;
+            Type typeWithDifferentAqn = resolvedType != null && resolvedType.AssemblyQualifiedName != assemblyQualifiedName ? resolvedType : null;
             bool typeFoundTypeWithDifferentAqn = typeWithDifferentAqn != null;
             if (typeNotFound || typeFoundTypeWithDifferentAqn)
                 ++optionCount; // Not Found / Mismatch
@@ -380,16 +380,16 @@ namespace Unity.Tutorials.Core.Editor
             assemblyQualifiedNames = new string[optionCount];
 
             // Not Found item is always at index 0
-            var index = 0;
+            int index = 0;
             if (typeNotFound)
             {
-                var fullName = SplitAqn(assemblyQualifiedName)[0];
+                string fullName = SplitAqn(assemblyQualifiedName)[0];
                 displayedOptions[index] = new GUIContent($"Not Found ({fullName})", $"The stored type '{assemblyQualifiedName}' could not been found.");
                 assemblyQualifiedNames[index] = assemblyQualifiedName;
                 index++;
             }
 
-            var allowedTypesOrdered = allowedTypes.OrderBy(t => t.FullName).ToArray();
+            Type[] allowedTypesOrdered = allowedTypes.OrderBy(t => t.FullName).ToArray();
 
             //However, the non FQN might create ambiguity between
             //windows that share the same name but have different namespace.
@@ -399,9 +399,9 @@ namespace Unity.Tutorials.Core.Editor
             if (typeFoundTypeWithDifferentAqn)
             {
                 // Mismatching AQN item is positioned after to the currently available AQN item
-                var mismatchIndex = ArrayUtility.IndexOf(allowedTypesOrdered, resolvedType) + 1;
-                var name = displaySimplifiedNames ? resolvedType.Name : resolvedType.FullName;
-                var assemblyName = SplitAqn(assemblyQualifiedName)[1];
+                int mismatchIndex = ArrayUtility.IndexOf(allowedTypesOrdered, resolvedType) + 1;
+                string name = displaySimplifiedNames ? resolvedType.Name : resolvedType.FullName;
+                string assemblyName = SplitAqn(assemblyQualifiedName)[1];
                 displayedOptions[mismatchIndex] = new GUIContent(
                     $"{name} (Assembly: {assemblyName})",
                     $"The stored type '{assemblyQualifiedName}' was found but with a different name, '{resolvedType.AssemblyQualifiedName}'."
@@ -413,10 +413,10 @@ namespace Unity.Tutorials.Core.Editor
             assemblyQualifiedNames[index] = "";
             index++;
 
-            foreach (var allowedType in allowedTypesOrdered)
+            foreach (Type allowedType in allowedTypesOrdered)
             {
-                var name = displaySimplifiedNames ? allowedType.Name : allowedType.FullName;
-                var aqn = allowedType.AssemblyQualifiedName;
+                string name = displaySimplifiedNames ? allowedType.Name : allowedType.FullName;
+                string aqn = allowedType.AssemblyQualifiedName;
                 if (allowedType == typeWithDifferentAqn)
                 {
                     ++index; // skip current index as has the originally mismatching item
@@ -435,13 +435,13 @@ namespace Unity.Tutorials.Core.Editor
 
         // AQN is e.g. "System.Array, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"
         // 0 Full name, 1 Assembly, 2 Version, 3 Culture, 4 PublicKeyToken
-        static string[] SplitAqn(string aqn) => aqn.Split(new[] { ", " }, StringSplitOptions.None);
+        private static string[] SplitAqn(string aqn) => aqn.Split(new[] { ", " }, StringSplitOptions.None);
     }
 
     /// <summary>
     /// Instance-specific data of elements redered by the drawer
     /// </summary>
-    struct SerializedTypeDrawerData
+    internal struct SerializedTypeDrawerData
     {
         public bool HasChanged;
         public int NewTypeIndex;
@@ -451,14 +451,14 @@ namespace Unity.Tutorials.Core.Editor
     /// Supports drawing properties for lists.
     /// </summary>
     /// <typeparam name="TData"></typeparam>
-    abstract class PropertyDrawerExtended<TData> : PropertyDrawer
+    internal abstract class PropertyDrawerExtended<TData> : PropertyDrawer
     {
-        Dictionary<string, TData> m_PropertyData = new Dictionary<string, TData>();
+        private Dictionary<string, TData> m_PropertyData = new();
 
         protected TData GetDataForProperty(SerializedProperty property)
         {
-            var propertyKey = GetPropertyId(property);
-            if (!m_PropertyData.TryGetValue(propertyKey, out var propertyData))
+            string propertyKey = GetPropertyId(property);
+            if (!m_PropertyData.TryGetValue(propertyKey, out TData propertyData))
             {
                 propertyData = CreatePropertyData(property);
                 m_PropertyData.Add(propertyKey, propertyData);
@@ -468,12 +468,12 @@ namespace Unity.Tutorials.Core.Editor
 
         protected void SetDataForProperty(SerializedProperty property, TData data)
         {
-            var propertyKey = GetPropertyId(property);
+            string propertyKey = GetPropertyId(property);
             if (m_PropertyData.ContainsKey(propertyKey))
                 m_PropertyData[propertyKey] = data;
         }
 
-        static string GetPropertyId(SerializedProperty property)
+        private static string GetPropertyId(SerializedProperty property)
         {
             // We use both the property name and the serialized object hash for the key as its possible the serialized object may have been disposed.
             return property.serializedObject.GetHashCode() + property.propertyPath;
@@ -485,13 +485,13 @@ namespace Unity.Tutorials.Core.Editor
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            var data = GetDataForProperty(property);
+            TData data = GetDataForProperty(property);
             OnGUI(data, position, property, label);
         }
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            var data = GetDataForProperty(property);
+            TData data = GetDataForProperty(property);
             return GetPropertyHeight(data, property, label);
         }
     }

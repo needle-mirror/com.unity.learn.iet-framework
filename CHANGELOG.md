@@ -4,6 +4,34 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.0.0-pre.3] - 2026-03-01
+### Added
+- New paragraph format for Tutorial Pages. This new format makes for a more flexible and faster editing experience.
+  - Due to the new paragraph format, data migration for pages is required. The user will be prompted when first launching the editor or updating the package. Migration can also be started manually from the top menu, or using the button on each Tutorial Page.
+- Added a Tutorials Overview window to see all the Tutorials present in the project at a glance. Tutorials can be reordered and reparented right within the window. The window also displays warnings, such as for tutorials that have been linked to two or more TutorialContainers. The window can be found under Tutorials > Authoring > Tutorials Overview.
+- The Inspector of TutorialContainer now shows child containers. This makes it possible to navigate from a TutorialContainer to its children and back to the parent directly from the Inspector.
+- It is now possible to save the MaskingSettings linked to a page's paragraph as a preset in a dedicated MaskingPreset ScriptableObject. This allows to reuse them in multiple pages.
+- Custom icons for all asset types so they are easier to recognise in the Project View.
+
+### Changed
+- Tutorial Pages are now sub-assets of Tutorials. This simplifies page management, as the tutorial author only has to manage one asset.
+  - This requires data migration, which is done automatically as part of data migration v6 like for the paragraph data. 
+- The Inspectors of many components (TutorialContainer, Tutorial, TutorialPage, WelcomePage...) have been reorganised to improve clarity and to make editing easier.
+- Redesigned icons for the authoring toolbar that appears when the Authoring package is installed.
+- A translation icon now appears next to localisable fields, in place of the previous (i) balloon icon.
+- The code sample text box inside a Tutorial Page's Inspector can now be expanded for a more comfortable code editing experience.
+- Sections in TutorialContainer can now be reordered in the list simply by drag-and-drop, instead of having to manually set an order number.
+- The order and structure of the menu items under Create > Tutorials has been reorganised to provide more efficient access to frequently-used items.
+  - Simplified the sample content that can be accessed via the context menu. It's now located under Create > Tutorials > Presets > Complete Project. 
+- Redesigned alignment of many elements in the Tutorials Window. The list of Tutorials now expands to the width of the Tutorials window. For this reason, if a Tutorial button has a background image, this will now be stretched to cover the width. It could make sense to check that the graphics still look as intended.
+
+### Fixed
+- Tutorials window no longer resizes when clicking on a button that opens it, while it's already open.
+
+## [5.0.3] - 2025-11-04
+### Fixed
+- Fixed styling of cards in the main Tutorial Container interface.
+
 ## [5.0.2] - 2025-08-26
 ### Fixed
 - Removed the Ask Assistant button
@@ -32,7 +60,7 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [4.1.2] - 2025-03-17
 ### Fixed
-- Fixed low resolution of the link icon for sections that are links 
+- Fixed low resolution of the link icon for sections that are links
 - Fixed some color problems with light version of the Editor
 
 ## [4.1.1] - 2025-02-20
@@ -50,8 +78,8 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - New option *Mask Editor* on the Welcome Page that allow to mask the rest of the editor when the Welcome popup is opened
 - Welcome page can now also take a Video media as header instead of an Image
-- Tutorial and Tutorial Page now have an array of FAQ Entries where question-answer pair can be added. 
-  Tutorial window now have a link at the top left that open the current page and tutorial FAQ entry in a window to guide 
+- Tutorial and Tutorial Page now have an array of FAQ Entries where question-answer pair can be added.
+  Tutorial window now have a link at the top left that open the current page and tutorial FAQ entry in a window to guide
   the learner
 - A link was added  at the top of the FAQ window to report problem with a tutorial. The address it sends user to
   is defined in the TutorialSettings
@@ -77,7 +105,7 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added missing Localization String so some Title appear properly
 - Fixed Selector type in masking settings overlapping +/- control of Unmasked Control view
 - Muting button on GameView was muting video. Muting is now removed and reapplied when video play/pause
-- Fixed rare case (mainly happening at authoring time) of a tutorial not being re-enterable after reloading 
+- Fixed rare case (mainly happening at authoring time) of a tutorial not being re-enterable after reloading
 
 ## [4.0.2] - 2024-09-03
 ### Fixed
@@ -303,7 +331,7 @@ These events are superseded by the new `Showing`, `Shown`, `Staying` and `Tutori
 Note that these assemblies are only for internal use and they should not be depended on.
 - **Breaking change**: Made `LocalizationDatabaseProxy`, `GUIViewProxy`, and `POFileUtils` classes internal.
 - **Breaking change**: Renamed `Whitespace` to `WhiteSpace` in `StringExtensions` and `StringExt` function names.
-- **Breaking change**: Changed tutorial assets' events to use the `UnityEvent` class instead of the standard C# `event` implementation. 
+- **Breaking change**: Changed tutorial assets' events to use the `UnityEvent` class instead of the standard C# `event` implementation.
 - **Breaking change**: Made the following functions internal or private:
   - `Tutorial`: constructor
   - `TutorialPage`: `OnPageCompleted`, `RaiseOnBeforePageShownEvent`, `RaiseOnAfterPageShownEvent`, `UpdateFutureObjectReferenceName`, and `ResetUserProgress`
@@ -566,7 +594,7 @@ This preference can be found under **Preferences** > **In-Editor Tutorials**.
 ## [0.2.2] - 2020-02-14
 ### Added
  - Support for authorized URLs (Unity Connect auto-login).
- 
+
 ## [0.2.1] - 2019-11-11
 ### Fixed
  - Do not show the Welcome dialog and load the IET window layout every time an IET project is started.
@@ -574,11 +602,11 @@ This preference can be found under **Preferences** > **In-Editor Tutorials**.
 
 ### Changed
  - Do not clear the description of a tutorial card when a tutorial is marked as completed.
- 
+
 ## [0.2.0] - 2019-10-21
 ### Changed
  - `Readme` class renamed to more suitable `TutorialContainer`.
- 
+
 ## [0.1.18] - 2019-10-21
 ### Changed
  - New single-panel approach, Readme and Tutorials are shown in the same window which is always visible.

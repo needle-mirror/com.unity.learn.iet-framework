@@ -1,126 +1,121 @@
-using System.Collections.Generic;
 using UnityEditor;
-using UnityEditorInternal;
-using UnityEngine;
+using UnityEditor.UIElements;
+using UnityEngine.UIElements;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     [CustomPropertyDrawer(typeof(UnmaskedView))]
-    class UnmaskedViewDrawer : PropertyDrawer
+    internal class UnmaskedViewDrawer : PropertyDrawer
     {
-        const string k_SelectorTypePath = nameof(UnmaskedView.m_SelectorType);
-        const string k_ViewTypePath = nameof(UnmaskedView.m_ViewType);
-        const string k_EditorWindowHighlightFocus = nameof(UnmaskedView.m_FocusEditorWindow);
-        const string k_EditorWindowTypePath = nameof(UnmaskedView.m_EditorWindowType);
-        const string k_AlternateEditorWindowTypesPath = nameof(UnmaskedView.m_AlternateEditorWindowTypes);
-        const string k_UnmaskedControlsPath = nameof(UnmaskedView.m_UnmaskedControls);
-        const string k_UnmaskTypePath = nameof(UnmaskedView.m_MaskType);
-        const string k_MaskSizeModifierPath = nameof(UnmaskedView.m_MaskSizeModifier);
+        private const string k_SelectorTypePath = nameof(UnmaskedView.m_SelectorType);
+        private const string k_ViewTypePath = nameof(UnmaskedView.m_ViewType);
+        private const string k_EditorWindowHighlightFocus = nameof(UnmaskedView.m_OpenAndFocus);
+        private const string k_EditorWindowTypePath = nameof(UnmaskedView.m_EditorWindowType);
+        private const string k_AlternateEditorWindowTypesPath = nameof(UnmaskedView.m_AlternateEditorWindowTypes);
+        private const string k_UnmaskedControlsPath = nameof(UnmaskedView.m_UnmaskedControls);
+        private const string k_UnmaskTypePath = nameof(UnmaskedView.m_MaskType);
+        private const string k_MaskSizeModifierPath = nameof(UnmaskedView.m_MaskSizeModifier);
 
-        readonly Dictionary<string, ReorderableList> m_UnmaskedControlsPerPropertyPath =
-            new Dictionary<string, ReorderableList>();
-
-        public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
+        public override VisualElement CreatePropertyGUI(SerializedProperty property)
         {
-            var selectorType = property.FindPropertyRelative(k_SelectorTypePath);
-            var height = EditorGUI.GetPropertyHeight(selectorType) + EditorGUIUtility.standardVerticalSpacing;
-            switch ((UnmaskedView.SelectorType)selectorType.intValue)
+            VisualElement root = new()
             {
-                case UnmaskedView.SelectorType.EditorWindow:
-                    height += EditorGUI.GetPropertyHeight(property.FindPropertyRelative(k_EditorWindowHighlightFocus), true);
-                    height += EditorGUI.GetPropertyHeight(property.FindPropertyRelative(k_EditorWindowTypePath), true);
-                    height += EditorGUI.GetPropertyHeight(property.FindPropertyRelative(k_AlternateEditorWindowTypesPath), true);
-                    break;
-                case UnmaskedView.SelectorType.GUIView:
-                    height += EditorGUI.GetPropertyHeight(property.FindPropertyRelative(k_ViewTypePath), true);
-                    break;
+                style =
+                {
+                    marginLeft = 3,
+                    marginRight = 3
+                }
+            };
+
+            const int propsContainersMargin = 10;
+
+            // Shared Field(s)
+            SerializedProperty selectorType = property.FindPropertyRelative(k_SelectorTypePath);
+            PropertyField typeSelectorField = new(selectorType);
+            root.Add(typeSelectorField);
+
+            // GUI View-only Fields
+            VisualElement guiViewPropsContainer = new(){ name = "GUIViewPropsContainer", style = { marginLeft = propsContainersMargin } };
+
+            PropertyField viewTypeField = new(property.FindPropertyRelative(k_ViewTypePath));
+            guiViewPropsContainer.Add(viewTypeField);
+
+            root.Add(guiViewPropsContainer);
+
+            // Editor Window-only Fields
+            VisualElement editorWindowPropsContainer = new(){ name = "EditorWindowPropsContainer", style = { marginLeft = propsContainersMargin }};
+
+            PropertyField editorWindowTypeField = new(property.FindPropertyRelative(k_EditorWindowTypePath));
+            editorWindowPropsContainer.Add(editorWindowTypeField);
+
+            PropertyField highlightFocusProp = new(property.FindPropertyRelative(k_EditorWindowHighlightFocus));
+            editorWindowPropsContainer.Add(highlightFocusProp);
+
+            PropertyField alternativeEditorWindowTypeField = new(property.FindPropertyRelative(k_AlternateEditorWindowTypesPath));
+            editorWindowPropsContainer.Add(alternativeEditorWindowTypeField);
+
+            root.Add(editorWindowPropsContainer);
+
+            UpdateUniqueFieldsVisibility((UnmaskedView.SelectorType)selectorType.intValue);
+            typeSelectorField.RegisterValueChangeCallback(evt =>
+            {
+                UnmaskedView.SelectorType viewType = (UnmaskedView.SelectorType)evt.changedProperty.intValue;
+                UpdateUniqueFieldsVisibility(viewType);
+            });
+
+            // Shared Field(s)
+            SerializedProperty unmaskType = property.FindPropertyRelative(k_UnmaskTypePath);
+            root.Add(new PropertyField(unmaskType));
+
+            SerializedProperty maskSizeModifier = property.FindPropertyRelative(k_MaskSizeModifierPath);
+            root.Add(new PropertyField(maskSizeModifier));
+
+            ListView listControl = GetListControlVisualElement(property.FindPropertyRelative(k_UnmaskedControlsPath));
+            root.Add(listControl);
+
+            return root;
+
+            void UpdateUniqueFieldsVisibility(UnmaskedView.SelectorType viewType)
+            {
+                UIUtils.ShowOrHide(editorWindowPropsContainer, viewType == UnmaskedView.SelectorType.EditorWindow);
+                UIUtils.ShowOrHide(guiViewPropsContainer, viewType == UnmaskedView.SelectorType.GUIView);
             }
-            height += EditorGUI.GetPropertyHeight(property.FindPropertyRelative(k_UnmaskTypePath));
-            height += EditorGUI.GetPropertyHeight(property.FindPropertyRelative(k_MaskSizeModifierPath));
-            var listControl = GetListControl(property);
-            height += EditorGUIUtility.standardVerticalSpacing + listControl.GetHeight();
-            height += 20; // this is for the reorderable list +/- button. GetHeight above should have covered it but for some reason no
-            return height;
         }
 
-        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        private ListView GetListControlVisualElement(SerializedProperty prop)
         {
-            var selectorType = property.FindPropertyRelative(k_SelectorTypePath);
-            position.height = EditorGUI.GetPropertyHeight(selectorType, true);
-            EditorGUI.PropertyField(position, selectorType);
-
-            position.y += position.height + EditorGUIUtility.standardVerticalSpacing;
-
-            if ((UnmaskedView.SelectorType)selectorType.intValue == UnmaskedView.SelectorType.EditorWindow)
+            ListView listView = new()
             {
-                EditorGUI.PropertyField(position, property.FindPropertyRelative(k_EditorWindowHighlightFocus));
-            }
+                name = prop.displayName,
+                showAddRemoveFooter = true,
+                showBorder = true,
+                virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight
+            };
+            listView.AddToClassList("inspector-list");
 
-            position.y += position.height + EditorGUIUtility.standardVerticalSpacing;
-
-            SerializedProperty typeProperty = null;
-            switch ((UnmaskedView.SelectorType)selectorType.intValue)
+            listView.makeHeader += () =>
             {
-                case UnmaskedView.SelectorType.EditorWindow:
-                    typeProperty = property.FindPropertyRelative(k_EditorWindowTypePath);
-                    break;
-                case UnmaskedView.SelectorType.GUIView:
-                    typeProperty = property.FindPropertyRelative(k_ViewTypePath);
-                    break;
-            }
-            position.height = EditorGUI.GetPropertyHeight(typeProperty, true);
-            EditorGUI.PropertyField(position, typeProperty);
+                Label label = new("Unmasked Controls");
+                label.AddToClassList("inspector-list-header");
+                return label;
+            };
 
-            if ((UnmaskedView.SelectorType)selectorType.intValue == UnmaskedView.SelectorType.EditorWindow)
+            listView.makeItem = () =>
             {
-                position.y += position.height + EditorGUIUtility.standardVerticalSpacing;
-                var alternativeEditorWindowTypes = property.FindPropertyRelative(k_AlternateEditorWindowTypesPath);
-                position.height = EditorGUI.GetPropertyHeight(alternativeEditorWindowTypes, true);
-                EditorGUI.PropertyField(position, alternativeEditorWindowTypes);
-            }
+                PropertyField element = new();
+                element.AddToClassList("inspector-list-element");
+                return element;
+            };
 
-            position.y += position.height + EditorGUIUtility.standardVerticalSpacing;
-            var unmaskType = property.FindPropertyRelative(k_UnmaskTypePath);
-            position.height = EditorGUI.GetPropertyHeight(unmaskType, true);
-            EditorGUI.PropertyField(position, unmaskType);
-
-            position.y += position.height + EditorGUIUtility.standardVerticalSpacing;
-            var maskSizeModifier = property.FindPropertyRelative(k_MaskSizeModifierPath);
-            position.height = EditorGUI.GetPropertyHeight(maskSizeModifier, true);
-            EditorGUI.PropertyField(position, maskSizeModifier);
-
-            position.y += position.height + EditorGUIUtility.standardVerticalSpacing;
-            var listControl = GetListControl(property);
-            position.height = listControl.GetHeight();
-            position = EditorGUI.IndentedRect(position);
-            using (new EditorGUI.IndentLevelScope(-EditorGUI.indentLevel))
-                listControl.DoList(position);
-        }
-
-        ReorderableList GetListControl(SerializedProperty parentProperty)
-        {
-            string key = parentProperty.propertyPath;
-            ReorderableList list;
-            if (!m_UnmaskedControlsPerPropertyPath.TryGetValue(key, out list))
+            listView.bindItem = (element, i) =>
             {
-                list = new ReorderableList(parentProperty.serializedObject, parentProperty.FindPropertyRelative(k_UnmaskedControlsPath));
-                list.drawHeaderCallback = rect => EditorGUI.LabelField(rect, "Unmasked Controls");
-                list.elementHeightCallback = (index) => GetElementHeightForListIndex(list, index);
-                list.drawElementCallback = (rect, index, isActive, isFocused) =>
-                    EditorGUI.PropertyField(rect, list.serializedProperty.GetArrayElementAtIndex(index), true);
-                m_UnmaskedControlsPerPropertyPath[key] = list;
-            }
-            return list;
-        }
+                PropertyField e = element as PropertyField;
+                e.BindProperty(prop.GetArrayElementAtIndex(i));
+            };
 
-        float GetElementHeightForListIndex(ReorderableList list, int index)
-        {
-            if (list.count <= index) //this happens from 2021 LTS onward
-            {
-                return EditorGUIUtility.standardVerticalSpacing;
-            }
-            return EditorGUI.GetPropertyHeight(list.serializedProperty.GetArrayElementAtIndex(index), true) +
-            EditorGUIUtility.standardVerticalSpacing;
+            listView.BindProperty(prop);
+
+            return listView;
         }
     }
 }

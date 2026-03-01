@@ -1,7 +1,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// Criterion for checking that a specific EditorWindow is opened.
@@ -10,17 +10,16 @@ namespace Unity.Tutorials.Core.Editor
     {
         [SerializedTypeFilter(typeof(EditorWindow), false)]
         [SerializeField]
-        SerializedType m_EditorWindowType = new SerializedType(null);
+        private SerializedType m_EditorWindowType = new(null);
 
         /// <summary>
         /// The EditorWindow type we want to test for.
         /// </summary>
         public SerializedType EditorWindowType { get => m_EditorWindowType; set => m_EditorWindowType = value; }
 
-        [SerializeField]
-        bool m_CloseIfAlreadyOpen;
+        [SerializeField] private bool m_CloseIfAlreadyOpen;
 
-        EditorWindow m_WindowInstance;
+        private EditorWindow m_WindowInstance;
 
         /// <summary>
         /// Starts testing of the criterion.
@@ -54,9 +53,9 @@ namespace Unity.Tutorials.Core.Editor
             }
             if (!m_WindowInstance)
             {
-                var windows = Resources.FindObjectsOfTypeAll(m_EditorWindowType.Type);
+                Object[] windows = Resources.FindObjectsOfTypeAll(m_EditorWindowType.Type);
 
-                foreach (var w in windows)
+                foreach (Object w in windows)
                 {
                     if (w.GetType() == m_EditorWindowType.Type)
                     {

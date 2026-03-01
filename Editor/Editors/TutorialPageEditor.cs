@@ -1,26 +1,28 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using Unity.Tutorials.Editor.CustomControl;
 using UnityEditor;
+using UnityEditor.Callbacks;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UIElements;
+using Object = UnityEngine.Object;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     using static Localization;
 
     [CustomEditor(typeof(TutorialPage))]
-    class TutorialPageEditor : UnityEditor.Editor
+    internal class TutorialPageEditor : UnityEditor.Editor
     {
-        static readonly bool k_IsAuthoringMode = ProjectMode.IsAuthoringMode();
+        [SerializeField] private StyleSheet m_Stylesheet;
 
         // NOTE: the order here will be used for the UI
-        static readonly string[] k_EventPropertyPaths =
+        private static readonly string[] k_EventPropertyPaths =
         {
             nameof(TutorialPage.Showing),
             nameof(TutorialPage.Shown),
@@ -30,113 +32,64 @@ namespace Unity.Tutorials.Core.Editor
             // MaskingSettingsChanged & NonMaskingSettingsChanged exist but are hidden in the simplified view
         };
 
-        static readonly string[] k_PropertiesToHide = new[]
-        {
-            "m_Script",
-            nameof(TutorialPage.Title),
-            nameof(TutorialPage.m_Paragraphs),
-            k_AutoAdvancePropertyPath,
-            nameof(TutorialPage.MaskingSettingsChanged),
-            nameof(TutorialPage.NonMaskingSettingsChanged),
-        }
-            .Concat(k_EventPropertyPaths)
-            .ToArray();
+        private const string k_PageTitleProperty = nameof(TutorialPage.Title);
+        private const string k_ParagraphPropertyPath = nameof(TutorialPage.m_PageParagraphs);
+        private const string k_ParagraphMaskingSettingsRelativeProperty = "m_MaskingSettings";
 
-        const string k_PageTitleProperty = "Title.m_Untranslated";
-        const string k_ParagraphPropertyPath = nameof(TutorialPage.m_Paragraphs) + ".m_Items";
-        const string k_ParagraphMaskingSettingsRelativeProperty = "m_MaskingSettings";
-        const string k_ParagraphVideoUrlRelativeProperty = "m_VideoUrl";
-        const string k_ParagraphVideoRelativeProperty = "m_Video";
-        const string k_ParagraphImageRelativeProperty = "m_Image";
-        const string k_ParagraphTypeProperty = "m_Type";
-
-        const string k_ParagraphNarrativeTitleProperty = "Title.m_Untranslated";
-        const string k_ParagraphNarrativeDescriptionProperty = "Text.m_Untranslated";
-
-        const string k_ParagraphIntructionTitleProperty = "Title.m_Untranslated";
-        const string k_ParagraphInstructionDescriptionProperty = "Text.m_Untranslated";
-        const string k_ParagraphCodeSampleProperty = "m_CodeSample";
-        const string k_ParagraphPostInstructionImage = "m_PostInstructionImage";
-
-        const string k_ParagraphCriteriaTypePropertyPath = "m_CriteriaCompletion";
-        const string k_ParagraphCriteriaPropertyPath = "m_Criteria";
-        const string k_AutoAdvancePropertyPath = nameof(TutorialPage.m_AutoAdvance);
-
-        // NOTE TutorialSwitch doesn't have title yet, body used for the button text.
-        const string k_ParagraphNextTutorialButtonTextPropertyPath = "Text.m_Untranslated";
-        const string k_ParagraphNextTutorialPropertyPath = "m_Tutorial";
-
-        static readonly Regex s_MatchMaskingSettingsPropertyPath =
-            new Regex(
+        private static readonly Regex s_MatchMaskingSettingsPropertyPath =
+            new(
                 string.Format(
                     "(^{0}\\.Array\\.size)|(^({0}\\.Array\\.data\\[\\d+\\]\\.{1}\\.))",
                     k_ParagraphPropertyPath, k_ParagraphMaskingSettingsRelativeProperty
                 )
             );
 
-        static GUIContent s_EventsSectionTitle;
-
-        static bool ShowEvents
+        private static bool ShowEvents
         {
             get => SessionState.GetBool("TutorialPageEditor.ShowEvents", false);
             set => SessionState.SetBool("TutorialPageEditor.ShowEvents", value);
         }
         // Non-null/empty if we have created a callback script and waiting for a scriptable object instance to be created for it.
-        static string CallbackAssetPath
+        private static string CallbackAssetPath
         {
-            get { return SessionState.GetString("iet_creating_SO", string.Empty); }
-            set { SessionState.SetString("iet_creating_SO", value); }
+            get => SessionState.GetString("iet_creating_SO", string.Empty);
+            set => SessionState.SetString("iet_creating_SO", value);
         }
 
-        TutorialPage Target => (TutorialPage)target;
+        private TutorialPage Target => (TutorialPage)target;
 
-        [NonSerialized]
-        string m_WarningMessage;
+        [NonSerialized] private string m_WarningMessage;
 
-        class EventPropertyData
+        private class EventPropertyData
         {
             public SerializedProperty Property;
             public GUIContent Content;
         }
 
-        List<EventPropertyData> m_Events = new List<EventPropertyData>();
+        private List<EventPropertyData> m_Events = new();
 
-        SerializedProperty m_MaskingSettings;
-        SerializedProperty m_Type;
-        SerializedProperty m_VideoUrl;
-        SerializedProperty m_Video;
-        SerializedProperty m_Image;
-        SerializedProperty m_MediaContent;
+        private SerializedProperty m_MaskingSettings;
+        private SerializedProperty m_Type;
+        private SerializedProperty m_VideoUrl;
+        private SerializedProperty m_Video;
+        private SerializedProperty m_Image;
+        private SerializedProperty m_MediaContent;
 
-        SerializedProperty m_PageTitle;
-        SerializedProperty m_NarrativeTitle;
-        SerializedProperty m_NarrativeDescription;
-        SerializedProperty m_InstructionTitle;
-        SerializedProperty m_InstructionDescription;
-        SerializedProperty m_CodeSample;
-        SerializedProperty m_PostInstructionImage;
+        private SerializedProperty m_PageTitle;
+        private SerializedProperty m_NarrativeTitle;
+        private SerializedProperty m_NarrativeDescription;
+        private SerializedProperty m_InstructionTitle;
+        private SerializedProperty m_InstructionDescription;
+        private SerializedProperty m_CodeSample;
+        private SerializedProperty m_PostInstructionImage;
 
-        SerializedProperty m_CriteriaCompletion;
-        SerializedProperty m_Criteria;
-        SerializedProperty m_AutoAdvance;
+        private SerializedProperty m_CriteriaCompletion;
+        private SerializedProperty m_Criteria;
+        private SerializedProperty m_AutoAdvance;
 
-        SerializedProperty m_TutorialButtonText;
-        SerializedProperty m_NextTutorial;
 
-        HeaderMediaType m_HeaderMediaType;
-
-        enum HeaderMediaType
+        private void OnEnable()
         {
-            Image = ParagraphType.Image,
-            Video = ParagraphType.Video,
-            VideoUrl = ParagraphType.VideoUrl
-        }
-
-        Texture s_HelpIcon;
-
-        void OnEnable()
-        {
-            s_HelpIcon = EditorGUIUtility.IconContent("console.infoicon.sml").image;
             InitializeSerializedProperties();
 
             Undo.postprocessModifications -= OnPostprocessModifications;
@@ -145,31 +98,31 @@ namespace Unity.Tutorials.Core.Editor
             Undo.undoRedoPerformed += OnUndoRedoPerformed;
         }
 
-        void OnDisable()
+        private void OnDisable()
         {
             Undo.postprocessModifications -= OnPostprocessModifications;
             Undo.undoRedoPerformed -= OnUndoRedoPerformed;
         }
 
-        void OnUndoRedoPerformed()
+        private void OnUndoRedoPerformed()
         {
             // No easy way to know which field changed so simply signal all changes.
             Target.RaiseMaskingSettingsChanged();
             Target.RaiseNonMaskingSettingsChanged();
         }
 
-        UndoPropertyModification[] OnPostprocessModifications(UndoPropertyModification[] modifications)
+        private UndoPropertyModification[] OnPostprocessModifications(UndoPropertyModification[] modifications)
         {
             bool targetModified = false;
             bool maskingChanged = false;
 
-            foreach (var modification in modifications)
+            foreach (UndoPropertyModification modification in modifications)
             {
                 if (modification.currentValue.target != target)
                     continue;
 
                 targetModified = true;
-                var propertyPath = modification.currentValue.propertyPath;
+                string propertyPath = modification.currentValue.propertyPath;
                 if (s_MatchMaskingSettingsPropertyPath.IsMatch(propertyPath))
                 {
                     maskingChanged = true;
@@ -188,64 +141,19 @@ namespace Unity.Tutorials.Core.Editor
             return modifications;
         }
 
-        void InitializeSerializedProperties()
+        private void InitializeSerializedProperties()
         {
             m_PageTitle = serializedObject.FindProperty(k_PageTitleProperty);
-            s_EventsSectionTitle = new GUIContent(Tr(LocalizationKeys.k_TutorialPageCustomCallbacks), s_HelpIcon, Tr(LocalizationKeys.k_TutorialPageCustomCallbacksTooltip));
-
-            k_EventPropertyPaths.ToList().ForEach(prop => CreateEventProperty(prop));
-
-            SerializedProperty paragraphs = serializedObject.FindProperty(k_ParagraphPropertyPath);
-            if (paragraphs == null)
-            {
-                m_WarningMessage = string.Format(Tr(LocalizationKeys.k_MissingPropertyPathWarning), k_ParagraphPropertyPath);
-            }
-            else if (paragraphs.arraySize > 0)
-            {
-                SerializedProperty firstParagraph = paragraphs.GetArrayElementAtIndex(0);
-
-                m_MaskingSettings = firstParagraph.FindPropertyRelative(k_ParagraphMaskingSettingsRelativeProperty);
-                if (m_MaskingSettings == null)
-                {
-                    m_WarningMessage = string.Format(Tr(LocalizationKeys.k_TutorialPageMissingMaskingSettingsWarning), k_ParagraphPropertyPath, k_ParagraphMaskingSettingsRelativeProperty);
-                }
-
-                m_Type = firstParagraph.FindPropertyRelative(k_ParagraphTypeProperty);
-                m_HeaderMediaType = (HeaderMediaType)m_Type.intValue;
-                var headerMediaParagraphType = (ParagraphType)m_Type.intValue;
-                // Only Image and Video are allowed for the first paragraph which is always the header media in the new fixed tutorial page layout.
-                if (headerMediaParagraphType != ParagraphType.Image && headerMediaParagraphType != ParagraphType.Video)
-                {
-                    m_Type.intValue = (int)ParagraphType.Image;
-                }
-
-                m_VideoUrl = firstParagraph.FindPropertyRelative(k_ParagraphVideoUrlRelativeProperty);
-                m_Video = firstParagraph.FindPropertyRelative(k_ParagraphVideoRelativeProperty);
-                m_Image = firstParagraph.FindPropertyRelative(k_ParagraphImageRelativeProperty);
-                m_MediaContent = firstParagraph.FindPropertyRelative("m_Media");
-
-                switch (paragraphs.arraySize)
-                {
-                    case 2: SetupNarrativeOnlyPage(paragraphs); break;
-                    case 4: SetupSwitchTutorialPage(paragraphs); break;
-                    case 3:
-                    default:
-                        SetupNarrativeAndInstructivePage(paragraphs); break;
-                }
-            }
+            k_EventPropertyPaths.ToList().ForEach(CreateEventProperty);
         }
 
-        void CreateEventProperty(string propertyPath)
+        private void CreateEventProperty(string propertyPath)
         {
-            var property = serializedObject.FindProperty(propertyPath);
+            SerializedProperty property = serializedObject.FindProperty(propertyPath);
             Debug.Assert(property != null, $"Property path {propertyPath} not valid.");
-            if (property == null)
-            {
-                return;
-            }
 
             string tooltip = GetSerializedPropertyTooltip<TutorialPage>(property);
-            var eventData = new EventPropertyData
+            EventPropertyData eventData = new()
             {
                 Property = property,
                 Content = new GUIContent(Tr(property.displayName), Tr(tooltip))
@@ -253,388 +161,85 @@ namespace Unity.Tutorials.Core.Editor
             m_Events.Add(eventData);
         }
 
-        static string GetSerializedPropertyTooltip<Type>(SerializedProperty serializedProperty)
+        private static string GetSerializedPropertyTooltip<Type>(SerializedProperty serializedProperty)
         {
             const BindingFlags bindedTypes = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-            var field = typeof(Type).GetField(serializedProperty.name, bindedTypes);
-            var attributes = field.GetCustomAttributes(typeof(TooltipAttribute), inherit: true) as TooltipAttribute[];
+            FieldInfo field = typeof(Type).GetField(serializedProperty.name, bindedTypes);
+            TooltipAttribute[] attributes = field.GetCustomAttributes(typeof(TooltipAttribute), inherit: true) as TooltipAttribute[];
             return attributes.Length > 0 ? attributes[0].tooltip : string.Empty;
         }
 
-        void SetupNarrativeParagraph(SerializedProperty paragraphs)
+         public override VisualElement CreateInspectorGUI()
+         {
+             VisualElement root = new();
+             root.styleSheets.Add(m_Stylesheet);
+
+             TutorialProjectSettings.DrawDefaultAssetRestoreWarningElement(root);
+
+             if (!string.IsNullOrEmpty(m_WarningMessage))
+             {
+                 HelpBox helpBox = new(m_WarningMessage, HelpBoxMessageType.Warning);
+                 root.Add(helpBox);
+             }
+
+             // Title
+             PropertyField titleField = new(m_PageTitle, Tr(LocalizationKeys.k_TutorialPageLabelTitle));
+             titleField.TrackPropertyValue(m_PageTitle, OnTitleChanged);
+
+             root.Add(titleField);
+
+             // Paragraphs
+             SerializedProperty paragraphs = serializedObject.FindProperty(k_ParagraphPropertyPath);
+             ParagraphListView listView = new((TutorialPage)target);
+             listView.BindProperty(paragraphs);
+             root.Add(listView);
+
+             // All other properties
+             root.Add(new PropertyField(serializedObject.FindProperty("m_CameraSettings")));
+
+             // Custom Callbacks
+             Foldout callbacksFoldout = new()
+             {
+                 text = Tr(LocalizationKeys.k_TutorialPageCustomCallbacks),
+                 tooltip = Tr(LocalizationKeys.k_TutorialPageCustomCallbacksTooltip),
+                 viewDataKey = "PageCallbacksFoldout",
+                 value = false
+             };
+             callbacksFoldout.AddToClassList("callbacks-foldout");
+             callbacksFoldout.AddToClassList("foldout-bold-title");
+
+             HelpBox warningHelpBox = TutorialEditorUtils.RenderEventStateWarningElement(callbacksFoldout.contentContainer);
+             warningHelpBox.style.display = m_Events.Any(e => TutorialEditorUtils.EventIsNotInState(e.Property, UnityEventCallState.EditorAndRuntime)) ?
+                 DisplayStyle.Flex : DisplayStyle.None;
+
+             m_Events.ForEach(data => callbacksFoldout.contentContainer.Add(CreateEventProperty(data.Content, data.Property)));
+
+             root.Add(callbacksFoldout);
+
+             // FAQs
+             PropertyField faqEntriesField = new (serializedObject.FindProperty("m_FaqEntries"))
+             {
+                 label = "FAQ Entries", viewDataKey = "TutorialPageFaqEntriesFoldout"
+             };
+             faqEntriesField.AddToClassList("foldout-bold-title");
+             root.Add(faqEntriesField);
+
+             return root;
+
+             void OnTitleChanged(SerializedProperty obj) => RenamePage(Target);
+         }
+
+        private static VisualElement CreateEventProperty(GUIContent headerContent, SerializedProperty property)
         {
-            if (paragraphs.arraySize < 2)
-            {
-                m_NarrativeTitle = null;
-                m_NarrativeDescription = null;
-                return;
-            }
-
-            SerializedProperty narrativeParagraph = paragraphs.GetArrayElementAtIndex(1);
-            m_NarrativeTitle = narrativeParagraph.FindPropertyRelative(k_ParagraphNarrativeTitleProperty);
-            m_NarrativeDescription = narrativeParagraph.FindPropertyRelative(k_ParagraphNarrativeDescriptionProperty);
-        }
-
-        void SetupNarrativeOnlyPage(SerializedProperty paragraphs)
-        {
-            SetupNarrativeParagraph(paragraphs);
-        }
-
-        void SetupNarrativeAndInstructivePage(SerializedProperty paragraphs)
-        {
-            SetupNarrativeParagraph(paragraphs);
-            if (paragraphs.arraySize > 2)
-            {
-                SerializedProperty instructionParagraph = paragraphs.GetArrayElementAtIndex(2);
-                m_InstructionTitle = instructionParagraph.FindPropertyRelative(k_ParagraphIntructionTitleProperty);
-                m_InstructionDescription = instructionParagraph.FindPropertyRelative(k_ParagraphInstructionDescriptionProperty);
-                m_CodeSample = instructionParagraph.FindPropertyRelative(k_ParagraphCodeSampleProperty);
-                m_PostInstructionImage = instructionParagraph.FindPropertyRelative(k_ParagraphPostInstructionImage);
-                m_CriteriaCompletion = instructionParagraph.FindPropertyRelative(k_ParagraphCriteriaTypePropertyPath);
-                m_Criteria = instructionParagraph.FindPropertyRelative(k_ParagraphCriteriaPropertyPath);
-                m_AutoAdvance = serializedObject.FindProperty(k_AutoAdvancePropertyPath);
-                return;
-            }
-            m_InstructionTitle = null;
-            m_InstructionDescription = null;
-            m_CodeSample = null;
-            m_PostInstructionImage = null;
-            m_CriteriaCompletion = null;
-            m_Criteria = null;
-            m_AutoAdvance = null;
-        }
-
-        void SetupSwitchTutorialPage(SerializedProperty paragraphs)
-        {
-            SetupNarrativeAndInstructivePage(paragraphs);
-            if (paragraphs.arraySize > 3)
-            {
-                SerializedProperty tutorialSwitchParagraph = paragraphs.GetArrayElementAtIndex(3);
-                m_NextTutorial = tutorialSwitchParagraph.FindPropertyRelative(k_ParagraphNextTutorialPropertyPath);
-                m_TutorialButtonText = tutorialSwitchParagraph.FindPropertyRelative(k_ParagraphNextTutorialButtonTextPropertyPath);
-            }
-            else
-            {
-                m_NextTutorial = null;
-                m_TutorialButtonText = null;
-            }
-        }
-
-        //TODO : this has been disabled as it's too big a change for 4.1, but left here to be activated in 5.0
-        // public override VisualElement CreateInspectorGUI()
-        // {
-        //     var root = new VisualElement();
-        //
-        //     TutorialProjectSettings.DrawDefaultAssetRestoreWarningElement(root);
-        //
-        //     if (!string.IsNullOrEmpty(m_WarningMessage))
-        //     {
-        //         var helpBox = new HelpBox(m_WarningMessage, HelpBoxMessageType.Warning);
-        //         root.Add(helpBox);
-        //     }
-        //
-        //     if (SerializedTypeDrawer.UseDefaultEditors)
-        //     {
-        //         InspectorElement.FillDefaultInspector(root, serializedObject, this);
-        //     }
-        //     else
-        //     {
-        //         DrawSimplifiedInspectorElement(root);
-        //     }
-        //
-        //     return root;
-        // }
-
-        public override void OnInspectorGUI()
-        {
-            TutorialProjectSettings.DrawDefaultAssetRestoreWarning();
-
-            if (!string.IsNullOrEmpty(m_WarningMessage))
-            {
-                EditorGUILayout.HelpBox(m_WarningMessage, MessageType.Warning);
-            }
-
-            if (SerializedTypeDrawer.UseDefaultEditors)
-            {
-                base.OnInspectorGUI();
-            }
-            else
-            {
-                DrawSimplifiedInspector();
-            }
-        }
-
-        void DrawSimplifiedInspectorElement(VisualElement root)
-        {
-            root.Add(CreatePropertyElement(Tr(LocalizationKeys.k_TutorialPageLabelTitle), m_PageTitle));
-            root.Add(CreatePropertyElement(Tr(LocalizationKeys.k_TutorialPagePropertyMedia), m_MediaContent));
-
-            root.Add(CreateTextAreaPropertyElement(Tr(LocalizationKeys.k_TutorialPageLabelNarrativeDescription), m_NarrativeDescription));
-            root.Add(CreatePropertyElement(Tr(LocalizationKeys.k_TutorialPageLabelInstructionTitle), m_InstructionTitle));
-            root.Add(CreateTextAreaPropertyElement(Tr(LocalizationKeys.k_TutorialPageLabelInstructionDescription), m_InstructionDescription));
-
-            root.Add(CreateTextAreaPropertyElement(Tr(LocalizationKeys.k_TutorialPageCodeSample), m_CodeSample));
-
-            var autoFormatButton = new Button(() =>
-            {
-                m_CodeSample.stringValue = CodeSampleUtils.AsFormattedCode(m_CodeSample.stringValue);
-                m_CodeSample.serializedObject.ApplyModifiedProperties();
-            });
-            autoFormatButton.text = "Auto-Format Code Sample";
-            autoFormatButton.style.marginBottom = 10;
-
-            root.Add(autoFormatButton);
-            root.Add(CreatePropertyElement(Tr(LocalizationKeys.k_TutorialPagePostInstructionImage),
-                m_PostInstructionImage));
-
-            if (m_CriteriaCompletion != null)
-            {
-                var label = new Label(Tr(LocalizationKeys.k_TutorialPageLabelCompletionCriteria));
-                label.style.unityFontStyleAndWeight = FontStyle.Bold;
-
-                root.Add(new PropertyField(m_AutoAdvance));
-                root.Add(new PropertyField(m_CriteriaCompletion, Tr(LocalizationKeys.k_TutorialPagePropertyCompletionType)));
-                root.Add(new PropertyField(m_Criteria, Tr(LocalizationKeys.k_TutorialPagePropertyCriteria)));
-            }
-
-            if (m_NextTutorial != null)
-            {
-                root.Add(CreatePropertyElement(Tr(LocalizationKeys.k_TutorialPagePropertyNextTutorial), m_NextTutorial));
-                root.Add(CreatePropertyElement(Tr(LocalizationKeys.k_TutorialPagePropertyNextTutorialButton), m_TutorialButtonText));
-            }
-
-            var foldout = new Foldout();
-
-            //the 1st child of the foldout contains the label
-            var foldoutToggleContent = foldout.Q<Toggle>()[0];
-            var foldoutImage = new Image();
-            foldoutImage.image = s_EventsSectionTitle.image;
-            foldoutImage.style.marginRight = 5;
-            foldoutToggleContent.Add(foldoutImage);
-            var foldoutLabel = new Label(s_EventsSectionTitle.text);
-            foldoutLabel.style.flexGrow = 1.0f;
-            foldoutToggleContent.Add(foldoutLabel);
-
-            if (k_IsAuthoringMode)
-            {
-                var createCallbackButton = new Button(() =>
-                {
-                    CreateCallbackHandlerScript("TutorialCallbacks.cs");
-                    m_Events.ForEach(data => InitializeEventWithDefaultData(data.Property));
-                    serializedObject.ApplyModifiedProperties();
-                });
-                createCallbackButton.text = Tr(LocalizationKeys.k_TutorialPageButtonCreateCallbackHandler);
-                createCallbackButton.style.width =  Length.Percent(50);
-                foldoutToggleContent.Add(createCallbackButton);
-            }
-
-            var warningHelpBox = TutorialEditorUtils.RenderEventStateWarningElement(foldout.contentContainer);
-            warningHelpBox.style.display = DisplayStyle.None;
-
-            if (m_Events.Any(e => TutorialEditorUtils.EventIsNotInState(e.Property, UnityEventCallState.EditorAndRuntime)))
-            {
-                warningHelpBox.style.display = DisplayStyle.Flex;
-            }
-
-            m_Events.ForEach(data => foldout.contentContainer.Add(CreateEventProperty(data.Content, data.Property)));
-
-            //we register to the change event to update the visibility of the helpbox when a change happen
-            foldout.RegisterCallback<SerializedPropertyChangeEvent>(evt =>
-            {
-                warningHelpBox.style.display = m_Events.Any(e => TutorialEditorUtils.EventIsNotInState(e.Property, UnityEventCallState.EditorAndRuntime)) ?
-                    DisplayStyle.Flex :
-                    DisplayStyle.None;
-            });
-
-            root.Add(foldout);
-
-            root.Add(CreatePropertyElement(Tr(LocalizationKeys.k_TutorialPagePropertyEnableMasking),
-                m_MaskingSettings));
-
-            UIElementsUtils.DrawPropertiesExcluding(root, serializedObject, k_PropertiesToHide);
-        }
-
-        void DrawSimplifiedInspector()
-        {
-            serializedObject.Update();
-            GUIStyle textAreaStyle = GUI.skin.GetStyle("TextArea");
-
-            EditorGUILayout.BeginVertical();
-
-            RenderProperty(Tr(LocalizationKeys.k_TutorialPageLabelTitle), m_PageTitle);
-
-            EditorGUILayout.Space(10);
-
-            RenderProperty(Tr(LocalizationKeys.k_TutorialPagePropertyMedia), m_MediaContent);
-
-            EditorGUILayout.Space(10);
-
-            /* todo: Disabled as from v3.0 this is unused when rendering narrative paragraphs.
-             * By v4.0 decide what we want to do with titles of narrative paragraphs,
-             * which before v3.0 were used as the title of the page
-            RenderProperty(Tr(LocalizationKeys.k_TutorialPageLabelNarrativeTitle), m_NarrativeTitle);
-
-            EditorGUILayout.Space(10);*/
-
-            RenderTextAreaProperty(Tr(LocalizationKeys.k_TutorialPageLabelNarrativeDescription), m_NarrativeDescription, textAreaStyle);
-
-            EditorGUILayout.Space(10);
-
-            RenderProperty(Tr(LocalizationKeys.k_TutorialPageLabelInstructionTitle), m_InstructionTitle);
-
-            EditorGUILayout.Space(10);
-
-            RenderTextAreaProperty(Tr(LocalizationKeys.k_TutorialPageLabelInstructionDescription), m_InstructionDescription, textAreaStyle);
-
-            if (m_CodeSample != null)
-            {
-                EditorGUILayout.Space(10);
-                RenderTextAreaProperty(Tr(LocalizationKeys.k_TutorialPageCodeSample), m_CodeSample, textAreaStyle);
-                if (GUILayout.Button("Auto-Format"))
-                {
-                    //this allow to remove focus on the above text area if it was the last thing in focus (e.g. the user
-                    //just pasted something in there. Otherwise it doesn't get updated visually and let to believe the
-                    //button doesn't work.
-                    EditorGUI.FocusTextInControl("");
-                    m_CodeSample.stringValue = CodeSampleUtils.AsFormattedCode(m_CodeSample.stringValue);
-                }
-            }
-
-            if (m_PostInstructionImage != null)
-            {
-                EditorGUILayout.Space(10);
-                RenderProperty(Tr(LocalizationKeys.k_TutorialPagePostInstructionImage), m_PostInstructionImage);
-            }
-
-            if (m_CriteriaCompletion != null)
-            {
-                EditorGUILayout.Space(10);
-                EditorGUILayout.LabelField(Tr(LocalizationKeys.k_TutorialPageLabelCompletionCriteria), EditorStyles.boldLabel);
-                EditorGUILayout.PropertyField(m_AutoAdvance);
-                EditorGUILayout.PropertyField(m_CriteriaCompletion, new GUIContent(Tr(LocalizationKeys.k_TutorialPagePropertyCompletionType)));
-                EditorGUILayout.PropertyField(m_Criteria, new GUIContent(Tr(LocalizationKeys.k_TutorialPagePropertyCriteria)));
-            }
-
-            if (m_NextTutorial != null)
-            {
-                EditorGUILayout.Space(10);
-                RenderProperty(Tr(LocalizationKeys.k_TutorialPagePropertyNextTutorial), m_NextTutorial);
-                RenderProperty(Tr(LocalizationKeys.k_TutorialPagePropertyNextTutorialButton), m_TutorialButtonText);
-            }
-
-            EditorStyles.label.wordWrap = true;
-
-            EditorGUILayout.Space(10);
-
-            EditorGUILayout.BeginHorizontal();
-
-            ShowEvents = EditorGUILayout.Foldout(ShowEvents, s_EventsSectionTitle);
-            if (k_IsAuthoringMode && GUILayout.Button(Tr(LocalizationKeys.k_TutorialPageButtonCreateCallbackHandler)))
-            {
-                CreateCallbackHandlerScript("TutorialCallbacks.cs");
-                m_Events.ForEach(data => InitializeEventWithDefaultData(data.Property));
-                GUIUtility.ExitGUI();
-            }
-            EditorGUILayout.EndHorizontal();
-
-            EditorGUILayout.Space(10);
-
-            if (ShowEvents)
-            {
-                if (m_Events.Any(e => TutorialEditorUtils.EventIsNotInState(e.Property, UnityEventCallState.EditorAndRuntime)))
-                {
-                    TutorialEditorUtils.RenderEventStateWarning();
-                }
-
-                // TODO unwanted "Callbacks" header is shown here
-                m_Events.ForEach(data => RenderEventProperty(data.Content, data.Property));
-            }
-
-            RenderProperty(Tr(LocalizationKeys.k_TutorialPagePropertyEnableMasking), m_MaskingSettings);
-
-            EditorGUILayout.EndVertical();
-
-            DrawPropertiesExcluding(serializedObject, k_PropertiesToHide);
-
-            serializedObject.ApplyModifiedProperties();
-        }
-
-        static void RenderProperty(string name, SerializedProperty property)
-        {
-            if (property == null)
-                return;
-            EditorGUILayout.LabelField(name);
-            EditorGUILayout.PropertyField(property, GUIContent.none);
-        }
-
-        static void RenderTextAreaProperty(string name, SerializedProperty property, GUIStyle textAreaStyle)
-        {
-            if (property == null)
-                return;
-
-            EditorGUILayout.LabelField(name);
-            property.stringValue = textAreaStyle != null ? EditorGUILayout.TextArea(property.stringValue, textAreaStyle)
-                                                         : EditorGUILayout.TextArea(property.stringValue);
-        }
-
-        /// <summary>
-        /// Renders an event property in the inspector
-        /// </summary>
-        /// <param name="headerContent">Content shown in the header area.</param>
-        /// <param name="property">The property to render</param>
-        static void RenderEventProperty(GUIContent headerContent, SerializedProperty property)
-        {
-            EditorGUILayout.PropertyField(property, headerContent);
-        }
-
-        static VisualElement CreatePropertyElement(string label, SerializedProperty property)
-        {
-            var root = new VisualElement();
-
-            var labelElement = new Label(label);
-            labelElement.style.unityFontStyleAndWeight = FontStyle.Bold;
-            labelElement.style.marginBottom = 5;
-
-            var propertyElement = new PropertyField(property, "");
-
-            root.Add(labelElement);
-            root.Add(propertyElement);
-
-            root.style.marginBottom = 10;
-
-            return root;
-        }
-
-        static VisualElement CreateTextAreaPropertyElement(string label, SerializedProperty property)
-        {
-            var root = new VisualElement();
-
-            var labelElement = new Label(label);
-            labelElement.style.unityFontStyleAndWeight = FontStyle.Bold;
-            labelElement.style.marginBottom = 5;
-
-            var textArea = new TextField();
-            textArea.multiline = true;
-
-            textArea.BindProperty(property);
-
-            root.Add(labelElement);
-            root.Add(textArea);
-
-            root.style.marginBottom = 10;
-            return root;
-        }
-
-        static VisualElement CreateEventProperty(GUIContent headerContent, SerializedProperty property)
-        {
-            var root = new VisualElement();
+            VisualElement root = new();
             root.Add(new PropertyField(property, headerContent.text));
+
             return root;
         }
 
-        void InitializeEventWithDefaultData(SerializedProperty eventProperty)
+        private void InitializeEventWithDefaultData(SerializedProperty eventProperty)
         {
-            var so = AssetDatabase.LoadAssetAtPath<ScriptableObject>("Assets/IET/TutorialCallbacks.asset"); // TODO check this
+            ScriptableObject so = AssetDatabase.LoadAssetAtPath<ScriptableObject>("Assets/IET/TutorialCallbacks.asset"); // TODO check this
             //[TODO] Add listeners here if they are empty (?)
             ForceCallbacksListenerTarget(eventProperty, so);
             ForceCallbacksListenerState(eventProperty, UnityEventCallState.EditorAndRuntime);
@@ -645,7 +250,7 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         /// <param name="eventProperty">A UnityEvent (or derived class) property</param>
         /// <param name="state"></param>
-        void ForceCallbacksListenerState(SerializedProperty eventProperty, UnityEventCallState state)
+        private void ForceCallbacksListenerState(SerializedProperty eventProperty, UnityEventCallState state)
         {
             SerializedProperty persistentCalls = eventProperty.FindPropertyRelative("m_PersistentCalls.m_Calls");
             for (int i = 0; i < persistentCalls.arraySize; i++)
@@ -655,76 +260,23 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
-        void ForceCallbacksListenerTarget(SerializedProperty eventProperty, UnityEngine.Object target)
+        private void ForceCallbacksListenerTarget(SerializedProperty eventProperty, Object listenerTarget)
         {
             SerializedProperty persistentCalls = eventProperty.FindPropertyRelative("m_PersistentCalls.m_Calls");
             for (int i = 0; i < persistentCalls.arraySize; i++)
             {
-                persistentCalls.GetArrayElementAtIndex(i).FindPropertyRelative("m_Target").objectReferenceValue = target;
+                persistentCalls.GetArrayElementAtIndex(i).FindPropertyRelative("m_Target").objectReferenceValue = listenerTarget;
                 serializedObject.ApplyModifiedProperties();
             }
         }
 
-        /// <summary>
-        /// Creates an example callback handler script from a template script.
-        /// </summary>
-        /// <param name="templateFile">
-        /// Template file name, must exist in "Packages/com.unity.learn.iet-framework.authoring/.TemplateAssets" folder.
-        /// </param>
-        /// <param name="targetDir">Use null to open a dialog for choosing the destination.</param>
-        internal static void CreateCallbackHandlerScript(string templateFile, string targetDir = null)
-        {
-            // TODO preferably these template assets should reside in the authoring package
-            var templatePath = $"Packages/com.unity.learn.iet-framework/.TemplateAssets/{templateFile}";
-            if (!File.Exists(templatePath))
-            {
-                Debug.LogError($"Template file '{templateFile}' does not exist.");
-                return;
-            }
-
-            if (targetDir == null)
-            {
-                targetDir = EditorUtility.OpenFolderPanel(
-                    Tr(LocalizationKeys.k_TutorialPageDialogCallbackFolderTitle),
-                    Application.dataPath,
-                    string.Empty
-                );
-                if (targetDir.IsNullOrEmpty())
-                {
-                    return; // user cancelled
-                }
-            }
-
-            try
-            {
-                if (!Directory.Exists(targetDir))
-                    Directory.CreateDirectory(targetDir);
-
-                var destFileName = Path.Combine(targetDir, templateFile);
-                CallbackAssetPath = Path.ChangeExtension(destFileName, ".asset")
-                    .Replace(@"\", "/")
-                    .Replace(Application.dataPath, "Assets");
-
-                // TODO preferably use the following which would allow renaming the file immediately to user's liking
-                // and utilising template script features.
-                //ProjectWindowUtil.CreateScriptAssetFromTemplateFile(templatePath, templateFile);
-                File.Copy(templatePath, destFileName);
-                AssetDatabase.Refresh();
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-                CallbackAssetPath = string.Empty;
-            }
-        }
-
-        [UnityEditor.Callbacks.DidReloadScripts]
-        static void OnScriptsReloaded()
+        [DidReloadScripts]
+        private static void OnScriptsReloaded()
         {
             if (CallbackAssetPath.IsNullOrEmpty())
                 return;
 
-            var destFileName = CallbackAssetPath;
+            string destFileName = CallbackAssetPath;
             CallbackAssetPath = string.Empty;
 
             const string errorMsg1 = "Could not create TutorialCallbacks instance automatically";
@@ -732,7 +284,7 @@ namespace Unity.Tutorials.Core.Editor
 
             // TODO If the user creates the asset/script to a folder with asmdef this doesn't work.
             const string className = "TutorialCallbacks";
-            var type = Assembly.Load("Assembly-CSharp").GetType(className);
+            Type type = Assembly.Load("Assembly-CSharp").GetType(className);
             if (type == null)
             {
                 Debug.LogError($"{errorMsg1}: {className} class not found from Assembly-CSharp. {errorMsg2}.");
@@ -740,14 +292,27 @@ namespace Unity.Tutorials.Core.Editor
             }
 
             const string methodName = "CreateAndShowAsset";
-            var method = type.GetMethod(methodName);
+            MethodInfo method = type.GetMethod(methodName);
             if (method == null)
             {
                 Debug.LogError($"{errorMsg1}: {methodName} not found from {className} class. {errorMsg2}.");
                 return;
             }
 
-            method.Invoke(null, new[] { destFileName });
+            method.Invoke(null, new object[] { destFileName });
+        }
+
+        internal static void RenamePage(TutorialPage page)
+        {
+            string pageTitle = page.Title.Value;
+            string pageName = $"{page.IndexInTutorial}";
+
+            if (!string.IsNullOrEmpty(pageTitle))
+                pageName = $"{pageName}_{EditorWindowUtils.MakeValidFileName(pageTitle)}";
+
+            page.name = pageName;
+
+            AssetDatabase.SaveAssets();
         }
     }
 }

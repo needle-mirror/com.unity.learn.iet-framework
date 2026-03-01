@@ -1,7 +1,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// Wrapper for defining IET Preferences (User Settings) conveniently.
@@ -80,6 +80,6 @@ namespace Unity.Tutorials.Core.Editor
         /// Returns Name and Tooltip as GUIContent.
         /// </summary>
         /// <returns>A GUIContent containing the Name and Tooltip of that setting</returns>
-        public GUIContent GetGuiContent() => new GUIContent(Name, Tooltip);
+        public GUIContent GetGuiContent() => new(Name, Tooltip);
     }
 }

@@ -20,10 +20,7 @@ msgid "ReportProblemButtonText"
 msgstr "Report issue"
 
 msgid "AskAIText"
-msgstr "Still need help? Use Unity AI to ask Assistant."
-
-msgid "AIInstallPopup"
-msgstr "Install the Assistant package using the highlighted AI menu button. Then, open Assistant using the <b>Open Assistant</b> button."
+msgstr "Your question is not listed here? Try asking the AI Assistant"
 
 msgid "TOCLabelTitle"
 msgstr "Tutorials and documentation"
@@ -62,7 +59,7 @@ msgid "WindowClosedDialogButtonOk"
 msgstr "OK"
 
 msgid "TutorialPageLabelEventStateWarning"
-msgstr "One or more callbacks of this event are not using 'Editor and Runtime' mode.If you want to be able to execute them in Edit mode as well (that is, when running tutorials out of Play mode), be sure to choose 'Editor and Runtime' mode. "
+msgstr "One or more callbacks of this event are not using 'Editor and Runtime' mode. If you want to be able to execute them in Edit mode as well (that is, when running tutorials out of Play mode), be sure to choose 'Editor and Runtime' mode. "
 
 msgid "LocalizableStringIconTooltip"
 msgstr "Localizable string"
@@ -90,6 +87,9 @@ msgstr "Show tutorials closed dialog"
 
 msgid "SettingsDisplayWelcomeDialogOnStartup"
 msgstr "Display welcome dialog on startup"
+
+msgid "SettingsDataMigrationV5"
+msgstr "Run Framework v5 Paragraph migration check on startup"
 
 msgid "SettingsShowSimplifiedTypeNames"
 msgstr "Show simplified type names"
@@ -213,5 +213,8 @@ msgstr "Copy Code Sample"
 
 msgid "CodeCopiedWarning"
 msgstr "Copied!"
+
+msgid "SettingsDataMigrationV6"
+msgstr "Migrate Data to v6 Paragraph Style"
 
 #Always leave an empty line before this line of the english file, or the last entry won't be synced with non-english files

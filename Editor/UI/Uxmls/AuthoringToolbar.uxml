@@ -1,0 +1,13 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <uie:Toolbar>
+        <uie:ToolbarButton name="SelectContainerButton" class="authoring-toolbar-button" />
+        <uie:ToolbarButton name="SelectTutorialButton" class="authoring-toolbar-button" />
+        <uie:ToolbarButton name="SelectTutorialPageButton" class="authoring-toolbar-button" />
+        <ui:VisualElement name="FlexibleSpacer" class="authoring-toolbar-flexible-spacer" />
+        <uie:ToolbarButton name="SkipToEndButton" class="authoring-toolbar-button" />
+        <uie:ToolbarButton name="AutocompleteButton" class="authoring-toolbar-button" />
+        <uie:ToolbarButton name="RunStartupCodeButton" class="authoring-toolbar-button" />
+        <uie:ToolbarSpacer />
+        <uie:ToolbarToggle name="MaskingToggle" class="authoring-toolbar-button" />
+    </uie:Toolbar>
+</ui:UXML>

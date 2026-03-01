@@ -3,16 +3,16 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Analytics;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
-    enum TutorialConclusion
+    internal enum TutorialConclusion
     {
         Completed,
         Quit,
         Reloaded
     }
 
-    class TutorialAnalyticsEventData
+    internal class TutorialAnalyticsEventData
     {
         public string tutorialName;
         public string version;
@@ -28,13 +28,13 @@ namespace Unity.Tutorials.Core.Editor
         }
     }
 
-    enum TutorialPageConclusion
+    internal enum TutorialPageConclusion
     {
         Completed,
         Reviewed
     }
 
-    class TutorialPageAnalyticsEventData
+    internal class TutorialPageAnalyticsEventData
     {
         public string tutorialName;
         public int pageIndex;
@@ -50,13 +50,13 @@ namespace Unity.Tutorials.Core.Editor
         }
     }
 
-    enum TutorialParagraphConclusion
+    internal enum TutorialParagraphConclusion
     {
         Completed,
         Regressed
     }
 
-    class TutorialParagraphAnalyticsEventData
+    internal class TutorialParagraphAnalyticsEventData
     {
         public string tutorialName;
         public int pageIndex;
@@ -72,45 +72,35 @@ namespace Unity.Tutorials.Core.Editor
         }
     }
 
-    class AnalyticsHelper : ScriptableObject, ISerializationCallbackReceiver
+    internal class AnalyticsHelper : ScriptableObject, ISerializationCallbackReceiver
     {
-        [SerializeField]
-        Tutorial currentTutorial;
+        [SerializeField] private Tutorial currentTutorial;
 
-        [SerializeField]
-        TutorialPage currentPage;
+        [SerializeField] private TutorialPage currentPage;
 
-        [SerializeField]
-        int currentPageIndex;
+        [SerializeField] private int currentPageIndex;
 
-        [SerializeField]
-        TutorialPage lastPage;
+        [SerializeField] private TutorialPage lastPage;
 
-        [SerializeField]
-        int lastPageIndex;
+        [SerializeField] private int lastPageIndex;
 
-        [SerializeField]
-        int currentParagraphIndex;
+        [SerializeField] private int currentParagraphIndex;
 
-        DateTime currentTutorialStartTime;
+        private DateTime currentTutorialStartTime;
 
-        DateTime currentPageStartTime;
+        private DateTime currentPageStartTime;
 
-        DateTime lastPageStartTime;
+        private DateTime lastPageStartTime;
 
-        DateTime currentParagraphStartTime;
+        private DateTime currentParagraphStartTime;
 
-        [SerializeField]
-        long currentTutorialStartTicks;
+        [SerializeField] private long currentTutorialStartTicks;
 
-        [SerializeField]
-        long currentPageStartTicks;
+        [SerializeField] private long currentPageStartTicks;
 
-        [SerializeField]
-        long lastPageStartTicks;
+        [SerializeField] private long lastPageStartTicks;
 
-        [SerializeField]
-        long currentParagraphStartTicks;
+        [SerializeField] private long currentParagraphStartTicks;
 
         public static AnalyticsHelper Instance
         {
@@ -118,7 +108,7 @@ namespace Unity.Tutorials.Core.Editor
             {
                 if (!s_Instance)
                 {
-                    var instance = Resources.FindObjectsOfTypeAll<AnalyticsHelper>();
+                    AnalyticsHelper[] instance = Resources.FindObjectsOfTypeAll<AnalyticsHelper>();
                     if (instance.Length == 0)
                     {
                         s_Instance = CreateInstance<AnalyticsHelper>();
@@ -126,13 +116,14 @@ namespace Unity.Tutorials.Core.Editor
                     }
                     else
                     {
-                        s_Instance = instance[0] as AnalyticsHelper;
+                        s_Instance = instance[0];
                     }
                 }
                 return s_Instance;
             }
         }
-        static AnalyticsHelper s_Instance;
+
+        private static AnalyticsHelper s_Instance;
 
         public void OnBeforeSerialize()
         {
@@ -150,21 +141,21 @@ namespace Unity.Tutorials.Core.Editor
             currentParagraphStartTime = new DateTime(currentParagraphStartTicks, DateTimeKind.Utc);
         }
 
-        static void DebugWarning(string message, params object[] args)
+        private static void DebugWarning(string message, params object[] args)
         {
 #if DEBUG_TUTORIALS
             Debug.LogWarningFormat(message, args);
 #endif
         }
 
-        static void DebugLog(string message, params object[] args)
+        private static void DebugLog(string message, params object[] args)
         {
 #if DEBUG_TUTORIALS
             Debug.LogFormat(message, args);
 #endif
         }
 
-        static void DebugError(string message, params object[] args)
+        private static void DebugError(string message, params object[] args)
         {
 #if DEBUG_TUTORIALS
             Debug.LogErrorFormat(message, args);
@@ -290,7 +281,7 @@ namespace Unity.Tutorials.Core.Editor
                 return;
             }
             DebugLog("Paragraph Ended: regression = {0}", regressed);
-            var conclusion = regressed ? TutorialParagraphConclusion.Regressed : TutorialParagraphConclusion.Completed;
+            TutorialParagraphConclusion conclusion = regressed ? TutorialParagraphConclusion.Regressed : TutorialParagraphConclusion.Completed;
 
             SendTutorialParagraphEvent
             (
@@ -301,7 +292,7 @@ namespace Unity.Tutorials.Core.Editor
             Instance.currentParagraphIndex = -1;
         }
 
-        static string GetAssetGuid(ScriptableObject asset) => AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(asset));
+        private static string GetAssetGuid(ScriptableObject asset) => AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(asset));
 
         /// <summary>
         /// Use for external references/links, documentation, assets, etc.
@@ -404,42 +395,17 @@ namespace Unity.Tutorials.Core.Editor
             public string question;
         }
 
-#if UNITY_6000
-        public struct AiAssistantInstallRequestEventData : IAnalytic.IData
-#else
-        public struct AiAssistantInstallRequestEventData
-#endif
-        {
-            public int ts; // timestamp
-            public string tutorialName;
-            public int pageIndex;
-        }
+        private const int k_MaxEventsPerHour = 1000;
+        private const int k_MaxNumberOfElements = 1000;
+        private const string k_VendorKey = "unity.iet"; // the format needs to be "unity.xxx"
 
-#if UNITY_6000
-        public struct AiAssistantOpenEventData : IAnalytic.IData
-#else
-        public struct AiAssistantOpenEventData
-#endif
-        {
-            public int ts; // timestamp
-            public string tutorialName;
-            public int pageIndex;
-        }
-
-        const int k_MaxEventsPerHour = 1000;
-        const int k_MaxNumberOfElements = 1000;
-        const string k_VendorKey = "unity.iet"; // the format needs to be "unity.xxx"
-
-        const string k_EventExternalReference = "iet_externalReference";
-        const string k_EventExternalReferenceImpression = "iet_externalReferenceImpression";
-        const string k_EventTutorial = "iet_tutorial";
-        const string k_EventTutorialPage = "iet_tutorialPage";
-        const string k_EventTutorialParagraph = "iet_tutorialParagraph";
-        const string k_EventTutorialFaqOpened = "iet_faqOpened";
-        const string k_EventTutorialFaqQuestionClicked = "iet_faqQuestionClicked";
-
-        const string k_EventTutorialAiAssistantInstallRequest = "iet_aiAssistantInstallRequest";
-        const string k_EventTutorialAiAssistantOpened = "iet_aiAssistantOpen";
+        private const string k_EventExternalReference = "iet_externalReference";
+        private const string k_EventExternalReferenceImpression = "iet_externalReferenceImpression";
+        private const string k_EventTutorial = "iet_tutorial";
+        private const string k_EventTutorialPage = "iet_tutorialPage";
+        private const string k_EventTutorialParagraph = "iet_tutorialParagraph";
+        private const string k_EventTutorialFaqOpened = "iet_faqOpened";
+        private const string k_EventTutorialFaqQuestionClicked = "iet_faqQuestionClicked";
 
 #if UNITY_6000
         //Unity 6 editor analytics changed, you now define 1 class per type of analytics, so we need to create a class for each even above
@@ -451,7 +417,7 @@ namespace Unity.Tutorials.Core.Editor
 
             public TutorialAnalytic(string tutorialName, string version, TutorialConclusion conclusion, string lessonID, DateTime startTime, TimeSpan duration, bool isBlocking)
             {
-                this.parameters = new TutorialEventData
+                parameters = new TutorialEventData
                 {
                     ts = DateTime.UtcNow.Millisecond,
                     tutorialName = tutorialName,
@@ -467,7 +433,7 @@ namespace Unity.Tutorials.Core.Editor
             public bool TryGatherData(out IAnalytic.IData data, out Exception error)
             {
                 error = null;
-                data = parameters;
+                data =  parameters;
                 return data != null;
             }
         }
@@ -495,7 +461,7 @@ namespace Unity.Tutorials.Core.Editor
             public bool TryGatherData(out IAnalytic.IData data, out Exception error)
             {
                 error = null;
-                data = parameters;
+                data =  parameters;
                 return data != null;
             }
         }
@@ -523,7 +489,7 @@ namespace Unity.Tutorials.Core.Editor
             public bool TryGatherData(out IAnalytic.IData data, out Exception error)
             {
                 error = null;
-                data = parameters;
+                data =  parameters;
                 return data != null;
             }
         }
@@ -535,7 +501,7 @@ namespace Unity.Tutorials.Core.Editor
 
             public ExternalReferenceAnalytic(string url, string title, string contentType, string id = null)
             {
-                parameters = new ExternalReferenceEventData
+                parameters =  new ExternalReferenceEventData
                 {
                     ts = DateTime.UtcNow.Millisecond,
                     id = id,
@@ -548,7 +514,7 @@ namespace Unity.Tutorials.Core.Editor
             public bool TryGatherData(out IAnalytic.IData data, out Exception error)
             {
                 error = null;
-                data = parameters;
+                data =  parameters;
                 return data != null;
             }
         }
@@ -573,7 +539,7 @@ namespace Unity.Tutorials.Core.Editor
             public bool TryGatherData(out IAnalytic.IData data, out Exception error)
             {
                 error = null;
-                data = parameters;
+                data =  parameters;
                 return data != null;
             }
         }
@@ -596,7 +562,7 @@ namespace Unity.Tutorials.Core.Editor
             public bool TryGatherData(out IAnalytic.IData data, out Exception error)
             {
                 error = null;
-                data = parameters;
+                data =  parameters;
                 return data != null;
             }
         }
@@ -620,53 +586,7 @@ namespace Unity.Tutorials.Core.Editor
             public bool TryGatherData(out IAnalytic.IData data, out Exception error)
             {
                 error = null;
-                data = parameters;
-                return data != null;
-            }
-        }
-
-        [AnalyticInfo(eventName: k_EventTutorialAiAssistantInstallRequest, vendorKey: k_VendorKey)]
-        internal class AiAssistanInstalRequestAnalytic : IAnalytic
-        {
-            private AiAssistantInstallRequestEventData parameters;
-
-            public AiAssistanInstalRequestAnalytic(string tutorialName, int pageIndex)
-            {
-                parameters = new AiAssistantInstallRequestEventData
-                {
-                    ts = DateTime.UtcNow.Millisecond,
-                    tutorialName = tutorialName,
-                    pageIndex = pageIndex
-                };
-            }
-
-            public bool TryGatherData(out IAnalytic.IData data, out Exception error)
-            {
-                error = null;
-                data = parameters;
-                return data != null;
-            }
-        }
-
-        [AnalyticInfo(eventName: k_EventTutorialAiAssistantOpened, vendorKey: k_VendorKey)]
-        internal class AiAssistantOpenAnalytic : IAnalytic
-        {
-            private AiAssistantOpenEventData parameters;
-
-            public AiAssistantOpenAnalytic(string tutorialName, int pageIndex)
-            {
-                parameters = new AiAssistantOpenEventData
-                {
-                    ts = DateTime.UtcNow.Millisecond,
-                    tutorialName = tutorialName,
-                    pageIndex = pageIndex
-                };
-            }
-
-            public bool TryGatherData(out IAnalytic.IData data, out Exception error)
-            {
-                error = null;
-                data = parameters;
+                data =  parameters;
                 return data != null;
             }
         }
@@ -851,48 +771,6 @@ namespace Unity.Tutorials.Core.Editor
                 question = question
             };
             return SendEvent(k_EventTutorialFaqQuestionClicked, data);
-#endif
-        }
-
-        public static AnalyticsResult SendAIAssistantInstallRequest(string tutorialName, int pageIndex)
-        {
-            if (!EditorAnalytics.enabled
-#if !UNITY_6000
-                || !RegisterEvent(k_EventTutorialAiAssistantInstallRequest)
-#endif
-               ) { return AnalyticsResult.AnalyticsDisabled; }
-
-#if UNITY_6000
-            return EditorAnalytics.SendAnalytic(new AiAssistanInstalRequestAnalytic(tutorialName, pageIndex));
-#else
-            var data = new AiAssistantInstallRequestEventData
-            {
-                ts = DateTime.UtcNow.Millisecond,
-                tutorialName = tutorialName,
-                pageIndex = pageIndex
-            };
-            return SendEvent(k_EventTutorialAiAssistantInstallRequest, data);
-#endif
-        }
-
-        public static AnalyticsResult SendAIAssistantOpen(string tutorialName, int pageIndex)
-        {
-            if (!EditorAnalytics.enabled
-#if !UNITY_6000
-                || !RegisterEvent(k_EventTutorialAiAssistantOpened)
-#endif
-               ) { return AnalyticsResult.AnalyticsDisabled; }
-
-#if UNITY_6000
-            return EditorAnalytics.SendAnalytic(new AiAssistantOpenAnalytic(tutorialName, pageIndex));
-#else
-            var data = new AiAssistantOpenEventData
-            {
-                ts = DateTime.UtcNow.Millisecond,
-                tutorialName = tutorialName,
-                pageIndex = pageIndex
-            };
-            return SendEvent(k_EventTutorialAiAssistantOpened, data);
 #endif
         }
 

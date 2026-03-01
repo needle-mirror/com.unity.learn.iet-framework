@@ -2,15 +2,15 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// Used to work around the fact that the default UnityEventDrawer doesn't support tooltips for the header content.
     /// </summary>
     [CustomPropertyDrawer(typeof(UnityEventBase), true)]
-    class UnityEventDrawer : UnityEditorInternal.UnityEventDrawer
+    internal class UnityEventDrawer : UnityEditorInternal.UnityEventDrawer
     {
-        GUIContent m_Label;
+        private GUIContent m_Label;
 
         protected override void DrawEventHeader(Rect headerRect)
         {

@@ -1,7 +1,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// Criterion for checking that a specific scene is added to the build.
@@ -12,8 +12,7 @@ namespace Unity.Tutorials.Core.Editor
         /// The scene that needs to be added to the build.
         /// </summary>
         public SceneAsset Scene { get => m_Scene; set => m_Scene = value; }
-        [SerializeField]
-        SceneAsset m_Scene;
+        [SerializeField] private SceneAsset m_Scene;
 
         /// <summary>
         /// Starts testing of the criterion.
@@ -47,8 +46,8 @@ namespace Unity.Tutorials.Core.Editor
             }
             if (m_Scene)
             {
-                var scenePath = AssetDatabase.GetAssetPath(m_Scene);
-                foreach (var scene in EditorBuildSettings.scenes)
+                string scenePath = AssetDatabase.GetAssetPath(m_Scene);
+                foreach (EditorBuildSettingsScene scene in EditorBuildSettings.scenes)
                 {
                     if (scene.enabled)
                     {
@@ -96,8 +95,8 @@ namespace Unity.Tutorials.Core.Editor
             {
                 return false;
             }
-            var scenePath = AssetDatabase.GetAssetPath(asset);
-            foreach (var scene in EditorBuildSettings.scenes)
+            string scenePath = AssetDatabase.GetAssetPath(asset);
+            foreach (EditorBuildSettingsScene scene in EditorBuildSettings.scenes)
             {
                 if (scene.path == scenePath)
                 {
@@ -118,7 +117,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <param name="enabled">If true, will add the scene enabled in the BuildSettings, otherwise it's added disabled</param>
         public static void AddSceneToBuildSettings(SceneAsset scene, bool enabled = true)
         {
-            var scenes = new EditorBuildSettingsScene[EditorBuildSettings.scenes.Length + 1];
+            EditorBuildSettingsScene[] scenes = new EditorBuildSettingsScene[EditorBuildSettings.scenes.Length + 1];
             for (int i = 0; i < EditorBuildSettings.scenes.Length; ++i)
             {
                 scenes[i] = EditorBuildSettings.scenes[i];

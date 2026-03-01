@@ -1,0 +1,85 @@
+.container--tutorial {
+    border-top-color: rgba(255, 255, 255, 0.05);
+    background-color: #2E2E2E;
+}
+
+.container {
+    background-color: #353535;
+}
+
+.container--tutorial-icon {
+    background-color: #414141;
+}
+
+.container--tutorial-actions {
+    border-color: rgba(0,0,0,0.3);
+}
+
+.container--tutorial-link-icon {
+    border-left-color: #212421;
+}
+
+.container--header-large {
+    border-color: rgba(255,255,255,0.1);
+}
+
+.card {
+    background-color: #414141;
+    border-color: #212421;
+}
+
+.card:hover {
+    background-color: #4A4A4A;
+}
+
+.container--instruction {
+    background-color: #414141;
+    border-bottom-color: rgba(0, 0, 0, 0.4);
+}
+
+.container--welcome-dialog-content {
+    background-color: #2E2E2E;
+}
+
+.container--welcome-dialog-actions {
+    border-color: rgba(0,0,0,0.5);
+}
+
+.icon--tutorial-error-checkmark {
+    background-image: url('/Packages/com.unity.learn.iet-framework/Editor/UI/Images/Icons/ErrorDark.png');
+}
+
+.faq-report-icon {
+    background-image: url('/Packages/com.unity.learn.iet-framework/Editor/UI/Images/Icons/IconLink@2x.png');
+}
+
+/* Authoring toolbar */
+
+
+#SelectContainerButton {
+    background-image: url("project://database/Packages/com.unity.learn.iet-framework/Editor/UI/Images/Icons/AssetTypes/d_TutorialContainer.png?fileID=2800000&guid=aa4a1a71e46b8474594f7e3c7f929b50&type=3#d_TutorialContainer");
+}
+
+#SelectTutorialButton {
+    background-image: url("project://database/Packages/com.unity.learn.iet-framework/Editor/UI/Images/Icons/AssetTypes/d_Tutorial.png?fileID=2800000&guid=88a57203bf1414fdaa354e1e83d4a707&type=3#d_Tutorial");
+}
+
+#SelectTutorialPageButton {
+    background-image: url("project://database/Packages/com.unity.learn.iet-framework/Editor/UI/Images/Icons/AssetTypes/d_TutorialPage.png?fileID=2800000&guid=5d2f0307928eb4f7f9519841c6472e5b&type=3#d_TutorialPage");
+}
+
+#AutocompleteButton {
+    background-image: url("project://database/Packages/com.unity.learn.iet-framework/Editor/UI/Images/Icons/Authoring/d_Autocomplete.png?fileID=2800000&guid=d8784cf03099e41e08df7fd61060778d&type=3#d_Autocomplete");
+}
+
+#MaskingToggle {
+    background-image: url("project://database/Packages/com.unity.learn.iet-framework/Editor/UI/Images/Icons/Authoring/d_MaskingOn.png?fileID=2800000&guid=d65232727411b4121a2f234c575fcade&type=3#d_MaskingOn");
+}
+
+#SkipToEndButton {
+    background-image: url("project://database/Packages/com.unity.learn.iet-framework/Editor/UI/Images/Icons/Authoring/d_SkipToEnd.png?fileID=2800000&guid=58bddc0a0cb11410dbcfbdf081928773&type=3#d_SkipToEnd");
+}
+
+#RunStartupCodeButton {
+    background-image: url("project://database/Packages/com.unity.learn.iet-framework/Editor/UI/Images/Icons/Authoring/d_RunStartupCode.png?fileID=2800000&guid=06bc3c77462aa43edbcb34a18669c4da&type=3#d_RunStartupCode");
+}

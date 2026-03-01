@@ -1,21 +1,21 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     [CustomPropertyDrawer(typeof(TutorialParagraph))]
-    class TutorialParagraphDrawer : FlushChildrenDrawer
+    internal class TutorialParagraphDrawer : FlushChildrenDrawer
     {
-        const string k_TypePath = "m_Type";
-        const string k_TextPath = "m_Text";
-        const string k_CriteriaPath = "m_Criteria";
-        const string k_SummaryPath = "m_Summary";
-        const string k_CompletionPath = "m_CriteriaCompletion";
-        const string k_TutorialPath = "m_Tutorial";
-        const string k_TutorialButtonTextPath = "m_TutorialButtonText";
-        const string k_ImagePath = "m_Image";
-        const string k_VideoUrlPath = "m_VideoUrl";
-        const string k_VideoPath = "m_Video";
+        private const string k_TypePath = "m_Type";
+        private const string k_TextPath = "m_Text";
+        private const string k_CriteriaPath = "m_Criteria";
+        private const string k_SummaryPath = "m_Summary";
+        private const string k_CompletionPath = "m_CriteriaCompletion";
+        private const string k_TutorialPath = "m_Tutorial";
+        private const string k_TutorialButtonTextPath = "m_TutorialButtonText";
+        private const string k_ImagePath = "m_Image";
+        private const string k_VideoUrlPath = "m_VideoUrl";
+        private const string k_VideoPath = "m_Video";
 
         protected override void DisplayChildProperty(
             Rect position, SerializedProperty parentProperty, SerializedProperty childProperty, GUIContent label

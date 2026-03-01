@@ -1,8 +1,8 @@
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     internal class TutorialFrameworkController : Controller
     {
-        TutorialFrameworkModel m_Model;
+        private TutorialFrameworkModel m_Model;
 
         internal TutorialFrameworkController(TutorialFrameworkModel model)
         {

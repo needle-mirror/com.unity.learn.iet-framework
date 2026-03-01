@@ -3,7 +3,7 @@ using System.Linq;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace SerializableCallback
+namespace Unity.Tutorials.Editor.SerializableCallback
 {
     /// <summary>
     /// https://github.com/Siccity/SerializableCallback
@@ -56,18 +56,20 @@ namespace SerializableCallback
                 default:
                     throw new ArgumentException(types.Length + "args");
             }
-            return Activator.CreateInstance(genericType, new object[] { target, methodName }) as InvokableCallbackBase<TReturn>;
+            return Activator.CreateInstance(genericType, target, methodName) as InvokableCallbackBase<TReturn>;
         }
     }
 
     /// <summary> An inspector-friendly serializable function </summary>
-    [System.Serializable]
+    [Serializable]
     public abstract class SerializableCallbackBase : ISerializationCallbackReceiver
     {
         /// <summary> Target object </summary>
-        public Object target { get { return _target; } set { _target = value; ClearCache(); } }
+        public Object target { get => _target;
+            set { _target = value; ClearCache(); } }
         /// <summary> Target method name </summary>
-        public string methodName { get { return _methodName; } set { _methodName = value; ClearCache(); } }
+        public string methodName { get => _methodName;
+            set { _methodName = value; ClearCache(); } }
         /// <summary>
         /// https://github.com/Siccity/SerializableCallback
         /// </summary>
@@ -87,7 +89,8 @@ namespace SerializableCallback
         /// <summary>
         /// https://github.com/Siccity/SerializableCallback
         /// </summary>
-        public bool dynamic { get { return _dynamic; } set { _dynamic = value; ClearCache(); } }
+        public bool dynamic { get => _dynamic;
+            set { _dynamic = value; ClearCache(); } }
 
         /// <summary>
         /// https://github.com/Siccity/SerializableCallback
@@ -117,7 +120,7 @@ namespace SerializableCallback
         /// </summary>
         protected SerializableCallbackBase()
         {
-            _typeName = base.GetType().AssemblyQualifiedName;
+            _typeName = GetType().AssemblyQualifiedName;
         }
 
 #endif
@@ -168,7 +171,7 @@ namespace SerializableCallback
         public void OnAfterDeserialize()
         {
 #if UNITY_EDITOR
-            _typeName = base.GetType().AssemblyQualifiedName;
+            _typeName = GetType().AssemblyQualifiedName;
 #endif
         }
     }
@@ -176,7 +179,7 @@ namespace SerializableCallback
     /// <summary>
     /// https://github.com/Siccity/SerializableCallback
     /// </summary>
-    [System.Serializable]
+    [Serializable]
     public struct Arg
     {
         /// <summary>
@@ -299,11 +302,11 @@ namespace SerializableCallback
         public static ArgType FromRealType(Type type)
         {
             if (type == typeof(bool)) return ArgType.Bool;
-            else if (type == typeof(int)) return ArgType.Int;
-            else if (type == typeof(float)) return ArgType.Float;
-            else if (type == typeof(String)) return ArgType.String;
-            else if (type == typeof(Object)) return ArgType.Object;
-            else  return ArgType.Unsupported;
+            if (type == typeof(int)) return ArgType.Int;
+            if (type == typeof(float)) return ArgType.Float;
+            if (type == typeof(String)) return ArgType.String;
+            if (type == typeof(Object)) return ArgType.Object;
+            return ArgType.Unsupported;
         }
 
         /// <summary>

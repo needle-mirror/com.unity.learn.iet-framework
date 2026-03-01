@@ -1,4 +1,4 @@
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     internal class LocalizationKeys
     {
@@ -19,6 +19,7 @@ namespace Unity.Tutorials.Core.Editor
         internal const string k_SettingsHelpboxRestoreDefaultAssetsWarning = "SettingsHelpboxRestoreDefaultAssetsWarning";
         internal const string k_SettingsMaskingEnabled = "SettingsMaskingEnabled";
         internal const string k_SettingsMaskingEnabledTooltip = "SettingsMaskingEnabledTooltip";
+        internal const string k_SettingsDataMigrationV6 = "SettingsDataMigrationV6";
 
         //Language changed dialog
         internal const string k_LanguageDialogTitle = "LanguageDialogTitle";

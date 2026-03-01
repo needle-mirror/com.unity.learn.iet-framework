@@ -1,19 +1,21 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using Unity.EditorCoroutines.Editor;
+using Unity.Tutorials.Editor.Paragraphs;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
     internal class TutorialController : Controller
     {
-        TutorialModel m_Model => Application?.Model.Tutorial;
-        TutorialView m_View => Application?.TutorialView;
-        Tutorial CurrentTutorial => m_Model?.CurrentTutorial;
-        EditorCoroutine m_AutoAdvanceRoutine;
-        EditorCoroutine m_OnEditorUpdateRoutine;
-        private bool m_RestoreSceneViewCamera = false;
+        private TutorialModel m_Model => Application?.Model.Tutorial;
+        private TutorialView m_View => Application?.TutorialView;
+        private Tutorial CurrentTutorial => m_Model?.CurrentTutorial;
+        private EditorCoroutine m_AutoAdvanceRoutine;
+        private EditorCoroutine m_OnEditorUpdateRoutine;
+        private bool m_RestoreSceneViewCamera;
 
         internal TutorialController()
         {
@@ -35,13 +37,13 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
-        void OnDomainReloadOccurred(DomainReloadOccurredEvent evt)
+        private void OnDomainReloadOccurred(DomainReloadOccurredEvent evt)
         {
             if (!CurrentTutorial) { return; }
             EditorCoroutineUtility.StartCoroutine(WaitUntilViewCanBeInitialized(), Application);
         }
 
-        IEnumerator WaitUntilViewCanBeInitialized()
+        private IEnumerator WaitUntilViewCanBeInitialized()
         {
             while (!Application.FrontendIsReadyToBeInitialized)
             {
@@ -50,13 +52,13 @@ namespace Unity.Tutorials.Core.Editor
             ResumeTutorial();
         }
 
-        bool UserWantsToSaveOrDiscardChangesOfUnsavedScene()
+        private bool UserWantsToSaveOrDiscardChangesOfUnsavedScene()
         {
             return EditorApplication.isPlaying //scenes can't be saved in play mode, so we don't really have an option in that case
                 || EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo();
         }
 
-        void OnTutorialStartRequested(TutorialStartRequestedEvent evt)
+        private void OnTutorialStartRequested(TutorialStartRequestedEvent evt)
         {
             if (CurrentTutorial == evt.Tutorial) { return; }
 
@@ -85,8 +87,8 @@ namespace Unity.Tutorials.Core.Editor
             {
                 if (evt.Tutorial.ReturnToPreviousScenes)
                 {
-                    //if return to previous scene was disabled on that tutorial, we do not save the scene and state
-                    //The restore function will just do nothing as no states
+                    // If return to previous scene was disabled on that tutorial, we do not save the scene and state
+                    // The restore function will just do nothing as no states
                     m_Model.SaveOriginalScenes();
                     m_Model.SaveSceneViewState();
                     m_RestoreSceneViewCamera = true;
@@ -112,7 +114,7 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
-        void OnTutorialQuitRequested(TutorialQuitEvent evt)
+        private void OnTutorialQuitRequested(TutorialQuitEvent evt)
         {
             if (CurrentTutorial == null
             || !UserWantsToSaveOrDiscardChangesOfUnsavedScene())
@@ -129,7 +131,7 @@ namespace Unity.Tutorials.Core.Editor
 
         }
 
-        IEnumerator ExitTutorialAndPlayMode()
+        private IEnumerator ExitTutorialAndPlayMode()
         {
             EditorApplication.isPlaying = false;
             while (EditorApplication.isPlaying)
@@ -139,13 +141,13 @@ namespace Unity.Tutorials.Core.Editor
             ExitTutorial();
         }
 
-        void ExitTutorial()
+        private void ExitTutorial()
         {
             m_Model.IsTransitioningBetweenTutorials = false;
             CurrentTutorial.RaiseQuit();
         }
 
-        void OnTutorialNavigationRequested(TutorialNavigationEvent evt)
+        private void OnTutorialNavigationRequested(TutorialNavigationEvent evt)
         {
             if (evt.MoveToNextPage)
             {
@@ -155,7 +157,7 @@ namespace Unity.Tutorials.Core.Editor
             LoadPreviousTutorialPage();
         }
 
-        void StartTutorialWhenEnteringEditMode(PlayModeStateChange playModeStateChange)
+        private void StartTutorialWhenEnteringEditMode(PlayModeStateChange playModeStateChange)
         {
             if (playModeStateChange == PlayModeStateChange.EnteredEditMode)
             {
@@ -164,12 +166,12 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
-        void StartTutorial()
+        internal void StartTutorial()
         {
             m_Model.SkipNextAutoAdvancing = false;
             if (m_Model.CurrentTutorial.WindowLayout)
             {
-                ClearTutorialListeners(CurrentTutorial); //note: we clean them up before reloading the layout, to be sure that there are no shadowing problems between windows instances
+                ClearTutorialListeners(CurrentTutorial); // Note: we clean them up before reloading the layout, to be sure that there are no shadowing problems between windows instances
                 PrepareWindowLayouts();
                 TutorialModel.OnLayoutLoaded -= OnTutorialLayoutLoaded;
                 TutorialModel.OnLayoutLoaded += OnTutorialLayoutLoaded;
@@ -183,22 +185,22 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
-        void OnTutorialLayoutLoaded(bool obj)
+        private void OnTutorialLayoutLoaded(bool obj)
         {
             TutorialModel.OnLayoutLoaded -= OnTutorialLayoutLoaded;
-            var tutorialWindow = TutorialWindow.ShowWindow(false);
+            TutorialWindow.ShowWindow(false);
             AddTutorialListeners(CurrentTutorial);
             CurrentTutorial.ResetProgress();
             CurrentTutorial.Initiate();
         }
 
-        void ResumeTutorial()
+        private void ResumeTutorial()
         {
             AddTutorialListeners(CurrentTutorial);
             CurrentTutorial.RaisePageInitiated(CurrentTutorial.CurrentPage, CurrentTutorial.CurrentPageIndex);
         }
 
-        void AddTutorialListeners(Tutorial tutorial)
+        private void AddTutorialListeners(Tutorial tutorial)
         {
             ClearTutorialListeners(tutorial);
 
@@ -209,22 +211,22 @@ namespace Unity.Tutorials.Core.Editor
             tutorial.Modified.AddListener(OnCurrentTutorialModified);
         }
 
-        void ClearTutorialListeners(Tutorial tutorial)
+        private void ClearTutorialListeners(Tutorial tutorial)
         {
-            tutorial.Initiated.RemoveListener(OnTutorialInitiated);
-            tutorial.Completed.RemoveListener(OnTutorialCompleted);
-            tutorial.Quit.RemoveListener(OnTutorialQuit);
-            tutorial.PageInitiated.RemoveListener(OnPageInitiated);
-            tutorial.Modified.RemoveListener(OnCurrentTutorialModified);
+            tutorial.Initiated.RemoveAllListeners();
+            tutorial.Completed.RemoveAllListeners();
+            tutorial.Quit.RemoveAllListeners();
+            tutorial.PageInitiated.RemoveAllListeners();
+            tutorial.Modified.RemoveAllListeners();
 
-            foreach (var page in tutorial.PagesCollection)
+            foreach (TutorialPage page in tutorial.PagesCollection)
             {
-                page.MaskingSettingsChanged.RemoveListener(OnTutorialPageMaskingSettingsChanged);
-                page.NonMaskingSettingsChanged.RemoveListener(OnTutorialPageNonMaskingSettingsChanged);
+                page.MaskingSettingsChanged.RemoveAllListeners();
+                page.NonMaskingSettingsChanged.RemoveAllListeners();
             }
         }
 
-        void OnTutorialInitiated(Tutorial tutorial)
+        private void OnTutorialInitiated(Tutorial tutorial)
         {
             AnalyticsHelper.TutorialStarted(tutorial);
             if (tutorial.ProgressTrackingEnabled)
@@ -233,7 +235,7 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
-        void OnTutorialCompleted(Tutorial tutorial)
+        private void OnTutorialCompleted(Tutorial tutorial)
         {
             /* After the tutorial is completed once, there's no longer need to report its possible repeated completions,
             for example going back and forth between the second-to-last and last page. */
@@ -247,11 +249,11 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
-        void OnTutorialQuit(Tutorial tutorial)
+        private void OnTutorialQuit(Tutorial tutorial)
         {
             AnalyticsHelper.TutorialEnded(TutorialConclusion.Quit);
             DeInitializeTutorial(CurrentTutorial);
-            m_View.UnubscribeEvents();
+            m_View.UnsubscribeEvents();
 
             if (tutorial.WindowLayout)
             {
@@ -284,13 +286,13 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
-        void OnPreviousLayoutLoaded(bool obj)
+        private void OnPreviousLayoutLoaded(bool obj)
         {
             TutorialModel.OnLayoutLoaded -= OnPreviousLayoutLoaded;
             Application.LoadView(Application.TableOfContentView.Name);
         }
 
-        void DeInitializeTutorial(Tutorial tutorial)
+        private void DeInitializeTutorial(Tutorial tutorial)
         {
             EditorApplication.update -= OnEditorUpdate;
             if (CurrentTutorial)
@@ -311,7 +313,7 @@ namespace Unity.Tutorials.Core.Editor
         /// <param name="sender"></param>
         /// <param name="page"></param>
         /// <param name="index"></param>
-        void OnPageInitiated(Tutorial sender, TutorialPage page, int index)
+        private void OnPageInitiated(Tutorial sender, TutorialPage page, int index)
         {
             page.RaiseShowing();
             AnalyticsHelper.PageShown(page, index);
@@ -326,8 +328,8 @@ namespace Unity.Tutorials.Core.Editor
             page.RaiseShown();
             page.SetupCompletionCriteria
             (
-                (Criterion c, TutorialParagraph p) => OnCriterionCompleted(c, p, page),
-                (Criterion c, TutorialParagraph p) => OnCriterionInvalidated(c, p, page)
+                (c, p) => OnCriterionCompleted(c, p, page),
+                (c, p) => OnCriterionInvalidated(c, p, page)
             );
 
             page.MaskingSettingsChanged.AddListener(OnTutorialPageMaskingSettingsChanged);
@@ -337,7 +339,7 @@ namespace Unity.Tutorials.Core.Editor
             EditorApplication.update += OnEditorUpdate;
         }
 
-        void OnEditorUpdate()
+        private void OnEditorUpdate()
         {
             if (CurrentTutorial)
             {
@@ -346,9 +348,9 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
-        void OnCriterionCompleted(Criterion sender, TutorialParagraph paragraph, TutorialPage page)
+        private void OnCriterionCompleted(Criterion sender, ParagraphBase paragraph, TutorialPage page)
         {
-            m_View.UpdateInstructionBoxForParagraph(paragraph);
+            paragraph.OnCriterionUpdated();
             m_View.UpdateStateOfFooterButtons();
             m_View.ApplyMaskingSettings(true);
             if (!page.AreAllCriteriaSatisfied)
@@ -365,9 +367,9 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
-        void OnCriterionInvalidated(Criterion sender, TutorialParagraph paragraph, TutorialPage page)
+        private void OnCriterionInvalidated(Criterion sender, ParagraphBase paragraph, TutorialPage page)
         {
-            m_View.UpdateInstructionBoxForParagraph(paragraph);
+            paragraph.OnCriterionUpdated();
             m_View.UpdateStateOfFooterButtons();
             m_View.ApplyMaskingSettings(true);
             if (!page.AutoAdvanceOnComplete)
@@ -378,16 +380,16 @@ namespace Unity.Tutorials.Core.Editor
             Application.StopAndNullifyEditorCoroutine(ref m_AutoAdvanceRoutine);
         }
 
-        IEnumerator LoadNextTutorialPageAfterDelay()
+        private IEnumerator LoadNextTutorialPageAfterDelay()
         {
             yield return TutorialModel.s_AutoAdvanceDelay;
             LoadNextTutorialPage();
         }
 
-        void LoadNextTutorialPage()
+        private void LoadNextTutorialPage()
         {
             if (CurrentTutorial == null) { return; }
-            var currentPage = CurrentTutorial.CurrentPage;
+            TutorialPage currentPage = CurrentTutorial.CurrentPage;
             currentPage.MaskingSettingsChanged.RemoveListener(OnTutorialPageMaskingSettingsChanged);
             currentPage.NonMaskingSettingsChanged.RemoveListener(OnTutorialPageNonMaskingSettingsChanged);
             m_Model.SkipNextAutoAdvancing = false;
@@ -401,11 +403,11 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
-        void LoadPreviousTutorialPage()
+        private void LoadPreviousTutorialPage()
         {
             if (CurrentTutorial == null) { return; }
 
-            var currentPage = CurrentTutorial.CurrentPage;
+            TutorialPage currentPage = CurrentTutorial.CurrentPage;
             currentPage.MaskingSettingsChanged.RemoveListener(OnTutorialPageMaskingSettingsChanged);
             currentPage.NonMaskingSettingsChanged.RemoveListener(OnTutorialPageNonMaskingSettingsChanged);
 
@@ -420,17 +422,17 @@ namespace Unity.Tutorials.Core.Editor
             }
         }
 
-        void OnCurrentTutorialModified(Tutorial sender)
+        private void OnCurrentTutorialModified(Tutorial sender)
         {
             m_View.Refresh();
         }
 
-        void OnTutorialPageMaskingSettingsChanged(TutorialPage sender)
+        private void OnTutorialPageMaskingSettingsChanged(TutorialPage sender)
         {
             m_View.RefreshMasking();
         }
 
-        void OnTutorialPageNonMaskingSettingsChanged(TutorialPage sender)
+        private void OnTutorialPageNonMaskingSettingsChanged(TutorialPage sender)
         {
             m_View.Refresh();
         }
@@ -441,10 +443,10 @@ namespace Unity.Tutorials.Core.Editor
         /// </summary>
         internal static void PrepareWindowLayouts()
         {
-            var layoutPathsOfCategories = AssetDatabase.FindAssets($"t:{typeof(TutorialContainer).FullName}")
+            IEnumerable<string> layoutPathsOfCategories = AssetDatabase.FindAssets($"t:{typeof(TutorialContainer).FullName}")
                                                        .Select(guid => AssetDatabase.LoadAssetAtPath<TutorialContainer>(AssetDatabase.GUIDToAssetPath(guid)).ProjectLayoutPath);
 
-            var layoutPathsOfTutorials = AssetDatabase.FindAssets($"t:{typeof(Tutorial).FullName}")
+            IEnumerable<string> layoutPathsOfTutorials = AssetDatabase.FindAssets($"t:{typeof(Tutorial).FullName}")
                                                       .Select(guid => AssetDatabase.LoadAssetAtPath<Tutorial>(AssetDatabase.GUIDToAssetPath(guid)).WindowLayoutPath);
 
             layoutPathsOfCategories.Concat(layoutPathsOfTutorials)

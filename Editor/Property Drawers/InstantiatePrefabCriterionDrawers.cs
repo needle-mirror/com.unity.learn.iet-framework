@@ -2,18 +2,18 @@ using UnityEditor;
 using UnityEngine;
 using UnityObject = UnityEngine.Object;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
-    class InstantiatePrefabCriterionDrawers
+    internal class InstantiatePrefabCriterionDrawers
     {
         [CustomPropertyDrawer(typeof(InstantiatePrefabCriterion.FuturePrefabInstance))]
-        class FuturePrefabInstanceDrawer : PropertyDrawer
+        private class FuturePrefabInstanceDrawer : PropertyDrawer
         {
-            const string k_PrefabParentPropertyPath = "m_PrefabParent";
+            private const string k_PrefabParentPropertyPath = "m_PrefabParent";
 
             public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
             {
-                var prefabParentProperty = property.FindPropertyRelative(k_PrefabParentPropertyPath);
+                SerializedProperty prefabParentProperty = property.FindPropertyRelative(k_PrefabParentPropertyPath);
                 return EditorGUI.GetPropertyHeight(prefabParentProperty);
             }
 
@@ -21,13 +21,13 @@ namespace Unity.Tutorials.Core.Editor
             {
                 position.height = GetPropertyHeight(property, label);
 
-                var prefabParentProperty = property.FindPropertyRelative(k_PrefabParentPropertyPath);
-                var obj = prefabParentProperty.objectReferenceValue;
+                SerializedProperty prefabParentProperty = property.FindPropertyRelative(k_PrefabParentPropertyPath);
+                Object obj = prefabParentProperty.objectReferenceValue;
 
                 EditorGUI.BeginProperty(position, GUIContent.none, prefabParentProperty);
                 EditorGUI.BeginChangeCheck();
 
-                var newObj = EditorGUI.ObjectField(position, obj, typeof(UnityObject), true);
+                Object newObj = EditorGUI.ObjectField(position, obj, typeof(UnityObject), true);
 
                 if (EditorGUI.EndChangeCheck())
                 {

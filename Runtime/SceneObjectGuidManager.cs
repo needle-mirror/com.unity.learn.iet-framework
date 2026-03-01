@@ -1,7 +1,8 @@
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.Assertions;
 
-namespace Unity.Tutorials.Core
+namespace Unity.Tutorials
 {
     /// <summary>
     /// Manages SceneObjectGuids.
@@ -10,7 +11,7 @@ namespace Unity.Tutorials.Core
     public class SceneObjectGuidManager
     {
         static SceneObjectGuidManager m_Instance;
-        Dictionary<string, SceneObjectGuid> m_Components = new Dictionary<string, SceneObjectGuid>();
+        private readonly Dictionary<string, SceneObjectGuid> m_Components = new();
 
         /// <summary>
         /// Returns the singleton instance.
@@ -19,13 +20,17 @@ namespace Unity.Tutorials.Core
         {
             get
             {
-                if (m_Instance == null)
-                {
-                    m_Instance = new SceneObjectGuidManager();
-                }
+                m_Instance ??= new SceneObjectGuidManager();
                 return m_Instance;
             }
-            private set { m_Instance = value; }
+            private set => m_Instance = value;
+        }
+
+        [RuntimeInitializeOnLoadMethod]
+        private static void ResetStaticsOnLoad()
+        {
+            Instance.m_Components.Clear();
+            Instance = null;
         }
 
         /// <summary>
@@ -53,10 +58,9 @@ namespace Unity.Tutorials.Core
         /// Unregisters a GUID Component.
         /// </summary>
         /// <param name="component">The component to remove</param>
-        /// <returns>True if the Component was found and unregistered, false otherwise.</returns>
-        public bool Unregister(SceneObjectGuid component)
+        public void Unregister(SceneObjectGuid component)
         {
-            return m_Components.Remove(component.Id);
+            m_Components.Remove(component.Id);
         }
 
         /// <summary>
@@ -66,11 +70,7 @@ namespace Unity.Tutorials.Core
         /// <returns>The SceneObjectGuid of the given GUID if found, null otherwise</returns>
         public SceneObjectGuid GetComponent(string id)
         {
-            if (m_Components.TryGetValue(id, out SceneObjectGuid value))
-            {
-                return value;
-            }
-            return null;
+            return m_Components.GetValueOrDefault(id);
         }
     }
 }

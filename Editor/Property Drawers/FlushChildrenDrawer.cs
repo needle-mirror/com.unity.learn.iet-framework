@@ -2,18 +2,18 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-namespace Unity.Tutorials.Core.Editor
+namespace Unity.Tutorials.Editor
 {
-    class FlushChildrenDrawer : PropertyDrawer
+    internal class FlushChildrenDrawer : PropertyDrawer
     {
-        private static GUIContent s_Label = new GUIContent();
+        private static GUIContent s_Label = new();
 
-        private static HashSet<SerializedPropertyType> s_ExpandableTypes = new HashSet<SerializedPropertyType>(new[]
+        private static HashSet<SerializedPropertyType> s_ExpandableTypes = new(new[]
         {
             SerializedPropertyType.Generic, SerializedPropertyType.Quaternion, SerializedPropertyType.Vector4
         });
 
-        public bool ShouldDisplayFoldout { get { return false; } }
+        public bool ShouldDisplayFoldout => false;
 
         protected virtual void DisplayChildProperty(Rect position, SerializedProperty parentProperty,
             SerializedProperty childProperty, GUIContent label)
@@ -30,9 +30,9 @@ namespace Unity.Tutorials.Core.Editor
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            var result = 0f;
-            var childProperty = property.Copy();
-            var endProperty = property.GetEndProperty();
+            float result = 0f;
+            SerializedProperty childProperty = property.Copy();
+            SerializedProperty endProperty = property.GetEndProperty();
             childProperty.NextVisible(true);
             while (!SerializedProperty.EqualContents(childProperty, endProperty))
             {
@@ -52,8 +52,8 @@ namespace Unity.Tutorials.Core.Editor
                 EditorGUI.PropertyField(position, property, label, property.hasVisibleChildren && property.isExpanded);
             else
             {
-                var childProperty = property.Copy();
-                var endProperty = property.GetEndProperty();
+                SerializedProperty childProperty = property.Copy();
+                SerializedProperty endProperty = property.GetEndProperty();
                 childProperty.NextVisible(true);
                 while (!SerializedProperty.EqualContents(childProperty, endProperty))
                 {

@@ -1,0 +1,5 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="True">
+    <ui:ScrollView name="CodeSampleScrollView" mode="Horizontal" class="code-sample-scrollview">
+        <ui:Label name="CodeSample" text="CodeSample" selectable="true" class="tutorial-code-sample" />
+    </ui:ScrollView>
+</ui:UXML>

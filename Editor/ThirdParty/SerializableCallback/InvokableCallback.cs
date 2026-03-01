@@ -1,6 +1,6 @@
 using System;
 
-namespace SerializableCallback
+namespace Unity.Tutorials.Editor.SerializableCallback
 {
     /// <summary>
     /// https://github.com/Siccity/SerializableCallback
@@ -45,7 +45,7 @@ namespace SerializableCallback
             }
             else
             {
-                func = (System.Func<TReturn>)System.Delegate.CreateDelegate(typeof(System.Func<TReturn>), target, methodName);
+                func = (Func<TReturn>)Delegate.CreateDelegate(typeof(Func<TReturn>), target, methodName);
             }
         }
     }
@@ -95,7 +95,7 @@ namespace SerializableCallback
             }
             else
             {
-                func = (System.Func<T0, TReturn>)System.Delegate.CreateDelegate(typeof(System.Func<T0, TReturn>), target, methodName);
+                func = (Func<T0, TReturn>)Delegate.CreateDelegate(typeof(Func<T0, TReturn>), target, methodName);
             }
         }
     }
@@ -147,7 +147,7 @@ namespace SerializableCallback
             }
             else
             {
-                func = (System.Func<T0, T1, TReturn>)System.Delegate.CreateDelegate(typeof(System.Func<T0, T1, TReturn>), target, methodName);
+                func = (Func<T0, T1, TReturn>)Delegate.CreateDelegate(typeof(Func<T0, T1, TReturn>), target, methodName);
             }
         }
     }
@@ -201,7 +201,7 @@ namespace SerializableCallback
             }
             else
             {
-                func = (System.Func<T0, T1, T2, TReturn>)System.Delegate.CreateDelegate(typeof(System.Func<T0, T1, T2, TReturn>), target, methodName);
+                func = (Func<T0, T1, T2, TReturn>)Delegate.CreateDelegate(typeof(Func<T0, T1, T2, TReturn>), target, methodName);
             }
         }
     }
@@ -257,7 +257,7 @@ namespace SerializableCallback
             }
             else
             {
-                func = (System.Func<T0, T1, T2, T3, TReturn>)System.Delegate.CreateDelegate(typeof(System.Func<T0, T1, T2, T3, TReturn>), target, methodName);
+                func = (Func<T0, T1, T2, T3, TReturn>)Delegate.CreateDelegate(typeof(Func<T0, T1, T2, T3, TReturn>), target, methodName);
             }
         }
     }
