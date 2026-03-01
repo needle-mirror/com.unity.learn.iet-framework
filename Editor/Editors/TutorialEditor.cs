@@ -119,7 +119,6 @@ namespace Unity.Tutorials.Editor
             PropertyField sceneManagementBehaviour_Field = root.Q<PropertyField>($"PropertyField:{s_SceneManagementBehaviorProperty}");
             sceneManagementBehaviour_Field.label = "Behaviour";
             sceneManagementBehaviour_Field.RegisterValueChangeCallback(OnSceneManagementBehaviourChanged);
-            //UpdateSceneManagementFieldsVisibility();
 
             _scenesField = root.Q<PropertyField>($"PropertyField:{s_ScenesProperty}");
             _scenesField.AddToClassList("indented-property");
@@ -147,6 +146,7 @@ namespace Unity.Tutorials.Editor
             PropertyField faqEntriesField = root.Q<PropertyField>($"PropertyField:{s_FaqEntriesProperty}");
             faqEntriesField.label = "FAQ Entries";
             faqEntriesField.viewDataKey = "TutorialFaqEntriesFoldout";
+            faqEntriesField.AddToClassList("inspector-list");
             faqEntriesField.AddToClassList("foldout-bold-title");
 
             root.Add(callbacksFoldout);

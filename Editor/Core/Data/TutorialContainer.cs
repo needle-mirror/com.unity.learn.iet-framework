@@ -244,40 +244,9 @@ namespace Unity.Tutorials.Editor
         }
 
         /// <summary>
-        /// This will highlight the Tutorial Window. Can be used by the Welcome Dialog to Highlight tutorials when exited
+        /// This highlights the Tutorial Window. Just invokes <see cref="TutorialWindow.BringUpAndHighlight"/>.
         /// </summary>
-        public void HighlightTutorialWindow()
-        {
-            TutorialModel Model = TutorialWindow.Instance.Model.Tutorial;
-
-            MaskingManager.Unmask();
-
-            UnmaskedView.MaskData unmaskedViews = UnmaskedView.GetViewsAndRects(new[] { UnmaskedView.CreateInstanceForEditorWindow(typeof(TutorialWindow))}, out bool _);
-
-            UnmaskedView.MaskData highlightedViews;
-
-            if (unmaskedViews.Count > 0) //Unmasked views should be highlighted
-            {
-                highlightedViews = (UnmaskedView.MaskData)unmaskedViews.Clone();
-            }
-            else
-            {
-                highlightedViews = new UnmaskedView.MaskData();
-            }
-
-            unmaskedViews.AddTooltipViews();
-            // Also ensure the Media Popout window (used to enlarge video and image) is unmasked
-            unmaskedViews.AddPopoutWindow();
-
-            MaskingManager.Mask(
-                unmaskedViews,
-                Model.Styles == null ? Color.magenta * new Color(1f, 1f, 1f, 0.8f) : Model.Styles.MaskingColor,
-                highlightedViews,
-                Model.Styles == null ? Color.cyan * new Color(1f, 1f, 1f, 0.8f) : Model.Styles.HighlightColor,
-                Model.Styles == null ? new Color(1, 1, 1, 0.5f) : Model.Styles.BlockedInteractionColor,
-                Model.Styles == null ? 3f : Model.Styles.HighlightThickness
-            );
-        }
+        public void HighlightTutorialWindow() => TutorialWindow.BringUpAndHighlight();
 
         /// <summary>
         /// Return a number between 0.0 and 1.0 that is the number of tutorials in that containers that are completed.

@@ -141,11 +141,13 @@ namespace Unity.Tutorials.Editor
         public void CloseCurrentModalDialog()
         {
             TutorialModalWindow window = EditorWindowUtils.FindOpenInstance<TutorialModalWindow>();
-            if (window)
-            {
-                window.Close();
-            }
+            if (window) window.Close();
         }
+
+        /// <summary>
+        /// This highlights the Tutorial Window. Just invokes <see cref="TutorialWindow.BringUpAndHighlight"/>.
+        /// </summary>
+        internal void HighlightTutorialWindow() => TutorialWindow.BringUpAndHighlight();
 
         /// <summary>
         /// Exits the Editor.

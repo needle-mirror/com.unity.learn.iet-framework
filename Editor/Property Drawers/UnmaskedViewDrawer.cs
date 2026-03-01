@@ -18,60 +18,51 @@ namespace Unity.Tutorials.Editor
 
         public override VisualElement CreatePropertyGUI(SerializedProperty property)
         {
-            VisualElement root = new()
-            {
-                style =
-                {
-                    marginLeft = 3,
-                    marginRight = 3
-                }
-            };
+            VisualElement root = new();
+            root.AddToClassList("unmasked-view");
 
-            const int propsContainersMargin = 10;
+            // -- Shared Field(s)
+            SerializedProperty selectorTypeProperty = property.FindPropertyRelative(k_SelectorTypePath);
+            PropertyField typeSelectorField = new(selectorTypeProperty);
+            SerializedProperty unmaskTypeProperty = property.FindPropertyRelative(k_UnmaskTypePath);
+            PropertyField unmaskTypeField = new(unmaskTypeProperty);
+            SerializedProperty maskSizeModifierProperty = property.FindPropertyRelative(k_MaskSizeModifierPath);
+            PropertyField maskSizeField = new(maskSizeModifierProperty);
+            UnmaskedControlsListView unmaskedControlsList = new(property.FindPropertyRelative(k_UnmaskedControlsPath));
 
-            // Shared Field(s)
-            SerializedProperty selectorType = property.FindPropertyRelative(k_SelectorTypePath);
-            PropertyField typeSelectorField = new(selectorType);
-            root.Add(typeSelectorField);
-
-            // GUI View-only Fields
-            VisualElement guiViewPropsContainer = new(){ name = "GUIViewPropsContainer", style = { marginLeft = propsContainersMargin } };
+            // -- Fields only visible for GUI View
+            VisualElement guiViewPropsContainer = new(){ name = "GUIViewPropsContainer" };
+            guiViewPropsContainer.AddToClassList("indented-property");
 
             PropertyField viewTypeField = new(property.FindPropertyRelative(k_ViewTypePath));
             guiViewPropsContainer.Add(viewTypeField);
 
-            root.Add(guiViewPropsContainer);
-
-            // Editor Window-only Fields
-            VisualElement editorWindowPropsContainer = new(){ name = "EditorWindowPropsContainer", style = { marginLeft = propsContainersMargin }};
+            // -- Fields only visible for Editor Window
+            VisualElement editorWindowPropsContainer = new(){ name = "EditorWindowPropsContainer" };
+            editorWindowPropsContainer.AddToClassList("indented-property");
 
             PropertyField editorWindowTypeField = new(property.FindPropertyRelative(k_EditorWindowTypePath));
-            editorWindowPropsContainer.Add(editorWindowTypeField);
-
             PropertyField highlightFocusProp = new(property.FindPropertyRelative(k_EditorWindowHighlightFocus));
-            editorWindowPropsContainer.Add(highlightFocusProp);
-
             PropertyField alternativeEditorWindowTypeField = new(property.FindPropertyRelative(k_AlternateEditorWindowTypesPath));
+
+            editorWindowPropsContainer.Add(editorWindowTypeField);
+            editorWindowPropsContainer.Add(highlightFocusProp);
             editorWindowPropsContainer.Add(alternativeEditorWindowTypeField);
 
+            // Add all elements to root
+            root.Add(typeSelectorField);
+            root.Add(guiViewPropsContainer);
             root.Add(editorWindowPropsContainer);
+            root.Add(unmaskTypeField);
+            root.Add(maskSizeField);
+            root.Add(unmaskedControlsList);
 
-            UpdateUniqueFieldsVisibility((UnmaskedView.SelectorType)selectorType.intValue);
+            UpdateUniqueFieldsVisibility((UnmaskedView.SelectorType)selectorTypeProperty.intValue);
             typeSelectorField.RegisterValueChangeCallback(evt =>
             {
                 UnmaskedView.SelectorType viewType = (UnmaskedView.SelectorType)evt.changedProperty.intValue;
                 UpdateUniqueFieldsVisibility(viewType);
             });
-
-            // Shared Field(s)
-            SerializedProperty unmaskType = property.FindPropertyRelative(k_UnmaskTypePath);
-            root.Add(new PropertyField(unmaskType));
-
-            SerializedProperty maskSizeModifier = property.FindPropertyRelative(k_MaskSizeModifierPath);
-            root.Add(new PropertyField(maskSizeModifier));
-
-            ListView listControl = GetListControlVisualElement(property.FindPropertyRelative(k_UnmaskedControlsPath));
-            root.Add(listControl);
 
             return root;
 
@@ -80,42 +71,6 @@ namespace Unity.Tutorials.Editor
                 UIUtils.ShowOrHide(editorWindowPropsContainer, viewType == UnmaskedView.SelectorType.EditorWindow);
                 UIUtils.ShowOrHide(guiViewPropsContainer, viewType == UnmaskedView.SelectorType.GUIView);
             }
-        }
-
-        private ListView GetListControlVisualElement(SerializedProperty prop)
-        {
-            ListView listView = new()
-            {
-                name = prop.displayName,
-                showAddRemoveFooter = true,
-                showBorder = true,
-                virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight
-            };
-            listView.AddToClassList("inspector-list");
-
-            listView.makeHeader += () =>
-            {
-                Label label = new("Unmasked Controls");
-                label.AddToClassList("inspector-list-header");
-                return label;
-            };
-
-            listView.makeItem = () =>
-            {
-                PropertyField element = new();
-                element.AddToClassList("inspector-list-element");
-                return element;
-            };
-
-            listView.bindItem = (element, i) =>
-            {
-                PropertyField e = element as PropertyField;
-                e.BindProperty(prop.GetArrayElementAtIndex(i));
-            };
-
-            listView.BindProperty(prop);
-
-            return listView;
         }
     }
 }

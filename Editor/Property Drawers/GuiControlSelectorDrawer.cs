@@ -154,85 +154,6 @@ namespace Unity.Tutorials.Editor
             pickerCallback = null;
         }
 
-        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
-        {
-            if (pickerCallback != null && Event.current.keyCode == KeyCode.Escape)
-            {
-                EndPicking();
-            }
-
-            SerializedProperty selectorType = property.FindPropertyRelative(k_SelectorTypePath);
-            position.height = EditorGUI.GetPropertyHeight(selectorType);
-            EditorGUI.PropertyField(position, selectorType);
-            position.y += position.height + EditorGUIUtility.standardVerticalSpacing;
-
-            SerializedProperty selectorMode = property.FindPropertyRelative(k_SelectorModePath);
-            position.height = EditorGUI.GetPropertyHeight(selectorMode);
-            EditorGUI.PropertyField(position, selectorMode);
-            position.y += position.height + EditorGUIUtility.standardVerticalSpacing;
-
-            GuiControlSelector.Mode mode = (GuiControlSelector.Mode)selectorMode.intValue;
-            if (mode == GuiControlSelector.Mode.VisualElement)
-            {
-                if (GUI.Button(position, k_PickButtonContent, EditorStyles.miniButton))
-                {
-                    BeginPicking(property);
-                }
-                position.y += position.height + EditorGUIUtility.standardVerticalSpacing;
-            }
-
-            SerializedProperty selectorData = null;
-            switch (mode)
-            {
-                case GuiControlSelector.Mode.GuiContent:
-                    selectorData = property.FindPropertyRelative(k_GUIContentPath);
-                    break;
-                case GuiControlSelector.Mode.NamedControl:
-                    selectorData = property.FindPropertyRelative(k_ControlNamePath);
-                    break;
-                case GuiControlSelector.Mode.Property:
-                    SerializedProperty targetType = property.FindPropertyRelative(k_TargetTypePath);
-                    position.height = EditorGUI.GetPropertyHeight(targetType);
-                    EditorGUI.PropertyField(position, targetType);
-                    position.y += position.height + EditorGUIUtility.standardVerticalSpacing;
-
-                    selectorData = property.FindPropertyRelative(k_PropertyPathPath);
-                    break;
-                case GuiControlSelector.Mode.GuiStyleName:
-                    selectorData = property.FindPropertyRelative(k_GUIStyleNamePath);
-                    break;
-                case GuiControlSelector.Mode.ObjectReference:
-                    selectorData = property.FindPropertyRelative(k_ObjectReferencePath);
-                    break;
-                case GuiControlSelector.Mode.VisualElement:
-                    SerializedProperty className = property.FindPropertyRelative(k_VisualElementClassNamePath);
-                    position.height = EditorGUI.GetPropertyHeight(className);
-                    EditorGUI.PropertyField(position, className);
-                    position.y += position.height + EditorGUIUtility.standardVerticalSpacing;
-                    SerializedProperty typeName = property.FindPropertyRelative(k_VisualElementTypeNamePath);
-                    position.height = EditorGUI.GetPropertyHeight(typeName);
-                    EditorGUI.PropertyField(position, typeName);
-                    position.y += position.height + EditorGUIUtility.standardVerticalSpacing;
-                    selectorData = property.FindPropertyRelative(k_VisualElementNamePath);
-                    break;
-            }
-            if (selectorData != null)
-            {
-                position.height = EditorGUI.GetPropertyHeight(selectorData, true) + EditorGUIUtility.standardVerticalSpacing + EditorGUIUtility.singleLineHeight;
-                EditorGUI.PropertyField(position, selectorData, true);
-                position.y += EditorGUIUtility.standardVerticalSpacing + EditorGUIUtility.singleLineHeight;
-            }
-            else
-            {
-                position.height = EditorGUIUtility.singleLineHeight;
-                EditorGUI.HelpBox(
-                    position,
-                    string.Format("No drawing implemented yet for selector mode {0}", (GuiControlSelector.Mode)selectorMode.intValue),
-                    MessageType.Error
-                );
-            }
-        }
-
         public override VisualElement CreatePropertyGUI(SerializedProperty property)
         {
             VisualElement root = new();
@@ -287,7 +208,6 @@ namespace Unity.Tutorials.Editor
 
             return root;
 
-            // To simplify not having to store the element somewhere, we use local function to avoid repetition
             void ModeChanged()
             {
                 GuiControlSelector.Mode mode = (GuiControlSelector.Mode)selectorMode.intValue;
@@ -309,7 +229,7 @@ namespace Unity.Tutorials.Editor
             }
         }
 
-        private void ShowElement(VisualElement element, bool show)
+        private static void ShowElement(VisualElement element, bool show)
         {
             element.style.display = show? DisplayStyle.Flex : DisplayStyle.None;
         }

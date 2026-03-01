@@ -221,6 +221,7 @@ namespace Unity.Tutorials.Editor
              {
                  label = "FAQ Entries", viewDataKey = "TutorialPageFaqEntriesFoldout"
              };
+             faqEntriesField.AddToClassList("inspector-list");
              faqEntriesField.AddToClassList("foldout-bold-title");
              root.Add(faqEntriesField);
 

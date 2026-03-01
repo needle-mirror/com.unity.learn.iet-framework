@@ -354,7 +354,7 @@ namespace Unity.Tutorials.Editor
                                 VisualElement visualTree = UIElementsHelper.GetVisualTree(viewRects.Key);
 
                                 UQueryBuilder<VisualElement> queryBuilder;
-                                
+
                                 if (controlSelector.VisualElementTypeName.IsNotNullOrWhiteSpace() &&
                                     controlSelector.VisualElementClassName.IsNullOrWhiteSpace() &&
                                     controlSelector.VisualElementName.IsNullOrWhiteSpace())
@@ -370,13 +370,13 @@ namespace Unity.Tutorials.Editor
                                         controlSelector.VisualElementClassName.AsNullIfWhiteSpace()
                                     );
                                 }
-                                
+
                                 // Filter by type, if valid type specified
                                 if (controlSelector.VisualElementTypeName.IsNotNullOrWhiteSpace())
                                 {
                                     queryBuilder = queryBuilder.Where(elem => elem.GetType().ToString() == controlSelector.VisualElementTypeName);
                                 }
-                                
+
                                 List<VisualElement> elements = queryBuilder.Build().ToList();
                                 if (reverse)
                                     elements.Reverse();

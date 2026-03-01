@@ -20,35 +20,20 @@ namespace Unity.Tutorials.Editor
 
             ListView listView = new()
             {
+                headerTitle = property.displayName,
                 name = property.displayName,
+                showFoldoutHeader = true,
+                showBoundCollectionSize = false,
                 reorderable = true,
+                reorderMode = ListViewReorderMode.Animated,
                 showAddRemoveFooter = true,
                 showBorder = true,
-                showAlternatingRowBackgrounds = AlternatingRowBackground.ContentOnly,
+                showAlternatingRowBackgrounds = AlternatingRowBackground.None,
                 virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight,
-                reorderMode = ListViewReorderMode.Animated,
             };
 
             listView.AddToClassList("inspector-list");
-
-            listView.makeHeader += () =>
-            {
-                Label label = new(property.displayName);
-                label.AddToClassList("inspector-list-header");
-                return label;
-            };
-
-            listView.makeItem += () =>
-            {
-                VisualElement root = new();
-
-                root.AddToClassList("inspector-list-element");
-
-                PropertyField propertyElement = new();
-                root.Add(propertyElement);
-
-                return root;
-            };
+            //listView.AddToClassList("foldout-bold-title");
 
             listView.bindItem += (element, i) =>
             {
@@ -57,8 +42,6 @@ namespace Unity.Tutorials.Editor
 
                 PropertyField propField = element.Q<PropertyField>();
                 propField.BindProperty(m_ItemsProperty.GetArrayElementAtIndex(i));
-                // TODO: Is this needed? It yields an error (on objectReferenceValue)
-                // propField.label = m_ItemsProperty.GetArrayElementAtIndex(i).objectReferenceValue.name;
             };
 
             listView.unbindItem += (element, i) =>

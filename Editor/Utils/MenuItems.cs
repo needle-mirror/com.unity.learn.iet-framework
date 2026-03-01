@@ -38,7 +38,7 @@ namespace Unity.Tutorials.Editor
         [MenuItem(MenuPath + ShowTutorials)]
         private static void OpenTutorialWindow()
         {
-            TutorialWindow.ShowWindow();
+            TutorialWindow.ShowWindow(false);
         }
     }
 }

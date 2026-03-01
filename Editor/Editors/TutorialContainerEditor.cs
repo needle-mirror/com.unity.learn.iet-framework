@@ -93,8 +93,12 @@ namespace Unity.Tutorials.Editor
             orderField.AddToClassList("indented-property");
             orderField.SetEnabled(Target.ParentContainer != null);
 
-            // Sub containers (as a list, or as a "No Sub Containers" message)
+            // Sections
             PropertyField sectionsField = root.Q<PropertyField>($"PropertyField:{nameof(TutorialContainer.Sections)}");
+            sectionsField.AddToClassList("inspector-list");
+            sectionsField.AddToClassList("foldout-bold-title");
+
+            // Sub containers (as a list, or as a "No Sub Containers" message)
             string subTutsLabel = "Sub-Containers";
             string noTutsMessage = "No Sub-Containers";
             string labelTooltip =
@@ -115,19 +119,14 @@ namespace Unity.Tutorials.Editor
                     showAlternatingRowBackgrounds = AlternatingRowBackground.None,
                     virtualizationMethod = CollectionVirtualizationMethod.FixedHeight,
                     fixedItemHeight = 20,
-                    showBoundCollectionSize = true,
+                    showBoundCollectionSize = false,
                     showFoldoutHeader = true,
                     headerTitle = subTutsLabel,
                     showAddRemoveFooter = false,
                     reorderMode = ListViewReorderMode.Animated,
                     makeItem = () => new ObjectField
                     {
-                        objectType = typeof(TutorialContainer),
-                        style =
-                        {
-                            marginLeft = 10,
-                            marginRight = 5,
-                        }
+                        objectType = typeof(TutorialContainer)
                     },
                     bindItem = (element, index) =>
                     {
@@ -139,12 +138,11 @@ namespace Unity.Tutorials.Editor
                         objectField[1].SetEnabled(false);
                     },
                 };
+                subContainersList.AddToClassList("inspector-list");
                 subContainersList.AddToClassList("foldout-bold-title");
 
                 ScrollView scrollView = subContainersList.Q<ScrollView>();
-                scrollView.AddToClassList("unity-list-view__scroll-view--with-footer");
-                scrollView.style.paddingTop = 4;
-                scrollView.style.paddingBottom = 4;
+                scrollView.AddToClassList("unity-list-view__scroll-view--with-footer"); // makes it look like a ScrollView that have the +/- button
 
                 root.Add(subContainersList);
                 subContainersList.PlaceBehind(sectionsField);
@@ -158,13 +156,11 @@ namespace Unity.Tutorials.Editor
                 doubleLabel.PlaceBehind(sectionsField);
             }
 
-            PropertyField sections_Field = root.Q<PropertyField>($"PropertyField:Sections");
-            sections_Field.AddToClassList("foldout-bold-title");
-
             // FAQs
             PropertyField faqEntriesField = root.Q<PropertyField>($"PropertyField:FaqEntries");
             faqEntriesField.label = "FAQ Entries";
             faqEntriesField.viewDataKey = "TutorialContainerFaqEntriesFoldout";
+            faqEntriesField.AddToClassList("inspector-list");
             faqEntriesField.AddToClassList("foldout-bold-title");
 
             return root;

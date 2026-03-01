@@ -46,6 +46,7 @@ namespace Unity.Tutorials.Editor
         /// </summary>
         public enum MatchType
         {
+            // TODO: Rename these values in the next major upgrade (i.e. 7.0.0) to something more understandable (FirstFound, LastFound, AllMatches)
             /// <summary>
             /// Select the last matching control.
             /// </summary>

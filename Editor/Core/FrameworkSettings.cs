@@ -63,17 +63,18 @@ namespace Unity.Tutorials.Editor
 
         private static void DrawUserSettings(string searchContext)
         {
-            MaskingManager.MaskingEnabled.value = DrawToggle(MaskingManager.MaskingEnabled, searchContext);
-            SerializedTypeDrawer.ShowSimplifiedTypeNames.value = DrawToggle(SerializedTypeDrawer.ShowSimplifiedTypeNames, searchContext);
-            TutorialFrameworkModel.s_ShowTutorialsWindowClosedDialog.value = DrawToggle(TutorialFrameworkModel.s_ShowTutorialsWindowClosedDialog, searchContext);
+            MaskingManager.MaskingEnabled.SetValue(
+                DrawToggle(MaskingManager.MaskingEnabled, searchContext), true);
+            SerializedTypeDrawer.ShowSimplifiedTypeNames.SetValue(
+                DrawToggle(SerializedTypeDrawer.ShowSimplifiedTypeNames, searchContext), true);
+            TutorialFrameworkModel.s_ShowTutorialsWindowClosedDialog.SetValue(
+                DrawToggle(TutorialFrameworkModel.s_ShowTutorialsWindowClosedDialog, searchContext), true);
         }
 
         private static void DrawProjectSettings(string searchContext)
         {
-            TutorialFrameworkModel.s_DisplayWelcomeDialogOnStartup.value = DrawToggle(TutorialFrameworkModel.s_DisplayWelcomeDialogOnStartup, searchContext);
-
-            // TODO: Add a button? Or menu item (currently there is one, but it's behind Authoring >)
-            //TutorialFrameworkModel.s_DataMigrationToV6.value = DrawToggle(TutorialFrameworkModel.s_DataMigrationToV6, searchContext);
+            TutorialFrameworkModel.s_DisplayWelcomeDialogOnStartup.SetValue(
+                DrawToggle(TutorialFrameworkModel.s_DisplayWelcomeDialogOnStartup, searchContext), true);
         }
 
         private static void DrawSettings(string searchContext, Action<string> drawIndentGroupContent)

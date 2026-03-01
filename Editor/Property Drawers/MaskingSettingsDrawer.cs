@@ -33,7 +33,6 @@ namespace Unity.Tutorials.Editor
             root.Add(enableField);
 
             m_collapsableVisualElement = new(){ name = "Collapsable" };
-            UIUtils.PrepareElementAsCollapsable(m_collapsableVisualElement, enabledProperty.boolValue);
 
             // Presets line
             m_maskingPresetField = new("Preset")
@@ -55,8 +54,7 @@ namespace Unity.Tutorials.Editor
 
             m_collapsableVisualElement.Add(m_maskingPresetField);
 
-            // List of UnmaskedViews
-            m_unmaskedViewsList = GetListControlVisualElement();
+            m_unmaskedViewsList = new UnmaskedViewsListView(m_unmaskedViewsProperty);
             m_collapsableVisualElement.Add(m_unmaskedViewsList);
 
             root.Add(m_collapsableVisualElement);
@@ -106,39 +104,7 @@ namespace Unity.Tutorials.Editor
 
         private void OnShowHideSettings(bool val)
         {
-            UIUtils.ShowOrHide_Animated(m_collapsableVisualElement, val);
-        }
-
-        private ListView GetListControlVisualElement()
-        {
-            ListView listView = new()
-            {
-                name = m_Property.displayName,
-                virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight,
-                showBorder = true,
-                showFoldoutHeader = false,
-                showAddRemoveFooter = true,
-                headerTitle = "Unmasked Views"
-            };
-            listView.AddToClassList("inspector-list");
-
-            listView.makeHeader = () =>
-            {
-                Label header = new("Unmasked Views");
-                header.AddToClassList("inspector-list-header");
-                return header;
-            };
-
-            listView.makeItem = () =>
-            {
-                PropertyField element = new();
-                element.AddToClassList("inspector-list-element");
-                return element;
-            };
-
-            listView.BindProperty(m_unmaskedViewsProperty);
-
-            return listView;
+            UIUtils.ShowOrHide(m_collapsableVisualElement, val);
         }
 
         private void OnPresetChanged(ChangeEvent<Object> evt)

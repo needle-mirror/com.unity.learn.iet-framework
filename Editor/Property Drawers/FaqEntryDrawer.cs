@@ -18,7 +18,6 @@ namespace Unity.Tutorials.Editor
         public override VisualElement CreatePropertyGUI(SerializedProperty property)
         {
             VisualElement propertyDrawer = new();
-            propertyDrawer.AddToClassList("inspector-list-element-basic");
 
             VisualElement question = new PropertyField(property.FindPropertyRelative(nameof(FaqEntry.Question)));
             VisualElement answer = new PropertyField(property.FindPropertyRelative(nameof(FaqEntry.Answer)));

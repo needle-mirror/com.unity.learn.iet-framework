@@ -14,8 +14,6 @@ namespace Unity.Tutorials.Editor
     /// </summary>
     internal static class UIUtils
     {
-        private const string k_collapsible_ussClass = "collapsable";
-
         internal static readonly string s_UIResourcesPath = $"Packages/{FrameworkSettings.k_PackageName}/Editor/UI";
         internal const string s_IconsPath = "Images/Icons/";
         internal const string s_AuthoringPath = "Authoring/";
@@ -185,67 +183,6 @@ namespace Unity.Tutorials.Editor
         internal static void Show(VisualElement element)
         {
             element.style.display = DisplayStyle.Flex;
-        }
-
-        /// <summary>
-        /// Applies the necessary USS class to prepare an element to be collapsed using an animation,
-        /// and, once the element is ready (GeometryChangedEvent), it stores its resolved height
-        /// into the element's userData for later use. It also sets the element's maxHeight to 0 if it's meant
-        /// to be invisible at the beginning.
-        /// </summary>
-        /// <param name="element">The element to animate.</param>
-        /// <param name="initialVisibility">The initial desired visibility.</param>
-        internal static void PrepareElementAsCollapsable(VisualElement element, bool initialVisibility)
-        {
-            element.AddToClassList(k_collapsible_ussClass);
-            element.RegisterCallback<GeometryChangedEvent>(OnReady);
-
-            return;
-
-            void OnReady(GeometryChangedEvent evt)
-            {
-                element.UnregisterCallback<GeometryChangedEvent>(OnReady);
-                element.userData = element.resolvedStyle.height;
-                if (!initialVisibility) element.style.maxHeight = 0;
-            }
-        }
-
-        /// <summary>
-        /// Shows or hides an element in the Inspector by tweaking its max-height property.
-        /// Requires the element to have a base class, see method <see cref="PrepareElementAsCollapsable"/>.
-        /// </summary>
-        internal static void ShowOrHide_Animated(VisualElement element, bool show)
-        {
-            if (show)
-            {
-                element.style.maxHeight = 0;
-                EditorApplication.delayCall += () =>
-                {
-                    element.RegisterCallback<TransitionEndEvent>(OnTransitionOver);
-                    element.style.maxHeight = (float)element.userData;
-                };
-            }
-            else
-            {
-                element.userData = element.resolvedStyle.height;
-                element.style.maxHeight = element.resolvedStyle.height;
-                EditorApplication.delayCall += () => element.style.maxHeight = 0;
-            }
-
-            float animationDuration = Mathf.Clamp((float)element.userData * 0.001f, .25f, .6f);
-            element.style.transitionDuration = new List<TimeValue> { animationDuration };
-        }
-
-        /// <summary>
-        /// Invoked at the end of a max-height transition, only when expanding.
-        /// It sets the element's max-height to null, allowing the element to be
-        /// modified in height by the user.
-        /// </summary>
-        private static void OnTransitionOver(TransitionEndEvent evt)
-        {
-            VisualElement currentTarget = (VisualElement)evt.currentTarget;
-            currentTarget.UnregisterCallback<TransitionEndEvent>(OnTransitionOver);
-            currentTarget.style.maxHeight = StyleKeyword.Null;
         }
 
         internal static VisualTreeAsset LoadUXML(string fileName)

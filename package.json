@@ -1,8 +1,9 @@
 {
   "name": "com.unity.learn.iet-framework",
   "displayName": "Tutorial Framework",
-  "version": "6.0.1",
+  "version": "6.0.2",
   "unity": "6000.0",
+  "unityRelease": "0f1",
   "description": "This package is used to display interactive in-Editor tutorials in tutorial projects and project templates.",
   "keywords": [
     "tutorials"
@@ -11,17 +12,19 @@
     "com.unity.editorcoroutines": "1.0.0",
     "com.unity.settings-manager": "1.0.3"
   },
-  "unityRelease": "0f1",
+  "relatedPackages": {
+    "com.unity.learn.iet-framework.tests": "0.0.0"
+  },
   "_upm": {
     "changelog": "### Added\n- New paragraph format for Tutorial Pages. This new format makes for a more flexible and faster editing experience.\n  - Due to the new paragraph format, data migration for pages is required. The user will be prompted when first launching the editor or updating the package. Migration can also be started manually from the top menu, or using the button on each Tutorial Page.\n- Added a Tutorials Overview window to see all the Tutorials present in the project at a glance. Tutorials can be reordered and reparented right within the window. The window also displays warnings, such as for tutorials that have been linked to two or more TutorialContainers. The window can be found under Tutorials > Authoring > Tutorials Overview.\n- The Inspector of TutorialContainer now shows child containers. This makes it possible to navigate from a TutorialContainer to its children and back to the parent directly from the Inspector.\n- It is now possible to save the Editor masking used by a page's paragraph as a preset, as a dedicated MaskingPreset ScriptableObject. This allows to reuse the masking in multiple pages.\n- Custom icons for all asset types so they are easier to recognise in the Project View.\n\n### Changed\n- Tutorial Pages are now sub-assets of Tutorials. This simplifies Page management, as the tutorial author only has to manage one asset.\n  - This requires data migration, which is done automatically as part of data migration v6 like for the paragraph data. \n- The Inspectors of many components (TutorialContainer, Tutorial, TutorialPage, WelcomePage...) have been reorganised to improve clarity and to make editing easier.\n- Redesigned icons for the authoring toolbar that appears when the Authoring package is installed.\n- A translation icon now appears next to localisable fields, in place of the previous (i) balloon icon.\n- The code sample text box inside a Tutorial Page's Inspector can now be expanded for a more comfortable code editing experience.\n- Sections in TutorialContainer can now be reordered in the list simply by drag-and-drop, instead of having to manually set an order number.\n- The order and structure of the menu items under Create > Tutorials has been reorganised to provide more efficient access to frequently-used items.\n  - Simplified the sample content that can be accessed via the context menu. It's now located under Create > Tutorials > Presets > Complete Project. \n- Redesigned alignment of many elements in the Tutorials Window. The list of Tutorials now expands to the width of the Tutorials window. For this reason, if a Tutorial button has a background image, this will now be stretched to cover the width. It could make sense to check that the graphics still look as intended.\n\n### Fixed\n- Tutorials window no longer becomes bigger and bigger when clicking on a button that opens it when it's already open.\n- The Pick button to select a VisualElement while editing a mask used to be unresponsive, but has been fixed."
   },
   "upmCi": {
-    "footprint": "f88e9a04cfdbb2b6106654b41d40784383c8bdfb"
+    "footprint": "7a5ae9954d831b54ebfcc6caae511b4017d6c95e"
   },
   "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.learn.iet-framework@6.0/manual/index.html",
   "repository": {
     "url": "https://github.cds.internal.unity3d.com/unity/iet-package.git",
     "type": "git",
-    "revision": "3bac76707e052edc3e8d07160aa4058c311ffc29"
+    "revision": "1951a9b9e4c99f63c47248b9069785c6668f7769"
   }
 }

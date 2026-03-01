@@ -26,6 +26,8 @@ namespace Unity.Tutorials.Editor.CustomControl
         {
             m_Page = page;
 
+            headerTitle = "Paragraphs";
+            showFoldoutHeader = true;
             reorderable = true;
             reorderMode = ListViewReorderMode.Animated;
             selectionType = SelectionType.Multiple;
@@ -34,29 +36,28 @@ namespace Unity.Tutorials.Editor.CustomControl
             showBoundCollectionSize = false;
             showBorder = true;
             showAlternatingRowBackgrounds = AlternatingRowBackground.None;
-            style.marginTop = 4;
 
-            makeHeader = OnMakeHeader;
+            AddToClassList("inspector-list");
+            AddToClassList("foldout-bold-title");
+
             overridingAddButtonBehavior += AddItem;
-            itemsRemoved += ints => RemoveItems(ints);
-
+            itemsRemoved += RemoveItems;
             makeItem += MakeItem;
             bindItem += BindItem;
             unbindItem += UnbindItem;
+            RegisterCallbackOnce<GeometryChangedEvent>(AddV6Warning);
 
+            // Build dropdown menu for [+] button
             Type[] listOfParagraphTypes = AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(domainAssembly => domainAssembly.GetTypes())
-                .Where(type => typeof(ParagraphBase).IsAssignableFrom(type) && type != typeof(ParagraphBase)
-                ).ToArray();
+                .Where(type => typeof(ParagraphBase).IsAssignableFrom(type) && type != typeof(ParagraphBase))
+                .ToArray();
 
             m_DropdownMenu = new GenericMenu();
-
             foreach (Type t in listOfParagraphTypes)
             {
                 m_DropdownMenu.AddItem(new GUIContent(t.Name), false, _ => NewParagraph(t), null);
             }
-
-            RegisterCallbackOnce<GeometryChangedEvent>(AddV6Warning);
         }
 
         private void RemoveItems(IEnumerable<int> ints)
@@ -75,8 +76,7 @@ namespace Unity.Tutorials.Editor.CustomControl
 
         private void AddV6Warning(GeometryChangedEvent evt)
         {
-            VisualElement warning = new();
-            warning.style.marginBottom = 6;
+            VisualElement warning = new() { style = { marginBottom = 6 } };
 
             if (m_Page!.LegacyParagraphs.Count > 0)
             {
@@ -109,15 +109,6 @@ namespace Unity.Tutorials.Editor.CustomControl
             warning.PlaceInFront(this);
         }
 
-        private VisualElement OnMakeHeader()
-        {
-            Label header = new("Paragraphs");
-            header.style.marginBottom = 4;
-            header.style.unityFontStyleAndWeight = FontStyle.Bold;
-
-            return header;
-        }
-
         private void AddItem(BaseListView view, Button b)
         {
             m_DropdownMenu.DropDown(b.worldBound);
@@ -131,19 +122,17 @@ namespace Unity.Tutorials.Editor.CustomControl
         private void BindItem(VisualElement element, int idx)
         {
             SerializedProperty pElement = itemsSource[idx] as SerializedProperty;
-            ParagraphBase p = pElement.objectReferenceValue as ParagraphBase;
+            ParagraphBase p = pElement!.objectReferenceValue as ParagraphBase;
 
-            if (p != null)
-            {
-                Label typeTitle = new();
-                typeTitle.text = p.GetType().Name;
-                typeTitle.AddToClassList("inspector-paragraph-type-title");
-                element.Add(typeTitle);
+            if (p == null) return;
 
-                PropertyField pf = new();
-                pf.BindProperty(pElement);
-                element.Add(pf);
-            }
+            Label typeTitle = new() { text = p.GetType().Name };
+            typeTitle.AddToClassList("inspector-paragraph-type-title");
+            element.Add(typeTitle);
+
+            PropertyField field = new();
+            field.BindProperty(pElement);
+            element.Add(field);
         }
 
         private void UnbindItem(VisualElement element, int idx)
@@ -154,7 +143,6 @@ namespace Unity.Tutorials.Editor.CustomControl
         private VisualElement MakeItem()
         {
             VisualElement container = new();
-            container.AddToClassList("inspector-paragraph-container");
 
             return container;
         }

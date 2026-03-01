@@ -12,8 +12,12 @@ namespace Unity.Tutorials.Editor
     [CustomEditor(typeof(MaskingPreset)), CanEditMultipleObjects]
     public class MaskingPresetEditor : UnityEditor.Editor
     {
+        [SerializeField] private StyleSheet m_Stylesheet;
+
         private TutorialPage[] m_referencingPages;
         private MaskingPreset m_MaskingPreset;
+
+        private const string k_UnmaskedViewsPropertyPath = "m_unmaskedViews";
 
         /// <summary>
         /// Creates the Inspector for this MaskingPreset.
@@ -24,6 +28,7 @@ namespace Unity.Tutorials.Editor
             m_MaskingPreset = (MaskingPreset)target;
 
             VisualElement inspector = new();
+            inspector.styleSheets.Add(m_Stylesheet);
 
             // TODO: Figure out how to preview a specific mask, which is not hardcoded to the current tutorial
             // Button previewMaskingButton = new(OnPreviewMaskingButton)
@@ -36,46 +41,33 @@ namespace Unity.Tutorials.Editor
             // {
             // }
 
-            InspectorElement.FillDefaultInspector(inspector, serializedObject, this);
+            SerializedProperty serializedProperty = serializedObject.FindProperty(k_UnmaskedViewsPropertyPath);
+            UnmaskedViewsListView unmaskedViews = new(serializedProperty);
+            inspector.Add(unmaskedViews);
 
             FindReferencingPages();
-            ListView referencingPages = new(m_referencingPages)
+            ListView referencingPagesListView = new(m_referencingPages)
             {
+                headerTitle = "Pages Referencing This",
                 reorderable = false,
                 reorderMode = ListViewReorderMode.Animated,
                 showBorder = true,
                 showFoldoutHeader = true,
-                makeHeader = MakeHeader,
                 makeItem = MakeItem,
                 bindItem = BindItem,
-                showAlternatingRowBackgrounds = AlternatingRowBackground.All,
+                showAlternatingRowBackgrounds = AlternatingRowBackground.None,
                 dataSourceType = typeof(TutorialPage),
                 fixedItemHeight = 22,
-                style = { marginTop = 5 }
             };
+            referencingPagesListView.AddToClassList("inspector-list");
+            referencingPagesListView.Q<TextField>("unity-list-view__size-field").SetEnabled(false);
+            inspector.Add(referencingPagesListView);
 
-            inspector.Add(referencingPages);
             return inspector;
-
-            VisualElement MakeHeader()
-            {
-                return new Label("Pages Referencing This")
-                    { style = { unityFontStyleAndWeight = FontStyle.Bold, height = 22 } };
-            }
 
             VisualElement MakeItem()
             {
-                ObjectField objectField = new()
-                {
-                    style =
-                    {
-                        paddingLeft = 9,
-                        paddingRight = 3,
-                        paddingTop = 2,
-                        paddingBottom = 2,
-                        marginRight = 2,
-                    }
-                };
+                ObjectField objectField = new();
                 objectField.AddToClassList("unity-base-field__aligned");
                 return objectField;
             }
@@ -84,7 +76,6 @@ namespace Unity.Tutorials.Editor
             {
                 ObjectField objectField = (ObjectField)field;
                 objectField.value = m_referencingPages[index];
-                objectField.label = m_referencingPages[index].name;
                 objectField.SetEnabled(false);
             }
         }

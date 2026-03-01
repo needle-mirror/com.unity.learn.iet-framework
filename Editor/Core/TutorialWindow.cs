@@ -57,20 +57,46 @@ namespace Unity.Tutorials.Editor
         internal static bool s_RebuildFrontendEvenIfIsLoadingLayout;
 
         internal EventManager EventManager = new();
+
         /// <summary>
         /// The active instance of this window
         /// </summary>
-        public static TutorialWindow Instance { get; set; }
+        public static TutorialWindow Instance
+        {
+            get
+            {
+                if (_instance == null) _instance = GetOrCreateWindowNextToInspector();
+                return _instance;
+            }
+            set => _instance = value;
+        }
+
+        private static TutorialWindow _instance;
 
         private static TutorialWindow FindInstance() => Resources.FindObjectsOfTypeAll<TutorialWindow>().FirstOrDefault();
+
+        /// <summary>
+        /// Checks if the instance of the window is available, without creating one. Made mostly for tests.
+        /// </summary>
+        internal static bool IsAvailable => _instance != null;
+
         /// <summary>
         /// Returns true or false depending if localization is still initializing or not
         /// </summary>
-        internal bool IsWaitingForLocalizationToBeReady { get; private set; } = true;
+        internal bool IsWaitingForLocalizationToBeReady
+        {
+            get => _isWaitingForLocalizationToBeReady;
+            private set => _isWaitingForLocalizationToBeReady = value;
+        }
+
         /// <summary>
         /// True if the basic frontend data of the Window is set, meaning that specific Views can be loaded
         /// </summary>
-        internal bool FrontendIsReadyToBeInitialized { get; private set; }
+        internal bool FrontendIsReadyToBeInitialized
+        {
+            get => _frontendIsReadyToBeInitialized;
+            private set => _frontendIsReadyToBeInitialized = value;
+        }
 
         internal string CurrentView
         {
@@ -93,8 +119,18 @@ namespace Unity.Tutorials.Editor
 
         private VisualElement m_Root;
         private HashSet<View> m_Views;
-        internal TableOfContentView TableOfContentView { get; private set; }
-        internal TutorialView TutorialView { get; private set; }
+
+        internal TableOfContentView TableOfContentView
+        {
+            get => _tableOfContentView;
+            private set => _tableOfContentView = value;
+        }
+
+        internal TutorialView TutorialView
+        {
+            get => _tutorialView;
+            private set => _tutorialView = value;
+        }
 
         private StyleSheet m_LastCommonStyleSheet; // Dark/Light theme
 
@@ -103,6 +139,12 @@ namespace Unity.Tutorials.Editor
         /// </summary>
         private Dictionary<string, Action> m_ViewFrontendSetupMethods;
 
+        private bool _isWaitingForLocalizationToBeReady = true;
+        private bool _frontendIsReadyToBeInitialized;
+        private TableOfContentView _tableOfContentView;
+        private TutorialView _tutorialView;
+
+        // TODO: Remove this next major upgrade (i.e. 7.0.0)
         /// <summary>
         /// Shows Tutorials window using the currently specified behaviour.
         /// </summary>
@@ -129,7 +171,7 @@ namespace Unity.Tutorials.Editor
         /// </summary>
         /// <param name="shouldRefreshLayout">Whether or not we should reset the layout to the basic tutorial layout.
         /// Should be false when loading a tutorial step and true when first initializing the tutorial window.</param>
-        /// <returns>The created, or already existing, window instance.</returns>
+        /// <returns>The TutorialWindow, created or found open.</returns>
         public static TutorialWindow ShowWindow(bool shouldRefreshLayout)
         {
             List<TutorialContainer> rootContainers = TutorialEditorUtils.FindAssets<TutorialContainer>()
@@ -167,21 +209,66 @@ namespace Unity.Tutorials.Editor
         /// <remarks>
         /// This is the new and preferred way to show the Tutorials window.
         /// </remarks>
-        /// <returns></returns>
+        /// <returns>The created, or already existing, window instance.</returns>
         internal static TutorialWindow GetOrCreateWindowNextToInspector()
         {
-            EditorWindow inspectorWindow = Resources.FindObjectsOfTypeAll<EditorWindow>()
+            EditorWindow inspector = Resources.FindObjectsOfTypeAll<EditorWindow>()
                                            .FirstOrDefault(w => w.GetType().Name == "InspectorWindow");
 
-            Type windowToAnchorTo = inspectorWindow != null ? inspectorWindow.GetType() : null;
-            bool wasWindowPresent = Instance is not null;
-            Instance = GetOrCreateWindow(windowToAnchorTo); // create & anchor or simply focus
+            Type windowToAnchorTo = inspector != null ? inspector.GetType() : null;
+            bool wasWindowPresent = _instance is not null;
+            _instance = GetOrCreateWindow(windowToAnchorTo); // create & anchor or simply focus
+            float inspectorWidth = inspector != null ? inspector.rootVisualElement.layout.width : 0f;
+
+            float minimumInspectorWidth = 450f;
             // If Inspector not visible/opened, Tutorials window will be created as a free-floating window
-            if (!wasWindowPresent && inspectorWindow)
+            if (!wasWindowPresent && inspector && inspectorWidth > minimumInspectorWidth)
             {
-                inspectorWindow.DockWindow(Instance, EditorWindowUtils.DockPosition.Right);
+                // Tutorial Window is docked side-by-side to the Inspector only if Inspector is wider than a certain amount,
+                // to avoid the effect of a narrow tutorial window. If not, it's docked *with* it, and brought to the front.
+                inspector.DockWindow(_instance, EditorWindowUtils.DockPosition.Right);
             }
-            return Instance;
+
+            return _instance;
+        }
+
+        /// <summary>
+        /// Brings up the Tutorials window, and highlights it (mask).
+        /// Exposed as a public method in both <see cref="TutorialContainer"/> and
+        /// <see cref="TutorialWelcomePage"/> so that it can be invoked by UnityEvents.
+        /// </summary>
+        internal static void BringUpAndHighlight()
+        {
+            TutorialWindow tutorialWindow = Instance;
+            ShowWindow(false); // This call seems redundant,
+            // but it ensure the window is brought to the front if it's in the background
+            TutorialModel Model = tutorialWindow.Model.Tutorial;
+
+            MaskingManager.Unmask();
+            UnmaskedView.MaskData unmaskedViews = UnmaskedView.GetViewsAndRects(new[] { UnmaskedView.CreateInstanceForEditorWindow(typeof(TutorialWindow))}, out bool _);
+            UnmaskedView.MaskData highlightedViews;
+
+            if (unmaskedViews.Count > 0) // Unmasked views should be highlighted
+            {
+                highlightedViews = (UnmaskedView.MaskData)unmaskedViews.Clone();
+            }
+            else
+            {
+                highlightedViews = new UnmaskedView.MaskData();
+            }
+
+            unmaskedViews.AddTooltipViews();
+            // Also ensure the Media Popout window (used to enlarge video and image) is unmasked
+            unmaskedViews.AddPopoutWindow();
+
+            MaskingManager.Mask(
+                unmaskedViews,
+                Model.Styles == null ? Color.magenta * new Color(1f, 1f, 1f, 0.8f) : Model.Styles.MaskingColor,
+                highlightedViews,
+                Model.Styles == null ? Color.cyan * new Color(1f, 1f, 1f, 0.8f) : Model.Styles.HighlightColor,
+                Model.Styles == null ? new Color(1, 1, 1, 0.5f) : Model.Styles.BlockedInteractionColor,
+                Model.Styles == null ? 3f : Model.Styles.HighlightThickness
+            );
         }
 
         /// <summary>
@@ -198,23 +285,18 @@ namespace Unity.Tutorials.Editor
         /// <returns></returns>
         internal static TutorialWindow GetOrCreateWindowAndLoadLayout(TutorialContainer container, bool shouldRefreshLayout)
         {
-            if (Instance)
-            {
-                return GetOrCreateWindowNextToInspector();
-            }
-
             if (container != null && shouldRefreshLayout)
             {
                 container.LoadTutorialProjectLayout();
             }
 
-            // If project layout did not contain tutorial window, it will be created as a free-floating window
-            Instance = EditorWindowUtils.FindOpenInstance<TutorialWindow>();
-            if (Instance == null)
-            {
-                GetOrCreateWindowNextToInspector(); // create
-            }
-            return Instance;
+            // Try to find the window in the newly-loaded layout.
+            _instance = EditorWindowUtils.FindOpenInstance<TutorialWindow>();
+
+            // It might be null at this point but it's ok because next time the Instance property is accessed,
+            // it will create a new window.
+
+            return _instance;
         }
 
         /// <summary>
@@ -225,11 +307,12 @@ namespace Unity.Tutorials.Editor
         /// <returns></returns>
         internal static TutorialWindow GetOrCreateWindow(Type windowToAnchorTo = null)
         {
-            Instance = GetWindow<TutorialWindow>(Localization.Tr(LocalizationKeys.k_WindowTitle), windowToAnchorTo);
-            Instance.minSize = k_MinWindowSize; // NOTE minSize has no effect on docked windows on 2021.2 and newer
-            Instance.maxSize = k_MaxWindowSize;
-            Instance.titleContent.image = UIUtils.LoadIcon("TutorialsWindowIcon.png", true, true);
-            return Instance;
+            _instance = GetWindow<TutorialWindow>(Localization.Tr(LocalizationKeys.k_WindowTitle), windowToAnchorTo);
+            _instance.minSize = k_MinWindowSize; // NOTE minSize has no effect on docked windows on 2021.2 and newer
+            _instance.maxSize = k_MaxWindowSize;
+            _instance.titleContent.image = UIUtils.LoadIcon("TutorialsWindowIcon.png", true, true);
+
+            return _instance;
         }
 
         private void OnEnable()
@@ -265,10 +348,7 @@ namespace Unity.Tutorials.Editor
 
         private void SetupBackend()
         {
-            if (!Instance)
-            {
-                Instance = FindInstance();
-            }
+            _instance = FindInstance();
 
             TableOfContentView = new TableOfContentView();
             TutorialView = new TutorialView();
@@ -410,17 +490,17 @@ namespace Unity.Tutorials.Editor
             }
         }
 
-        private void OnDestroy() //aka: "When the user closes the window"
+        private void OnDestroy()
         {
             if (!m_Model.IsOpen)
             {
                 if (!s_IsLoadingLayout)
                 {
-                    CurrentView = string.Empty; //we ensure that something is loaded when the window is reopened
+                    CurrentView = string.Empty; // We ensure that something is loaded when the window is reopened
                 }
                 SaveModelsState();
             }
-            Instance = null;
+            _instance = null;
         }
 
         private void TeardownBackend()
@@ -434,7 +514,7 @@ namespace Unity.Tutorials.Editor
                 }
             }
 
-            if (!m_Model.DomainReloadOccured) //if it occurred we don't want to save the models as their "correct"state is already being managed in the Assembly reload-related callbacks
+            if (!m_Model.DomainReloadOccured) // If it occurred we don't want to save the models as their "correct"state is already being managed in the Assembly reload-related callbacks
             {
                 SaveModelsState();
             }
@@ -520,7 +600,7 @@ namespace Unity.Tutorials.Editor
         /// <summary>same as <see cref="Broadcast"/>, but static</summary>
         internal static void BroadcastEvent(AppEvent evt)
         {
-            Instance?.Broadcast(evt);
+            _instance?.Broadcast(evt);
         }
 
         internal IModel GetModel(Type modelType)
@@ -661,22 +741,22 @@ namespace Unity.Tutorials.Editor
         /// <param name="tutorial">The tutorial to start</param>
         public static void StartTutorial(Tutorial tutorial)
         {
-            if (!Instance)
+            if (!_instance)
             {
                 GetOrCreateWindowNextToInspector();
                 EditorCoroutineUtility.StartCoroutineOwnerless(StartTutorialWhenFrontendIsReady(tutorial));
                 return;
             }
-            Instance.Broadcast(new TutorialStartRequestedEvent(tutorial, null));
+            _instance.Broadcast(new TutorialStartRequestedEvent(tutorial, null));
         }
 
         private static IEnumerator StartTutorialWhenFrontendIsReady(Tutorial tutorial)
         {
-            while (!Instance.Model.IsOpen || !Instance.FrontendIsReadyToBeInitialized)
+            while (!_instance.Model.IsOpen || !_instance.FrontendIsReadyToBeInitialized)
             {
                 yield return null;
             }
-            Instance.Broadcast(new TutorialStartRequestedEvent(tutorial, null));
+            _instance.Broadcast(new TutorialStartRequestedEvent(tutorial, null));
         }
 
         /// <summary>
@@ -684,11 +764,11 @@ namespace Unity.Tutorials.Editor
         /// </summary>
         public static void ExitTutorial()
         {
-            if (!Instance)
+            if (!_instance)
             {
                 return;
             }
-            Instance.Broadcast(new TutorialQuitEvent());
+            _instance.Broadcast(new TutorialQuitEvent());
         }
 
         /// <summary>

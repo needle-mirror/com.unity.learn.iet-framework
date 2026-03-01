@@ -24,7 +24,6 @@ namespace Unity.Tutorials.Editor
         public override VisualElement CreatePropertyGUI(SerializedProperty property)
         {
             VisualElement drawer = new();
-            drawer.AddToClassList("inspector-list-element-basic");
 
             _typeProperty = property.FindPropertyRelative(nameof(TutorialContainer.Section.Type));
 

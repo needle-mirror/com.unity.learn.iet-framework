@@ -77,16 +77,12 @@ namespace Unity.Tutorials.Editor
 
             if (TutorialEditorUtils.FindAssets<TutorialContainer>().Any())
             {
-                TutorialWindow existingWindow = EditorWindowUtils.FindOpenInstance<TutorialWindow>();
-                if (existingWindow)
-                {
-                    existingWindow.Close();
-                }
-                TutorialWindow.ShowWindow();
+                if (TutorialWindow.Instance != null) TutorialWindow.Instance.Close();
+                TutorialWindow.ShowWindow(true);
             }
 
             // NOTE camera settings can be applied successfully only after potential layout changes
-            if (projectSettings.InitialCameraSettings != null && projectSettings.InitialCameraSettings.Enabled)
+            if (projectSettings.InitialCameraSettings is { Enabled: true })
             {
                 projectSettings.InitialCameraSettings.Apply();
             }
@@ -120,12 +116,16 @@ namespace Unity.Tutorials.Editor
                 TutorialEditorUtils.StartV6Upgrade();
             }
 
-            if (!DisplayWelcomeDialogOnStartup)
-            {
-                return;
-            }
+            if (!DisplayWelcomeDialogOnStartup) return;
 
+            // TODO: Find a better solution for the below?
+            // We turn the option off automatically only for a tutorial user.
+            // When authoring we don't want this to be turned off continuously, because often the author wants to ship the tutorial with the option on.
+            // (especially critical for when authoring templates)
+#if !TUTORIAL_AUTHORING
             DisplayWelcomeDialogOnStartup = false;
+#endif
+
             RunStartupCode(TutorialProjectSettings.Instance);
         }
 

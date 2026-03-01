@@ -1,8 +1,7 @@
 .inspector-paragraph-container {
-    margin-top: 5px;
-    margin-bottom: 5px;
-    padding: 4px;
-    padding-bottom: 8px;
+    margin-top: 1px;
+    margin-bottom: 3px;
+    padding: 2px;
     flex-direction: column;
     flex-grow: 1;
 }
@@ -10,6 +9,8 @@
 .inspector-paragraph-type-title {
     -unity-font-style: bold;
     margin-bottom: 3px;
+    margin-top: 1px;
+    margin-left: 3px;
 }
 
 .inspector-list {
@@ -30,19 +31,21 @@
     margin-bottom: -3px;
 }
 
+.inspector-list .unity-list-view__item,
 .inspector-list-element {
     padding-left: 3px;
     padding-right: 6px;
     margin-right: -1px;
 }
 
-.inspector-list-element .unity-foldout--depth-0 {
-    margin-left: 13px;
+.inspector-list .unity-list-view__reorderable-item__container
+{
+    margin: 0;
+    padding: 1px;
 }
 
-.inspector-list-element-basic {
-    padding-top: 1px;
-    padding-bottom: 3px;
+.inspector-list-element .unity-foldout--depth-0 {
+    margin-left: 13px;
 }
 
 .inspector-localization-icon {
@@ -58,22 +61,23 @@
     opacity: 0.4;
 }
 
-.collapsable {
-    overflow: hidden;
-    transition-property: max-height;
-    transition-timing-function: ease-in-out;
+.unmasked-view {
+    margin-left: 10px;
 }
 
-.foldout-bold-title Label.unity-foldout__text {
+/* In all cases, the intent is to catch only the first-level Label and not potentially nested ones:
+    1. is for ListViews
+    2. is for PropertyFields that contain a ListView
+    3. is for Foldouts that wrap around a bunch of PropertyFields (like for the callbacks)
+    4. etc. are for more specific elements
+*/
+ListView.foldout-bold-title > Foldout > Toggle Label.unity-foldout__text,
+PropertyField.foldout-bold-title > ListView > Foldout Label.unity-foldout__text,
+Foldout.foldout-bold-title Label.unity-foldout__text,
+ParagraphListView.foldout-bold-title > Foldout > Toggle Label.unity-foldout__text,
+UnmaskedViewsListView.foldout-bold-title > Foldout > Toggle Label.unity-foldout__text
+{
     -unity-font-style: bold;
-}
-
-.foldout-bold-title Foldout.unity-foldout--depth-1 Label.unity-foldout__text {
-    -unity-font-style: initial;
-}
-
-.unity-header-drawer__label {
-    margin-top: 8px;
 }
 
 .callbacks-foldout {
