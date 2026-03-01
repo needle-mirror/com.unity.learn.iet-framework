@@ -245,9 +245,8 @@ namespace Unity.Tutorials.Editor
             PropertyField selectorModeField = new(selectorMode);
             root.Add(selectorModeField);
 
-            Button pickButton = new();
-            pickButton.text = k_PickButtonContent.text;
-            pickButton.tooltip = k_PickButtonContent.tooltip;
+            Button pickButton = new() { text = k_PickButtonContent.text, tooltip = k_PickButtonContent.tooltip };
+            pickButton.clicked += () => BeginPicking(property);
             root.Add(pickButton);
             SerializedProperty classNameProperty = property.FindPropertyRelative(k_VisualElementClassNamePath);
             PropertyField classNameField = new(classNameProperty);
