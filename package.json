@@ -1,7 +1,7 @@
 {
   "name": "com.unity.learn.iet-framework",
   "displayName": "Tutorial Framework",
-  "version": "5.0.3",
+  "version": "5.0.4",
   "unity": "2022.3",
   "description": "This package is used to display interactive in-Editor tutorials in tutorial projects and project templates.",
   "keywords": [
@@ -12,15 +12,15 @@
     "com.unity.settings-manager": "1.0.3"
   },
   "_upm": {
-    "changelog": "### Changed\n- The minimum version supported by the package has been raised to 2022.3, since Unity 2021 is not supported anymore.\n- Updated some obsolete API around InstanceID to target EntityID instead, for versions of Unity 6.3 and up.\n\n### Fixed\n- Fixed styling of cards in the main Tutorial Container interface."
+    "changelog": "### Fixed\n- Fixed a wrong define being used"
   },
   "upmCi": {
-    "footprint": "4fd1b8842dda48d248810b45fb1bad99ff6244d0"
+    "footprint": "05637a7f7ed2e9fc5ed27253ad334d657395e479"
   },
   "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.learn.iet-framework@5.0/manual/index.html",
   "repository": {
     "url": "https://github.cds.internal.unity3d.com/unity/iet-package.git",
     "type": "git",
-    "revision": "342e047153904da5cf2539425bfe6f5f59d01321"
+    "revision": "c339315fd994a00fd8bcaca56a1dcbc90cc88378"
   }
 }
