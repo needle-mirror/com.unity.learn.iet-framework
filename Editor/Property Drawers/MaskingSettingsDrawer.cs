@@ -59,10 +59,7 @@ namespace Unity.Tutorials.Editor
 
             root.Add(m_collapsableVisualElement);
 
-            EditorApplication.delayCall += () =>
-            {
-                enableField.RegisterValueChangeCallback(evt => OnShowHideSettings(evt.changedProperty.boolValue));
-            };
+            enableField.RegisterValueChangeCallback(evt => OnShowHideSettings(evt.changedProperty.boolValue));
 
             return root;
         }
@@ -113,6 +110,8 @@ namespace Unity.Tutorials.Editor
 
             UpdateListInteractivity(evt.newValue == null);
 
+            int undoGroup = Undo.GetCurrentGroup();
+
             if (evt.newValue != null)
             {
                 MaskingPreset preset = (MaskingPreset)evt.newValue;
@@ -124,6 +123,9 @@ namespace Unity.Tutorials.Editor
             }
 
             m_Property.serializedObject.ApplyModifiedProperties();
+
+            Undo.SetCurrentGroupName("Apply Masking Preset");
+            Undo.CollapseUndoOperations(undoGroup);
         }
 
         /// <summary>

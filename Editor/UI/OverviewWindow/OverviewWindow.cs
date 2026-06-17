@@ -39,6 +39,7 @@ namespace Unity.Tutorials.Editor
         private bool m_displayWarnings = true;
         private int m_draggedId; // The id of the TreeView item currently being dragged
         private List<Tutorial> m_TutorialsMultiLinking;
+        private Dictionary<TutorialPage, Tutorial> m_pageToTutorial = new(); // Built in PopulateTree
 
         [MenuItem(MenuItems.AuthoringMenuPath + k_WindowName)]
         private static void ShowWindow()
@@ -51,6 +52,17 @@ namespace Unity.Tutorials.Editor
         private void OnEnable()
         {
             rootVisualElement.styleSheets.Add(EditorGUIUtility.isProSkin ? m_StyleSheetDark : m_StyleSheetLight);
+            Undo.undoRedoPerformed += OnUndoRedoPerformed;
+        }
+
+        private void OnDisable()
+        {
+            Undo.undoRedoPerformed -= OnUndoRedoPerformed;
+        }
+
+        private void OnUndoRedoPerformed()
+        {
+            if (m_treeView != null) PopulateTree();
         }
 
         private void CreateGUI()
@@ -163,7 +175,7 @@ namespace Unity.Tutorials.Editor
                 TutorialTreeItem draggedItem = m_treeView.GetItemDataForId<TutorialTreeItem>(m_draggedId);
                 TutorialTreeItem targetItem = m_treeView.GetItemDataForId<TutorialTreeItem>(args.parentId);
 
-                return ValidateDrag(draggedItem, targetItem, args.parentId == -1, false);
+                return ValidateDrag(draggedItem, targetItem, args.parentId == -1, args.childIndex, args.dropPosition, false);
             }
 
             DragVisualMode OnDrop(HandleDragAndDropArgs args)
@@ -172,92 +184,296 @@ namespace Unity.Tutorials.Editor
                 TutorialTreeItem draggedItem = m_treeView.GetItemDataForId<TutorialTreeItem>(m_draggedId);
                 TutorialTreeItem targetItem = m_treeView.GetItemDataForId<TutorialTreeItem>(args.parentId);
 
-                DragVisualMode result = ValidateDrag(draggedItem, targetItem, targetIsRoot, true);
+                int undoGroup = Undo.GetCurrentGroup();
 
-                if (result != DragVisualMode.Rejected) PopulateTree();
+                DragVisualMode result = ValidateDrag(draggedItem, targetItem, targetIsRoot, args.childIndex, args.dropPosition, true);
+
+                if (result != DragVisualMode.Rejected)
+                {
+                    AssetDatabase.SaveAssets();
+                    PopulateTree();
+                }
+
+                Undo.SetCurrentGroupName("Reorganise Tutorials");
+                Undo.CollapseUndoOperations(undoGroup);
                 return result;
             }
         }
 
-        private DragVisualMode ValidateDrag(TutorialTreeItem draggedItem, TutorialTreeItem targetItem, bool targetIsRoot, bool applyAction)
+        private DragVisualMode ValidateDrag(TutorialTreeItem draggedItem, TutorialTreeItem targetItem, bool targetIsRoot, int childIndex, DragAndDropPosition position, bool applyAction)
         {
-            if(draggedItem.Asset == targetItem.Asset) return DragVisualMode.Rejected; // Dragged onto itself
-            if(targetItem.Type == TreeItemType.Fake) return DragVisualMode.Rejected; // Dragged onto fake item (Stray Tutorials)
+            if (!targetIsRoot && draggedItem.Asset == targetItem.Asset) return DragVisualMode.Rejected; // Dragged onto itself
 
             switch (draggedItem.Type)
             {
-                // Dragged to empty spot - Make root container
-                case TreeItemType.Container when targetIsRoot:
-                {
-                    TutorialContainer draggedContainer = (TutorialContainer)draggedItem.Asset;
+                case TreeItemType.Container:
+                    return ValidateContainerDrag((TutorialContainer)draggedItem.Asset, targetItem, targetIsRoot, childIndex, position, applyAction);
 
-                    if (draggedContainer.ParentContainer == null) return DragVisualMode.Rejected; // Already a root Container
-
-                    // Make root Container
-                    if(applyAction) draggedContainer.ParentContainer = null;
-                    return DragVisualMode.Move;
-                }
-
-                // Dragged Container onto another Container
-                case TreeItemType.Container when targetItem.Asset.GetType() == typeof(TutorialContainer):
-                {
-                    TutorialContainer draggedContainer = (TutorialContainer)draggedItem.Asset;
-                    TutorialContainer targetContainer = (TutorialContainer)targetItem.Asset;
-
-                    if (draggedContainer.ParentContainer == targetContainer) return DragVisualMode.Rejected; // Already parented
-                    if (targetContainer.ParentContainer == draggedContainer) return DragVisualMode.Rejected; // Cyclical reference
-
-                    if(applyAction) draggedContainer.ParentContainer = targetContainer;
-                    return DragVisualMode.Move;
-                }
-
-                // Add Tutorial to Container
-                case TreeItemType.Tutorial when targetItem.Asset.GetType() == typeof(TutorialContainer):
-                {
-                    Tutorial draggedTutorial = (Tutorial)draggedItem.Asset;
-                    TutorialContainer targetContainer = (TutorialContainer)targetItem.Asset;
-
-                    if(targetContainer.Sections.Any(section => section.Tutorial ==  draggedTutorial)) return DragVisualMode.Rejected; // Already a section
-
-                    if (applyAction)
-                    {
-                        TutorialContainer.Section newSection = null;
-
-                        // Find and remove Tutorial from its original Container
-                        foreach (TutorialContainer tutorialContainer in m_allContainers)
-                        {
-                            foreach (TutorialContainer.Section originalSection in tutorialContainer.Sections)
-                            {
-                                if (originalSection.Tutorial != draggedTutorial) continue;
-
-                                newSection = originalSection;
-
-                                List<TutorialContainer.Section> list = tutorialContainer.Sections.ToList();
-                                list.Remove(originalSection);
-                                tutorialContainer.Sections = list.ToArray();
-                                break;
-                            }
-                        }
-
-                        // Add Tutorial to new Container
-                        newSection ??= new TutorialContainer.Section { Heading = draggedTutorial.TutorialTitle.Value, Tutorial = draggedTutorial };
-                        List<TutorialContainer.Section> sections = targetContainer.Sections.ToList();
-                        sections.Add(newSection);
-                        targetContainer.Sections = sections.ToArray();
-                    }
-                    return DragVisualMode.Move;
-                }
+                case TreeItemType.Tutorial:
+                    return ValidateTutorialDrag((Tutorial)draggedItem.Asset, targetItem, targetIsRoot, childIndex, position, applyAction);
 
                 case TreeItemType.Page:
-                {
-                    return DragVisualMode.Move;
-                }
+                    return ValidatePageDrag((TutorialPage)draggedItem.Asset, targetItem, targetIsRoot, childIndex, position, applyAction);
 
                 default:
-                {
                     return DragVisualMode.Rejected;
+            }
+        }
+
+        private DragVisualMode ValidateContainerDrag(TutorialContainer draggedContainer, TutorialTreeItem targetItem, bool targetIsRoot, int childIndex, DragAndDropPosition position, bool applyAction)
+        {
+            // Determine the new parent. TreeView semantics: args.parentId is the new parent for
+            // both OverItem (target becomes parent) and BetweenItems (target IS the parent).
+            TutorialContainer newParent;
+            if (targetIsRoot)
+            {
+                newParent = null;
+            }
+            else if (targetItem.Type == TreeItemType.Container && targetItem.Asset is TutorialContainer tc)
+            {
+                newParent = tc;
+            }
+            else
+            {
+                return DragVisualMode.Rejected; // Containers can only sit under a Container or root
+            }
+
+            // Cycle protection: can't drop into self or any descendant
+            if (newParent == draggedContainer || IsDescendantOf(newParent, draggedContainer))
+            {
+                return DragVisualMode.Rejected;
+            }
+
+            bool sameParent = draggedContainer.ParentContainer == newParent;
+            int currentPos = sameParent ? draggedContainer.OrderInParent : -1;
+            int containerCount = m_allContainers.Count(c => c.ParentContainer == newParent && c != draggedContainer);
+
+            // Map TreeView's combined childIndex (sub-containers then Tutorials) to container-slice index
+            int desiredPos;
+            if (position == DragAndDropPosition.BetweenItems && childIndex >= 0)
+            {
+                int rawIdx = childIndex;
+                // When moving within the same parent, removal shifts items after currentPos down by 1
+                if (sameParent && rawIdx > currentPos) rawIdx -= 1;
+                desiredPos = Mathf.Clamp(rawIdx, 0, containerCount);
+            }
+            else
+            {
+                desiredPos = containerCount; // OverItem / OutsideItems => append
+            }
+
+            if (sameParent && desiredPos == currentPos) return DragVisualMode.Rejected;
+
+            if (applyAction)
+            {
+                if (!sameParent)
+                {
+                    Undo.RecordObject(draggedContainer, "Reparent Tutorial Container");
+                    draggedContainer.ParentContainer = newParent;
+                    EditorUtility.SetDirty(draggedContainer);
+                }
+
+                List<TutorialContainer> siblings = m_allContainers
+                    .Where(c => c.ParentContainer == newParent && c != draggedContainer)
+                    .OrderBy(c => c.OrderInParent)
+                    .ToList();
+                siblings.Insert(desiredPos, draggedContainer);
+                RenumberSiblings(siblings);
+            }
+            return DragVisualMode.Move;
+        }
+
+        private DragVisualMode ValidateTutorialDrag(Tutorial draggedTutorial, TutorialTreeItem targetItem, bool targetIsRoot, int childIndex, DragAndDropPosition position, bool applyAction)
+        {
+            // Drop on root area or on "Stray Tutorials" fake item -> make stray
+            if (targetIsRoot || targetItem.Type == TreeItemType.Fake)
+            {
+                bool alreadyStray = !m_tutorialsWithinContainers.Contains(draggedTutorial);
+                if (alreadyStray) return DragVisualMode.Rejected;
+
+                if (applyAction)
+                {
+                    RemoveTutorialFromAllContainers(draggedTutorial);
+                }
+                return DragVisualMode.Move;
+            }
+
+            // Tutorials can only live under a Container
+            if (targetItem.Type != TreeItemType.Container || targetItem.Asset == null)
+            {
+                return DragVisualMode.Rejected;
+            }
+
+            TutorialContainer targetContainer = (TutorialContainer)targetItem.Asset;
+            TutorialContainer sourceContainer = FindOwnerContainer(draggedTutorial); // may be null (stray)
+            bool sameContainer = sourceContainer == targetContainer;
+
+            // Position of dragged within its source container's Sections (Tutorial-only index)
+            int currentTutorialPos = -1;
+            if (sourceContainer != null)
+            {
+                currentTutorialPos = Array.FindIndex(sourceContainer.Sections, s => s.Tutorial == draggedTutorial);
+            }
+
+            // Combined children of target: (sub-containers) then (Tutorials). Map combined childIndex
+            // to Tutorial-section index by subtracting the container count.
+            int targetContainerCount = m_allContainers.Count(c => c.ParentContainer == targetContainer);
+            int targetTutorialCount = targetContainer.Sections.Count(s => s.Tutorial != null);
+            // When same container, removal of dragged shrinks Tutorial slice by 1
+            int effectiveTutorialCount = sameContainer ? targetTutorialCount - 1 : targetTutorialCount;
+            if (effectiveTutorialCount < 0) effectiveTutorialCount = 0;
+
+            int desiredPos;
+            if (position == DragAndDropPosition.BetweenItems && childIndex >= 0)
+            {
+                int rawIdx = childIndex - targetContainerCount;
+                // In combined index, dragged sits at (targetContainerCount + currentTutorialPos)
+                if (sameContainer && rawIdx > currentTutorialPos) rawIdx -= 1;
+                desiredPos = Mathf.Clamp(rawIdx, 0, effectiveTutorialCount);
+            }
+            else
+            {
+                // OverItem on Container => append
+                desiredPos = effectiveTutorialCount;
+            }
+
+            if (sameContainer && desiredPos == currentTutorialPos) return DragVisualMode.Rejected;
+
+            if (applyAction)
+            {
+                TutorialContainer.Section section = RemoveTutorialFromAllContainers(draggedTutorial)
+                    ?? new TutorialContainer.Section { Heading = draggedTutorial.TutorialTitle.Value, Tutorial = draggedTutorial };
+
+                Undo.RecordObject(targetContainer, "Move Tutorial Between Containers");
+                List<TutorialContainer.Section> sections = targetContainer.Sections.ToList();
+                int insertAt = Mathf.Clamp(desiredPos, 0, sections.Count);
+                sections.Insert(insertAt, section);
+                targetContainer.Sections = sections.ToArray();
+                EditorUtility.SetDirty(targetContainer);
+            }
+            return DragVisualMode.Move;
+        }
+
+        private DragVisualMode ValidatePageDrag(TutorialPage draggedPage, TutorialTreeItem targetItem, bool targetIsRoot, int childIndex, DragAndDropPosition position, bool applyAction)
+        {
+            if (targetIsRoot) return DragVisualMode.Rejected;
+            if (targetItem.Asset == null) return DragVisualMode.Rejected;
+
+            Tutorial owner = FindOwnerTutorial(draggedPage);
+            if (owner == null) return DragVisualMode.Rejected;
+
+            // For BetweenItems the parent is the Tutorial. For OverItem the target itself becomes parent.
+            Tutorial targetOwner = targetItem.Type switch
+            {
+                TreeItemType.Tutorial => (Tutorial)targetItem.Asset,
+                _ => null
+            };
+
+            // Only same-Tutorial reordering is supported
+            if (targetOwner != owner) return DragVisualMode.Rejected;
+
+            // Dropping a Page onto its own parent Tutorial is not a meaningful gesture
+            // (use the insertion line between sibling Pages to reorder).
+            if (position != DragAndDropPosition.BetweenItems) return DragVisualMode.Rejected;
+
+            List<TutorialPage> pages = new();
+            foreach (TutorialPage p in owner.PagesCollection) pages.Add(p);
+
+            int currentIndex = pages.IndexOf(draggedPage);
+            if (currentIndex < 0) return DragVisualMode.Rejected;
+
+            int rawIdx = childIndex < 0 ? pages.Count : childIndex;
+            if (rawIdx > currentIndex) rawIdx -= 1; // adjust for removal
+            int desiredPos = Mathf.Clamp(rawIdx, 0, pages.Count - 1);
+
+            if (desiredPos == currentIndex) return DragVisualMode.Rejected;
+
+            if (applyAction)
+            {
+                pages.RemoveAt(currentIndex);
+                pages.Insert(desiredPos, draggedPage);
+
+                Undo.RecordObject(owner, "Reorder Tutorial Pages");
+                owner.PagesCollection.SetItems(pages);
+                EditorUtility.SetDirty(owner);
+
+                // Keep IndexInTutorial in sync with PagesCollection order. The sub-asset name
+                // embeds this index ({IndexInTutorial}_{Title}) and the Project view sorts by
+                // name, so without this the sub-asset list looks out of order.
+                for (int i = 0; i < pages.Count; i++)
+                {
+                    TutorialPage page = pages[i];
+                    if (page == null) continue;
+                    if (page.IndexInTutorial != i)
+                    {
+                        Undo.RecordObject(page, "Reorder Tutorial Pages");
+                        page.IndexInTutorial = i;
+                    }
+                    TutorialPageEditor.RenamePage(page);
                 }
             }
+            return DragVisualMode.Move;
+        }
+
+        private bool IsDescendantOf(TutorialContainer maybeDescendant, TutorialContainer ancestor)
+        {
+            TutorialContainer current = maybeDescendant?.ParentContainer;
+            while (current != null)
+            {
+                if (current == ancestor) return true;
+                current = current.ParentContainer;
+            }
+            return false;
+        }
+
+        private void RenumberSiblings(IList<TutorialContainer> siblingsInNewOrder)
+        {
+            for (int i = 0; i < siblingsInNewOrder.Count; i++)
+            {
+                TutorialContainer sibling = siblingsInNewOrder[i];
+                if (sibling.OrderInParent == i) continue;
+                Undo.RecordObject(sibling, "Reorder Tutorial Containers");
+                sibling.OrderInParent = i;
+                EditorUtility.SetDirty(sibling);
+            }
+        }
+
+        // Removes the Tutorial from any Container.Sections that references it and returns the
+        // original Section (so caller can re-use it when reassigning), or null if it was stray.
+        private TutorialContainer.Section RemoveTutorialFromAllContainers(Tutorial tutorial)
+        {
+            TutorialContainer.Section removed = null;
+            foreach (TutorialContainer container in m_allContainers)
+            {
+                TutorialContainer.Section match = container.Sections.FirstOrDefault(s => s.Tutorial == tutorial);
+                if (match == null) continue;
+
+                removed ??= match;
+
+                Undo.RecordObject(container, "Move Tutorial Between Containers");
+                List<TutorialContainer.Section> list = container.Sections.ToList();
+                list.RemoveAll(s => s.Tutorial == tutorial);
+                container.Sections = list.ToArray();
+                EditorUtility.SetDirty(container);
+            }
+            return removed;
+        }
+
+        private Tutorial FindOwnerTutorial(TutorialPage page)
+        {
+            if (page == null) return null;
+            return m_pageToTutorial.TryGetValue(page, out Tutorial owner) ? owner : null;
+        }
+
+        // First Container whose Sections contain this Tutorial, or null if stray.
+        private TutorialContainer FindOwnerContainer(Tutorial tutorial)
+        {
+            if (tutorial == null) return null;
+            foreach (TutorialContainer container in m_allContainers)
+            {
+                if (container.Sections.Any(s => s.Tutorial == tutorial)) return container;
+            }
+            return null;
         }
 
         private void OnRefreshClicked() => PopulateTree();
@@ -279,20 +495,37 @@ namespace Unity.Tutorials.Editor
 
         private void CollapseExpandItems()
         {
-            for (int i = 0; i < m_treeView.viewController.GetTreeItemsCount(); i++)
+            ApplyExpansionRecursive(item => item.Type switch
             {
-                TutorialTreeItem item = m_treeView.GetItemDataForIndex<TutorialTreeItem>(i);
+                TreeItemType.Container or TreeItemType.Fake => m_containersExpanded,
+                TreeItemType.Tutorial => m_tutorialsExpanded,
+                TreeItemType.Page => false,
+                _ => throw new ArgumentOutOfRangeException()
+            });
+        }
 
-                bool expand = item.Type switch
-                {
-                    TreeItemType.Container or TreeItemType.Fake => m_containersExpanded,
-                    TreeItemType.Tutorial => m_tutorialsExpanded,
-                    TreeItemType.Page => false,
-                    _ => throw new ArgumentOutOfRangeException()
-                };
+        // Walk the source tree data depth-first and apply the predicate by id. Index-based TreeView
+        // APIs operate on the visible wrapper list, so once a parent collapses its descendants drop
+        // out of reach mid-iteration — id-based ExpandItem/CollapseItem stay correct at any depth.
+        private void ApplyExpansionRecursive(Func<TutorialTreeItem, bool> shouldExpand)
+        {
+            if (m_treeViewItemData == null) return;
 
-                if(expand) m_treeView.viewController.ExpandItemByIndex(i, false);
-                else m_treeView.viewController.CollapseItemByIndex(i, false);
+            foreach (TreeViewItemData<TutorialTreeItem> root in m_treeViewItemData)
+                Walk(root);
+
+            m_treeView.RefreshItems();
+            return;
+
+            void Walk(TreeViewItemData<TutorialTreeItem> node)
+            {
+                if (shouldExpand(node.data))
+                    m_treeView.viewController.ExpandItem(node.id, false, false);
+                else
+                    m_treeView.viewController.CollapseItem(node.id, false, false);
+
+                foreach (TreeViewItemData<TutorialTreeItem> child in node.children)
+                    Walk(child);
             }
         }
 
@@ -307,12 +540,43 @@ namespace Unity.Tutorials.Editor
 
         private void PopulateTree()
         {
+            // Capture the current expansion state (by Asset reference) so it survives the rebuild.
+            // On the very first build there is nothing to capture and we fall back to the default
+            // collapse behaviour from SetupElementExpansion.
+            HashSet<Object> previouslyExpandedAssets = null;
+            bool strayHeaderWasExpanded = false;
+            if (m_treeView != null && m_treeViewItemData != null && m_treeViewItemData.Count > 0)
+            {
+                previouslyExpandedAssets = new HashSet<Object>();
+                int count = m_treeView.viewController.GetTreeItemsCount();
+                for (int i = 0; i < count; i++)
+                {
+                    int id = m_treeView.GetIdForIndex(i);
+                    if (!m_treeView.IsExpanded(id)) continue;
+
+                    TutorialTreeItem item = m_treeView.GetItemDataForIndex<TutorialTreeItem>(i);
+                    if (item.Asset != null) previouslyExpandedAssets.Add(item.Asset);
+                    else if (item.Type == TreeItemType.Fake) strayHeaderWasExpanded = true;
+                }
+            }
+
             m_treeViewItemData = new List<TreeViewItemData<TutorialTreeItem>>();
             m_allContainers = AssetDatabase.FindAssets($"t:{nameof(TutorialContainer)}")
                 .Select(guid => AssetDatabase.LoadAssetAtPath<TutorialContainer>(AssetDatabase.GUIDToAssetPath(guid))).ToList();
 
-            m_rootContainers = m_allContainers.Where(container => container.ParentContainer == null).ToList();
+            m_rootContainers = m_allContainers.Where(container => container.ParentContainer == null).OrderBy(c => c.OrderInParent).ToList();
             m_nonRootContainers = m_allContainers.Where(container => container.ParentContainer != null).ToList();
+
+            // Rebuild the page -> owning Tutorial lookup used by page drag/drop
+            m_pageToTutorial.Clear();
+            foreach (Tutorial t in AssetDatabase.FindAssets($"t:{nameof(Tutorial)}")
+                .Select(guid => AssetDatabase.LoadAssetAtPath<Tutorial>(AssetDatabase.GUIDToAssetPath(guid))))
+            {
+                foreach (TutorialPage page in t.PagesCollection)
+                {
+                    if (page != null) m_pageToTutorial[page] = t;
+                }
+            }
 
             // So we can later determine which Tutorials are stray, or multi-linked to a Container
             m_tutorialsWithinContainers = new List<Tutorial>();
@@ -366,7 +630,14 @@ namespace Unity.Tutorials.Editor
             m_treeView.RefreshItems();
             m_treeView.ClearSelection();
 
-            SetupElementExpansion(); // This way Tutorials start collapsed
+            if (previouslyExpandedAssets == null)
+            {
+                SetupElementExpansion(); // First build: Tutorials start collapsed
+            }
+            else
+            {
+                RestoreExpansion(previouslyExpandedAssets, strayHeaderWasExpanded);
+            }
             return;
 
             void DoContainer(TutorialContainer container, List<TreeViewItemData<TutorialTreeItem>> dataItems, bool rootContainer = false)
@@ -415,6 +686,13 @@ namespace Unity.Tutorials.Editor
             m_containersExpanded = true;
 
             OnCollapseTutorialsClicked();
+        }
+
+        private void RestoreExpansion(HashSet<Object> expandedAssets, bool expandStrayHeader)
+        {
+            ApplyExpansionRecursive(item => item.Type == TreeItemType.Fake
+                ? expandStrayHeader
+                : item.Asset != null && expandedAssets.Contains(item.Asset));
         }
 
         private enum TreeItemType

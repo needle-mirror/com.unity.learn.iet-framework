@@ -6,6 +6,7 @@ using System.Net;
 using System.Xml.Linq;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.UIElements;
 
 namespace Unity.Tutorials.Editor
@@ -13,6 +14,7 @@ namespace Unity.Tutorials.Editor
     /// <summary>
     /// Creates UIToolkit elements from a rich text.
     /// </summary>
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public static class RichTextParser
     {
         /// <summary>

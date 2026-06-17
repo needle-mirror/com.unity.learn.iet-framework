@@ -92,7 +92,7 @@ msgstr "튜토리얼:"
 
 # TODO: translate
 msgid "TutorialLabelParseError"
-msgstr "PARSE ERROR"
+msgstr "The section is not configured correctly. Please review its data."
 
 # TODO: translate
 msgid "TutorialLabelParseErrorTooltip"

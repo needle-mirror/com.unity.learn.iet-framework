@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Serialization;
 
 namespace Unity.Tutorials.Editor
@@ -10,6 +11,7 @@ namespace Unity.Tutorials.Editor
     /// <summary>
     /// Criterion for checking that a specific amount of prefab instances are created.
     /// </summary>
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public class PrefabInstanceCountCriterion : Criterion
     {
         /// <summary>

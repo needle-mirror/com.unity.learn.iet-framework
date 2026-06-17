@@ -3,6 +3,7 @@ using System.Globalization;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Scripting.APIUpdating;
 using UnityObject = UnityEngine.Object;
 
 namespace Unity.Tutorials.Editor
@@ -10,6 +11,7 @@ namespace Unity.Tutorials.Editor
     /// <summary>
     /// Criterion for checking a Material's property modification.
     /// </summary>
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public class MaterialPropertyModifiedCriterion : Criterion
     {
         internal SceneObjectReference Target { get => m_Target.SceneObjectReference; set => m_Target.SceneObjectReference = value; }

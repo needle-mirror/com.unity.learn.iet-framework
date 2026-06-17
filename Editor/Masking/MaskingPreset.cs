@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace Unity.Tutorials.Editor
 {
@@ -12,6 +13,7 @@ namespace Unity.Tutorials.Editor
     /// the same masking.
     /// </summary>
     [CreateAssetMenu(fileName = "NewMaskingPreset", menuName = "Tutorials/Masking Preset", order = 204)]
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public class MaskingPreset : ScriptableObject
     {
         [SerializeField] internal List<UnmaskedView> m_unmaskedViews = new();

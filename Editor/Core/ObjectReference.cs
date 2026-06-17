@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace Unity.Tutorials.Editor
 {
@@ -7,6 +8,7 @@ namespace Unity.Tutorials.Editor
     /// Used to refer Unity Objects in different Criterion implementations.
     /// </summary>
     [Serializable]
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public class ObjectReference
     {
         [SerializeField] private SceneObjectReference m_SceneObjectReference;

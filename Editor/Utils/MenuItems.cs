@@ -1,11 +1,13 @@
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// Contains the names for the menu items used by the In-Editor Tutorials packages.
     /// </summary>
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public static class MenuItems
     {
         /// <summary>
@@ -19,7 +21,7 @@ namespace Unity.Tutorials.Editor
         /// <summary>
         /// The default menu item for showing the tutorials in the project.
         /// </summary>
-        public const string ShowTutorials = "Show Tutorial Window";
+        public const string ShowTutorials = "Show Tutorials Window";
         /// <summary>
         /// Menu path for the authoring submenu.
         /// </summary>
@@ -32,13 +34,16 @@ namespace Unity.Tutorials.Editor
             if (welcomePage != null)
                 TutorialModalWindow.Show(welcomePage);
             else
-                Debug.LogError("No WelcomePage set in TutorialProjectSettings.");
+                Debug.LogError("No Welcome Page set in Tutorial Project Settings.");
         }
 
         [MenuItem(MenuPath + ShowTutorials)]
         private static void OpenTutorialWindow()
         {
-            TutorialWindow.ShowWindow(false);
+            if (TutorialWindow.ShowWindow(false) == null)
+            {
+                TutorialWindow.GetOrCreateWindowNextToInspector();
+            }
         }
     }
 }

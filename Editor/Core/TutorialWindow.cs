@@ -7,6 +7,7 @@ using Unity.Tutorials.Editor.Paragraphs;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.UIElements;
 using Object = UnityEngine.Object;
 
@@ -16,6 +17,7 @@ namespace Unity.Tutorials.Editor
     /// The window used to display tutorials and their content
     /// </summary>
 #pragma warning disable 0618 //suppress obsolete warning for us, keep them active for users
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public sealed class TutorialWindow : EditorWindow
 #pragma warning restore 0618
     {

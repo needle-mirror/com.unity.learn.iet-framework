@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Serialization;
 using Object = UnityEngine.Object;
 
@@ -26,6 +27,7 @@ namespace Unity.Tutorials.Editor
     /// 1. Tutorial project (null Parent): a root container which is the entry point for tutorial content in the project.
     /// 2. Tutorial category (non-null Parent): a set of tutorials that are a part of some other container
     /// </remarks>
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public class TutorialContainer : ScriptableObject
     {
         /// <summary>

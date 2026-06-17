@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 using UnityObject = UnityEngine.Object;
 
 namespace Unity.Tutorials.Editor
@@ -8,6 +9,7 @@ namespace Unity.Tutorials.Editor
     /// Used the select which GUI controls are unmasked.
     /// </summary>
     [Serializable]
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public class GuiControlSelector
     {
         /// <summary>

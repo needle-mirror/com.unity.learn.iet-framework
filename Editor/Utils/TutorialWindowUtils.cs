@@ -1,8 +1,11 @@
+using UnityEngine.Scripting.APIUpdating;
+
 namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// Wrapper class for TutorialWindow public APIs
     /// </summary>
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public static class TutorialWindowUtils
     {
         /// <summary>

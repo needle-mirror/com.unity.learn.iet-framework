@@ -2,6 +2,7 @@ using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace Unity.Tutorials.Editor
 {
@@ -11,6 +12,7 @@ namespace Unity.Tutorials.Editor
     /// </summary>
     // Enable the following line temporarily if you need to create an instance of this.
     //[CreateAssetMenu(fileName = "CommonTutorialCallbacksHandler", menuName = "Tutorials/CommonTutorialCallbacksHandler")]
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public class CommonTutorialCallbacks : ScriptableObject
     {
         /// <summary>
@@ -50,10 +52,10 @@ namespace Unity.Tutorials.Editor
         /// <summary>
         /// Finds a GameObject by name and sets it as the active GameObject to Selection if the GameObject is found.
         /// </summary>
-        /// <param name="name"></param>
-        public void SelectGameObject(string name)
+        /// <param name="goName">The name of the GameObject to be found.</param>
+        public void SelectGameObject(string goName)
         {
-            GameObject go = GameObject.Find(name);
+            GameObject go = GameObject.Find(goName);
             if (go != null)
                 Selection.activeGameObject = go;
         }

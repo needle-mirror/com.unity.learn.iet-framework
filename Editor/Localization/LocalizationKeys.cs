@@ -5,7 +5,6 @@ namespace Unity.Tutorials.Editor
         internal const string k_WindowTitle = "WindowTitle";
         internal const string k_FaqOpenText = "FaqOpenText";
         internal const string k_ReportProblemText = "ReportProblemText";
-        internal const string k_ReportProblemButtonText = "ReportProblemButtonText";
         internal const string k_AskAIText = "AskAIText";
 
         //User & Project Settings
@@ -14,15 +13,12 @@ namespace Unity.Tutorials.Editor
         internal const string k_SettingsDisplayWelcomeDialogOnStartup = "SettingsDisplayWelcomeDialogOnStartup";
         internal const string k_SettingsShowSimplifiedTypeNames = "SettingsShowSimplifiedTypeNames";
         internal const string k_SettingsShowSimplifiedTypeNamesTooltip = "SettingsShowSimplifiedTypeNamesTooltip";
-        internal const string k_SettingsUseDefaultEditors = "SettingsUseDefaultEditors";
-        internal const string k_SettingsUseDefaultEditorsTooltip = "SettingsUseDefaultEditorsTooltip";
         internal const string k_SettingsHelpboxRestoreDefaultAssetsWarning = "SettingsHelpboxRestoreDefaultAssetsWarning";
         internal const string k_SettingsMaskingEnabled = "SettingsMaskingEnabled";
         internal const string k_SettingsMaskingEnabledTooltip = "SettingsMaskingEnabledTooltip";
         internal const string k_SettingsDataMigrationV6 = "SettingsDataMigrationV6";
 
         //Language changed dialog
-        internal const string k_LanguageDialogTitle = "LanguageDialogTitle";
         internal const string k_LanguageDialogMessage = "LanguageDialogMessage";
         internal const string k_LanguageDialogButtonOk = "LanguageDialogButtonOk";
         internal const string k_LanguageDialogButtonCancel = "LanguageDialogButtonCancel";
@@ -40,7 +36,6 @@ namespace Unity.Tutorials.Editor
 
         //Tutorial View
         internal const string k_TutorialButtonPrevious = "TutorialButtonPrevious";
-        internal const string k_TutorialSectionTooltip = "TutorialSectionTooltip";
         internal const string k_TutorialLabelParseError = "TutorialLabelParseError";
         internal const string k_TutorialLabelParseErrorTooltip = "TutorialLabelParseErrorTooltip";
 
@@ -60,22 +55,7 @@ namespace Unity.Tutorials.Editor
         internal const string k_TutorialPageCustomCallbacks = "TutorialPageCustomCallbacks";
         internal const string k_TutorialPageCustomCallbacksTooltip = "TutorialPageCustomCallbacksTooltip";
         internal const string k_MissingPropertyPathWarning = "MissingPropertyPathWarning";
-        internal const string k_TutorialPageMissingMaskingSettingsWarning = "TutorialPageMissingMaskingSettingsWarning";
-        internal const string k_TutorialPageLabelHeaderMediaType = "TutorialPageLabelHeaderMediaType";
-        internal const string k_TutorialPagePropertyMedia = "TutorialPagePropertyMedia";
-        internal const string k_TutorialPageLabelNarrativeDescription = "TutorialPageLabelNarrativeDescription";
-        internal const string k_TutorialPageLabelInstructionTitle = "TutorialPageLabelInstructionTitle";
-        internal const string k_TutorialPageLabelInstructionDescription = "TutorialPageLabelInstructionDescription";
         internal const string k_TutorialPageCodeSample = "TutorialPageCodeSample";
-        internal const string k_TutorialPagePostInstructionImage = "PostInstructionImage";
-        internal const string k_TutorialPageLabelCompletionCriteria = "TutorialPageLabelCompletionCriteria";
-        internal const string k_TutorialPagePropertyCompletionType = "TutorialPagePropertyCompletionType";
-        internal const string k_TutorialPagePropertyCriteria = "TutorialPagePropertyCriteria";
-        internal const string k_TutorialPagePropertyNextTutorial = "TutorialPagePropertyNextTutorial";
-        internal const string k_TutorialPagePropertyNextTutorialButton = "TutorialPagePropertyNextTutorialButton";
-        internal const string k_TutorialPageButtonCreateCallbackHandler = "TutorialPageButtonCreateCallbackHandler";
-        internal const string k_TutorialPagePropertyEnableMasking = "TutorialPagePropertyEnableMasking";
-        internal const string k_TutorialPageDialogCallbackFolderTitle = "TutorialPageDialogCallbackFolderTitle";
         internal const string k_TutorialLabelAutoCompletion = "TutorialLabelAutoCompletion";
         internal const string k_TutorialButtonStartAutoCompletion = "TutorialButtonStartAutoCompletion";
         internal const string k_TutorialButtonStopAutoCompletion = "TutorialButtonStopAutoCompletion";

@@ -5,6 +5,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace Unity.Tutorials.Editor
 {
@@ -12,6 +13,7 @@ namespace Unity.Tutorials.Editor
     /// Runs IET project initialization logic.
     /// </summary>
     [InitializeOnLoad]
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public static class UserStartupCode
     {
         private const string k_DefaultsFolder = "Tutorial Defaults";
@@ -112,19 +114,14 @@ namespace Unity.Tutorials.Editor
             if (DataMigrationV6 &&
                 TutorialEditorUtils.CheckIfV6UpgradeRequired())
             {
-                DataMigrationV6 = false; // Will prevent the popup to show each time the project is started
-                TutorialEditorUtils.StartV6Upgrade();
+                DataMigrationV6 = false; // Will prevent migration from running each time the project is started
+                TutorialEditorUtils.RunV6Upgrade();
             }
 
-            if (!DisplayWelcomeDialogOnStartup) return;
-
-            // TODO: Find a better solution for the below?
-            // We turn the option off automatically only for a tutorial user.
-            // When authoring we don't want this to be turned off continuously, because often the author wants to ship the tutorial with the option on.
-            // (especially critical for when authoring templates)
-#if !TUTORIAL_AUTHORING
-            DisplayWelcomeDialogOnStartup = false;
-#endif
+            // TODO: Why is this gating ALL startup code? Shouldn't it gate only the display of the Welcome Window? Is there startup code we should be running anyway?
+            // Run startup code only if the welcome window is enabled in Project Settings,
+            // and hasn't been seen once in this Editor session
+            if (!DisplayWelcomeDialogOnStartup || SessionState.GetBool(TutorialModalWindow.k_WelcomeDialogSeen, false)) return;
 
             RunStartupCode(TutorialProjectSettings.Instance);
         }

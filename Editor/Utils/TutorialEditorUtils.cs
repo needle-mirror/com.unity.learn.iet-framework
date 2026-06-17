@@ -5,6 +5,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.UIElements;
 using Object = UnityEngine.Object;
 
@@ -13,6 +14,7 @@ namespace Unity.Tutorials.Editor
     /// <summary>
     /// Contains different utilities used in Tutorials custom editors
     /// </summary>
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public static class TutorialEditorUtils
     {
         /// <summary>
@@ -197,34 +199,50 @@ namespace Unity.Tutorials.Editor
                                                        "Upgrade them to v6 now? All data will be preserved.",
                     "Upgrade", "Cancel"))
             {
-                foreach (string page in allTutorialPages)
-                {
-                    TutorialPage loadedPage = AssetDatabase.LoadAssetAtPath<TutorialPage>(AssetDatabase.GUIDToAssetPath(page));
-                    loadedPage.MigrateToV6();
-                }
-                AssetDatabase.SaveAssets();
-
-                string[] allTutorials = AssetDatabase.FindAssets($"t:{nameof(Tutorial)}");
-                foreach (string tutorialPath in allTutorials)
-                {
-                    Tutorial tutorial = AssetDatabase.LoadAssetAtPath<Tutorial>(AssetDatabase.GUIDToAssetPath(tutorialPath));
-                    tutorial.EmbedPagesAsSubAssetsV6();
-                    tutorial.MigrateSceneBehaviourV6();
-                }
-                AssetDatabase.SaveAssets();
-
-                string[] allContainers = AssetDatabase.FindAssets($"t:{nameof(TutorialContainer)}");
-                foreach (string containerPath in allContainers)
-                {
-                    TutorialContainer container = AssetDatabase.LoadAssetAtPath<TutorialContainer>(AssetDatabase.GUIDToAssetPath(containerPath));
-                    container.DecideSectionTypeV6();
-                }
-                AssetDatabase.SaveAssets();
-
+                RunV6Upgrade();
                 return true;
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Performs the V6 upgrade work without prompting the user.
+        /// Used by the auto-migration path at Editor startup.
+        /// </summary>
+        internal static void RunV6Upgrade()
+        {
+            string[] allTutorialPages = AssetDatabase.FindAssets($"t:{nameof(TutorialPage)}");
+            foreach (string page in allTutorialPages)
+            {
+                TutorialPage loadedPage = AssetDatabase.LoadAssetAtPath<TutorialPage>(AssetDatabase.GUIDToAssetPath(page));
+                if (loadedPage == null)
+                {
+                    Debug.LogWarning($"[Tutorial Framework] Could not load TutorialPage for GUID {page}, skipping migration. It may already be a sub-asset.");
+                    continue;
+                }
+                loadedPage.MigrateToV6();
+            }
+            AssetDatabase.SaveAssets();
+
+            string[] allTutorials = AssetDatabase.FindAssets($"t:{nameof(Tutorial)}");
+            foreach (string tutorialPath in allTutorials)
+            {
+                Tutorial tutorial = AssetDatabase.LoadAssetAtPath<Tutorial>(AssetDatabase.GUIDToAssetPath(tutorialPath));
+                tutorial.EmbedPagesAsSubAssetsV6();
+                tutorial.MigrateSceneBehaviourV6();
+            }
+            AssetDatabase.SaveAssets();
+
+            string[] allContainers = AssetDatabase.FindAssets($"t:{nameof(TutorialContainer)}");
+            foreach (string containerPath in allContainers)
+            {
+                TutorialContainer container = AssetDatabase.LoadAssetAtPath<TutorialContainer>(AssetDatabase.GUIDToAssetPath(containerPath));
+                container.DecideSectionTypeV6();
+            }
+            AssetDatabase.SaveAssets();
+
+            Debug.Log($"[Tutorial Framework] Migrated {allTutorialPages.Length} TutorialPages to v6 format.");
         }
 
         internal static void ReportLinkClicked()

@@ -16,9 +16,6 @@ msgstr "Need Help?"
 msgid "ReportProblemText"
 msgstr "Is your question not listed here or would you like to report an issue?"
 
-msgid "ReportProblemButtonText"
-msgstr "Report issue"
-
 msgid "AskAIText"
 msgstr "Your question is not listed here? Try asking the AI Assistant"
 
@@ -36,9 +33,6 @@ msgstr "Back to the previous view"
 
 msgid "TutorialButtonPrevious"
 msgstr "Previous"
-
-msgid "LanguageDialogTitle"
-msgstr "Editor Language Change Detected"
 
 msgid "LanguageDialogMessage"
 msgstr "It's recommended to restart the Editor for the language change to be applied fully."
@@ -70,9 +64,6 @@ msgstr "Pick Visual Element"
 msgid "GuiControlSelectorButtonPickElementTooltip"
 msgstr "Pick the wanted visual element by clicking it. Press Esc key to cancel picking."
 
-msgid "TutorialSectionTooltip"
-msgstr "Tutorial: "
-
 msgid "TutorialLabelParseError"
 msgstr "PARSE ERROR"
 
@@ -96,12 +87,6 @@ msgstr "Show simplified type names"
 
 msgid "SettingsShowSimplifiedTypeNamesTooltip"
 msgstr "Show simplified names instead of fully qualified names for SerializedTypes shown in the Inspector"
-
-msgid "SettingsUseDefaultEditors"
-msgstr "Use default editors for editing tutorial assets"
-
-msgid "SettingsUseDefaultEditorsTooltip"
-msgstr "View the tutorial asset contents using default editor views instead of custom editors"
 
 msgid "SettingsMaskingEnabled"
 msgstr "Enable Masking and Highlighting"
@@ -127,56 +112,8 @@ msgstr "You can only assign public, non-static methods here. It is recommended t
 msgid "MissingPropertyPathWarning"
 msgstr "Unable to locate property path {0} on this object. Automatic masking updates will not work."
 
-msgid "TutorialPageMissingMaskingSettingsWarning"
-msgstr "Unable to locate property path {0}.Array.data[0].{1} on this object. Automatic masking updates will not work."
-
-msgid "TutorialPageLabelHeaderMediaType"
-msgstr "Header Media Type"
-
-msgid "TutorialPagePropertyMedia"
-msgstr "Media"
-
-msgid "TutorialPageLabelTitle"
-msgstr "Title"
-
-msgid "TutorialPageLabelNarrativeDescription"
-msgstr "Narrative Description"
-
-msgid "TutorialPageLabelInstructionTitle"
-msgstr "Instruction Title"
-
-msgid "TutorialPageLabelInstructionDescription"
-msgstr "Instruction Description"
-
 msgid "TutorialPageCodeSample"
 msgstr "Code Sample"
-
-msgid "PostInstructionImage"
-msgstr "End of Page Media"
-
-msgid "TutorialPageLabelCompletionCriteria"
-msgstr "Completion Criteria"
-
-msgid "TutorialPagePropertyCompletionType"
-msgstr "Completion Type"
-
-msgid "TutorialPagePropertyCriteria"
-msgstr "Criteria"
-
-msgid "TutorialPagePropertyNextTutorial"
-msgstr "Next Tutorial"
-
-msgid "TutorialPagePropertyNextTutorialButton"
-msgstr "Next Tutorial button text"
-
-msgid "TutorialPageButtonCreateCallbackHandler"
-msgstr "Create Callback Handler"
-
-msgid "TutorialPagePropertyEnableMasking"
-msgstr "Enable Masking"
-
-msgid "TutorialPageDialogCallbackFolderTitle"
-msgstr "Choose an Editor Folder for the Callback Handler Files"
 
 msgid "TutorialLabelAutoCompletion"
 msgstr "Auto Completion"
@@ -191,7 +128,7 @@ msgid "IconPreviewMaskingTooltip"
 msgstr "Preview Masking"
 
 msgid "AuthoringButtonSelectCategory"
-msgstr "Select Category"
+msgstr "Select Container"
 
 msgid "AuthoringButtonSelectTutorial"
 msgstr "Select Tutorial"
@@ -203,7 +140,7 @@ msgid "AuthoringButtonSkipToEnd"
 msgstr "Skip To End"
 
 msgid "AuthoringButtonAutocompletePage"
-msgstr "Autocomplete page"
+msgstr "Autocomplete Page"
 
 msgid "TutorialModalWindowIconPreviewMasking"
 msgstr "Preview Masking"

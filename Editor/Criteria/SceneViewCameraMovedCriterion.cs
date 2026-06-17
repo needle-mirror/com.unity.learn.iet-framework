@@ -1,12 +1,14 @@
 using System;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// Criterion for checking that Scene View Camera has moved.
     /// </summary>
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public class SceneViewCameraMovedCriterion : Criterion
     {
         [NonSerialized] private bool m_InitialPositionInitialized;

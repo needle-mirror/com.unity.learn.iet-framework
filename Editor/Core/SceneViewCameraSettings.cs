@@ -1,12 +1,14 @@
 using System;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// The Scene View camera mode
     /// </summary>
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public enum SceneViewCameraMode
     {
         /// <summary>
@@ -22,6 +24,7 @@ namespace Unity.Tutorials.Editor
     /// <summary>
     /// Determines how the camera position is applied when loaded
     /// </summary>
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public enum SceneViewFocusMode
     {
         /// <summary>
@@ -38,6 +41,7 @@ namespace Unity.Tutorials.Editor
     /// Used to store and apply scene view camera settings
     /// </summary>
     [Serializable]
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public class SceneViewCameraSettings
     {
         /// <summary>

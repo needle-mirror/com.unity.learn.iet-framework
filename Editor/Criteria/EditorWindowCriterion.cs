@@ -1,11 +1,13 @@
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// Criterion for checking that a specific EditorWindow is opened.
     /// </summary>
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public class EditorWindowCriterion : Criterion
     {
         [SerializedTypeFilter(typeof(EditorWindow), false)]

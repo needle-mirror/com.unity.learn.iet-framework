@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 using UnityObject = UnityEngine.Object;
 
 namespace Unity.Tutorials.Editor
@@ -11,6 +12,7 @@ namespace Unity.Tutorials.Editor
     /// <summary>
     /// Criterion for checking a property modification.
     /// </summary>
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public class PropertyModificationCriterion : Criterion
     {
         internal enum ValueMode

@@ -3,6 +3,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.Scripting.APIUpdating;
 using Object = UnityEngine.Object;
 
 namespace Unity.Tutorials.Editor
@@ -11,6 +12,7 @@ namespace Unity.Tutorials.Editor
     /// Used to reference different Unity Objects.
     /// </summary>
     [Serializable]
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public class SceneObjectReference
     {
         [SerializeField] private string m_SceneGuid;

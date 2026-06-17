@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using Unity.Tutorials.Editor.CustomControl;
+using Unity.Tutorials.Editor.Paragraphs;
 using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEditor.UIElements;
@@ -106,9 +107,16 @@ namespace Unity.Tutorials.Editor
 
         private void OnUndoRedoPerformed()
         {
+            serializedObject.Update();
             // No easy way to know which field changed so simply signal all changes.
             Target.RaiseMaskingSettingsChanged();
             Target.RaiseNonMaskingSettingsChanged();
+            string path = AssetDatabase.GetAssetPath(Target);
+            if (!string.IsNullOrEmpty(path))
+            {
+                AssetDatabase.ImportAsset(path);
+            }
+            EditorApplication.RepaintProjectWindow();
         }
 
         private UndoPropertyModification[] OnPostprocessModifications(UndoPropertyModification[] modifications)
@@ -116,17 +124,38 @@ namespace Unity.Tutorials.Editor
             bool targetModified = false;
             bool maskingChanged = false;
 
+            // Paragraphs are sub-assets edited via a separate SerializedObject in ParagraphBaseDrawer,
+            // so their UndoPropertyModification.currentValue.target is the paragraph SO, not the TutorialPage.
+            HashSet<ParagraphBase> pageParagraphs = null;
+
             foreach (UndoPropertyModification modification in modifications)
             {
-                if (modification.currentValue.target != target)
-                    continue;
-
-                targetModified = true;
+                Object modTarget = modification.currentValue.target;
                 string propertyPath = modification.currentValue.propertyPath;
-                if (s_MatchMaskingSettingsPropertyPath.IsMatch(propertyPath))
+
+                if (modTarget == target)
                 {
-                    maskingChanged = true;
-                    break;
+                    targetModified = true;
+                    if (s_MatchMaskingSettingsPropertyPath.IsMatch(propertyPath))
+                    {
+                        maskingChanged = true;
+                        break;
+                    }
+                    continue;
+                }
+
+                if (modTarget is ParagraphBase paragraph)
+                {
+                    pageParagraphs ??= new HashSet<ParagraphBase>(Target.Paragraphs);
+                    if (!pageParagraphs.Contains(paragraph))
+                        continue;
+
+                    targetModified = true;
+                    if (propertyPath != null && propertyPath.StartsWith(k_ParagraphMaskingSettingsRelativeProperty))
+                    {
+                        maskingChanged = true;
+                        break;
+                    }
                 }
             }
 
@@ -311,7 +340,11 @@ namespace Unity.Tutorials.Editor
             if (!string.IsNullOrEmpty(pageTitle))
                 pageName = $"{pageName}_{EditorWindowUtils.MakeValidFileName(pageTitle)}";
 
-            page.name = pageName;
+            if (page.name != pageName)
+            {
+                Undo.RecordObject(page, "Rename Tutorial Page");
+                page.name = pageName;
+            }
 
             AssetDatabase.SaveAssets();
         }

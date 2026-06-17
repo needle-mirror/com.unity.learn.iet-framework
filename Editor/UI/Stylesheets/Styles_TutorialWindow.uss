@@ -47,7 +47,7 @@
     width: 35px;
     height: 35px;
     visibility: hidden;
-    background-image: resource('ScaleTool On@2x');
+    background-image: resource("ScaleTool On@2x");
     -unity-background-image-tint-color: var(--unity-colors-default-text);
 }
 
@@ -132,6 +132,10 @@
 
 .label--faq-link {
     color: rgb(255, 255, 255);
+}
+
+.tutorial-button-paragraph {
+    min-height: 24px;
 }
 
 .faq-link--spacer {
@@ -231,7 +235,7 @@
 }
 
 .tutorial-code-sample {
-    -unity-font-definition: resource('Fonts/RobotoMono/RobotoMono-Regular.ttf');
+    -unity-font-definition: resource("Fonts/RobotoMono/RobotoMono-Regular.ttf");
     padding: 10px;
     flex-grow: 1;
     min-height: 40px;
@@ -802,7 +806,9 @@ ParseErrorLabel {
 
 .faq-entry .unity-foldout__text {
     margin: 2px;
+    margin-right: 18px;
     -unity-font-style: bold;
+    white-space: normal;
 }
 
 .faq-entry > #unity-content {
@@ -810,9 +816,8 @@ ParseErrorLabel {
     border-width: 0 1px 1px 1px;
     flex-grow: 1;
     flex-shrink: 0;
-    min-height: 100px;
-    margin: 2px;
-    margin-top: 6px;
+    margin: 8px;
+    margin-bottom: 10px;
 }
 
 .faq-entry_background {
@@ -934,4 +939,17 @@ ParseErrorLabel {
 .authoring-toolbar-flexible-spacer {
     flex-grow: 1;
     width: 6px;
+}
+
+.display-again-container {
+    flex-shrink: 0;
+    padding: 0px;
+    margin: 0px;
+    position: absolute;
+    right: 16px;
+    bottom: 16px;
+}
+
+.display-again-container .unity-label {
+    min-width: 0px;
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Video;
 
 namespace Unity.Tutorials.Editor
@@ -8,6 +9,7 @@ namespace Unity.Tutorials.Editor
     /// Container class for a type of media used in a TutorialPage. Can be either an image, or a video (clip or url).
     /// </summary>
     [Serializable]
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public class MediaContent
     {
         /// <summary>

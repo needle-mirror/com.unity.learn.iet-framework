@@ -1,12 +1,16 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// Abstract base class for CollectionWrapper implementations.
     /// </summary>
+    [Serializable]
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public abstract class CollectionWrapper
     {
     }
@@ -16,6 +20,8 @@ namespace Unity.Tutorials.Editor
     /// Implement your own concrete collections by inheriting from this class.
     /// </summary>
     /// <typeparam name="T">The type of elements in the collection.</typeparam>
+    [Serializable]
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public abstract class CollectionWrapper<T> : CollectionWrapper, IEnumerable<T>
     {
         [SerializeField] private List<T> m_Items = new();

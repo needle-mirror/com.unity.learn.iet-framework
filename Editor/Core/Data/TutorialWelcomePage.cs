@@ -3,6 +3,7 @@ using UnityEditor;
 using UnityEditor.Events;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace Unity.Tutorials.Editor
 {
@@ -22,6 +23,7 @@ namespace Unity.Tutorials.Editor
     /// In addition of window title, header image, title, and description,
     /// a welcome page/dialog contains a fully customizable button row.
     /// </remarks>
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public class TutorialWelcomePage : ScriptableObject
     {
         /// <summary>

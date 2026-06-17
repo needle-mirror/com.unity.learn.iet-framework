@@ -2,23 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Unity.Tutorials.Editor.SerializableCallback.Attributes;
+using SerializableCallback.Attributes;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace Unity.Tutorials.Editor.SerializableCallback.Editor
+namespace SerializableCallback.Editor
 {
-    /// <summary>
-    /// https://github.com/Siccity/SerializableCallback
-    /// </summary>
     [CustomPropertyDrawer(typeof(TargetConstraintAttribute))]
     [CustomPropertyDrawer(typeof(SerializableCallbackBase), true)]
     public class SerializableCallbackDrawer : PropertyDrawer
     {
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         /// <param name="position"></param>
         /// <param name="property"></param>
         /// <param name="label"></param>
@@ -331,9 +325,6 @@ namespace Unity.Tutorials.Editor.SerializableCallback.Editor
             return t.Name;
         }
 
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         /// <param name="property"></param>
         /// <param name="label"></param>
         /// <returns></returns>

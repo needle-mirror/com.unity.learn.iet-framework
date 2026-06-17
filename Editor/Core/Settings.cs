@@ -1,5 +1,6 @@
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace Unity.Tutorials.Editor
 {
@@ -7,6 +8,7 @@ namespace Unity.Tutorials.Editor
     /// Wrapper for defining IET Preferences (User Settings) conveniently.
     /// </summary>
     /// <typeparam name="T">The Type of the value this Setting contains</typeparam>
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public class UserSetting<T> : BaseSetting<T>
     {
         /// <summary>
@@ -30,6 +32,7 @@ namespace Unity.Tutorials.Editor
     /// If you wish to commit the changes to JSON immediately, use SetValue(value, saveProjectSettingsImmediately:true)
     /// or FrameworkSettings.Instance.Save(), otherwise changes are committed only on application quit or assembly reload.
     /// </remarks>
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public class ProjectSetting<T> : BaseSetting<T>
     {
         /// <summary>
@@ -49,6 +52,7 @@ namespace Unity.Tutorials.Editor
     /// Base class for implementing Tutorial Framework settings.
     /// </summary>
     /// <typeparam name="T">The Type of the value this Setting contains</typeparam>
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public class BaseSetting<T> : UnityEditor.SettingsManagement.UserSetting<T>
     {
         /// <summary>

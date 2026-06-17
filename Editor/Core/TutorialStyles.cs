@@ -1,5 +1,6 @@
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.UIElements;
 
 namespace Unity.Tutorials.Editor
@@ -7,6 +8,7 @@ namespace Unity.Tutorials.Editor
     /// <summary>
     /// Controls masking and highlighting styles, and style sheets for the tutorials.
     /// </summary>
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public class TutorialStyles : ScriptableObject
     {
         /// <summary>

@@ -6,6 +6,7 @@ using Unity.Tutorials.Editor.Paragraphs;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Serialization;
 using Object = UnityEngine.Object;
 
@@ -23,6 +24,7 @@ namespace Unity.Tutorials.Editor
     /// <summary>
     /// A TutorialPage consists of TutorialParagraphs which define the content of the page.
     /// </summary>
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public class TutorialPage : ScriptableObject, ISerializationCallbackReceiver
     {
         /// <summary>
@@ -566,6 +568,14 @@ namespace Unity.Tutorials.Editor
                         {
                             ip.m_Criteria.AddItem(c);
                         }
+
+                        break;
+                    }
+                    case ParagraphType.SwitchTutorial:
+                    {
+                        NextTutorialButtonParagraph bp = AddParagraph<NextTutorialButtonParagraph>();
+                        bp.ButtonText = obsoleteParagraph.Text;
+                        bp.NextTutorial = obsoleteParagraph.m_Tutorial;
 
                         break;
                     }

@@ -5,6 +5,7 @@ using UnityEditor;
 using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.Requests;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.UIElements;
 
 namespace Unity.Tutorials.Editor
@@ -13,6 +14,7 @@ namespace Unity.Tutorials.Editor
     /// An entry for the FAQ Array in the tutorial and tutorial page. A question with its associated answer
     /// </summary>
     [Serializable]
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public class FaqEntry
     {
         /// <summary>
@@ -28,6 +30,7 @@ namespace Unity.Tutorials.Editor
     /// <summary>
     /// A Window that display the FAQ from the given tutorial and current page
     /// </summary>
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public class HelpPanelHandler
     {
         /// <summary>
@@ -70,6 +73,8 @@ namespace Unity.Tutorials.Editor
         private Button m_ReportButton;
 
         private Tutorial m_Tutorial;
+        private TutorialPage m_SubscribedPage;
+        private TutorialContainer m_SubscribedContainer;
 
         private bool m_IsOpened;
         private Section m_CurrentSection = Section.Page;
@@ -249,12 +254,46 @@ namespace Unity.Tutorials.Editor
         {
             tutorial.PageInitiated.AddListener(OnPageInitiated);
             tutorial.Quit.AddListener(OnTutorialQuit);
+            tutorial.Modified.AddListener(OnTutorialModified);
+            SubscribeToPage(tutorial.CurrentPage);
+            SubscribeToContainer(TutorialWindow.Instance?.CurrentContainer);
         }
 
         private void UnregisterEvents(Tutorial tutorial)
         {
             tutorial?.PageInitiated.RemoveListener(OnPageInitiated);
             tutorial?.Quit.RemoveListener(OnTutorialQuit);
+            tutorial?.Modified.RemoveListener(OnTutorialModified);
+            UnsubscribeFromPage();
+            UnsubscribeFromContainer();
+        }
+
+        private void SubscribeToPage(TutorialPage page)
+        {
+            m_SubscribedPage = page;
+            if (m_SubscribedPage != null)
+                m_SubscribedPage.NonMaskingSettingsChanged.AddListener(OnPageNonMaskingSettingsChanged);
+        }
+
+        private void UnsubscribeFromPage()
+        {
+            if (m_SubscribedPage != null)
+                m_SubscribedPage.NonMaskingSettingsChanged.RemoveListener(OnPageNonMaskingSettingsChanged);
+            m_SubscribedPage = null;
+        }
+
+        private void SubscribeToContainer(TutorialContainer container)
+        {
+            m_SubscribedContainer = container;
+            if (m_SubscribedContainer != null)
+                m_SubscribedContainer.Modified.AddListener(OnContainerModified);
+        }
+
+        private void UnsubscribeFromContainer()
+        {
+            if (m_SubscribedContainer != null)
+                m_SubscribedContainer.Modified.RemoveListener(OnContainerModified);
+            m_SubscribedContainer = null;
         }
 
         private void OnTutorialQuit(Tutorial tutorial)
@@ -267,7 +306,39 @@ namespace Unity.Tutorials.Editor
 
         private void OnPageInitiated(Tutorial tutorial, TutorialPage page, int pageIndex)
         {
-            RefreshEntries();
+            UnsubscribeFromPage();
+            SubscribeToPage(page);
+            RefreshAll();
+        }
+
+        private void OnTutorialModified(Tutorial tutorial) => RefreshAll();
+        private void OnPageNonMaskingSettingsChanged(TutorialPage page) => RefreshAll();
+        private void OnContainerModified(TutorialContainer container) => RefreshAll();
+
+        private void RefreshAll()
+        {
+            if (!m_IsOpened || m_Tutorial == null)
+                return;
+
+            Tutorial currentTutorial = TutorialWindow.Instance?.CurrentTutorial;
+            if (currentTutorial == null)
+                return;
+
+            currentTutorial.GetFaqQuestions(Section.TutorialContainer, out m_TutorialEntries);
+            m_TutorialSectionButton.style.display = m_TutorialEntries.Count == 0 ? DisplayStyle.None : DisplayStyle.Flex;
+            currentTutorial.GetFaqQuestions(Section.Tutorial, out m_UnitEntries);
+            m_UnitSectionButton.style.display = m_UnitEntries.Count == 0 ? DisplayStyle.None : DisplayStyle.Flex;
+            currentTutorial.GetFaqQuestions(Section.Page, out m_StepEntries);
+            m_StepSectionButton.style.display = m_StepEntries.Count == 0 ? DisplayStyle.None : DisplayStyle.Flex;
+
+            bool anyEntries = m_TutorialEntries.Count > 0 || m_UnitEntries.Count > 0 || m_StepEntries.Count > 0;
+            m_SectionSelection.parent.style.display = anyEntries ? DisplayStyle.Flex : DisplayStyle.None;
+            m_FaqScrollView.style.display = anyEntries ? DisplayStyle.Flex : DisplayStyle.None;
+
+            if (anyEntries)
+                RefreshEntries(preserveOpenState: true);
+            else
+                m_EntriesRoot.Clear();
         }
 
         private void SwitchCategory(Button categoryButton, Section newSection)
@@ -289,18 +360,37 @@ namespace Unity.Tutorials.Editor
             RefreshEntries();
         }
 
-        private void RefreshEntries()
+        private void RefreshEntries(bool preserveOpenState = false)
         {
+            HashSet<int> openIndices = null;
+            if (preserveOpenState)
+            {
+                openIndices = new HashSet<int>();
+                for (int i = 0; i < m_EntriesRoot.childCount; i++)
+                {
+                    Foldout existing = m_EntriesRoot[i].Q<Foldout>("Entry");
+                    if (existing != null && existing.value)
+                        openIndices.Add(i);
+                }
+            }
+
             m_EntriesRoot.Clear();
 
             TutorialWindow.Instance.CurrentTutorial.GetFaqQuestions(m_CurrentSection, out List<FaqEntry> questions);
 
-            foreach (FaqEntry question in questions)
+            for (int i = 0; i < questions.Count; i++)
             {
+                FaqEntry question = questions[i];
                 TemplateContainer newEntry = m_EntryTemplate.CloneTree();
 
                 Foldout entryQuestion = newEntry.Q<Foldout>("Entry");
                 entryQuestion.text = question.Question;
+
+                if (openIndices != null && openIndices.Contains(i))
+                {
+                    entryQuestion.value = true;
+                    entryQuestion.AddToClassList("open");
+                }
 
                 entryQuestion.RegisterValueChangedCallback(evt =>
                 {

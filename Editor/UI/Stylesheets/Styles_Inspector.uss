@@ -102,3 +102,13 @@ UnmaskedViewsListView.foldout-bold-title > Foldout > Toggle Label.unity-foldout_
 .indented-property {
     margin-left: 15px;
 }
+
+.faq-answer-label {
+    margin-left: 4px;
+    color: var(--unity-colors-label-text);
+}
+
+.faq-answer-text-field {
+    height: 48px;
+    white-space: normal;
+}

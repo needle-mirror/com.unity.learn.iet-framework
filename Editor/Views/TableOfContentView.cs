@@ -267,7 +267,7 @@ namespace Unity.Tutorials.Editor
 
         private IEnumerator UpdateCheckmarksWhenStatesFetched()
         {
-            while (!m_SectionsInitialized || !Model.FetchedTutorialStates)
+            while (Application != null && (!m_SectionsInitialized || !Model.FetchedTutorialStates))
             {
                 yield return null;
             }

@@ -18,11 +18,22 @@ namespace Unity.Tutorials.Editor
         public override VisualElement CreatePropertyGUI(SerializedProperty property)
         {
             VisualElement propertyDrawer = new();
+            SerializedProperty answerProp = property.FindPropertyRelative(nameof(FaqEntry.Answer));
 
             VisualElement question = new PropertyField(property.FindPropertyRelative(nameof(FaqEntry.Question)));
-            VisualElement answer = new PropertyField(property.FindPropertyRelative(nameof(FaqEntry.Answer)));
+
+            Label answerLabel = new Label(nameof(FaqEntry.Answer));
+            answerLabel.AddToClassList("faq-answer-label");
+
+            TextField answer = new()
+            {
+                multiline = true,
+            };
+            answer.AddToClassList("faq-answer-text-field");
+            answer.BindProperty(answerProp);
 
             propertyDrawer.Add(question);
+            propertyDrawer.Add(answerLabel);
             propertyDrawer.Add(answer);
 
             return propertyDrawer;

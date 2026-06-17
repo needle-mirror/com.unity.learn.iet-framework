@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Serialization;
 using UnityEngine.Video;
 
@@ -57,6 +58,7 @@ namespace Unity.Tutorials.Editor
     /// A section of the TutorialPage.
     /// </summary>
     [Serializable]
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public class TutorialParagraph : ISerializationCallbackReceiver
     {
         /// <summary>
@@ -300,6 +302,7 @@ namespace Unity.Tutorials.Editor
 
     /// <summary> A wrapper class for serialization purposes. </summary>
     [Serializable]
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public class TutorialParagraphCollection : CollectionWrapper<TutorialParagraph>
     {
         /// <summary> Default-constructs an empty collection. </summary>

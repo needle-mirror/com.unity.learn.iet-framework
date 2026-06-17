@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Serialization;
 
 namespace Unity.Tutorials.Editor
@@ -8,6 +9,7 @@ namespace Unity.Tutorials.Editor
     /// A serializable string that is localized at run-time.
     /// </summary>
     [Serializable]
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public class LocalizableString : ISerializationCallbackReceiver
     {
         internal const string PropertyPath = "m_Untranslated";
@@ -76,6 +78,7 @@ namespace Unity.Tutorials.Editor
     /// Same as TextAreaAttribute but used for LocalizableStrings.
     /// </summary>
     [AttributeUsage(AttributeTargets.Field)]
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public class LocalizableTextAreaAttribute : PropertyAttribute
     {
         /// <summary>

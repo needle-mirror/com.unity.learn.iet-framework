@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Serialization;
 using UnityEngine.UIElements;
 
@@ -10,6 +11,7 @@ namespace Unity.Tutorials.Editor
     /// <summary>
     /// Controls start-up and initial settings and behavior of the tutorial project.
     /// </summary>
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public class TutorialProjectSettings : ScriptableObject
     {
         /// <summary>

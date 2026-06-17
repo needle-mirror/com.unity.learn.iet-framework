@@ -1,6 +1,7 @@
 #region
 
 using UnityEditor;
+using UnityEngine.Scripting.APIUpdating;
 
 #endregion
 
@@ -11,6 +12,7 @@ namespace Unity.Tutorials.Editor
     /// </summary>
     // TODO revisit this code, BuildPlayerWindow.RegisterBuildPlayerHandler works only when
     // building from the default build dialog, hence IPreprocessBuildWithReport + SessionState used also.
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public class BuildStartedCriterion : Criterion
     {
         private bool BuildStarted

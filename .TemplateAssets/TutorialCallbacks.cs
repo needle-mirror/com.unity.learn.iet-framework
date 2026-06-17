@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityEditor;
-using Unity.Tutorials.Core.Editor;
+using Unity.Tutorials.Editor;
 
 /// <summary>
 /// Implement your Tutorial callbacks here.

@@ -1,10 +1,12 @@
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// Future Object Reference is a reference to a Unity Object that might not exist yet (prefab instance).
     /// </summary>
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public class FutureObjectReference : ScriptableObject
     {
         [SerializeField] private SceneObjectReferenceHolder m_ReferenceHolder;

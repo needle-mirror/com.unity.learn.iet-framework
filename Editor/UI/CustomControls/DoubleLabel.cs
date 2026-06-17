@@ -1,3 +1,4 @@
+using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.UIElements;
 
 namespace Unity.Tutorials.Editor.CustomControl
@@ -9,6 +10,7 @@ namespace Unity.Tutorials.Editor.CustomControl
     /// This can be used in custom Inspectors to display a small message in place of an editable field
     /// when certain conditions occur (e.g. the field is not available).
     /// </summary>
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor.UI.CustomControl", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public class DoubleLabel : BaseField<string>
     {
         /// <summary>

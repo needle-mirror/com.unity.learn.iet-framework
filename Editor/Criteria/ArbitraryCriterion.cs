@@ -1,7 +1,8 @@
 using System;
-using Unity.Tutorials.Editor.SerializableCallback;
+using SerializableCallback;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace Unity.Tutorials.Editor
 {
@@ -11,6 +12,7 @@ namespace Unity.Tutorials.Editor
     /// function as Callback to evalute the criterion. Provide a function that completes your criterion as
     /// AutoCompleteCallback if you wish to be able to auto-complete the page.
     /// </summary>
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public class ArbitraryCriterion : Criterion
     {
         /// <summary>

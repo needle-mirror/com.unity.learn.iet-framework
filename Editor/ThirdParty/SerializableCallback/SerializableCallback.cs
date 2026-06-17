@@ -1,14 +1,14 @@
-namespace Unity.Tutorials.Editor.SerializableCallback
+using System;
+
+namespace SerializableCallback
 {
     /// <summary>
     /// https://github.com/Siccity/SerializableCallback
     /// </summary>
     /// <typeparam name="TReturn"></typeparam>
+    [Serializable]
     public abstract class SerializableCallback<TReturn> : SerializableCallbackBase<TReturn>
     {
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         /// <returns></returns>
         public TReturn Invoke()
         {
@@ -22,9 +22,6 @@ namespace Unity.Tutorials.Editor.SerializableCallback
             return func.Invoke(Args);
         }
 
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         protected override void Cache()
         {
             if (_target == null || string.IsNullOrEmpty(_methodName))
@@ -45,16 +42,10 @@ namespace Unity.Tutorials.Editor.SerializableCallback
         }
     }
 
-    /// <summary>
-    /// https://github.com/Siccity/SerializableCallback
-    /// </summary>
     /// <typeparam name="T0"></typeparam>
     /// <typeparam name="TReturn"></typeparam>
     public abstract class SerializableCallback<T0, TReturn> : SerializableCallbackBase<TReturn>
     {
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         /// <param name="arg0"></param>
         /// <returns></returns>
         public TReturn Invoke(T0 arg0)
@@ -69,9 +60,6 @@ namespace Unity.Tutorials.Editor.SerializableCallback
             return func.Invoke(Args);
         }
 
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         protected override void Cache()
         {
             if (_target == null || string.IsNullOrEmpty(_methodName))
@@ -92,17 +80,11 @@ namespace Unity.Tutorials.Editor.SerializableCallback
         }
     }
 
-    /// <summary>
-    /// https://github.com/Siccity/SerializableCallback
-    /// </summary>
     /// <typeparam name="T0"></typeparam>
     /// <typeparam name="T1"></typeparam>
     /// <typeparam name="TReturn"></typeparam>
     public abstract class SerializableCallback<T0, T1, TReturn> : SerializableCallbackBase<TReturn>
     {
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         /// <param name="arg0"></param>
         /// <param name="arg1"></param>
         /// <returns></returns>
@@ -118,9 +100,6 @@ namespace Unity.Tutorials.Editor.SerializableCallback
             return func.Invoke(Args);
         }
 
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         protected override void Cache()
         {
             if (_target == null || string.IsNullOrEmpty(_methodName))
@@ -141,18 +120,12 @@ namespace Unity.Tutorials.Editor.SerializableCallback
         }
     }
 
-    /// <summary>
-    /// https://github.com/Siccity/SerializableCallback
-    /// </summary>
     /// <typeparam name="T0"></typeparam>
     /// <typeparam name="T1"></typeparam>
     /// <typeparam name="T2"></typeparam>
     /// <typeparam name="TReturn"></typeparam>
     public abstract class SerializableCallback<T0, T1, T2, TReturn> : SerializableCallbackBase<TReturn>
     {
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         /// <param name="arg0"></param>
         /// <param name="arg1"></param>
         /// <param name="arg2"></param>
@@ -169,9 +142,6 @@ namespace Unity.Tutorials.Editor.SerializableCallback
             return func.Invoke(Args);
         }
 
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         protected override void Cache()
         {
             if (_target == null || string.IsNullOrEmpty(_methodName))
@@ -192,9 +162,6 @@ namespace Unity.Tutorials.Editor.SerializableCallback
         }
     }
 
-    /// <summary>
-    /// https://github.com/Siccity/SerializableCallback
-    /// </summary>
     /// <typeparam name="T0"></typeparam>
     /// <typeparam name="T1"></typeparam>
     /// <typeparam name="T2"></typeparam>
@@ -202,9 +169,6 @@ namespace Unity.Tutorials.Editor.SerializableCallback
     /// <typeparam name="TReturn"></typeparam>
     public abstract class SerializableCallback<T0, T1, T2, T3, TReturn> : SerializableCallbackBase<TReturn>
     {
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         /// <param name="arg0"></param>
         /// <param name="arg1"></param>
         /// <param name="arg2"></param>
@@ -222,9 +186,6 @@ namespace Unity.Tutorials.Editor.SerializableCallback
             return func.Invoke(Args);
         }
 
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         protected override void Cache()
         {
             if (_target == null || string.IsNullOrEmpty(_methodName))

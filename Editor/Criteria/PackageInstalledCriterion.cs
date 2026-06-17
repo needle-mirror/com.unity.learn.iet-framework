@@ -2,6 +2,7 @@ using UnityEditor;
 using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.Requests;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 
 namespace Unity.Tutorials.Editor
@@ -9,6 +10,7 @@ namespace Unity.Tutorials.Editor
     /// <summary>
     /// Criterion for checking that a specific package is installed in the project
     /// </summary>
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public class PackageInstalledCriterion : Criterion
     {
         /// <summary>

@@ -3,31 +3,20 @@ using System.Linq;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace Unity.Tutorials.Editor.SerializableCallback
+namespace SerializableCallback
 {
-    /// <summary>
-    /// https://github.com/Siccity/SerializableCallback
-    /// </summary>
     /// <typeparam name="TReturn"></typeparam>
+    [Serializable]
     public abstract class SerializableCallbackBase<TReturn> : SerializableCallbackBase
     {
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         public InvokableCallbackBase<TReturn> func;
 
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         public override void ClearCache()
         {
             base.ClearCache();
             func = null;
         }
 
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         /// <returns></returns>
         protected InvokableCallbackBase<TReturn> GetPersistentMethod()
         {
@@ -70,43 +59,16 @@ namespace Unity.Tutorials.Editor.SerializableCallback
         /// <summary> Target method name </summary>
         public string methodName { get => _methodName;
             set { _methodName = value; ClearCache(); } }
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         public object[] Args { get { return args != null ? args : args = _args.Select(x => x.GetValue()).ToArray(); } }
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         public object[] args;
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         public Type[] ArgTypes { get { return argTypes != null ? argTypes : argTypes = _args.Select(x => Arg.RealType(x.argType)).ToArray(); } }
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         public Type[] argTypes;
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         public bool dynamic { get => _dynamic;
             set { _dynamic = value; ClearCache(); } }
 
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         [SerializeField] protected Object _target;
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         [SerializeField] protected string _methodName;
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         [SerializeField] protected Arg[] _args;
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         [SerializeField] protected bool _dynamic;
 #pragma warning disable 0414
         [SerializeField] private string _typeName;
@@ -115,9 +77,6 @@ namespace Unity.Tutorials.Editor.SerializableCallback
         [SerializeField] private bool dirty;
 
 #if UNITY_EDITOR
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         protected SerializableCallbackBase()
         {
             _typeName = GetType().AssemblyQualifiedName;
@@ -125,18 +84,12 @@ namespace Unity.Tutorials.Editor.SerializableCallback
 
 #endif
 
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         public virtual void ClearCache()
         {
             argTypes = null;
             args = null;
         }
 
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         /// <param name="target"></param>
         /// <param name="methodName"></param>
         /// <param name="dynamic"></param>
@@ -150,14 +103,8 @@ namespace Unity.Tutorials.Editor.SerializableCallback
             ClearCache();
         }
 
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         protected abstract void Cache();
 
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         public void OnBeforeSerialize()
         {
 #if UNITY_EDITOR
@@ -165,9 +112,6 @@ namespace Unity.Tutorials.Editor.SerializableCallback
 #endif
         }
 
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         public void OnAfterDeserialize()
         {
 #if UNITY_EDITOR
@@ -176,79 +120,31 @@ namespace Unity.Tutorials.Editor.SerializableCallback
         }
     }
 
-    /// <summary>
-    /// https://github.com/Siccity/SerializableCallback
-    /// </summary>
     [Serializable]
     public struct Arg
     {
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         public enum ArgType
         {
-            /// <summary>
-            /// https://github.com/Siccity/SerializableCallback
-            /// </summary>
             Unsupported,
-            /// <summary>
-            /// https://github.com/Siccity/SerializableCallback
-            /// </summary>
             Bool,
-            /// <summary>
-            /// https://github.com/Siccity/SerializableCallback
-            /// </summary>
             Int,
-            /// <summary>
-            /// https://github.com/Siccity/SerializableCallback
-            /// </summary>
             Float,
-            /// <summary>
-            /// https://github.com/Siccity/SerializableCallback
-            /// </summary>
             String,
-            /// <summary>
-            /// https://github.com/Siccity/SerializableCallback
-            /// </summary>
             Object
         }
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         public bool boolValue;
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         public int intValue;
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         public float floatValue;
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         public string stringValue;
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         public Object objectValue;
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         public ArgType argType;
 
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         /// <returns></returns>
         public object GetValue()
         {
             return GetValue(argType);
         }
 
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
         public object GetValue(ArgType type)
@@ -270,9 +166,6 @@ namespace Unity.Tutorials.Editor.SerializableCallback
             }
         }
 
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
         public static Type RealType(ArgType type)
@@ -294,9 +187,6 @@ namespace Unity.Tutorials.Editor.SerializableCallback
             }
         }
 
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
         public static ArgType FromRealType(Type type)
@@ -309,9 +199,6 @@ namespace Unity.Tutorials.Editor.SerializableCallback
             return ArgType.Unsupported;
         }
 
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
         public static bool IsSupported(Type type)

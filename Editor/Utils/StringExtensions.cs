@@ -1,8 +1,11 @@
+using UnityEngine.Scripting.APIUpdating;
+
 namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// Extension methods for System.String.
     /// </summary>
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public static class StringExtensions
     {
         /// <summary>
@@ -56,6 +59,7 @@ namespace Unity.Tutorials.Editor
     /// Static helper functions for System.String.
     /// Useful for example in LINQ queries.
     /// </summary>
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public static class StringExt
     {
         /// <summary>

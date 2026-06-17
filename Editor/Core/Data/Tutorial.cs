@@ -6,6 +6,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Serialization;
 using UnityObject = UnityEngine.Object;
 
@@ -46,6 +47,7 @@ namespace Unity.Tutorials.Editor
     /// <summary>
     /// A container for tutorial pages which implement the tutorial's functionality.
     /// </summary>
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public class Tutorial : ScriptableObject, ISerializationCallbackReceiver
     {
         /// <summary>
@@ -651,7 +653,15 @@ namespace Unity.Tutorials.Editor
             for (int i = 0; i < m_Pages.Count; i++)
             {
                 TutorialPage tutorialPage = m_Pages[i];
+                if (tutorialPage == null)
+                {
+                    Debug.LogWarning($"[Tutorial Framework] Tutorial '{name}': page at index {i} is null, skipping.");
+                    continue;
+                }
                 if (AssetDatabase.IsSubAsset(tutorialPage)) continue;
+
+                string oldPagePath = AssetDatabase.GetAssetPath(tutorialPage);
+                UnityObject[] oldAssets = AssetDatabase.LoadAllAssetsAtPath(oldPagePath);
 
                 TutorialPage newPage = Instantiate(tutorialPage);
                 m_Pages[i] = newPage;
@@ -659,23 +669,97 @@ namespace Unity.Tutorials.Editor
 
                 newPage.IndexInTutorial = i;
                 newPage.m_PageParagraphs = new List<ParagraphBase>();
+
+                var criterionMap = new Dictionary<Criterion, Criterion>();
+
                 foreach (ParagraphBase paragraph in tutorialPage.m_PageParagraphs)
                 {
+                    if (paragraph == null)
+                    {
+                        Debug.LogWarning($"[Tutorial Framework] Tutorial '{name}', page '{tutorialPage.name}': null paragraph entry, skipping.");
+                        continue;
+                    }
                     ParagraphBase newParagraph = Instantiate(paragraph);
                     newParagraph.hideFlags |= HideFlags.HideInHierarchy;
                     newParagraph.name = paragraph.GetType().Name;
-                    AssetDatabase.AddObjectToAsset(newParagraph, newPage);
+                    AssetDatabase.AddObjectToAsset(newParagraph, this);
                     newPage.Paragraphs.Add(newParagraph);
+
+                    // Copy criteria so they are not lost when the old page asset is deleted
+                    TypedCriterionCollection criteriaCollection = newParagraph.Criterias();
+                    if (criteriaCollection == null) continue;
+
+                    foreach (TypedCriterion tc in criteriaCollection)
+                    {
+                        if (tc.Criterion == null) continue;
+                        Criterion oldCriterion = tc.Criterion;
+                        Criterion newCriterion = Instantiate(oldCriterion);
+                        newCriterion.hideFlags |= HideFlags.HideInHierarchy;
+                        newCriterion.name = oldCriterion.name;
+                        AssetDatabase.AddObjectToAsset(newCriterion, this);
+                        tc.Criterion = newCriterion;
+                        criterionMap[oldCriterion] = newCriterion;
+                    }
                 }
+
+                // Copy FutureObjectReferences and remap them to the new criteria
+                var futureRefMap = new Dictionary<FutureObjectReference, FutureObjectReference>();
+                foreach (UnityObject obj in oldAssets)
+                {
+                    if (obj is not FutureObjectReference oldFutureRef) continue;
+                    if (oldFutureRef.Criterion == null) continue;
+                    if (!criterionMap.TryGetValue(oldFutureRef.Criterion, out Criterion newCriterion)) continue;
+
+                    FutureObjectReference newFutureRef = Instantiate(oldFutureRef);
+                    newFutureRef.Criterion = newCriterion;
+                    newFutureRef.hideFlags |= HideFlags.HideInHierarchy;
+                    AssetDatabase.AddObjectToAsset(newFutureRef, this);
+                    futureRefMap[oldFutureRef] = newFutureRef;
+                }
+
+                // Remap FutureObjectReference fields inside each new criterion
+                foreach (Criterion newCriterion in criterionMap.Values)
+                {
+                    RemapFutureObjectReferences(newCriterion, futureRefMap);
+                }
+
                 TutorialPageEditor.RenamePage(newPage);
 
-                AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(tutorialPage));
+                AssetDatabase.DeleteAsset(oldPagePath);
             }
+        }
+
+        /// <summary>
+        /// Iterates all serialized fields of the given object and replaces any FutureObjectReference
+        /// references found in the mapping dictionary with the mapped value.
+        /// Used during v6 migration to update criterion fields after copying sub-assets.
+        /// </summary>
+        static void RemapFutureObjectReferences(UnityObject target, Dictionary<FutureObjectReference, FutureObjectReference> refMap)
+        {
+            if (refMap.Count == 0) return;
+
+            var so = new SerializedObject(target);
+            SerializedProperty prop = so.GetIterator();
+            bool modified = false;
+
+            while (prop.Next(true))
+            {
+                if (prop.propertyType != SerializedPropertyType.ObjectReference) continue;
+                if (prop.objectReferenceValue is FutureObjectReference oldRef
+                    && refMap.TryGetValue(oldRef, out FutureObjectReference newRef))
+                {
+                    prop.objectReferenceValue = newRef;
+                    modified = true;
+                }
+            }
+
+            if (modified)
+                so.ApplyModifiedPropertiesWithoutUndo();
         }
 
         internal void MigrateSceneBehaviourV6()
         {
-            if (Scenes.Length > 0)
+            if (Scenes?.Length > 0)
             {
                 SceneManagementBehavior = SceneManagementBehaviorType.LoadScenes;
             }

@@ -4,7 +4,23 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [6.0.2] - 2026-03-01
+## [6.0.3] - 2026-06-17
+### Added
+- Added ButtonParagraph abstract class, to create custom paragraphs for Tutorial Pages containing a button.
+- Added a NextTutorialButtonParagraph class, which allows to send the user to another tutorial at the press of a button.
+
+### Changed
+- Migration to v6 assets is now automatic, and will happen on first package import. It will still be available to trigger it again via the menu item Tutorials > Authoring > Upgrade tutorial data to v6.
+- Paragraph names now displayed in a more human-readable way.
+
+### Fixed
+- Migration v6 now migrating correctly the "Next tutorial" button paragraph, to a specific paragraph type added for the occasion.
+- Added MovedFrom attribute to relevant classes, for automatic code migration of UnityEvent callbacks, and other serialized class/assembly names.
+- Reworked user actions (add, remove Page or Paragraph, etc.) so that they are all Undoable (i.e. via Ctrl-Z/Cmd-Z) and Revertable.
+- Fixed an issue with the creation of Localisation assets.
+- Fixed an issue with the migration of Criteria from v5 to v6. They now get ported correctly.
+
+## [6.0.3] - 2026-03-01
 ### Added
 - New paragraph format for Tutorial Pages. This new format makes for a more flexible and faster editing experience.
   - Due to the new paragraph format, data migration for pages is required. The user will be prompted when first launching the editor or updating the package. Migration can also be started manually from the top menu, or using the button on each Tutorial Page.

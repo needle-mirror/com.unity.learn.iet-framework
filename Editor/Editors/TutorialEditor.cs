@@ -63,8 +63,15 @@ namespace Unity.Tutorials.Editor
         {
             if (Target != null)
             {
+                serializedObject.Update();
                 Target.RaiseModified();
+                string path = AssetDatabase.GetAssetPath(Target);
+                if (!string.IsNullOrEmpty(path))
+                {
+                    AssetDatabase.ImportAsset(path);
+                }
             }
+            EditorApplication.RepaintProjectWindow();
         }
 
         private UndoPropertyModification[] OnPostprocessModifications(UndoPropertyModification[] modifications)
@@ -183,6 +190,8 @@ namespace Unity.Tutorials.Editor
 
             void OnAddPageClicked(BaseListView list)
             {
+                int undoGroup = Undo.GetCurrentGroup();
+
                 TutorialPage newPage = CreateNewPageAsSubAsset(Target);
                 AssetDatabase.SaveAssets();
 
@@ -195,6 +204,9 @@ namespace Unity.Tutorials.Editor
 
                 list.allowRemove = true;
                 RenameItems();
+
+                Undo.SetCurrentGroupName("Create Tutorial Page");
+                Undo.CollapseUndoOperations(undoGroup);
             }
 
             void OnRemovePageClicked(BaseListView list)
@@ -203,18 +215,27 @@ namespace Unity.Tutorials.Editor
                 SerializedProperty pagesProperty = serializedObject.FindProperty(s_PagesPropertyPath);
 
                 int selectedIndex = list.selectedIndex != -1 ? list.selectedIndex : pagesProperty.arraySize - 1;
+                if (selectedIndex < 0 || selectedIndex >= pagesProperty.arraySize) return;
+
                 TutorialPage pageToDelete = (TutorialPage)pagesProperty.GetArrayElementAtIndex(selectedIndex).objectReferenceValue;
 
-                AssetDatabase.RemoveObjectFromAsset(pageToDelete);
-                AssetDatabase.SaveAssets();
+                int undoGroup = Undo.GetCurrentGroup();
 
+                if (pageToDelete != null)
+                    pagesProperty.GetArrayElementAtIndex(selectedIndex).objectReferenceValue = null;
                 pagesProperty.DeleteArrayElementAtIndex(selectedIndex);
                 serializedObject.ApplyModifiedProperties();
+
+                if (pageToDelete != null) Undo.DestroyObjectImmediate(pageToDelete);
+                AssetDatabase.SaveAssets();
 
                 list.selectedIndex = -1;
 
                 if (pagesProperty.arraySize == 0) list.allowRemove = false;
                 if (pagesProperty.arraySize != 0) RenameItems();
+
+                Undo.SetCurrentGroupName("Remove Tutorial Page");
+                Undo.CollapseUndoOperations(undoGroup);
             }
 
             void RenameItems()
@@ -223,7 +244,12 @@ namespace Unity.Tutorials.Editor
                 for (int i = 0; i < pagesProperty.arraySize; i++)
                 {
                     TutorialPage page = (TutorialPage)pagesProperty.GetArrayElementAtIndex(i).objectReferenceValue;
-                    page.IndexInTutorial = i;
+                    if (page == null) continue;
+                    if (page.IndexInTutorial != i)
+                    {
+                        Undo.RecordObject(page, "Reindex Tutorial Pages");
+                        page.IndexInTutorial = i;
+                    }
                     TutorialPageEditor.RenamePage(page);
                 }
 
@@ -258,6 +284,7 @@ namespace Unity.Tutorials.Editor
         {
             int newPageIndex = tutorial.PagesCollection.Count;
             TutorialPage newPage = CreateInstance<TutorialPage>();
+            Undo.RegisterCreatedObjectUndo(newPage, "Create Tutorial Page");
             newPage.IndexInTutorial = newPageIndex;
             newPage.Title = $"Page {newPageIndex}";
             TutorialPageEditor.RenamePage(newPage);

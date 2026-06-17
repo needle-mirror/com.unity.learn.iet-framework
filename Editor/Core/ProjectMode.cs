@@ -1,8 +1,11 @@
+using UnityEngine.Scripting.APIUpdating;
+
 namespace Unity.Tutorials.Editor
 {
     /// <summary>
     /// Can be used to query the mode of the Tutorial Project.
     /// </summary>
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public static class ProjectMode
     {
         /// <summary>

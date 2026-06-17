@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 using Object = UnityEngine.Object;
 #if UNITY_6000_5_OR_NEWER
 using UnityEngine.Assemblies;
@@ -16,6 +17,7 @@ namespace Unity.Tutorials.Editor
     /// <summary>
     /// Utilities for EditorWindows.
     /// </summary>
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public static class EditorWindowUtils
     {
         /// <summary>

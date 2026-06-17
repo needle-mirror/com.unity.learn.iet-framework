@@ -4,6 +4,7 @@ using System.Linq;
 using Unity.EditorCoroutines.Editor;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.UIElements;
 using static Unity.Tutorials.Editor.Localization;
 
@@ -13,9 +14,11 @@ namespace Unity.Tutorials.Editor
     /// A modal/utility window that can display TutorialWelcomePage as its content.
     /// Optionally utilizes masking for modality.
     /// </summary>
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public class TutorialModalWindow : EditorWindow
     {
         private static readonly Vector2 k_windowSize = new(700, 500);
+        internal const string k_WelcomeDialogSeen = "TutorialFramework.WelcomeDialogSeen";
 
         /// <summary>
         /// The current instance of this window
@@ -113,7 +116,7 @@ namespace Unity.Tutorials.Editor
             VisualTreeAsset windowContent = UIUtils.LoadUXML("WelcomeDialog");
             windowContent.CloneTree(m_Root);
 
-            //preserve the base style, remove all styles defined in UXML and apply new skin
+            // Preserve the base style, remove all styles defined in UXML and apply new skin
             for (int i = m_Root.styleSheets.count - 1; i > 0; i--)
             {
                 m_Root.styleSheets.Remove(m_Root.styleSheets[i]);
@@ -181,6 +184,8 @@ namespace Unity.Tutorials.Editor
         /// <param name="onClose">Optional callback to be called when the window is closed.</param>
         public static void Show(TutorialWelcomePage welcomePage, Action onClose = null)
         {
+            SessionState.SetBool(k_WelcomeDialogSeen, true); // Will avoid showing the Welcome window for the rest of the Editor session
+
             Hide();
             TutorialModalWindow window = CreateInstance<TutorialModalWindow>();
             window.titleContent = new GUIContent(welcomePage.WindowTitle);
@@ -247,10 +252,15 @@ namespace Unity.Tutorials.Editor
             UIUtils.SetupLabel("Heading", WelcomePage.Title, m_Root, false);
 
             Label welcomeLabel = new(WelcomePage.Description);
-            //ensure we got word wrapping
+            // Ensure we got word wrapping
             welcomeLabel.style.whiteSpace = WhiteSpace.Normal;
             m_Root.Q("Description").Add(welcomeLabel);
             AddDynamicButtonsToContent();
+
+            Toggle displayAgainToggle = m_Root.Q<Toggle>("DisplayAgainToggle");
+            displayAgainToggle.SetValueWithoutNotify(TutorialFrameworkModel.s_DisplayWelcomeDialogOnStartup);
+            displayAgainToggle.UnregisterValueChangedCallback(OnDisplayAgainToggled); // TODO: Do it better?
+            displayAgainToggle.RegisterValueChangedCallback(OnDisplayAgainToggled);
 
             if (WelcomePage.MaskEditor)
             {
@@ -329,6 +339,11 @@ namespace Unity.Tutorials.Editor
         private void OnWelcomePageModified(TutorialWelcomePage sender)
         {
             UpdateContent();
+        }
+
+        private void OnDisplayAgainToggled(ChangeEvent<bool> evt)
+        {
+            TutorialFrameworkModel.s_DisplayWelcomeDialogOnStartup.SetValue(evt.newValue, true);
         }
     }
 }

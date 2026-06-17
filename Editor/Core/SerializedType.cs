@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace Unity.Tutorials.Editor
 {
@@ -7,6 +8,7 @@ namespace Unity.Tutorials.Editor
     /// Used to serialize System.Type using Type.AssemblyQualifiedName.
     /// </summary>
     [Serializable]
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public class SerializedType : ISerializationCallbackReceiver
     {
         private static readonly bool k_IsAuthoringMode = ProjectMode.IsAuthoringMode();
@@ -65,6 +67,13 @@ namespace Unity.Tutorials.Editor
             {
                 m_TypeName = m_TypeName.Replace("Unity.InteractiveTutorials.Core", "Unity.Tutorials.Editor");
                 m_TypeName = m_TypeName.Replace("Unity.InteractiveTutorials", "Unity.Tutorials.Editor");
+            }
+
+            // Backwards-compatibility for IET < 6.0 when the namespace was Unity.Tutorials.Core.Editor
+            // and assembly was Unity.Tutorials.Core.Editor instead of Unity.Tutorials.Editor.
+            if (IsSpecified)
+            {
+                m_TypeName = m_TypeName.Replace("Unity.Tutorials.Core.Editor", "Unity.Tutorials.Editor");
             }
 
             // TODO figure out how to log these issues: we don't want to log warnings/errors always, and especially

@@ -6,6 +6,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Scripting.APIUpdating;
 using Object = UnityEngine.Object;
 
 #endregion
@@ -24,6 +25,7 @@ namespace Unity.Tutorials.Editor
     /// <summary>
     /// Base class for Criterion implementations.
     /// </summary>
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public abstract class Criterion : ScriptableObject
     {
         /// <summary>

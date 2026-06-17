@@ -1,4 +1,5 @@
 using System;
+using UnityEngine.Scripting.APIUpdating;
 
 namespace Unity.Tutorials.Editor
 {
@@ -6,6 +7,7 @@ namespace Unity.Tutorials.Editor
     /// Base class for different SerializedTypeFilter attribute implementations.
     /// </summary>
     [AttributeUsage(AttributeTargets.Field)]
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public abstract class SerializedTypeFilterAttributeBase : Attribute
     {
         /// <summary>
@@ -23,6 +25,7 @@ namespace Unity.Tutorials.Editor
     /// Use to create type filter for any type.
     /// </summary>
     [AttributeUsage(AttributeTargets.Field)]
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public class SerializedTypeFilterAttribute : SerializedTypeFilterAttributeBase
     {
         /// <summary>
@@ -41,6 +44,7 @@ namespace Unity.Tutorials.Editor
     /// Specialization for typeof(GUIView).
     /// </summary>
     [AttributeUsage(AttributeTargets.Field)]
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public class SerializedTypeGuiViewFilterAttribute : SerializedTypeFilterAttributeBase
     {
         /// <summary>

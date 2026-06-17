@@ -1,12 +1,11 @@
-<!-- Upgrade guide page template for packages: https://confluence.unity3d.com/display/DOCS/Upgrade+guide+page+template+for+packages -->
 
-# Upgrading to Tutorial Framework version 4.0.0
+# Upgrading to Tutorial Framework Version 6.x
 
-Important: before upgrading to this version, please upgrade to the closest major version to the one you're currently using. This ensures that existing tutorials are properly converted and updated without any data loss.
+Tutorial Framework 6.0.0 introduced a big change in how tutorial assets are serialised. As such, when importing any 6.x version of the package for the first time, existing tutorial assets (Tutorial Container, Tutorial Page, Tutorial, etc.) will be automatically migrated to the new version.
 
-You do not need to take any actions to upgrade your project to this package version. If you used some of the APIs deprecated in this version, please refer to the warning logs in your project to see what public APIs you should use instead.
-If you generated your tutorial layouts in versions prior to 2020.3 LTS, which introduced many editor UI changes, it is recommended to check that all tutorial layouts are still working as expected, and to recreate them using the authoring tools if they don't.
+If you want to trigger a manual migration, go to **Tutorials > Authoring > Upgrade Tutorial Data to v6** (requires the [Tutorial Authoring Tools] package to be installed).
 
-For a full list of changes and updates in this version, see the [Changelog].
+> [!WARNING]
+> Before upgrading to this version, please upgrade to the closest major version to the one you're currently using. This ensures that existing tutorials are properly converted and updated without any data loss. For instance, if your project uses Tutorial Framework 4.x, you might want to upgrade to version 5.x before upgrading to 6.x.
 
-[Changelog]: https://docs.unity3d.com/Packages/com.unity.learn.iet-framework@latest?subfolder=/changelog/CHANGELOG.html
+[Tutorial Authoring Tools]: https://docs.unity3d.com/Packages/com.unity.learn.iet-framework.authoring@2.1

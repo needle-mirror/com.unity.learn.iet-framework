@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Scripting.APIUpdating;
 using UnityEngine.Serialization;
 
 namespace Unity.Tutorials.Editor
@@ -9,6 +10,7 @@ namespace Unity.Tutorials.Editor
     /// Holder for SerializedType and Criterion.
     /// </summary>
     [Serializable]
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public class TypedCriterion
     {
         /// <summary>
@@ -40,6 +42,7 @@ namespace Unity.Tutorials.Editor
     /// A collection of <see cref="TypedCriterion"/>
     /// </summary>
     [Serializable]
+    [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public class TypedCriterionCollection : CollectionWrapper<TypedCriterion>
     {
         /// <summary> Public constructor. </summary>

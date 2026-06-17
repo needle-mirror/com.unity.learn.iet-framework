@@ -1,16 +1,10 @@
 using System;
 
-namespace Unity.Tutorials.Editor.SerializableCallback
+namespace SerializableCallback
 {
-    /// <summary>
-    /// https://github.com/Siccity/SerializableCallback
-    /// </summary>
     [Serializable]
     public class SerializableEvent : SerializableEventBase
     {
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         public void Invoke()
         {
             if (invokable == null) Cache();
@@ -25,9 +19,6 @@ namespace Unity.Tutorials.Editor.SerializableCallback
             }
         }
 
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         protected override void Cache()
         {
             if (_target == null || string.IsNullOrEmpty(_methodName))
@@ -48,15 +39,9 @@ namespace Unity.Tutorials.Editor.SerializableCallback
         }
     }
 
-    /// <summary>
-    /// https://github.com/Siccity/SerializableCallback
-    /// </summary>
     /// <typeparam name="T0"></typeparam>
     public abstract class SerializableEvent<T0> : SerializableEventBase
     {
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         /// <param name="arg0"></param>
         public void Invoke(T0 arg0)
         {
@@ -72,9 +57,6 @@ namespace Unity.Tutorials.Editor.SerializableCallback
             }
         }
 
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         protected override void Cache()
         {
             if (_target == null || string.IsNullOrEmpty(_methodName))
@@ -95,16 +77,10 @@ namespace Unity.Tutorials.Editor.SerializableCallback
         }
     }
 
-    /// <summary>
-    /// https://github.com/Siccity/SerializableCallback
-    /// </summary>
     /// <typeparam name="T0"></typeparam>
     /// <typeparam name="T1"></typeparam>
     public abstract class SerializableEvent<T0, T1> : SerializableEventBase
     {
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         /// <param name="arg0"></param>
         /// <param name="arg1"></param>
         public void Invoke(T0 arg0, T1 arg1)
@@ -121,9 +97,6 @@ namespace Unity.Tutorials.Editor.SerializableCallback
             }
         }
 
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         protected override void Cache()
         {
             if (_target == null || string.IsNullOrEmpty(_methodName))
@@ -144,17 +117,11 @@ namespace Unity.Tutorials.Editor.SerializableCallback
         }
     }
 
-    /// <summary>
-    /// https://github.com/Siccity/SerializableCallback
-    /// </summary>
     /// <typeparam name="T0"></typeparam>
     /// <typeparam name="T1"></typeparam>
     /// <typeparam name="T2"></typeparam>
     public abstract class SerializableEvent<T0, T1, T2> : SerializableEventBase
     {
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         /// <param name="arg0"></param>
         /// <param name="arg1"></param>
         /// <param name="arg2"></param>
@@ -172,9 +139,6 @@ namespace Unity.Tutorials.Editor.SerializableCallback
             }
         }
 
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         protected override void Cache()
         {
             if (_target == null || string.IsNullOrEmpty(_methodName))
@@ -195,18 +159,12 @@ namespace Unity.Tutorials.Editor.SerializableCallback
         }
     }
 
-    /// <summary>
-    /// https://github.com/Siccity/SerializableCallback
-    /// </summary>
     /// <typeparam name="T0"></typeparam>
     /// <typeparam name="T1"></typeparam>
     /// <typeparam name="T2"></typeparam>
     /// <typeparam name="T3"></typeparam>
     public abstract class SerializableEvent<T0, T1, T2, T3> : SerializableEventBase
     {
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         /// <param name="arg0"></param>
         /// <param name="arg1"></param>
         /// <param name="arg2"></param>
@@ -225,9 +183,6 @@ namespace Unity.Tutorials.Editor.SerializableCallback
             }
         }
 
-        /// <summary>
-        /// https://github.com/Siccity/SerializableCallback
-        /// </summary>
         protected override void Cache()
         {
             if (_target == null || string.IsNullOrEmpty(_methodName))
