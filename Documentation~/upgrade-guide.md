@@ -8,4 +8,4 @@ If you want to trigger a manual migration, go to **Tutorials > Authoring > Upgra
 > [!WARNING]
 > Before upgrading to this version, please upgrade to the closest major version to the one you're currently using. This ensures that existing tutorials are properly converted and updated without any data loss. For instance, if your project uses Tutorial Framework 4.x, you might want to upgrade to version 5.x before upgrading to 6.x.
 
-[Tutorial Authoring Tools]: https://docs.unity3d.com/Packages/com.unity.learn.iet-framework.authoring@2.1
+[Tutorial Authoring Tools]: https://docs.unity3d.com/Packages/com.unity.learn.iet-framework.authoring@2.0

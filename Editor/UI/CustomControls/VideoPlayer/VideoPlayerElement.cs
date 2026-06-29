@@ -319,12 +319,18 @@ namespace Unity.Tutorials.Editor
 
         private void OnDetachedFromPanel(DetachFromPanelEvent evt)
         {
+            EditorApplication.playModeStateChanged -= PlayModeChanged;
+
+            // During editor shutdown the host view may tear down after the VideoPlayer's
+            // GameObject has already been destroyed; skip state restoration in that case.
+            if (m_VideoPlayer == null)
+                return;
+
             // saving state to re apply if this is just detaching to reattach immediately somewhere
             m_PreviousTime = m_VideoPlayer.time;
             m_AutoStart = m_VideoPlayer.isPlaying;
 
             m_VideoPlayer.Pause();
-            EditorApplication.playModeStateChanged -= PlayModeChanged;
 
             FreePlayer();
         }

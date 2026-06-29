@@ -31,10 +31,12 @@ namespace Unity.Tutorials.Editor
         }
 
         internal string PropertyPath { get => m_PropertyPath; set => m_PropertyPath = value; }
+        [Tooltip("Serialized property path to watch on the target object.")]
         [SerializeField] private string m_PropertyPath;
 
         internal ValueMode TargetValueMode { get => m_TargetValueMode; set => m_TargetValueMode = value; }
 
+        [Tooltip("Whether to compare against a target value or just require a change from the initial value.")]
         [SerializeField] private ValueMode m_TargetValueMode = ValueMode.TargetValue;
 
         // TODO: Make this more like TypedCriterion
@@ -44,9 +46,11 @@ namespace Unity.Tutorials.Editor
         private string m_TargetValue;
 
         internal ValueType TargetValueType { get => m_TargetValueType; set => m_TargetValueType = value; }
+        [Tooltip("Data type used to parse and compare the target value.")]
         [SerializeField] private ValueType m_TargetValueType;
 
         internal SceneObjectReference Target { get => m_Target.SceneObjectReference; set => m_Target.SceneObjectReference = value; }
+        [Tooltip("Object whose property is being watched.")]
         [SerializeField] private ObjectReference m_Target = new();
 
         [NonSerialized] private string m_InitialValue;

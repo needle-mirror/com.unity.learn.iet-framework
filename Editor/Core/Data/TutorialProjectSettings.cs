@@ -71,6 +71,7 @@ namespace Unity.Tutorials.Editor
         /// Initial camera settings when the project is loaded for the first time.
         /// </summary>
         public SceneViewCameraSettings InitialCameraSettings { get => m_InitialCameraSettings; set => m_InitialCameraSettings = value; }
+        [Tooltip("Initial scene view camera settings applied when the project is first opened.")]
         [SerializeField] private SceneViewCameraSettings m_InitialCameraSettings;
 
         /// <summary>

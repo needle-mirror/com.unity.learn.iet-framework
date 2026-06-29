@@ -56,9 +56,9 @@ namespace Unity.Tutorials.Editor
         internal const string k_TutorialPageCustomCallbacksTooltip = "TutorialPageCustomCallbacksTooltip";
         internal const string k_MissingPropertyPathWarning = "MissingPropertyPathWarning";
         internal const string k_TutorialPageCodeSample = "TutorialPageCodeSample";
-        internal const string k_TutorialLabelAutoCompletion = "TutorialLabelAutoCompletion";
         internal const string k_TutorialButtonStartAutoCompletion = "TutorialButtonStartAutoCompletion";
         internal const string k_TutorialButtonStopAutoCompletion = "TutorialButtonStopAutoCompletion";
+        internal const string k_TutorialButtonLaunchTutorial = "TutorialButtonLaunchTutorial";
         internal const string k_LocalizableStringIconTooltip = "LocalizableStringIconTooltip";
         internal const string k_GuiControlSelectorButtonPickElement = "GuiControlSelectorButtonPickElement";
         internal const string k_GuiControlSelectorButtonPickElementTooltip = "GuiControlSelectorButtonPickElementTooltip";

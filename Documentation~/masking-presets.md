@@ -1,6 +1,6 @@
 # Masking Presets
 
-Masking Presets work in conjunction with the [Masking feature](https://docs.unity3d.com/Packages/com.unity.learn.iet-framework.authoring@2.1/manual/masking-highlighting.html) of IETs. They wrap Masking settings into presets that can be conveniently reused and shared wherever Masking is supported. This speeds up mask creation, and avoids trial and error and mistakes.
+Masking Presets work in conjunction with the [Masking feature](https://docs.unity3d.com/Packages/com.unity.learn.iet-framework.authoring@2.0/manual/masking-highlighting.html) of IETs. They wrap Masking settings into presets that can be conveniently reused and shared wherever Masking is supported. This speeds up mask creation, and avoids trial and error and mistakes.
 
 To create a Preset, either:
 

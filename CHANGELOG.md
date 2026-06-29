@@ -4,6 +4,15 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.0.4] - 2026-06-29
+### Added
+- Added a button at the top of the Inspector for Tutorial objects, that allows to launch a tutorial in the Tutorials Window.
+- Added tooltips to many public and serialized fields.
+
+### Fixed
+- `EditorWindowUtils.CenterOnMainWindow` no longer throws a `NotSupportedException` when the Editor main window cannot be located (e.g. during early startup in automated test environments). The window is left at its default position instead.
+- `VideoPlayerElement` no longer throws a `MissingReferenceException` during Editor shutdown when its panel is detached after the underlying `VideoPlayer` GameObject has already been destroyed.
+
 ## [6.0.3] - 2026-06-17
 ### Added
 - Added ButtonParagraph abstract class, to create custom paragraphs for Tutorial Pages containing a button.
@@ -20,7 +29,7 @@ and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed an issue with the creation of Localisation assets.
 - Fixed an issue with the migration of Criteria from v5 to v6. They now get ported correctly.
 
-## [6.0.3] - 2026-03-01
+## [6.0.2] - 2026-03-01
 ### Added
 - New paragraph format for Tutorial Pages. This new format makes for a more flexible and faster editing experience.
   - Due to the new paragraph format, data migration for pages is required. The user will be prompted when first launching the editor or updating the package. Migration can also be started manually from the top menu, or using the button on each Tutorial Page.

@@ -14,9 +14,11 @@ namespace Unity.Tutorials.Editor
     [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public class ComponentAddedCriterion : Criterion
     {
+        [Tooltip("GameObject that must have the required components added to it.")]
         [SerializeField, FormerlySerializedAs("targetGameObject")]
         private ObjectReference m_TargetGameObject;
 
+        [Tooltip("Component types that must be present on the target GameObject.")]
         [SerializeField, FormerlySerializedAs("requiredComponents")]
         private SerializedTypeCollection m_RequiredComponents = new();
 

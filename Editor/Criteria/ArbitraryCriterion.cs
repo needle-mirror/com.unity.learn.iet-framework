@@ -27,12 +27,14 @@ namespace Unity.Tutorials.Editor
         /// The callback for criterion evalution logic.
         /// </summary>
         public BoolCallback Callback { get => m_Callback; set => m_Callback = value; }
+        [Tooltip("Callback evaluating whether the criterion is satisfied.")]
         [SerializeField] private BoolCallback m_Callback;
 
         /// <summary>
         /// The callback for auto-completion logic.
         /// </summary>
         public BoolCallback AutoCompleteCallback { get => m_AutoCompleteCallback; set => m_AutoCompleteCallback = value; }
+        [Tooltip("Callback invoked to auto-complete the criterion.")]
         [SerializeField] private BoolCallback m_AutoCompleteCallback;
 
         /// <summary>

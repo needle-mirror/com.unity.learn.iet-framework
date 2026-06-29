@@ -92,6 +92,7 @@ namespace Unity.Tutorials.Editor
         /// The title shown in the window.
         /// </summary>
         [Header("Contents")]
+        [Tooltip("Title shown in the tutorial window.")]
         public LocalizableString TutorialTitle = new();
 
         /// <summary>
@@ -100,6 +101,7 @@ namespace Unity.Tutorials.Editor
         /// </summary>
         public string LessonId { get => m_LessonId; set => m_LessonId = value; }
 
+        [Tooltip("Auto-generated ID used for progress tracking; edit manually only if necessary.")]
         [SerializeField]
         internal string m_LessonId = "";
 
@@ -111,6 +113,7 @@ namespace Unity.Tutorials.Editor
         /// </summary>
         public TutorialPageCollection PagesCollection { get => m_Pages; set => m_Pages = value; }
 
+        [Tooltip("All the pages that make up this tutorial.")]
         [SerializeField, FormerlySerializedAs("m_Steps")]
         internal TutorialPageCollection m_Pages = new();
 
@@ -148,6 +151,7 @@ namespace Unity.Tutorials.Editor
         public SceneViewCameraSettings DefaultSceneCameraSettings { get => m_DefaultSceneCameraSettings; set => m_DefaultSceneCameraSettings = value; }
 
         [Header("Settings")]
+        [Tooltip("Scene view camera settings applied when the tutorial starts.")]
         [SerializeField]
         private SceneViewCameraSettings m_DefaultSceneCameraSettings;
 
@@ -156,6 +160,7 @@ namespace Unity.Tutorials.Editor
         /// </summary>
         public bool ProgressTrackingEnabled { get => m_ProgressTrackingEnabled; set => m_ProgressTrackingEnabled = value; }
 
+        [Tooltip("Enable progress tracking and completion checkmarks for this tutorial.")]
         [SerializeField] private bool m_ProgressTrackingEnabled;
 
         /// <summary>
@@ -301,6 +306,7 @@ namespace Unity.Tutorials.Editor
         /// <summary>
         /// Faq Entries for that specific tutorial
         /// </summary>
+        [Tooltip("FAQ entries shown in the tutorial's Help panel.")]
         [SerializeField]
         private FaqEntry[] m_FaqEntries = Array.Empty<FaqEntry>();
 

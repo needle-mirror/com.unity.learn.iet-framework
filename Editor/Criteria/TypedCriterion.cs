@@ -16,6 +16,7 @@ namespace Unity.Tutorials.Editor
         /// <summary>
         /// The Type.
         /// </summary>
+        [Tooltip("Criterion type used to evaluate completion.")]
         [SerializeField, FormerlySerializedAs("type")]
         [SerializedTypeFilter(typeof(Criterion), true)]
         public SerializedType Type;

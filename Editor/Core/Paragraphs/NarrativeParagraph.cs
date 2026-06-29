@@ -1,3 +1,4 @@
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Unity.Tutorials.Editor.Paragraphs
@@ -9,6 +10,7 @@ namespace Unity.Tutorials.Editor.Paragraphs
     public class NarrativeParagraph : ParagraphBase
     {
         /// <summary> The text shown in the paragraph. </summary>
+        [Tooltip("Text shown in the paragraph.")]
         [LocalizableTextArea(3, 15)] public LocalizableString Text;
 
         /// <inheritdoc />

@@ -9,6 +9,7 @@ namespace Unity.Tutorials.Editor.Paragraphs
     public class NextTutorialButtonParagraph : ButtonParagraph
     {
         /// <summary> The tutorial to start when the button is clicked. </summary>
+        [Tooltip("Tutorial started when the button is clicked.")]
         public Tutorial NextTutorial;
 
         /// <inheritdoc />

@@ -14,6 +14,7 @@ namespace Unity.Tutorials.Editor.Paragraphs
         /// </summary>
         internal MaskingSettings MaskingSettings => m_MaskingSettings;
 
+        [Tooltip("Masking and highlighting overlay applied while this paragraph is active.")]
         [SerializeField] private MaskingSettings m_MaskingSettings = new();
 
         /// <summary>

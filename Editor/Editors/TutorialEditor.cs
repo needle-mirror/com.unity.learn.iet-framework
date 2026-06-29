@@ -14,13 +14,6 @@ namespace Unity.Tutorials.Editor
     {
         [SerializeField] private StyleSheet m_Stylesheet;
 
-        private static class Contents
-        {
-            public static GUIContent s_AutoCompletion = new(Tr(LocalizationKeys.k_TutorialLabelAutoCompletion));
-            public static GUIContent s_StartAutoCompletion = new(Tr(LocalizationKeys.k_TutorialButtonStartAutoCompletion));
-            public static GUIContent s_StopAutoCompletion = new(Tr(LocalizationKeys.k_TutorialButtonStopAutoCompletion));
-        }
-
         private static readonly string[] k_PropsToIgnore = { "m_Script", nameof(Tutorial.m_LessonId) };
 
         private static readonly string s_PagesPropertyPath = $"{nameof(Tutorial.m_Pages)}.m_Items";
@@ -28,6 +21,10 @@ namespace Unity.Tutorials.Editor
         private static readonly string s_SceneManagementBehaviorProperty = "m_SceneManagementBehavior";
         private static readonly string s_ReturnToPreviousProperty = "m_ReturnToPreviousScenes";
         private static readonly string s_FaqEntriesProperty = "m_FaqEntries";
+
+        private static readonly string s_StartAutoCompletion = Tr(LocalizationKeys.k_TutorialButtonStartAutoCompletion);
+        private static readonly string s_StopAutoCompletion = Tr(LocalizationKeys.k_TutorialButtonStopAutoCompletion);
+        private static readonly string s_LaunchTutorial = Tr(LocalizationKeys.k_TutorialButtonLaunchTutorial);
 
         private static readonly Regex s_MatchPagesPropertyPath =
             new(
@@ -117,6 +114,33 @@ namespace Unity.Tutorials.Editor
                 root.Add(helpBox);
             }
 
+#if TUTORIAL_AUTHORING
+            // Launch Tutorial button
+            Button launchTutorialButton = new()
+            {
+                text = s_LaunchTutorial,
+                tooltip = "Launches this Tutorial in the Tutorial Window."
+            };
+            launchTutorialButton.AddToClassList("button-md");
+            launchTutorialButton.clicked += () => TutorialWindow.StartTutorial((Tutorial)serializedObject.targetObject);
+            root.Add(launchTutorialButton);
+
+            // Auto Completion button
+            Button autoCompleteButton = new()
+            {
+                text = Target.IsAutoCompleting ? s_StopAutoCompletion : s_StartAutoCompletion,
+                tooltip = "Marks the Tutorial as complete."
+            };
+            autoCompleteButton.AddToClassList("button-md");
+            autoCompleteButton.clicked += () =>
+            {
+                if (Target.IsAutoCompleting) Target.StopAutoCompletion();
+                else Target.StartAutoCompletion();
+            };
+            autoCompleteButton.SetEnabled(!Target.IsCompleted);
+            root.Add(autoCompleteButton);
+#endif
+
             UIUtils.DrawInspectorExcluding(root, serializedObject, this, k_PropsToIgnore);
 
             // Hack into the creation of a TutorialPage to make it a sub-asset
@@ -158,22 +182,6 @@ namespace Unity.Tutorials.Editor
 
             root.Add(callbacksFoldout);
             callbacksFoldout.PlaceBehind(faqEntriesField);
-
-#if TUTORIAL_AUTHORING
-            // Auto Completion button
-            Button autoCompleteButton = new()
-            {
-                text = Target.IsAutoCompleting ? Contents.s_StopAutoCompletion.text : Contents.s_StartAutoCompletion.text
-            };
-            autoCompleteButton.AddToClassList("button-md");
-            autoCompleteButton.clicked += () =>
-            {
-                if (Target.IsAutoCompleting) Target.StopAutoCompletion();
-                else Target.StartAutoCompletion();
-            };
-            autoCompleteButton.SetEnabled(!Target.IsCompleted);
-            root.Add(autoCompleteButton);
-#endif
 
             return root;
 
@@ -247,7 +255,7 @@ namespace Unity.Tutorials.Editor
                     if (page == null) continue;
                     if (page.IndexInTutorial != i)
                     {
-                        Undo.RecordObject(page, "Reindex Tutorial Pages");
+                        Undo.RecordObject(page, "Re-index Tutorial Pages");
                         page.IndexInTutorial = i;
                     }
                     TutorialPageEditor.RenamePage(page);

@@ -47,6 +47,7 @@ namespace Unity.Tutorials.Editor
         /// <summary>
         /// The index in the <see cref="Tutorial"/> that contains it. Used for renaming the asset.
         /// </summary>
+        [field: Tooltip("Index of this page within its parent tutorial.")]
         [field: SerializeField] internal int IndexInTutorial { get; set; }
 
         /// <summary>
@@ -72,6 +73,7 @@ namespace Unity.Tutorials.Editor
         /// </summary>
         internal TutorialParagraphCollection LegacyParagraphs => m_LegacyParagraphs;
 
+        [Tooltip("Legacy paragraphs preserved for migration to the v6 format.")]
         [FormerlySerializedAs("m_Paragraphs")]
         [SerializeField]
         internal TutorialParagraphCollection m_LegacyParagraphs = new();
@@ -80,6 +82,7 @@ namespace Unity.Tutorials.Editor
         /// Paragraphs contained in this page.
         /// </summary>
         public List<ParagraphBase> Paragraphs => m_PageParagraphs;
+        [Tooltip("Paragraphs displayed on this page.")]
         [SerializeField]
         internal List<ParagraphBase> m_PageParagraphs = new();
 
@@ -105,6 +108,7 @@ namespace Unity.Tutorials.Editor
         }
 
         [Header("Settings")]
+        [Tooltip("Scene view camera settings applied when this page is shown.")]
         [SerializeField]
         private SceneViewCameraSettings m_CameraSettings = new();
 
@@ -122,12 +126,14 @@ namespace Unity.Tutorials.Editor
         public LocalizableString DoneButton = "Done";
 
         [Header("Sounds")]
+        [Tooltip("Sound played when this page is completed.")]
         [SerializeField]
         private AudioClip m_CompletedSound;
 
         /// <summary>
         /// Faq Entries for that specific page
         /// </summary>
+        [Tooltip("FAQ entries specific to this page.")]
         [FormerlySerializedAs("m_FAQEntries")]
         [SerializeField]
         public FaqEntry[] m_FaqEntries = Array.Empty<FaqEntry>();

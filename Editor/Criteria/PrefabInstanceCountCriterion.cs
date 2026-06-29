@@ -36,18 +36,21 @@ namespace Unity.Tutorials.Editor
         /// <summary>
         /// The prefab of instances we want to count.
         /// </summary>
+        [Tooltip("Prefab asset whose instances are counted in the scene.")]
         [FormerlySerializedAs("prefabParent")]
         public GameObject PrefabParent;
 
         /// <summary>
         /// The wanted comparison mode.
         /// </summary>
+        [Tooltip("How the instance count is compared against the target.")]
         [FormerlySerializedAs("comparisonMode")]
         public InstanceCountComparison ComparisonMode = InstanceCountComparison.AtLeast;
 
         /// <summary>
         /// The desired amount of instances.
         /// </summary>
+        [Tooltip("Target number of prefab instances required in the scene.")]
         [Range(0, 100)]
         [FormerlySerializedAs("instanceCount")]
         public int InstanceCount = 1;

@@ -35,14 +35,17 @@ namespace Unity.Tutorials.Editor
             /// <summary>
             /// Text of the button.
             /// </summary>
+            [Tooltip("Text shown on the button.")]
             public LocalizableString Text = new();
             /// <summary>
             /// Tooltip of the button.
             /// </summary>
+            [Tooltip("Tooltip shown when hovering over the button.")]
             public LocalizableString Tooltip = new();
             /// <summary>
             /// Callback for the button click.
             /// </summary>
+            [Tooltip("Callback invoked when the button is clicked.")]
             public UnityEvent OnClick = new();
         }
 
@@ -51,6 +54,7 @@ namespace Unity.Tutorials.Editor
         /// </summary>
         public MediaContent HeaderContent { get => m_HeaderContent; set => m_HeaderContent = value; }
         [Header("Header")]
+        [Tooltip("Media content shown in the dialog header.")]
         [SerializeField]
         private MediaContent m_HeaderContent;
 
@@ -59,6 +63,7 @@ namespace Unity.Tutorials.Editor
         /// </summary>
         public LocalizableString WindowTitle { get => m_WindowTitle; set => m_WindowTitle = value; }
         [Header("Properties")]
+        [Tooltip("Title of the welcome dialog window.")]
         [SerializeField]
         internal LocalizableString m_WindowTitle;
 
@@ -66,6 +71,7 @@ namespace Unity.Tutorials.Editor
         /// Title of the welcome dialog.
         /// </summary>
         public LocalizableString Title { get => m_Title; set => m_Title = value; }
+        [Tooltip("Title displayed in the dialog body.")]
         [SerializeField]
         internal LocalizableString m_Title;
 
@@ -73,6 +79,7 @@ namespace Unity.Tutorials.Editor
         /// Description of the welcome dialog.
         /// </summary>
         public LocalizableString Description { get => m_Description; set => m_Description = value; }
+        [Tooltip("Body text of the welcome dialog.")]
         [SerializeField, LocalizableTextArea(1, 10)]
         internal LocalizableString m_Description;
 
@@ -90,6 +97,7 @@ namespace Unity.Tutorials.Editor
         /// Buttons specified for the welcome page.
         /// </summary>
         public ButtonData[] Buttons { get => m_Buttons; set => m_Buttons = value; }
+        [Tooltip("Buttons displayed at the bottom of the dialog.")]
         [SerializeField]
         internal ButtonData[] m_Buttons;
 

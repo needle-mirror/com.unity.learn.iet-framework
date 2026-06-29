@@ -15,8 +15,10 @@ namespace Unity.Tutorials.Editor
     public class MaterialPropertyModifiedCriterion : Criterion
     {
         internal SceneObjectReference Target { get => m_Target.SceneObjectReference; set => m_Target.SceneObjectReference = value; }
+        [Tooltip("Material whose property is being watched for changes.")]
         [SerializeField] private ObjectReference m_Target = new();
 
+        [Tooltip("Material property path to watch for modifications.")]
         [SerializeField] private string m_MaterialPropertyPath = "";
 
         private string m_InitialValue;

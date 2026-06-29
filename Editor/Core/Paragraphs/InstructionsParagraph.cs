@@ -15,17 +15,20 @@ namespace Unity.Tutorials.Editor.Paragraphs
         /// <summary>
         /// The title displayed at the top of the paragraph.
         /// </summary>
+        [Tooltip("Title displayed at the top of the paragraph.")]
         public LocalizableString Title = "Instructions";
 
         /// <summary>
         /// The text that makes the paragraph.
         /// </summary>
+        [Tooltip("Body text of the paragraph.")]
         [LocalizableTextArea(3, 15)] public LocalizableString Text;
 
         [SerializeField]
-        [Tooltip("The state in which the criteria of the page are be considered as completed")]
+        [Tooltip("The state in which the criteria of the page are be considered as completed.")]
         internal CompletionType m_CriteriaCompletion = CompletionType.CompletedWhenAllAreTrue;
 
+        [Tooltip("Criteria that must be satisfied to complete this paragraph.")]
         [SerializeField] internal TypedCriterionCollection m_Criteria = new();
         private readonly List<TypedCriterion> m_CriteriaBuffer = new();
 

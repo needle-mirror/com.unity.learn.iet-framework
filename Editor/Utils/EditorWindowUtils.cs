@@ -68,9 +68,14 @@ namespace Unity.Tutorials.Editor
         /// Centers an EditorWindow to the Editor main window.
         /// </summary>
         /// <param name="win">The window to center</param>
+        /// <remarks>
+        /// If the Editor main window cannot be located (e.g. during early startup in
+        /// automated test environments), the window is left at its current position.
+        /// </remarks>
         public static void CenterOnMainWindow(EditorWindow win)
         {
-            Rect main = GetEditorMainWindowPos();
+            if (!TryGetEditorMainWindowPos(out Rect main))
+                return;
             Rect pos = win.position;
             float w = (main.width - pos.width) * 0.5f;
             float h = (main.height - pos.height) * 0.5f;
@@ -85,6 +90,14 @@ namespace Unity.Tutorials.Editor
         /// <returns>A rect of the main window position on screen</returns>
         public static Rect GetEditorMainWindowPos()
         {
+            if (!TryGetEditorMainWindowPos(out Rect pos))
+                throw new NotSupportedException("Can't find internal main window. Maybe something has changed inside Unity");
+            return pos;
+        }
+
+        private static bool TryGetEditorMainWindowPos(out Rect pos)
+        {
+            pos = default;
             // NOTE Code adapted from http://answers.unity.com/answers/960709/view.html
             Type containerWinType = GetAllDerivedTypes(typeof(ScriptableObject))
                 .Where(t => t.Name == "ContainerWindow")
@@ -102,12 +115,12 @@ namespace Unity.Tutorials.Editor
                 int showMode = (int)showModeField.GetValue(win);
                 if (showMode == 4) // main window
                 {
-                    Rect pos = (Rect)positionProperty.GetValue(win, null);
-                    return pos;
+                    pos = (Rect)positionProperty.GetValue(win, null);
+                    return true;
                 }
             }
 
-            throw new NotSupportedException("Can't find internal main window. Maybe something has changed inside Unity");
+            return false;
         }
 
         /// <summary>

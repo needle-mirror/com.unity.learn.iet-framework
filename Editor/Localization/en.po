@@ -119,10 +119,13 @@ msgid "TutorialLabelAutoCompletion"
 msgstr "Auto Completion"
 
 msgid "TutorialButtonStartAutoCompletion"
-msgstr "Start Auto Completion"
+msgstr "Auto Complete"
 
 msgid "TutorialButtonStopAutoCompletion"
 msgstr "Stop Auto Completion"
+
+msgid "TutorialButtonLaunchTutorial"
+msgstr "Launch Tutorial"
 
 msgid "IconPreviewMaskingTooltip"
 msgstr "Preview Masking"

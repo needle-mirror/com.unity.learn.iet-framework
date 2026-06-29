@@ -14,8 +14,10 @@ namespace Unity.Tutorials.Editor
     [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public class InstantiatePrefabCriterion : Criterion
     {
+        [Tooltip("Prefab asset that must be instantiated in the scene.")]
         [SerializeField] private GameObject m_PrefabParent;
 
+        [Tooltip("Future references bound to the resulting prefab instances.")]
         [SerializeField] private FuturePrefabInstanceCollection m_FuturePrefabInstances = new();
 
 #if UNITY_6000_3_OR_NEWER

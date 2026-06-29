@@ -21,4 +21,4 @@ This version of Tutorial Framework is compatible with the following versions of 
 
 * Unity 6.5 and newer
 
-[Tutorial Authoring Tools]: https://docs.unity3d.com/Packages/com.unity.learn.iet-framework.authoring@2.1
+[Tutorial Authoring Tools]: https://docs.unity3d.com/Packages/com.unity.learn.iet-framework.authoring@2.0

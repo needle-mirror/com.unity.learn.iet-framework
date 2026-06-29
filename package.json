@@ -1,7 +1,7 @@
 {
   "name": "com.unity.learn.iet-framework",
   "displayName": "Tutorial Framework",
-  "version": "6.0.3",
+  "version": "6.0.4",
   "unity": "6000.0",
   "unityRelease": "0f1",
   "description": "This package is used to display interactive in-Editor tutorials in tutorial projects and project templates.",
@@ -16,15 +16,15 @@
     "com.unity.learn.iet-framework.tests": "0.0.0"
   },
   "_upm": {
-    "changelog": "### Added\n- Added ButtonParagraph abstract class, to create custom paragraphs for Tutorial Pages containing a button.\n- Added a NextTutorialButtonParagraph class, which allows to send the user to another tutorial at the press of a button.\n\n### Changed\n- Migration to v6 assets is now automatic, and will happen on first package import. It will still be available to trigger it again via the menu item Tutorials > Authoring > Upgrade tutorial data to v6.\n- Paragraph names now displayed in a more human-readable way.\n\n### Fixed\n- Migration v6 now migrating correctly the \"Next tutorial\" button paragraph, to a specific paragraph type added for the occasion.\n- Added MovedFrom attribute to relevant classes, for automatic code migration of UnityEvent callbacks, and other serialized class/assembly names.\n- Reworked user actions (add, remove Page or Paragraph, etc.) so that they are all Undoable (i.e. via Ctrl-Z/Cmd-Z) and Revertable.\n- Fixed an issue with the creation of Localisation assets.\n- Fixed an issue with the migration of Criteria from v5 to v6. They now get ported correctly."
+    "changelog": "### Added\n- Added a button at the top of the Inspector for Tutorial objects, that allows to launch a tutorial in the Tutorials Window.\n- Added tooltips to many public and serialized fields.\n\n### Fixed\n- `EditorWindowUtils.CenterOnMainWindow` no longer throws a `NotSupportedException` when the Editor main window cannot be located (e.g. during early startup in automated test environments). The window is left at its default position instead.\n- `VideoPlayerElement` no longer throws a `MissingReferenceException` during Editor shutdown when its panel is detached after the underlying `VideoPlayer` GameObject has already been destroyed."
   },
   "upmCi": {
-    "footprint": "74fe5a126b9012f65307cf2fc4cb3293ef74c244"
+    "footprint": "09e688b93c92d275b0252450c09472cad8a2ec62"
   },
   "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.learn.iet-framework@6.0/manual/index.html",
   "repository": {
     "url": "https://github.cds.internal.unity3d.com/unity/iet-package.git",
     "type": "git",
-    "revision": "1a5cba73126fee5511f8e5809db30d5a1f112d15"
+    "revision": "e26f72965b5133d63eeec8c7501f5c5416726f02"
   }
 }

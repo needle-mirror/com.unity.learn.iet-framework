@@ -19,6 +19,7 @@ namespace Unity.Tutorials.Editor
         {
         }
 
+        [Tooltip("Objects that must all be selected for the criterion to complete.")]
         [SerializeField] private ObjectReferenceCollection m_ObjectReferences = new();
 
         /// <summary>

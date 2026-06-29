@@ -16,6 +16,7 @@ namespace Unity.Tutorials.Editor
         public Tool TargetTool { get => m_TargetTool;
             set => m_TargetTool = value;
         }
+        [Tooltip("Editor tool that must be active for the criterion to complete.")]
         [SerializeField] private Tool m_TargetTool;
 
         /// <summary>

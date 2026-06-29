@@ -12,6 +12,7 @@ namespace Unity.Tutorials.Editor.Paragraphs
         /// <summary>
         /// The code being displayed in the paragraph.
         /// </summary>
+        [Tooltip("Code snippet displayed in the paragraph.")]
         [CodeSampleBlock] public string CodeSample;
 
         /// <inheritdoc />

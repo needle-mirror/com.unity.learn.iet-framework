@@ -16,6 +16,7 @@ namespace Unity.Tutorials.Editor
             NotPlaying
         }
 
+        [Tooltip("Play Mode state that must be active for the criterion to complete.")]
         [SerializeField] private PlayModeState m_RequiredPlayModeState = PlayModeState.Playing;
 
         /// <summary>

@@ -10,6 +10,7 @@ namespace Unity.Tutorials.Editor
     [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public class EditorWindowCriterion : Criterion
     {
+        [Tooltip("EditorWindow type that must be open for the criterion to complete.")]
         [SerializedTypeFilter(typeof(EditorWindow), false)]
         [SerializeField]
         private SerializedType m_EditorWindowType = new(null);
@@ -19,6 +20,7 @@ namespace Unity.Tutorials.Editor
         /// </summary>
         public SerializedType EditorWindowType { get => m_EditorWindowType; set => m_EditorWindowType = value; }
 
+        [Tooltip("Close the window first if it is already open when the criterion starts.")]
         [SerializeField] private bool m_CloseIfAlreadyOpen;
 
         private EditorWindow m_WindowInstance;

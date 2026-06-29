@@ -14,6 +14,7 @@ namespace Unity.Tutorials.Editor
         /// The scene that needs to be added to the build.
         /// </summary>
         public SceneAsset Scene { get => m_Scene; set => m_Scene = value; }
+        [Tooltip("Scene that must be added to the Build Settings for the criterion to complete.")]
         [SerializeField] private SceneAsset m_Scene;
 
         /// <summary>

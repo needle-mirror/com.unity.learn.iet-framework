@@ -1,3 +1,4 @@
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Unity.Tutorials.Editor.Paragraphs
@@ -10,6 +11,7 @@ namespace Unity.Tutorials.Editor.Paragraphs
     public abstract class ButtonParagraph : ParagraphBase
     {
         /// <summary> The label shown on the button. </summary>
+        [Tooltip("Label shown on the button.")]
         public LocalizableString ButtonText;
 
         /// <inheritdoc />

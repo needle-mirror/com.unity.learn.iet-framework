@@ -2,7 +2,7 @@
 
 **Tutorial Styles** allow you to add an even greater amount of personalization to your tutorials.
 
-You can use the **Tutorial Styles** asset to customize the appearance of [Masking](https://docs.unity3d.com/Packages/com.unity.learn.iet-framework.authoring@2.1/manual/masking-highlighting.html) and Highlighting.
+You can use the **Tutorial Styles** asset to customize the appearance of [Masking](https://docs.unity3d.com/Packages/com.unity.learn.iet-framework.authoring@2.0/manual/masking-highlighting.html) and Highlighting.
 
 ## Tutorial Styles Properties
 

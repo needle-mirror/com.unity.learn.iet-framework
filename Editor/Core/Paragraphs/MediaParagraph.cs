@@ -1,4 +1,5 @@
-﻿using UnityEngine.UIElements;
+﻿using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Unity.Tutorials.Editor.Paragraphs
 {
@@ -11,6 +12,7 @@ namespace Unity.Tutorials.Editor.Paragraphs
         /// <summary>
         /// The media to display.
         /// </summary>
+        [Tooltip("Image or video shown in the paragraph.")]
         public MediaContent Media;
 
         /// <inheritdoc />

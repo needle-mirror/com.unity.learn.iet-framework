@@ -19,6 +19,7 @@ namespace Unity.Tutorials.Editor
         {
         }
 
+        [Tooltip("Objects that must be framed in the Scene view for the criterion to complete.")]
         [SerializeField] private ObjectReferenceCollection m_ObjectReferences = new();
 
         /// <summary>

@@ -42,11 +42,13 @@ namespace Unity.Tutorials.Editor
         /// Raised when this criterion is completed.
         /// </summary>
         [Header("Events")]
+        [Tooltip("Raised when this criterion is completed.")]
         public CriterionEvent Completed = new();
 
         /// <summary>
         /// Raised when this criterion is invalidated.
         /// </summary>
+        [Tooltip("Raised when this criterion is invalidated.")]
         public CriterionEvent Invalidated = new();
 
         private bool m_Completed;

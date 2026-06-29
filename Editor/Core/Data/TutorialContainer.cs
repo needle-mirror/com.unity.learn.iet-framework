@@ -63,6 +63,7 @@ namespace Unity.Tutorials.Editor
         /// <summary>
         /// Sections (tutorial or link card) of this container.
         /// </summary>
+        [Tooltip("Cards displayed on this container, either linking to a tutorial or an external URL.")]
         public Section[] Sections = { };
 
         /// <summary>
@@ -81,6 +82,7 @@ namespace Unity.Tutorials.Editor
         /// <summary>
         /// Background texture for the card/header.
         /// </summary>
+        [Tooltip("Background texture for the container's card and header.")]
         [FormerlySerializedAs("HeaderBackground")]
         public Texture2D BackgroundImage;
 
@@ -94,6 +96,7 @@ namespace Unity.Tutorials.Editor
         /// <summary>
         /// A list of questions that can be applied to that whole container
         /// </summary>
+        [Tooltip("FAQ entries shown for this whole container.")]
         [SerializeField]
         public FaqEntry[] FaqEntries = Array.Empty<FaqEntry>();
 
@@ -136,16 +139,19 @@ namespace Unity.Tutorials.Editor
             /// <summary>
             /// Title of the section.
             /// </summary>
+            [Tooltip("Title shown on the section card.")]
             public LocalizableString Heading;
 
             /// <summary>
             /// Description of the section.
             /// </summary>
+            [Tooltip("Description shown on the section card.")]
             public LocalizableString Text;
 
             /// <summary>
             /// The type of section.
             /// </summary>
+            [Tooltip("Whether this card starts a tutorial or opens an external URL.")]
             public SectionType Type;
 
             /// <summary>
@@ -164,6 +170,7 @@ namespace Unity.Tutorials.Editor
             /// <summary>
             /// Image for the card.
             /// </summary>
+            [Tooltip("Image displayed on the section card.")]
             public Texture2D Image;
 
             /// <summary>
