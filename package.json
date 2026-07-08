@@ -1,7 +1,7 @@
 {
   "name": "com.unity.learn.iet-framework",
   "displayName": "Tutorial Framework",
-  "version": "6.0.5",
+  "version": "6.0.6",
   "unity": "6000.0",
   "unityRelease": "0f1",
   "description": "This package is used to display interactive in-Editor tutorials in tutorial projects and project templates.",
@@ -16,15 +16,15 @@
     "com.unity.learn.iet-framework.tests": "0.0.0"
   },
   "_upm": {
-    "changelog": "### Fixed\n- Preventing dialog window from opening in batch mode (for unit tests)."
+    "changelog": "### Fixed\n- Scene Management data is no longer lost when upgrading a Tutorial asset from v5.x to v6. Tutorials whose Scenes array was populated in v5 now correctly load those scenes at runtime, instead of creating a new empty scene."
   },
   "upmCi": {
-    "footprint": "a8d1d5cdf9050ed9df92518941c87289555cbac3"
+    "footprint": "d28ba1316d537f7ca0c33188727e34efa782039f"
   },
   "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.learn.iet-framework@6.0/manual/index.html",
   "repository": {
     "url": "https://github.cds.internal.unity3d.com/unity/iet-package.git",
     "type": "git",
-    "revision": "2443da4c40224fd5d3e0dd89c94bf7f6a5d3b3e3"
+    "revision": "90c3bdea8459b526575749d5ba5433144ea0b964"
   }
 }

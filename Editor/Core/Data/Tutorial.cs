@@ -628,6 +628,17 @@ namespace Unity.Tutorials.Editor
                 Scenes[0] = m_Scene;
                 m_Scene = null;
             }
+
+            // This is for supporting assets made with < 6.0 -versions of IET.
+            // v5.x loaded m_Scenes whenever the array was populated, treating m_SceneManagementBehavior
+            // as a fallback for empty arrays. v6 dispatches strictly on the enum, so any v5 asset whose
+            // enum defaulted to CreateNewScene (or was set to UseActiveScene) would now ignore its
+            // populated Scenes and start a new scene instead. Force LoadScenes when scenes are present.
+            if (m_Scenes != null && m_Scenes.Length > 0
+                && m_SceneManagementBehavior != SceneManagementBehaviorType.LoadScenes)
+            {
+                m_SceneManagementBehavior = SceneManagementBehaviorType.LoadScenes;
+            }
         }
 
         /// <summary>

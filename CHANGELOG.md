@@ -4,6 +4,10 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.0.6] - 2026-07-08
+### Fixed
+- Scene Management data is no longer lost when upgrading a Tutorial asset from v5.x to v6. Tutorials whose Scenes array was populated in v5 now correctly load those scenes at runtime, instead of creating a new empty scene.
+
 ## [6.0.5] - 2026-07-08
 ### Fixed
 - Preventing dialog window from opening in batch mode (for unit tests).

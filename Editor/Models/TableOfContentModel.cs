@@ -82,14 +82,14 @@ namespace Unity.Tutorials.Editor
                                                       .Where(t => t.ProgressTrackingEnabled);
             foreach (Tutorial tutorial in allTutorials)
             {
-                GenesisHelper.TutorialProgressStatus completionDataOfTtutorial = tutorialsCompletionData.FirstOrDefault(tcd => tcd.lessonId == tutorial.LessonId);
-                if (completionDataOfTtutorial == default)
+                GenesisHelper.TutorialProgressStatus completionDataOfTutorial = tutorialsCompletionData.FirstOrDefault(tcd => tcd.lessonId == tutorial.LessonId);
+                if (completionDataOfTutorial == default)
                 {
                     tutorial.CompletedByUser = false;
                 }
                 else
                 {
-                    tutorial.CompletedByUser = completionDataOfTtutorial.status == "Finished";
+                    tutorial.CompletedByUser = completionDataOfTutorial.status == "Finished";
                 }
                 //UnityEngine.Debug.Log($"{tutorial.LessonId} is {(tutorial.CompletedByUser ? string.Empty : "not")} completed");
             }
