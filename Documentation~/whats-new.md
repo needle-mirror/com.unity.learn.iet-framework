@@ -14,4 +14,4 @@ The main highlights of this release include:
 
 For a full list of changes and updates, see the [Changelog].
 
-[Changelog]: https://docs.unity3d.com/Packages/com.unity.learn.iet-framework@6.0?subfolder=/changelog/CHANGELOG.html
+[Changelog]: https://docs.unity3d.com/Packages/com.unity.learn.iet-framework@6.0/changelog/CHANGELOG.html

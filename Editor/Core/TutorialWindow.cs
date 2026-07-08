@@ -332,18 +332,22 @@ namespace Unity.Tutorials.Editor
             && !m_Model.Tutorial.IsLoadingLayout
             && !m_Model.Tutorial.PlayModeChanging)
             {
-                // Delay call prevents us getting the dialog upon assembly reload.
-                EditorApplication.delayCall += delegate
+                // Prevent this dialog to be opened when executing tests in the CI / headless mode
+                if (!Application.isBatchMode)
                 {
-                    TutorialFrameworkModel.s_ShowTutorialsWindowClosedDialog.SetValue(false);
+                    // Delay call prevents us getting the dialog upon assembly reload.
+                    EditorApplication.delayCall += delegate
+                    {
+                        TutorialFrameworkModel.s_ShowTutorialsWindowClosedDialog.SetValue(false);
 
-                    string m_PromptOk = Localization.Tr(LocalizationKeys.k_WindowClosedDialogButtonOk);
-                    string m_TabClosedDialogTitle = Localization.Tr(LocalizationKeys.k_WindowClosedDialogTitle);
-                    string m_MenuPathGuide = Localization.Tr(MenuItems.Menu) + " > " + Localization.Tr(MenuItems.ShowTutorials);
-                    string m_TabClosedDialogText = string.Format(Localization.Tr(LocalizationKeys.k_WindowClosedDialogMessage), m_MenuPathGuide);
+                        string m_PromptOk = Localization.Tr(LocalizationKeys.k_WindowClosedDialogButtonOk);
+                        string m_TabClosedDialogTitle = Localization.Tr(LocalizationKeys.k_WindowClosedDialogTitle);
+                        string m_MenuPathGuide = Localization.Tr(MenuItems.Menu) + " > " + Localization.Tr(MenuItems.ShowTutorials);
+                        string m_TabClosedDialogText = string.Format(Localization.Tr(LocalizationKeys.k_WindowClosedDialogMessage), m_MenuPathGuide);
 
-                    EditorUtility.DisplayDialog(m_TabClosedDialogTitle, m_TabClosedDialogText, m_PromptOk);
-                };
+                        EditorUtility.DisplayDialog(m_TabClosedDialogTitle, m_TabClosedDialogText, m_PromptOk);
+                    };
+                }
             }
             TeardownBackend();
         }
