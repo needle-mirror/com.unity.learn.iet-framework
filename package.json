@@ -1,7 +1,7 @@
 {
   "name": "com.unity.learn.iet-framework",
   "displayName": "Tutorial Framework",
-  "version": "6.0.6",
+  "version": "6.0.7",
   "unity": "6000.0",
   "unityRelease": "0f1",
   "description": "This package is used to display interactive in-Editor tutorials in tutorial projects and project templates.",
@@ -16,15 +16,15 @@
     "com.unity.learn.iet-framework.tests": "0.0.0"
   },
   "_upm": {
-    "changelog": "### Fixed\n- Scene Management data is no longer lost when upgrading a Tutorial asset from v5.x to v6. Tutorials whose Scenes array was populated in v5 now correctly load those scenes at runtime, instead of creating a new empty scene."
+    "changelog": "### Fixed\n- Tutorial Container sections pointing to an external URL are no longer turned into broken Tutorial-type sections when upgrading a project from v5.x. They are now correctly recognised as link sections, both during the v6 data upgrade and on load of already-affected projects.\n- The completion rate and the Overview window now determine whether a section is a tutorial from its Type, instead of legacy URL/tutorial-reference heuristics.\n- Empty Instruction paragraphs are no longer imported during the v6 data upgrade."
   },
   "upmCi": {
-    "footprint": "d28ba1316d537f7ca0c33188727e34efa782039f"
+    "footprint": "15a6e124e677887d29bd4312c0fbca26536d11b3"
   },
   "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.learn.iet-framework@6.0/manual/index.html",
   "repository": {
     "url": "https://github.cds.internal.unity3d.com/unity/iet-package.git",
     "type": "git",
-    "revision": "90c3bdea8459b526575749d5ba5433144ea0b964"
+    "revision": "bd33a9ac499e5c7ed74f16fe05961bce2483da63"
   }
 }

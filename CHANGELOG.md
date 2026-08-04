@@ -4,6 +4,12 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.0.7] - 2026-08-04
+### Fixed
+- Tutorial Container sections pointing to an external URL are no longer turned into broken Tutorial-type sections when upgrading a project from v5.x. They are now correctly recognised as link sections, both during the v6 data upgrade and on load of already-affected projects.
+- The completion rate and the Overview window now determine whether a section is a tutorial from its Type, instead of legacy URL/tutorial-reference heuristics.
+- Empty Instruction paragraphs are no longer imported during the v6 data upgrade.
+
 ## [6.0.6] - 2026-07-08
 ### Fixed
 - Scene Management data is no longer lost when upgrading a Tutorial asset from v5.x to v6. Tutorials whose Scenes array was populated in v5 now correctly load those scenes at runtime, instead of creating a new empty scene.

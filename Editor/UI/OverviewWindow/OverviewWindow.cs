@@ -318,7 +318,7 @@ namespace Unity.Tutorials.Editor
             // Combined children of target: (sub-containers) then (Tutorials). Map combined childIndex
             // to Tutorial-section index by subtracting the container count.
             int targetContainerCount = m_allContainers.Count(c => c.ParentContainer == targetContainer);
-            int targetTutorialCount = targetContainer.Sections.Count(s => s.Tutorial != null);
+            int targetTutorialCount = targetContainer.Sections.Count(s => s.ContainsTutorial);
             // When same container, removal of dragged shrinks Tutorial slice by 1
             int effectiveTutorialCount = sameContainer ? targetTutorialCount - 1 : targetTutorialCount;
             if (effectiveTutorialCount < 0) effectiveTutorialCount = 0;
@@ -584,7 +584,7 @@ namespace Unity.Tutorials.Editor
             {
                 foreach (TutorialContainer.Section section in container.Sections)
                 {
-                    if(SectionContainsTutorial(section)) m_tutorialsWithinContainers.Add(section.Tutorial);
+                    if(section.ContainsTutorial) m_tutorialsWithinContainers.Add(section.Tutorial);
                 }
             }
 
@@ -653,7 +653,7 @@ namespace Unity.Tutorials.Editor
                     DoContainer(childContainer, childItems);
                 }
 
-                List<Tutorial> tutorials = container.Sections.Where(SectionContainsTutorial).Select(section => section.Tutorial).ToList();
+                List<Tutorial> tutorials = container.Sections.Where(section => section.ContainsTutorial).Select(section => section.Tutorial).ToList();
                 foreach (Tutorial tutorial in tutorials)
                 {
                     // Tutorial is added to two (or more) Containers
@@ -671,12 +671,6 @@ namespace Unity.Tutorials.Editor
                         pageItems.Add(new TreeViewItemData<TutorialTreeItem>(nextId++, pageItem));
                     }
                 }
-            }
-
-            // TODO: Move inside the Section class?
-            bool SectionContainsTutorial(TutorialContainer.Section section)
-            {
-                return section.Tutorial != null &&  section.Url.IsNullOrEmpty();
             }
         }
 

@@ -546,6 +546,9 @@ namespace Unity.Tutorials.Editor
                 {
                     case ParagraphType.Narrative:
                     {
+                        if (obsoleteParagraph.Text.Untranslated.IsNullOrEmpty())
+                            break;
+
                         NarrativeParagraph np = AddParagraph<NarrativeParagraph>();
                         np.Text = obsoleteParagraph.Text;
                         np.MaskingSettings.CopySettingsFrom(obsoleteParagraph.MaskingSettings);
@@ -554,14 +557,29 @@ namespace Unity.Tutorials.Editor
                     }
                     case ParagraphType.Media:
                     {
+                        MediaContent media = obsoleteParagraph.Media;
+                        if (media == null
+                            || (media.Image == null
+                                && media.VideoClip == null
+                                && string.IsNullOrEmpty(media.Url)))
+                        {
+                            break;
+                        }
+
                         MediaParagraph mp = AddParagraph<MediaParagraph>();
-                        mp.Media = obsoleteParagraph.Media;
+                        mp.Media = media;
                         mp.MaskingSettings.CopySettingsFrom(obsoleteParagraph.MaskingSettings);
 
                         break;
                     }
                     case ParagraphType.Instruction:
                     {
+                        bool hasTitle = !obsoleteParagraph.Title.Untranslated.IsNullOrEmpty();
+                        bool hasText = !obsoleteParagraph.Text.Untranslated.IsNullOrEmpty();
+                        bool hasCriteria = obsoleteParagraph.Criteria.Any();
+                        if (!hasTitle && !hasText && !hasCriteria)
+                            break;
+
                         InstructionsParagraph ip = AddParagraph<InstructionsParagraph>();
                         ip.Title = obsoleteParagraph.Title;
                         ip.Text = obsoleteParagraph.Text;
@@ -579,6 +597,12 @@ namespace Unity.Tutorials.Editor
                     }
                     case ParagraphType.SwitchTutorial:
                     {
+                        if (obsoleteParagraph.Text.Untranslated.IsNullOrEmpty()
+                            && obsoleteParagraph.m_Tutorial == null)
+                        {
+                            break;
+                        }
+
                         NextTutorialButtonParagraph bp = AddParagraph<NextTutorialButtonParagraph>();
                         bp.ButtonText = obsoleteParagraph.Text;
                         bp.NextTutorial = obsoleteParagraph.m_Tutorial;

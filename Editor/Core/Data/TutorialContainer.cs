@@ -28,7 +28,7 @@ namespace Unity.Tutorials.Editor
     /// 2. Tutorial category (non-null Parent): a set of tutorials that are a part of some other container
     /// </remarks>
     [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
-    public class TutorialContainer : ScriptableObject
+    public class TutorialContainer : ScriptableObject, ISerializationCallbackReceiver
     {
         /// <summary>
         /// Raised when any TutorialContainer is modified.
@@ -184,6 +184,9 @@ namespace Unity.Tutorials.Editor
             /// </summary>
             public bool IsTutorial => Type == SectionType.Tutorial;
 
+            // Is this a tutorial section with an actual Tutorial assigned?
+            internal bool ContainsTutorial => IsTutorial && Tutorial != null;
+
             /// <summary>
             /// Is this section set up properly? Does it have all the data needed to fulfill its purpose?
             /// </summary>
@@ -221,6 +224,35 @@ namespace Unity.Tutorials.Editor
             {
                 return IsTutorial
                     && (IsConfiguredCorrectly && Tutorial.LoadLocalCompletionState());
+            }
+        }
+
+        /// <summary>
+        /// UnityEngine.ISerializationCallbackReceiver override, do not call.
+        /// </summary>
+        public void OnBeforeSerialize()
+        {
+        }
+
+        /// <summary>
+        /// UnityEngine.ISerializationCallbackReceiver override, do not call.
+        /// </summary>
+        public void OnAfterDeserialize()
+        {
+            // This is for supporting assets made with < 6.0 versions of IET.
+            // v5 sections had no Type field (a section acted as a link whenever Url was set),
+            // so v5 assets deserialize with the default Type == Tutorial. Promote them to
+            // ExternalLink when the Url is the only configuration present. The Tutorial == null
+            // guard keeps intact v6 sections deliberately set to Tutorial type that still carry
+            // a stale Url (the Inspector hides but doesn't clear it).
+            foreach (Section section in Sections)
+            {
+                if (section.Type == SectionType.Tutorial
+                    && section.Tutorial == null
+                    && section.Url.IsNotNullOrEmpty())
+                {
+                    section.Type = SectionType.ExternalLink;
+                }
             }
         }
 
@@ -268,7 +300,7 @@ namespace Unity.Tutorials.Editor
             int completedTutorialsCount = 0;
             foreach (Section section in Sections)
             {
-                if (section.Tutorial != null && section.Tutorial.ProgressTrackingEnabled)
+                if (section.ContainsTutorial && section.Tutorial.ProgressTrackingEnabled)
                 {
                     tutorialsCount += 1;
                     if (section.Tutorial.CompletedByUser)
@@ -288,6 +320,7 @@ namespace Unity.Tutorials.Editor
             {
                 section.Type = section.Url.IsNotNullOrEmpty() ? SectionType.ExternalLink : SectionType.Tutorial;
             }
+            EditorUtility.SetDirty(this); // Ensures the subsequent AssetDatabase.SaveAssets() persists the new Types
         }
     }
 }
