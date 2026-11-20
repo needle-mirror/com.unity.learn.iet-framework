@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
@@ -115,8 +114,17 @@ namespace Unity.Tutorials.Editor
             "Packages/com.unity.learn.iet-framework/DefaultAssets/Layouts/DefaultLayout2021.wlt";
 #endif
 
-        internal IEnumerable<TutorialContainer> FindSubCategories() =>
-            TutorialEditorUtils.FindAssets<TutorialContainer>().Where(c => c.ParentContainer == this);
+        internal IEnumerable<TutorialContainer> FindSubCategories()
+        {
+            List<TutorialContainer> subCategories = new();
+            foreach (TutorialContainer container in TutorialEditorUtils.FindAssets<TutorialContainer>())
+            {
+                if (container.ParentContainer == this)
+                    subCategories.Add(container);
+            }
+
+            return subCategories;
+        }
 
         /// <summary>
         /// The type of a section, which determines how it appears

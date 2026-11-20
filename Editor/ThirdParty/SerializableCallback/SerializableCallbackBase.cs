@@ -1,5 +1,6 @@
+// NOTE: This vendored third-party file diverges from upstream: LINQ has been replaced with plain
+// loops to keep the package LINQ-free. Preserve that when re-syncing with upstream.
 using System;
-using System.Linq;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -59,9 +60,33 @@ namespace SerializableCallback
         /// <summary> Target method name </summary>
         public string methodName { get => _methodName;
             set { _methodName = value; ClearCache(); } }
-        public object[] Args { get { return args != null ? args : args = _args.Select(x => x.GetValue()).ToArray(); } }
+        public object[] Args
+        {
+            get
+            {
+                if (args != null) return args;
+
+                args = new object[_args.Length];
+                for (int i = 0; i < _args.Length; i++)
+                    args[i] = _args[i].GetValue();
+
+                return args;
+            }
+        }
         public object[] args;
-        public Type[] ArgTypes { get { return argTypes != null ? argTypes : argTypes = _args.Select(x => Arg.RealType(x.argType)).ToArray(); } }
+        public Type[] ArgTypes
+        {
+            get
+            {
+                if (argTypes != null) return argTypes;
+
+                argTypes = new Type[_args.Length];
+                for (int i = 0; i < _args.Length; i++)
+                    argTypes[i] = Arg.RealType(_args[i].argType);
+
+                return argTypes;
+            }
+        }
         public Type[] argTypes;
         public bool dynamic { get => _dynamic;
             set { _dynamic = value; ClearCache(); } }

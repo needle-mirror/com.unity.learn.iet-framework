@@ -16,6 +16,8 @@ namespace Unity.Tutorials.Editor
     /// </summary>
     internal static class Localization
     {
+        // Must match the assembly name, which is what the .po files are registered under.
+        const string k_GroupName = "Unity.Tutorials.Editor";
         private const string k_EnableEditorLocalizationPreference = "Editor.kEnableEditorLocalization";
         private const string k_EditorLocalePreference = "Editor.kEditorLocale";
         internal const string k_EnableEditorLocalizationProperty = "enableEditorLocalization";
@@ -57,7 +59,7 @@ namespace Unity.Tutorials.Editor
             }
 
 #if UNITY_2020_1_OR_NEWER
-            return L10n.Tr(stringID);
+            return L10n.Tr(stringID, k_GroupName);
 #elif UNITY_2019_3_OR_NEWER
             return UnityEditor.Localization.Editor.Localization.Tr(stringID);
 #else

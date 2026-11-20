@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using JetBrains.Annotations;
 using Unity.EditorCoroutines.Editor;
 using UnityEngine;
@@ -15,7 +14,7 @@ namespace Unity.Tutorials.Editor
     internal class TableOfContentModel : IModel
     {
         internal static List<TutorialContainer> CategoriesOfProjectDuringTests = new();
-        internal IEnumerable<TutorialContainer> RootCategoriesOfProject;
+        internal List<TutorialContainer> RootCategoriesOfProject;
         internal TutorialContainer CurrentContainer;
         internal bool FetchedTutorialStates { get; private set; }
 
@@ -78,11 +77,21 @@ namespace Unity.Tutorials.Editor
 
         private void UpdateLocalCompletionStatusOfAllTutorials(List<GenesisHelper.TutorialProgressStatus> tutorialsCompletionData)
         {
-            IEnumerable<Tutorial> allTutorials = TutorialEditorUtils.FindAssets<Tutorial>()
-                                                      .Where(t => t.ProgressTrackingEnabled);
-            foreach (Tutorial tutorial in allTutorials)
+            foreach (Tutorial tutorial in TutorialEditorUtils.FindAssets<Tutorial>())
             {
-                GenesisHelper.TutorialProgressStatus completionDataOfTutorial = tutorialsCompletionData.FirstOrDefault(tcd => tcd.lessonId == tutorial.LessonId);
+                if (!tutorial.ProgressTrackingEnabled)
+                    continue;
+
+                GenesisHelper.TutorialProgressStatus completionDataOfTutorial = default;
+                foreach (GenesisHelper.TutorialProgressStatus completionData in tutorialsCompletionData)
+                {
+                    if (completionData.lessonId != tutorial.LessonId)
+                        continue;
+
+                    completionDataOfTutorial = completionData;
+                    break;
+                }
+
                 if (completionDataOfTutorial == default)
                 {
                     tutorial.CompletedByUser = false;

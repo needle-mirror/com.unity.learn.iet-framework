@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using JetBrains.Annotations;
 using Unity.EditorCoroutines.Editor;
 using UnityEditor;
@@ -158,7 +157,10 @@ namespace Unity.Tutorials.Editor
         internal void SaveOriginalScenes()
         {
             Scene activeScene = SceneManager.GetActiveScene();
-            m_ActiveScenesBeforeTutorialStarted = GetCurrentScenes().Select(s => new SceneInfo(s == activeScene, s.path, s.isLoaded)).ToList();
+            List<Scene> currentScenes = GetCurrentScenes();
+            m_ActiveScenesBeforeTutorialStarted = new List<SceneInfo>(currentScenes.Count);
+            foreach (Scene scene in currentScenes)
+                m_ActiveScenesBeforeTutorialStarted.Add(new SceneInfo(scene == activeScene, scene.path, scene.isLoaded));
         }
 
         internal void SaveOriginalWindowLayout()
@@ -202,7 +204,7 @@ namespace Unity.Tutorials.Editor
 
         internal IEnumerator ReopenActiveScenesAsBeforeTutorialStarted()
         {
-            if (!m_ActiveScenesBeforeTutorialStarted.Any())
+            if (m_ActiveScenesBeforeTutorialStarted.Count == 0)
             {
                 yield break;
             }
@@ -249,9 +251,15 @@ namespace Unity.Tutorials.Editor
             }
 
             // Set original active scene
-            string originalActiveScenePath = m_ActiveScenesBeforeTutorialStarted.Where(sceneInfo => sceneInfo.Active)
-                                                          .Select(sceneInfo => sceneInfo.AssetPath)
-                                                          .FirstOrDefault();
+            string originalActiveScenePath = null;
+            foreach (SceneInfo sceneInfo in m_ActiveScenesBeforeTutorialStarted)
+            {
+                if (!sceneInfo.Active)
+                    continue;
+
+                originalActiveScenePath = sceneInfo.AssetPath;
+                break;
+            }
 
             foreach (Scene scene in GetCurrentScenes())
             {

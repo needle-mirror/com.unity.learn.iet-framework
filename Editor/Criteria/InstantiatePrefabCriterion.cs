@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
@@ -53,8 +52,11 @@ namespace Unity.Tutorials.Editor
         /// <param name="prefabParents">A list of Object the Prefab will be child of</param>
         public void SetFuturePrefabInstances(IList<UnityObject> prefabParents)
         {
-            IEnumerable<FuturePrefabInstance> futurePrefabInstances = prefabParents.Select(prefabParent => new FuturePrefabInstance(prefabParent));
-            m_FuturePrefabInstances.SetItems(futurePrefabInstances.ToList());
+            List<FuturePrefabInstance> futurePrefabInstances = new(prefabParents.Count);
+            foreach (UnityObject prefabParent in prefabParents)
+                futurePrefabInstances.Add(new FuturePrefabInstance(prefabParent));
+
+            m_FuturePrefabInstances.SetItems(futurePrefabInstances);
             OnValidate();
         }
 
@@ -291,9 +293,16 @@ namespace Unity.Tutorials.Editor
         /// <returns>An IEnumerable of all the FutureObjectReference that Criterion depends on</returns>
         protected override IEnumerable<FutureObjectReference> GetFutureObjectReferences()
         {
-            return m_FuturePrefabInstances
-                .Select(futurePrefabInstance => futurePrefabInstance.FutureReference)
-                .Where(futurePrefabInstance => futurePrefabInstance != null);
+            List<FutureObjectReference> futureReferences = new();
+            foreach (FuturePrefabInstance futurePrefabInstance in m_FuturePrefabInstances)
+            {
+                if (futurePrefabInstance.FutureReference == null)
+                    continue;
+
+                futureReferences.Add(futurePrefabInstance.FutureReference);
+            }
+
+            return futureReferences;
         }
 
         /// <summary>

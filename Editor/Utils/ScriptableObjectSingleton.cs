@@ -1,5 +1,4 @@
 using System.IO;
-using System.Linq;
 using JetBrains.Annotations;
 using UnityEditorInternal;
 using UnityEngine;
@@ -76,10 +75,13 @@ namespace Unity.Tutorials.Editor
         [CanBeNull]
         private static string GetFilePath()
         {
-            LocationAttribute attr = typeof(T).GetCustomAttributes(true)
-                                .OfType<LocationAttribute>()
-                                .FirstOrDefault();
-            return attr?.FilePath;
+            foreach (object attribute in typeof(T).GetCustomAttributes(true))
+            {
+                if (attribute is LocationAttribute location)
+                    return location.FilePath;
+            }
+
+            return null;
         }
     }
 }

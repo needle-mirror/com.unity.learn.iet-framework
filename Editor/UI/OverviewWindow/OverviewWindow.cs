@@ -1,7 +1,6 @@
 #if TUTORIAL_AUTHORING
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -122,12 +121,13 @@ namespace Unity.Tutorials.Editor
 
             void OnSelectionChanged(IEnumerable<object> obj)
             {
-                IEnumerable<object> enumerable = obj as object[] ?? obj.ToArray();
-                if (!enumerable.Any()) return;
-
-                TutorialTreeItem selected = (TutorialTreeItem)enumerable.First();
-                Selection.activeObject = selected.Asset;
-                EditorGUIUtility.PingObject(selected.Asset);
+                foreach (object selectedItem in obj)
+                {
+                    TutorialTreeItem selected = (TutorialTreeItem)selectedItem;
+                    Selection.activeObject = selected.Asset;
+                    EditorGUIUtility.PingObject(selected.Asset);
+                    return;
+                }
             }
 
             void BindItem(VisualElement element, int elementIndex)
@@ -165,7 +165,11 @@ namespace Unity.Tutorials.Editor
 
             StartDragArgs OnStartDragging(SetupDragAndDropArgs args)
             {
-                m_draggedId = args.selectedIds.First();
+                foreach (int selectedId in args.selectedIds)
+                {
+                    m_draggedId = selectedId;
+                    break;
+                }
 
                 return new StartDragArgs(args.startDragArgs.title, args.startDragArgs.visualMode);
             }
@@ -246,7 +250,14 @@ namespace Unity.Tutorials.Editor
 
             bool sameParent = draggedContainer.ParentContainer == newParent;
             int currentPos = sameParent ? draggedContainer.OrderInParent : -1;
-            int containerCount = m_allContainers.Count(c => c.ParentContainer == newParent && c != draggedContainer);
+            List<TutorialContainer> siblings = new();
+            foreach (TutorialContainer container in m_allContainers)
+            {
+                if (container.ParentContainer == newParent && container != draggedContainer)
+                    siblings.Add(container);
+            }
+
+            int containerCount = siblings.Count;
 
             // Map TreeView's combined childIndex (sub-containers then Tutorials) to container-slice index
             int desiredPos;
@@ -273,10 +284,7 @@ namespace Unity.Tutorials.Editor
                     EditorUtility.SetDirty(draggedContainer);
                 }
 
-                List<TutorialContainer> siblings = m_allContainers
-                    .Where(c => c.ParentContainer == newParent && c != draggedContainer)
-                    .OrderBy(c => c.OrderInParent)
-                    .ToList();
+                CollectionUtils.StableSort(siblings, (a, b) => a.OrderInParent.CompareTo(b.OrderInParent));
                 siblings.Insert(desiredPos, draggedContainer);
                 RenumberSiblings(siblings);
             }
@@ -317,8 +325,19 @@ namespace Unity.Tutorials.Editor
 
             // Combined children of target: (sub-containers) then (Tutorials). Map combined childIndex
             // to Tutorial-section index by subtracting the container count.
-            int targetContainerCount = m_allContainers.Count(c => c.ParentContainer == targetContainer);
-            int targetTutorialCount = targetContainer.Sections.Count(s => s.ContainsTutorial);
+            int targetContainerCount = 0;
+            foreach (TutorialContainer container in m_allContainers)
+            {
+                if (container.ParentContainer == targetContainer)
+                    targetContainerCount++;
+            }
+
+            int targetTutorialCount = 0;
+            foreach (TutorialContainer.Section targetSection in targetContainer.Sections)
+            {
+                if (targetSection.ContainsTutorial)
+                    targetTutorialCount++;
+            }
             // When same container, removal of dragged shrinks Tutorial slice by 1
             int effectiveTutorialCount = sameContainer ? targetTutorialCount - 1 : targetTutorialCount;
             if (effectiveTutorialCount < 0) effectiveTutorialCount = 0;
@@ -345,7 +364,7 @@ namespace Unity.Tutorials.Editor
                     ?? new TutorialContainer.Section { Heading = draggedTutorial.TutorialTitle.Value, Tutorial = draggedTutorial };
 
                 Undo.RecordObject(targetContainer, "Move Tutorial Between Containers");
-                List<TutorialContainer.Section> sections = targetContainer.Sections.ToList();
+                List<TutorialContainer.Section> sections = new(targetContainer.Sections);
                 int insertAt = Mathf.Clamp(desiredPos, 0, sections.Count);
                 sections.Insert(insertAt, section);
                 targetContainer.Sections = sections.ToArray();
@@ -445,13 +464,22 @@ namespace Unity.Tutorials.Editor
             TutorialContainer.Section removed = null;
             foreach (TutorialContainer container in m_allContainers)
             {
-                TutorialContainer.Section match = container.Sections.FirstOrDefault(s => s.Tutorial == tutorial);
+                TutorialContainer.Section match = null;
+                foreach (TutorialContainer.Section section in container.Sections)
+                {
+                    if (section.Tutorial != tutorial)
+                        continue;
+
+                    match = section;
+                    break;
+                }
+
                 if (match == null) continue;
 
                 removed ??= match;
 
                 Undo.RecordObject(container, "Move Tutorial Between Containers");
-                List<TutorialContainer.Section> list = container.Sections.ToList();
+                List<TutorialContainer.Section> list = new(container.Sections);
                 list.RemoveAll(s => s.Tutorial == tutorial);
                 container.Sections = list.ToArray();
                 EditorUtility.SetDirty(container);
@@ -471,7 +499,10 @@ namespace Unity.Tutorials.Editor
             if (tutorial == null) return null;
             foreach (TutorialContainer container in m_allContainers)
             {
-                if (container.Sections.Any(s => s.Tutorial == tutorial)) return container;
+                foreach (TutorialContainer.Section section in container.Sections)
+                {
+                    if (section.Tutorial == tutorial) return container;
+                }
             }
             return null;
         }
@@ -561,16 +592,29 @@ namespace Unity.Tutorials.Editor
             }
 
             m_treeViewItemData = new List<TreeViewItemData<TutorialTreeItem>>();
-            m_allContainers = AssetDatabase.FindAssets($"t:{nameof(TutorialContainer)}")
-                .Select(guid => AssetDatabase.LoadAssetAtPath<TutorialContainer>(AssetDatabase.GUIDToAssetPath(guid))).ToList();
+            m_allContainers = new List<TutorialContainer>();
+            foreach (string guid in AssetDatabase.FindAssets($"t:{nameof(TutorialContainer)}"))
+                m_allContainers.Add(AssetDatabase.LoadAssetAtPath<TutorialContainer>(AssetDatabase.GUIDToAssetPath(guid)));
 
-            m_rootContainers = m_allContainers.Where(container => container.ParentContainer == null).OrderBy(c => c.OrderInParent).ToList();
-            m_nonRootContainers = m_allContainers.Where(container => container.ParentContainer != null).ToList();
+            m_rootContainers = new List<TutorialContainer>();
+            m_nonRootContainers = new List<TutorialContainer>();
+            foreach (TutorialContainer container in m_allContainers)
+            {
+                if (container.ParentContainer == null)
+                    m_rootContainers.Add(container);
+                else
+                    m_nonRootContainers.Add(container);
+            }
+
+            CollectionUtils.StableSort(m_rootContainers, (a, b) => a.OrderInParent.CompareTo(b.OrderInParent));
+
+            List<Tutorial> allTutorials = new();
+            foreach (string guid in AssetDatabase.FindAssets($"t:{nameof(Tutorial)}"))
+                allTutorials.Add(AssetDatabase.LoadAssetAtPath<Tutorial>(AssetDatabase.GUIDToAssetPath(guid)));
 
             // Rebuild the page -> owning Tutorial lookup used by page drag/drop
             m_pageToTutorial.Clear();
-            foreach (Tutorial t in AssetDatabase.FindAssets($"t:{nameof(Tutorial)}")
-                .Select(guid => AssetDatabase.LoadAssetAtPath<Tutorial>(AssetDatabase.GUIDToAssetPath(guid))))
+            foreach (Tutorial t in allTutorials)
             {
                 foreach (TutorialPage page in t.PagesCollection)
                 {
@@ -589,9 +633,17 @@ namespace Unity.Tutorials.Editor
             }
 
             // Find Tutorials linked in multiple Containers, to show issue icon
-            m_TutorialsMultiLinking = m_tutorialsWithinContainers.GroupBy(tutorial => tutorial)
-                .Where(grouping => grouping.Count() > 1)
-                .Select(grouping => grouping.Key).ToList();
+            Dictionary<Tutorial, int> linkCountPerTutorial = new();
+            m_TutorialsMultiLinking = new List<Tutorial>();
+            foreach (Tutorial tutorial in m_tutorialsWithinContainers)
+            {
+                linkCountPerTutorial.TryGetValue(tutorial, out int linkCount);
+                linkCountPerTutorial[tutorial] = linkCount + 1;
+
+                // Add on the second occurrence only, so each multi-linked Tutorial is listed once
+                if (linkCount == 1)
+                    m_TutorialsMultiLinking.Add(tutorial);
+            }
 
             int nextId = 0;
             for (int i = 0; i < m_rootContainers.Count; i++)
@@ -600,11 +652,13 @@ namespace Unity.Tutorials.Editor
             }
 
             // Stray Tutorials
-            IEnumerable<Tutorial> strayTutorials = AssetDatabase.FindAssets($"t:{nameof(Tutorial)}")
-                .Select(guid => AssetDatabase.LoadAssetAtPath<Tutorial>(AssetDatabase.GUIDToAssetPath(guid)))
-                .Where(tutorial => !m_tutorialsWithinContainers.Contains(tutorial));
+            List<Tutorial> strayTutorialsList = new();
+            foreach (Tutorial tutorial in allTutorials)
+            {
+                if (!m_tutorialsWithinContainers.Contains(tutorial))
+                    strayTutorialsList.Add(tutorial);
+            }
 
-            List<Tutorial> strayTutorialsList = strayTutorials.ToList();
             if (strayTutorialsList.Count > 0)
             {
                 TutorialTreeItem strayTutorialsItem = new("Stray Tutorials", null, TreeItemType.Fake, true);
@@ -647,13 +701,27 @@ namespace Unity.Tutorials.Editor
                 List<TreeViewItemData<TutorialTreeItem>> childItems = new();
                 dataItems.Add(new TreeViewItemData<TutorialTreeItem>(nextId++, containerItem, childItems));
 
-                foreach (TutorialContainer childContainer in
-                         m_nonRootContainers.Where(c => c.ParentContainer == container).OrderBy(c => c.OrderInParent))
+                List<TutorialContainer> childContainers = new();
+                foreach (TutorialContainer nonRootContainer in m_nonRootContainers)
+                {
+                    if (nonRootContainer.ParentContainer == container)
+                        childContainers.Add(nonRootContainer);
+                }
+
+                CollectionUtils.StableSort(childContainers, (a, b) => a.OrderInParent.CompareTo(b.OrderInParent));
+
+                foreach (TutorialContainer childContainer in childContainers)
                 {
                     DoContainer(childContainer, childItems);
                 }
 
-                List<Tutorial> tutorials = container.Sections.Where(section => section.ContainsTutorial).Select(section => section.Tutorial).ToList();
+                List<Tutorial> tutorials = new();
+                foreach (TutorialContainer.Section section in container.Sections)
+                {
+                    if (section.ContainsTutorial)
+                        tutorials.Add(section.Tutorial);
+                }
+
                 foreach (Tutorial tutorial in tutorials)
                 {
                     // Tutorial is added to two (or more) Containers

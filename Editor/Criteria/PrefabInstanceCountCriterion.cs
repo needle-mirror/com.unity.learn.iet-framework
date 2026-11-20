@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
@@ -86,8 +85,8 @@ namespace Unity.Tutorials.Editor
             if (PrefabParent == null)
                 return false;
 
-            IEnumerable<GameObject> matches = FindObjectUtils.FindObjectsByType<GameObject>().Where(go => PrefabUtilityShim.GetCorrespondingObjectFromSource(go) == PrefabParent);
-            int count = matches.Count();
+            List<GameObject> matches = FindPrefabInstances();
+            int count = matches.Count;
             switch (ComparisonMode)
             {
                 case InstanceCountComparison.AtLeast:
@@ -96,7 +95,7 @@ namespace Unity.Tutorials.Editor
                 case InstanceCountComparison.Exactly:
                     bool complete = count == InstanceCount;
                     if (complete && InstanceCount == 1 && m_FutureReference != null)
-                        m_FutureReference.SceneObjectReference.Update(matches.First());
+                        m_FutureReference.SceneObjectReference.Update(matches[0]);
                     return complete;
 
                 case InstanceCountComparison.NoMoreThan:
@@ -151,8 +150,8 @@ namespace Unity.Tutorials.Editor
         /// <returns>True if the auto-completion succeeded.</returns>
         public override bool AutoComplete()
         {
-            IEnumerable<GameObject> prefabInstances = FindObjectUtils.FindObjectsByType<GameObject>().Where(go => PrefabUtilityShim.GetCorrespondingObjectFromSource(go) == PrefabParent);
-            int actualInstanceCount = prefabInstances.Count();
+            List<GameObject> prefabInstances = FindPrefabInstances();
+            int actualInstanceCount = prefabInstances.Count;
             int difference = actualInstanceCount - InstanceCount;
 
             if (difference == 0)
@@ -176,11 +175,23 @@ namespace Unity.Tutorials.Editor
             }
             else
             {
-                foreach (GameObject prefabInstance in prefabInstances.Take(difference))
-                    DestroyImmediate(prefabInstance);
+                for (int i = 0; i < difference; i++)
+                    DestroyImmediate(prefabInstances[i]);
             }
 
             return true;
+        }
+
+        private List<GameObject> FindPrefabInstances()
+        {
+            List<GameObject> matches = new();
+            foreach (GameObject gameObject in FindObjectUtils.FindObjectsByType<GameObject>())
+            {
+                if (PrefabUtilityShim.GetCorrespondingObjectFromSource(gameObject) == PrefabParent)
+                    matches.Add(gameObject);
+            }
+
+            return matches;
         }
     }
 }

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
@@ -57,7 +56,8 @@ namespace Unity.Tutorials.Editor
         /// <returns>True if the selection is the right one, false otherwise</returns>
         protected override bool EvaluateCompletion()
         {
-            if (m_ObjectReferences.Count() != Selection.objects.Length)
+            Object[] selection = Selection.objects;
+            if (m_ObjectReferences.Count != selection.Length)
                 return false;
 
             foreach (ObjectReference objectReference in m_ObjectReferences)
@@ -66,7 +66,7 @@ namespace Unity.Tutorials.Editor
                 if (referencedObject == null)
                     return false;
 
-                if (!Selection.objects.Contains(referencedObject))
+                if (Array.IndexOf(selection, referencedObject) < 0)
                     return false;
             }
 
@@ -79,14 +79,21 @@ namespace Unity.Tutorials.Editor
         /// <returns>True if the auto-completion succeeded.</returns>
         public override bool AutoComplete()
         {
-            IEnumerable<Object> referencedObjects = m_ObjectReferences.Select(or => or.SceneObjectReference.ReferencedObject);
-            if (referencedObjects.Any(obj => obj == null))
+            Object[] referencedObjects = new Object[m_ObjectReferences.Count];
+            int referencedObjectIndex = 0;
+            foreach (ObjectReference objectReference in m_ObjectReferences)
             {
-                Debug.LogWarning("Cannot auto-complete RequiredSelectionCriterion with unresolved object references");
-                return false;
+                Object referencedObject = objectReference.SceneObjectReference.ReferencedObject;
+                if (referencedObject == null)
+                {
+                    Debug.LogWarning("Cannot auto-complete RequiredSelectionCriterion with unresolved object references");
+                    return false;
+                }
+
+                referencedObjects[referencedObjectIndex++] = referencedObject;
             }
 
-            Selection.objects = referencedObjects.ToArray();
+            Selection.objects = referencedObjects;
             return true;
         }
     }

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 #if UNITY_2019_1_OR_NEWER
@@ -129,7 +128,7 @@ namespace Unity.Tutorials.Editor
                 if (unmaskedView.Key == null) { continue; }
 
                 MaskViewData maskViewData = unmaskedView.Value;
-                List<Rect> unmaskedRegions = maskViewData.rects == null ? new List<Rect>(1) : maskViewData.rects.ToList();
+                List<Rect> unmaskedRegions = maskViewData.rects == null ? new List<Rect>(1) : new List<Rect>(maskViewData.rects);
                 if (unmaskedRegions.Count == 0)
                 {
                     unmaskedRegions.Add(new Rect(0f, 0f, unmaskedView.Key.Position.width, unmaskedView.Key.Position.height));
@@ -169,9 +168,17 @@ namespace Unity.Tutorials.Editor
             }
             VisualElement viewVisualElement = UIElementsHelper.GetVisualTree(view);
 
+            int childCount = 0;
+            int imguiContainerCount = 0;
+            foreach (VisualElement viewChild in viewVisualElement.Children())
+            {
+                childCount++;
+                if (viewChild is IMGUIContainer)
+                    imguiContainerCount++;
+            }
+
             Debug.Assert(
-                viewVisualElement.Children().Count() == 2
-                && viewVisualElement.Children().Count(viewChild => viewChild is IMGUIContainer) == 1,
+                childCount == 2 && imguiContainerCount == 1,
                 "Could not find the expected VisualElement structure"
             );
 
@@ -308,8 +315,11 @@ namespace Unity.Tutorials.Editor
             s_LastHighlightTime = EditorApplication.timeSinceStartup;
         }
 
-        private static EditorWindow FindOpenEditorWindowInstance(Type type) =>
-            Resources.FindObjectsOfTypeAll(type).FirstOrDefault() as EditorWindow;
+        internal static EditorWindow FindOpenEditorWindowInstance(Type type)
+        {
+            UnityEngine.Object[] instances = Resources.FindObjectsOfTypeAll(type);
+            return instances.Length > 0 ? instances[0] as EditorWindow : null;
+        }
 
         private static readonly HashSet<float> s_YCoords = new();
         private static readonly HashSet<float> s_XCoords = new();

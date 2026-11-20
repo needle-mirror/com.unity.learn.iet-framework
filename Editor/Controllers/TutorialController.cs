@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using Unity.EditorCoroutines.Editor;
 using Unity.Tutorials.Editor.Paragraphs;
 using UnityEditor;
@@ -443,17 +442,23 @@ namespace Unity.Tutorials.Editor
         /// </summary>
         internal static void PrepareWindowLayouts()
         {
-            IEnumerable<string> layoutPathsOfCategories = AssetDatabase.FindAssets($"t:{typeof(TutorialContainer).FullName}")
-                                                       .Select(guid => AssetDatabase.LoadAssetAtPath<TutorialContainer>(AssetDatabase.GUIDToAssetPath(guid)).ProjectLayoutPath);
+            HashSet<string> seenLayoutPaths = new();
+            List<string> layoutPaths = new();
 
-            IEnumerable<string> layoutPathsOfTutorials = AssetDatabase.FindAssets($"t:{typeof(Tutorial).FullName}")
-                                                      .Select(guid => AssetDatabase.LoadAssetAtPath<Tutorial>(AssetDatabase.GUIDToAssetPath(guid)).WindowLayoutPath);
+            foreach (TutorialContainer container in TutorialEditorUtils.FindAssets<TutorialContainer>())
+            {
+                if (container.ProjectLayoutPath.IsNotNullOrEmpty() && seenLayoutPaths.Add(container.ProjectLayoutPath))
+                    layoutPaths.Add(container.ProjectLayoutPath);
+            }
 
-            layoutPathsOfCategories.Concat(layoutPathsOfTutorials)
-                                   .Where(StringExt.IsNotNullOrEmpty)
-                                   .Distinct()
-                                   .ToList()
-                                   .ForEach(layoutPath => TutorialModel.PrepareWindowLayout(layoutPath));
+            foreach (Tutorial tutorial in TutorialEditorUtils.FindAssets<Tutorial>())
+            {
+                if (tutorial.WindowLayoutPath.IsNotNullOrEmpty() && seenLayoutPaths.Add(tutorial.WindowLayoutPath))
+                    layoutPaths.Add(tutorial.WindowLayoutPath);
+            }
+
+            foreach (string layoutPath in layoutPaths)
+                TutorialModel.PrepareWindowLayout(layoutPath);
         }
     }
 }

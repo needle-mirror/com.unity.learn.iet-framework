@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Unity.Tutorials.Editor.Paragraphs;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -353,8 +352,7 @@ namespace Unity.Tutorials.Editor
             }
 
             // Prevent duplicate lesson IDs
-            if (ProgressTrackingEnabled &&
-                TutorialEditorUtils.FindAssets<Tutorial>().Except(new[] { this }).Any(tutorial => tutorial.LessonId == LessonId))
+            if (ProgressTrackingEnabled && HasDuplicateLessonId())
             {
                 string oldGuid = LessonId;
                 LessonId = Guid.NewGuid().ToString();
@@ -364,6 +362,18 @@ namespace Unity.Tutorials.Editor
                 AssetDatabase.Refresh();
                 Debug.Log($"Duplicate LessonId '{oldGuid}' within the project, generated a new one '{LessonId}'.");
             }
+        }
+
+        // True if another Tutorial in the project already uses this Tutorial's LessonId.
+        private bool HasDuplicateLessonId()
+        {
+            foreach (Tutorial tutorial in TutorialEditorUtils.FindAssets<Tutorial>())
+            {
+                if (tutorial != this && tutorial.LessonId == LessonId)
+                    return true;
+            }
+
+            return false;
         }
 
         private Tutorial()

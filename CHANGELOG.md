@@ -4,6 +4,18 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this package adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.0.8] - 2026-11-20
+### Changed
+- Removed all LINQ usage from the package. Every `System.Linq` query has been rewritten as a plain loop, including in the vendored `SerializableCallback` code. Public API signatures are unchanged, but methods that previously returned a lazily-evaluated sequence (for example `TutorialEditorUtils.FindAssets<T>()`) now return a fully materialised collection.
+- The Editor no longer performs an extra script reload on startup when Editor localization is enabled.
+
+### Fixed
+- Windows marked as **Open And Focus** in a page's masking settings are no longer focused again every time masking is refreshed. In Play mode, this took keyboard input away from the Game view whenever the Hierarchy changed (for example, when a sound effect spawned a GameObject). These windows are now focused only when the page or its masking settings change, and never during Play mode.
+- Recomputing the mask no longer opens and docks Editor windows. Because masking can be recomputed in the middle of a docking operation, this could corrupt the Editor window layout (UUM-153247).
+- Localized strings of the Tutorial Framework are now looked up in the package's own localization group, so its translations are applied correctly.
+- Fixed `NullReferenceException` errors raised when the Tutorials window footer buttons were updated before the window was fully initialized.
+- Editor analytics now always use the `IAnalytic` / `EditorAnalytics.SendAnalytic` API. The previous fallback to the obsolete `EditorAnalytics.RegisterEventWithLimit` and `SendEventWithLimit` APIs was compiled on Editor versions newer than 6000.x, which caused obsolete-API warnings there.
+
 ## [6.0.7] - 2026-08-04
 ### Fixed
 - Tutorial Container sections pointing to an external URL are no longer turned into broken Tutorial-type sections when upgrading a project from v5.x. They are now correctly recognised as link sections, both during the v6 data upgrade and on load of already-affected projects.

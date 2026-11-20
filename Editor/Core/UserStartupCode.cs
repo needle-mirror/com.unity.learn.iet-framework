@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -17,7 +16,6 @@ namespace Unity.Tutorials.Editor
     public static class UserStartupCode
     {
         private const string k_DefaultsFolder = "Tutorial Defaults";
-        private const string k_EditorLanguageInitializedState = "EditorLanguageInitialized";
         private const string k_EditorLanguagePreference = "EditorLanguage";
 
         private static bool DisplayWelcomeDialogOnStartup
@@ -32,8 +30,6 @@ namespace Unity.Tutorials.Editor
             set => TutorialFrameworkModel.s_DataMigrationToV6.SetValue(value, true);
         }
 
-        private static bool IsLanguageInitialized() => SessionState.GetBool(k_EditorLanguageInitializedState, false);
-        private static void SetLanguageInitialized() => SessionState.SetBool(k_EditorLanguageInitializedState, true);
         private static SystemLanguage LoadPreviousEditorLanguage() => (SystemLanguage)EditorPrefs.GetInt(k_EditorLanguagePreference, (int)SystemLanguage.English);
         private static void SaveCurrentEditorLanguage() => EditorPrefs.SetInt(k_EditorLanguagePreference, (int)LocalizationDatabaseProxy.currentEditorLanguage);
 
@@ -77,10 +73,11 @@ namespace Unity.Tutorials.Editor
             EditorPrefs.SetString("ComponentSearchString", string.Empty);
             Tools.current = Tool.Move;
 
-            if (TutorialEditorUtils.FindAssets<TutorialContainer>().Any())
+            foreach (TutorialContainer container in TutorialEditorUtils.FindAssets<TutorialContainer>())
             {
                 if (TutorialWindow.Instance != null) TutorialWindow.Instance.Close();
                 TutorialWindow.ShowWindow(true);
+                break;
             }
 
             // NOTE camera settings can be applied successfully only after potential layout changes
@@ -97,15 +94,6 @@ namespace Unity.Tutorials.Editor
 
         private static void InitRunStartupCode()
         {
-            if (LocalizationDatabaseProxy.enableEditorLocalization && !IsLanguageInitialized())
-            {
-                /* Need to Request a script reload in order overcome Editor Localization issues
-                with static initialization when opening the project for the first time. */
-                SetLanguageInitialized();
-                EditorUtility.RequestScriptReload();
-                return;
-            }
-
             /* Prepare the layout always. For example, the user might have moved the project around,
             so we need to ensure the file paths in the layouts are correct. */
             TutorialController.PrepareWindowLayouts();
@@ -192,7 +180,7 @@ namespace Unity.Tutorials.Editor
                 if (dirtyMetaFiles != null && string.Equals(Path.GetExtension(tempPath), ".meta", StringComparison.OrdinalIgnoreCase))
                 {
                     if (!File.Exists(tempPath)
-                    || !File.ReadAllBytes(tempPath).SequenceEqual(File.ReadAllBytes(file.FullName)))
+                    || !HaveSameContent(File.ReadAllBytes(tempPath), File.ReadAllBytes(file.FullName)))
                     {
                         dirtyMetaFiles.Add(tempPath);
                     }
@@ -205,6 +193,20 @@ namespace Unity.Tutorials.Editor
                 string tempPath = Path.Combine(destinationDirectory, subdir.Name);
                 DirectoryCopy(subdir.FullName, tempPath, dirtyMetaFiles);
             }
+        }
+
+        private static bool HaveSameContent(byte[] a, byte[] b)
+        {
+            if (a.Length != b.Length)
+                return false;
+
+            for (int i = 0; i < a.Length; i++)
+            {
+                if (a[i] != b[i])
+                    return false;
+            }
+
+            return true;
         }
     }
 }

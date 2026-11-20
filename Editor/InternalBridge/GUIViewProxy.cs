@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -18,7 +17,12 @@ namespace Unity.Tutorials.Editor
     {
         public static List<VisualElement> FindAllGuiViewVisualElements()
         {
-            return Resources.FindObjectsOfTypeAll<GUIView>().Select(UIElementsHelper.GetVisualTree).ToList();
+            GUIView[] guiViews = Resources.FindObjectsOfTypeAll<GUIView>();
+            List<VisualElement> visualElements = new(guiViews.Length);
+            foreach (GUIView guiView in guiViews)
+                visualElements.Add(UIElementsHelper.GetVisualTree(guiView));
+
+            return visualElements;
         }
 
         /// <summary>

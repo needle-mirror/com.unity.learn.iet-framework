@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -81,7 +80,7 @@ namespace Unity.Tutorials.Editor
         private void BeginPicking(SerializedProperty property)
         {
             // Look through all Editor Windows and GUIViews
-            registeredWindows = Resources.FindObjectsOfTypeAll<EditorWindow>().ToList();
+            registeredWindows = new List<EditorWindow>(Resources.FindObjectsOfTypeAll<EditorWindow>());
             guiViewVisualElements = GUIViewProxy.FindAllGuiViewVisualElements();
             pickerCallback = evt => PickCurrentHoveredElement(evt.target as VisualElement, evt, property);
 
@@ -126,7 +125,11 @@ namespace Unity.Tutorials.Editor
             }
 
             property.FindPropertyRelative(k_VisualElementNamePath).stringValue = element.name;
-            property.FindPropertyRelative(k_VisualElementClassNamePath).stringValue = element.GetClasses().LastOrDefault();
+            string lastClass = null;
+            foreach (string className in element.GetClasses())
+                lastClass = className;
+
+            property.FindPropertyRelative(k_VisualElementClassNamePath).stringValue = lastClass;
             property.FindPropertyRelative(k_VisualElementTypeNamePath).stringValue = element.GetType().ToString();
             // Apply modifications before serializedObject.Update(); call in TutorialPageEditor would dismiss them.
             property.serializedObject.ApplyModifiedProperties();

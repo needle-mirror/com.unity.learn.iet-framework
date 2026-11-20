@@ -1,6 +1,7 @@
+// NOTE: This vendored third-party file diverges from upstream: LINQ has been replaced with plain
+// loops to keep the package LINQ-free. Preserve that when re-syncing with upstream.
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using SerializableCallback.Attributes;
 using UnityEditor;
@@ -191,12 +192,12 @@ namespace SerializableCallback.Editor
             List<Object> targets = new() { targetProp.objectReferenceValue };
             if (targets[0] is Component)
             {
-                targets = (targets[0] as Component).gameObject.GetComponents<Component>().ToList<Object>();
+                targets = new List<Object>((targets[0] as Component).gameObject.GetComponents<Component>());
                 targets.Add((targetProp.objectReferenceValue as Component).gameObject);
             }
             else if (targets[0] is GameObject)
             {
-                targets = (targets[0] as GameObject).GetComponents<Component>().ToList<Object>();
+                targets = new List<Object>((targets[0] as GameObject).GetComponents<Component>());
                 targets.Add(targetProp.objectReferenceValue as GameObject);
             }
             for (int c = 0; c < targets.Count; c++)
@@ -215,18 +216,27 @@ namespace SerializableCallback.Editor
                     // Skip generic methods
                     if (method.IsGenericMethod) continue;
 
-                    Type[] parms = method.GetParameters().Select(x => x.ParameterType).ToArray();
+                    Type[] parms = GetParameterTypes(method);
 
                     // Skip methods with more than 4 args
                     if (parms.Length > 4) continue;
                     // Skip methods with unsupported args
-                    if (parms.Any(x => !Arg.IsSupported(x))) continue;
+                    bool hasUnsupportedArg = false;
+                    foreach (Type parm in parms)
+                    {
+                        if (Arg.IsSupported(parm)) continue;
+
+                        hasUnsupportedArg = true;
+                        break;
+                    }
+
+                    if (hasUnsupportedArg) continue;
 
                     string methodPrettyName = PrettifyMethod(methods[i]);
                     staticItems.Add(new MenuItem(targets[c].GetType().Name + "/" + methods[i].DeclaringType.Name, methodPrettyName, () => SetMethod(property, t, method, false)));
 
                     // Skip methods with wrong constrained args
-                    if (argTypes.Length == 0 || !argTypes.SequenceEqual(parms)) continue;
+                    if (argTypes.Length == 0 || !TypesMatch(argTypes, parms)) continue;
 
                     dynamicItems.Add(new MenuItem(targets[c].GetType().Name + "/" + methods[i].DeclaringType.Name, methods[i].Name, () => SetMethod(property, t, method, true)));
                 }
@@ -236,7 +246,14 @@ namespace SerializableCallback.Editor
             GenericMenu menu = new();
             if (dynamicItems.Count > 0)
             {
-                string[] paths = dynamicItems.GroupBy(x => x.path).Select(x => x.First().path).ToArray();
+                HashSet<string> seenPaths = new();
+                List<string> paths = new();
+                foreach (MenuItem dynamicItem in dynamicItems)
+                {
+                    if (seenPaths.Add(dynamicItem.path))
+                        paths.Add(dynamicItem.path);
+                }
+
                 foreach (string path in paths)
                 {
                     menu.AddItem(new GUIContent(path + "/Dynamic " + PrettifyTypes(argTypes)), false, null);
@@ -268,15 +285,41 @@ namespace SerializableCallback.Editor
         private string PrettifyMethod(MethodInfo methodInfo)
         {
             if (methodInfo == null) throw new ArgumentNullException("methodInfo");
-            ParameterInfo[] parms = methodInfo.GetParameters();
-            string parmnames = PrettifyTypes(parms.Select(x => x.ParameterType).ToArray());
+            string parmnames = PrettifyTypes(GetParameterTypes(methodInfo));
             return GetTypeName(methodInfo.ReturnParameter.ParameterType) + " " + methodInfo.Name + "(" + parmnames + ")";
         }
 
         private string PrettifyTypes(Type[] types)
         {
             if (types == null) throw new ArgumentNullException("types");
-            return string.Join(", ", types.Select(GetTypeName).ToArray());
+
+            string[] typeNames = new string[types.Length];
+            for (int i = 0; i < types.Length; i++)
+                typeNames[i] = GetTypeName(types[i]);
+
+            return string.Join(", ", typeNames);
+        }
+
+        private static Type[] GetParameterTypes(MethodInfo method)
+        {
+            ParameterInfo[] parameters = method.GetParameters();
+            Type[] parameterTypes = new Type[parameters.Length];
+            for (int i = 0; i < parameters.Length; i++)
+                parameterTypes[i] = parameters[i].ParameterType;
+
+            return parameterTypes;
+        }
+
+        private static bool TypesMatch(Type[] a, Type[] b)
+        {
+            if (a.Length != b.Length) return false;
+
+            for (int i = 0; i < a.Length; i++)
+            {
+                if (a[i] != b[i]) return false;
+            }
+
+            return true;
         }
 
         private MethodInfo GetMethod(object target, string methodName, Type[] types)

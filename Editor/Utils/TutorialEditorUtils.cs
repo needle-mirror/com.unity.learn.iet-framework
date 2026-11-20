@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
@@ -23,19 +22,15 @@ namespace Unity.Tutorials.Editor
         /// <returns>Returns path with forward slashes</returns>
         public static string GetActiveFolderPath()
         {
-            return Selection.assetGUIDs
-                .Select(AssetDatabase.GUIDToAssetPath)
-                .Select(path =>
-                {
-                    if (Directory.Exists(path))
-                        return path;
-                    if (File.Exists(path))
-                        return Path.GetDirectoryName(path);
-                    return path;
-                })
-                .FirstOrDefault()
-                .AsNullIfEmpty()
-                ?? "Assets";
+            string[] selectedGuids = Selection.assetGUIDs;
+            if (selectedGuids.Length == 0)
+                return "Assets";
+
+            string path = AssetDatabase.GUIDToAssetPath(selectedGuids[0]);
+            if (!Directory.Exists(path) && File.Exists(path))
+                path = Path.GetDirectoryName(path);
+
+            return path.AsNullIfEmpty() ?? "Assets";
         }
 
         /// <summary>
@@ -61,10 +56,15 @@ namespace Unity.Tutorials.Editor
         /// </summary>
         /// <typeparam name="T">Type of assets to look for.</typeparam>
         /// <returns>Assets of type T found in the project.</returns>
-        public static IEnumerable<T> FindAssets<T>() where T : Object =>
-            AssetDatabase.FindAssets($"t:{typeof(T).FullName}")
-                .Select(AssetDatabase.GUIDToAssetPath)
-                .Select(AssetDatabase.LoadAssetAtPath<T>);
+        public static IEnumerable<T> FindAssets<T>() where T : Object
+        {
+            string[] guids = AssetDatabase.FindAssets($"t:{typeof(T).FullName}");
+            List<T> assets = new(guids.Length);
+            foreach (string guid in guids)
+                assets.Add(AssetDatabase.LoadAssetAtPath<T>(AssetDatabase.GUIDToAssetPath(guid)));
+
+            return assets;
+        }
 
         /// <summary>
         /// Checks if a UnityEvent property is not in a specific execution state
@@ -177,12 +177,14 @@ namespace Unity.Tutorials.Editor
 
         internal static bool CheckIfV6UpgradeRequired()
         {
-            TutorialPage[] allTutorialPages = AssetDatabase.FindAssets("t:TutorialPage")
-                .Select(AssetDatabase.GUIDToAssetPath)
-                .Select(AssetDatabase.LoadAssetAtPath<TutorialPage>)
-                .ToArray();
+            foreach (string guid in AssetDatabase.FindAssets("t:TutorialPage"))
+            {
+                TutorialPage tutorialPage = AssetDatabase.LoadAssetAtPath<TutorialPage>(AssetDatabase.GUIDToAssetPath(guid));
+                if (tutorialPage.LegacyParagraphs.Count > 0)
+                    return true;
+            }
 
-            return allTutorialPages.Any(tutorialPage => tutorialPage.LegacyParagraphs.Count > 0);
+            return false;
         }
 
         /// <summary>

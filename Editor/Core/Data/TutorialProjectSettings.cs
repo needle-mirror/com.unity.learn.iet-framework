@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
@@ -23,15 +21,22 @@ namespace Unity.Tutorials.Editor
             {
                 if (s_Instance == null)
                 {
-                    IEnumerable<TutorialProjectSettings> settings = TutorialEditorUtils.FindAssets<TutorialProjectSettings>();
-                    if (!settings.Any())
+                    TutorialProjectSettings setting = null;
+                    int settingsCount = 0;
+                    foreach (TutorialProjectSettings foundSetting in TutorialEditorUtils.FindAssets<TutorialProjectSettings>())
+                    {
+                        if (settingsCount == 0)
+                            setting = foundSetting;
+                        settingsCount++;
+                    }
+
+                    if (settingsCount == 0)
                     {
                         s_Instance = CreateInstance<TutorialProjectSettings>();
                     }
                     else
                     {
-                        TutorialProjectSettings setting = settings.First();
-                        if (settings.Count() > 1)
+                        if (settingsCount > 1)
                         {
                             Debug.LogWarningFormat(
                                 "There is more than one TutorialProjectSetting asset in project. Using asset at path '{0}'. " +

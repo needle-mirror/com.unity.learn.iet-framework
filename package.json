@@ -1,7 +1,7 @@
 {
   "name": "com.unity.learn.iet-framework",
   "displayName": "Tutorial Framework",
-  "version": "6.0.7",
+  "version": "6.0.8",
   "unity": "6000.0",
   "unityRelease": "0f1",
   "description": "This package is used to display interactive in-Editor tutorials in tutorial projects and project templates.",
@@ -16,15 +16,15 @@
     "com.unity.learn.iet-framework.tests": "0.0.0"
   },
   "_upm": {
-    "changelog": "### Fixed\n- Tutorial Container sections pointing to an external URL are no longer turned into broken Tutorial-type sections when upgrading a project from v5.x. They are now correctly recognised as link sections, both during the v6 data upgrade and on load of already-affected projects.\n- The completion rate and the Overview window now determine whether a section is a tutorial from its Type, instead of legacy URL/tutorial-reference heuristics.\n- Empty Instruction paragraphs are no longer imported during the v6 data upgrade."
+    "changelog": "### Changed\n- Removed all LINQ usage from the package. Every `System.Linq` query has been rewritten as a plain loop, including in the vendored `SerializableCallback` code. Public API signatures are unchanged, but methods that previously returned a lazily-evaluated sequence (for example `TutorialEditorUtils.FindAssets<T>()`) now return a fully materialised collection.\n- The Editor no longer performs an extra script reload on startup when Editor localization is enabled.\n\n### Fixed\n- Windows marked as **Open And Focus** in a page's masking settings are no longer focused again every time masking is refreshed. In Play mode, this took keyboard input away from the Game view whenever the Hierarchy changed (for example, when a sound effect spawned a GameObject). These windows are now focused only when the page or its masking settings change, and never during Play mode.\n- Recomputing the mask no longer opens and docks Editor windows. Because masking can be recomputed in the middle of a docking operation, this could corrupt the Editor window layout (UUM-153247).\n- Localized strings of the Tutorial Framework are now looked up in the package's own localization group, so its translations are applied correctly.\n- Fixed `NullReferenceException` errors raised when the Tutorials window footer buttons were updated before the window was fully initialized.\n- Editor analytics now always use the `IAnalytic` / `EditorAnalytics.SendAnalytic` API. The previous fallback to the obsolete `EditorAnalytics.RegisterEventWithLimit` and `SendEventWithLimit` APIs was compiled on Editor versions newer than 6000.x, which caused obsolete-API warnings there."
   },
   "upmCi": {
-    "footprint": "15a6e124e677887d29bd4312c0fbca26536d11b3"
+    "footprint": "65e8d4061e427736096c940a47294993fb324903"
   },
   "documentationUrl": "https://docs.unity3d.com/Packages/com.unity.learn.iet-framework@6.0/manual/index.html",
   "repository": {
     "url": "https://github.cds.internal.unity3d.com/unity/iet-package.git",
     "type": "git",
-    "revision": "bd33a9ac499e5c7ed74f16fe05961bce2483da63"
+    "revision": "77f62cdc23297d06b088dfd103bcdacd6bf13632"
   }
 }

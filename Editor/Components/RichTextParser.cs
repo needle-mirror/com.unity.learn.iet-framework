@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Xml.Linq;
 using UnityEditor;
@@ -86,7 +85,13 @@ namespace Unity.Tutorials.Editor
             // Validated from sources:
             // https://www.unicode.org/faq/han_cjk.html
             // https://en.wikipedia.org/wiki/CJK_Unified_Ideographs_(Unicode_block)
-            return textLine.Any(c => (uint)c >= 0x4E00 && (uint)c <= 0x2FA1F);
+            foreach (char c in textLine)
+            {
+                if ((uint)c >= 0x4E00 && (uint)c <= 0x2FA1F)
+                    return true;
+            }
+
+            return false;
         }
 
         /// <summary>

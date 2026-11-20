@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -9,9 +8,10 @@ namespace Unity.Tutorials.Editor
     {
         public static void GetViews(List<GUIViewProxy> views)
         {
-            var guiViews = new List<GUIView>();
+            List<GUIView> guiViews = new();
             GUIViewDebuggerHelper.GetViews(guiViews);
-            views.AddRange(guiViews.Select(view => new GUIViewProxy(view)));
+            foreach (GUIView view in guiViews)
+                views.Add(new GUIViewProxy(view));
         }
 
         public static void DebugWindow(GUIViewProxy guiViewProxy)
@@ -21,30 +21,34 @@ namespace Unity.Tutorials.Editor
 
         public static void GetDrawInstructions(List<IMGUIDrawInstructionProxy> drawInstructions)
         {
-            var instructions = new List<IMGUIDrawInstruction>();
+            List<IMGUIDrawInstruction> instructions = new();
             GUIViewDebuggerHelper.GetDrawInstructions(instructions);
-            drawInstructions.AddRange(instructions.Select(i => new IMGUIDrawInstructionProxy(i)));
+            foreach (IMGUIDrawInstruction instruction in instructions)
+                drawInstructions.Add(new IMGUIDrawInstructionProxy(instruction));
         }
 
         public static void GetNamedControlInstructions(List<IMGUINamedControlInstructionProxy> namedControlInstructions)
         {
-            var instructions = new List<IMGUINamedControlInstruction>();
+            List<IMGUINamedControlInstruction> instructions = new();
             GUIViewDebuggerHelper.GetNamedControlInstructions(instructions);
-            namedControlInstructions.AddRange(instructions.Select(i => new IMGUINamedControlInstructionProxy(i)));
+            foreach (IMGUINamedControlInstruction instruction in instructions)
+                namedControlInstructions.Add(new IMGUINamedControlInstructionProxy(instruction));
         }
 
         public static void GetPropertyInstructions(List<IMGUIPropertyInstructionProxy> propertyInstructions)
         {
-            var instructions = new List<IMGUIPropertyInstruction>();
+            List<IMGUIPropertyInstruction> instructions = new();
             GUIViewDebuggerHelper.GetPropertyInstructions(instructions);
-            propertyInstructions.AddRange(instructions.Select(i => new IMGUIPropertyInstructionProxy(i)));
+            foreach (IMGUIPropertyInstruction instruction in instructions)
+                propertyInstructions.Add(new IMGUIPropertyInstructionProxy(instruction));
         }
 
         public static void GetUnifiedInstructions(List<IMGUIInstructionProxy> unifiedInstructions)
         {
-            var instructions = new List<IMGUIInstruction>();
+            List<IMGUIInstruction> instructions = new();
             GUIViewDebuggerHelper.GetUnifiedInstructions(instructions);
-            unifiedInstructions.AddRange(instructions.Select(i => new IMGUIInstructionProxy(i)));
+            foreach (IMGUIInstruction instruction in instructions)
+                unifiedInstructions.Add(new IMGUIInstructionProxy(instruction));
         }
 
         public static void StopDebugging()

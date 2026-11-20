@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
 
 namespace Unity.Tutorials.Editor
@@ -46,14 +45,19 @@ namespace Unity.Tutorials.Editor
         {
             IEnumerable<TutorialContainer> allCategories = TutorialFrameworkModel.s_AreTestsRunning ? TableOfContentModel.CategoriesOfProjectDuringTests
                                                                          : TutorialEditorUtils.FindAssets<TutorialContainer>();
-            IEnumerable<TutorialContainer> rootCategories = allCategories.Where(category => category.ParentContainer is null);
+            List<TutorialContainer> rootCategories = new();
+            foreach (TutorialContainer category in allCategories)
+            {
+                if (category.ParentContainer is null)
+                    rootCategories.Add(category);
+            }
 
-            TutorialContainer defaultCategory = rootCategories.FirstOrDefault();
+            TutorialContainer defaultCategory = rootCategories.Count > 0 ? rootCategories[0] : null;
 
             /* If we have more than one root container, we show a selection view. Exactly one (or zero) container
             is set active immediately without possibility to return to the the selection view. */
             m_Model.RootCategoriesOfProject = rootCategories;
-            if (rootCategories.Count() < 2)
+            if (rootCategories.Count < 2)
             {
                 m_Model.CurrentContainer = defaultCategory;
             }

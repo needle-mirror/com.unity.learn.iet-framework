@@ -298,11 +298,7 @@ namespace Unity.Tutorials.Editor
         /// Use for external references/links, documentation, assets, etc.
         /// https://docs.google.com/spreadsheets/d/1vftlkO4yps3qUoPgM2wnbJu4YwRO3fZ4cS7IELk4Gww/edit#gid=1343103808
         /// </summary>
-#if UNITY_6000
         public struct ExternalReferenceEventData : IAnalytic.IData
-#else
-        public struct ExternalReferenceEventData
-#endif
         {
             public int ts; // timestamp
             public string id;
@@ -311,11 +307,7 @@ namespace Unity.Tutorials.Editor
             public string path; // URL
         }
 
-#if UNITY_6000
         public struct ExternalReferenceImpressionEventData : IAnalytic.IData
-#else
-        public struct ExternalReferenceImpressionEventData
-#endif
         {
             public int ts; // timestamp
             public string id;
@@ -324,11 +316,7 @@ namespace Unity.Tutorials.Editor
             public string path; // URL
         }
 
-#if UNITY_6000
         public struct TutorialEventData : IAnalytic.IData
-#else
-        public struct TutorialEventData
-#endif
         {
             public int ts; // timestamp
             public string tutorialName;
@@ -340,11 +328,7 @@ namespace Unity.Tutorials.Editor
             public bool isBlocking;
         }
 
-#if UNITY_6000
         public struct TutorialPageEventData : IAnalytic.IData
-#else
-        public struct TutorialPageEventData
-#endif
         {
             public int ts; // timestamp
             public string tutorialName;
@@ -356,11 +340,7 @@ namespace Unity.Tutorials.Editor
             public bool isBlocking;
         }
 
-#if UNITY_6000
         public struct TutorialParagraphEventData : IAnalytic.IData
-#else
-        public struct TutorialParagraphEventData
-#endif
         {
             public int ts; // timestamp
             public string tutorialName;
@@ -372,22 +352,14 @@ namespace Unity.Tutorials.Editor
             public bool isBlocking;
         }
 
-#if UNITY_6000
         public struct FaqOpenedEventData : IAnalytic.IData
-#else
-        public struct FaqOpenedEventData
-#endif
         {
             public int ts; // timestamp
             public string tutorialName;
             public int pageIndex;
         }
 
-#if UNITY_6000
         public struct FaqQuestionClickedEventData : IAnalytic.IData
-#else
-        public struct FaqQuestionClickedEventData
-#endif
         {
             public int ts; // timestamp
             public string tutorialName;
@@ -395,8 +367,6 @@ namespace Unity.Tutorials.Editor
             public string question;
         }
 
-        private const int k_MaxEventsPerHour = 1000;
-        private const int k_MaxNumberOfElements = 1000;
         private const string k_VendorKey = "unity.iet"; // the format needs to be "unity.xxx"
 
         private const string k_EventExternalReference = "iet_externalReference";
@@ -407,8 +377,7 @@ namespace Unity.Tutorials.Editor
         private const string k_EventTutorialFaqOpened = "iet_faqOpened";
         private const string k_EventTutorialFaqQuestionClicked = "iet_faqQuestionClicked";
 
-#if UNITY_6000
-        //Unity 6 editor analytics changed, you now define 1 class per type of analytics, so we need to create a class for each even above
+        // Editor analytics: one IAnalytic class per event type above.
 
         [AnalyticInfo(eventName: k_EventTutorial, vendorKey: k_VendorKey)]
         internal class TutorialAnalytic : IAnalytic
@@ -591,199 +560,56 @@ namespace Unity.Tutorials.Editor
             }
         }
 
-#else
-        static bool RegisterEvent(string name)
-        {
-            AnalyticsResult result = EditorAnalytics.RegisterEventWithLimit(name, k_MaxEventsPerHour, k_MaxNumberOfElements, k_VendorKey);
-            if (result != AnalyticsResult.Ok)
-            {
-                DebugError("Error in RegisterEvent: {0}", result);
-                return false;
-            }
-            return true;
-        }
-#endif
 
         public static AnalyticsResult SendTutorialEvent(string tutorialName, string version, TutorialConclusion conclusion, string lessonID, DateTime startTime, TimeSpan duration, bool isBlocking)
         {
 
-            if (!EditorAnalytics.enabled
-#if !UNITY_6000
-                || !RegisterEvent(k_EventTutorial)
-#endif
-                ) { return AnalyticsResult.AnalyticsDisabled; }
+            if (!EditorAnalytics.enabled) { return AnalyticsResult.AnalyticsDisabled; }
 
-#if UNITY_6000
             return EditorAnalytics.SendAnalytic(new TutorialAnalytic(tutorialName, version, conclusion, lessonID, startTime, duration, isBlocking));
-#else
-            var data = new TutorialEventData
-            {
-                ts = DateTime.UtcNow.Millisecond,
-                tutorialName = tutorialName,
-                version = version,
-                conclusion = (int)conclusion,
-                lessonID = lessonID,
-                duration = duration.Milliseconds,
-                startTime = startTime.Millisecond,
-                isBlocking = isBlocking
-            };
-
-            return SendEvent(k_EventTutorial, data);
-#endif
         }
 
         public static AnalyticsResult SendTutorialPageEvent(string tutorialName, int pageIndex, string guid, TutorialPageConclusion conclusion, DateTime startTime, TimeSpan duration, bool isBlocking)
         {
-            if (!EditorAnalytics.enabled
-#if !UNITY_6000
-                || !RegisterEvent(k_EventTutorialPage)
-#endif
-                ) { return AnalyticsResult.AnalyticsDisabled; }
+            if (!EditorAnalytics.enabled) { return AnalyticsResult.AnalyticsDisabled; }
 
-#if UNITY_6000
             return EditorAnalytics.SendAnalytic(new TutorialPageAnalytic(tutorialName, pageIndex, guid, conclusion, startTime, duration, isBlocking));
-#else
-            var data = new TutorialPageEventData
-            {
-                ts = DateTime.UtcNow.Millisecond,
-                tutorialName = tutorialName,
-                pageIndex = pageIndex,
-                guid = guid,
-                conclusion = (int)conclusion,
-                duration = duration.Milliseconds,
-                startTime = startTime.Millisecond,
-                isBlocking = isBlocking
-            };
-
-            return SendEvent(k_EventTutorialPage, data);
-#endif
         }
 
         public static AnalyticsResult SendTutorialParagraphEvent(string tutorialName, int pageIndex, int paragraphIndex, TutorialParagraphConclusion conclusion, DateTime startTime, TimeSpan duration, bool isBlocking)
         {
-            if (!EditorAnalytics.enabled
-#if !UNITY_6000
-                || !RegisterEvent(k_EventTutorialParagraph)
-#endif
-                ) { return AnalyticsResult.AnalyticsDisabled; }
+            if (!EditorAnalytics.enabled) { return AnalyticsResult.AnalyticsDisabled; }
 
-#if UNITY_6000
             return EditorAnalytics.SendAnalytic(new TutorialParagraphAnalytic(tutorialName, pageIndex, paragraphIndex, conclusion, startTime, duration, isBlocking));
-#else
-            var data = new TutorialParagraphEventData
-            {
-                ts = DateTime.UtcNow.Millisecond,
-                tutorialName = tutorialName,
-                pageIndex = pageIndex,
-                paragraphIndex = paragraphIndex,
-                conclusion = (int)conclusion,
-                duration = duration.Milliseconds,
-                startTime = startTime.Millisecond,
-                isBlocking = isBlocking
-            };
-            return SendEvent(k_EventTutorialParagraph, data);
-#endif
         }
 
         public static AnalyticsResult SendExternalReferenceEvent(string url, string title, string contentType, string id = null)
         {
-            if (!EditorAnalytics.enabled
-#if !UNITY_6000
-                || !RegisterEvent(k_EventExternalReference)
-#endif
-                ) { return AnalyticsResult.AnalyticsDisabled; }
+            if (!EditorAnalytics.enabled) { return AnalyticsResult.AnalyticsDisabled; }
 
-#if UNITY_6000
             return EditorAnalytics.SendAnalytic(new ExternalReferenceAnalytic(url, title, contentType, id));
-#else
-            var data = new ExternalReferenceEventData
-            {
-                ts = DateTime.UtcNow.Millisecond,
-                id = id,
-                title = title,
-                type = contentType,
-                path = url
-            };
-            return SendEvent(k_EventExternalReference, data);
-#endif
         }
 
         public static AnalyticsResult SendExternalReferenceImpressionEvent(string url, string title, string contentType, string id = null)
         {
-            if (!EditorAnalytics.enabled
-#if !UNITY_6000
-                || !RegisterEvent(k_EventExternalReferenceImpression)
-#endif
-                ) { return AnalyticsResult.AnalyticsDisabled; }
+            if (!EditorAnalytics.enabled) { return AnalyticsResult.AnalyticsDisabled; }
 
-#if UNITY_6000
             return EditorAnalytics.SendAnalytic(new ExternalReferenceImpressionAnalytic(url, title, contentType, id));
-#else
-            var data = new ExternalReferenceImpressionEventData
-            {
-                ts = DateTime.UtcNow.Millisecond,
-                id = id,
-                title = title,
-                type = contentType,
-                path = url
-            };
-            return SendEvent(k_EventExternalReferenceImpression, data);
-#endif
         }
 
         public static AnalyticsResult SendFaqOpenedEvent(string tutorialName, int pageIndex)
         {
-            if (!EditorAnalytics.enabled
-#if !UNITY_6000
-                || !RegisterEvent(k_EventTutorialFaqOpened)
-#endif
-               ) { return AnalyticsResult.AnalyticsDisabled; }
+            if (!EditorAnalytics.enabled) { return AnalyticsResult.AnalyticsDisabled; }
 
-#if UNITY_6000
             return EditorAnalytics.SendAnalytic(new FaqOpenedAnalytic(tutorialName, pageIndex));
-#else
-            var data = new FaqOpenedEventData
-            {
-                ts = DateTime.UtcNow.Millisecond,
-                tutorialName = tutorialName,
-                pageIndex = pageIndex
-            };
-            return SendEvent(k_EventTutorialFaqOpened, data);
-#endif
         }
 
         public static AnalyticsResult SendFaqQuestionClickedEvent(string tutorialName, int pageIndex, string question)
         {
-            if (!EditorAnalytics.enabled
-#if !UNITY_6000
-                || !RegisterEvent(k_EventTutorialFaqQuestionClicked)
-#endif
-               ) { return AnalyticsResult.AnalyticsDisabled; }
+            if (!EditorAnalytics.enabled) { return AnalyticsResult.AnalyticsDisabled; }
 
-#if UNITY_6000
             return EditorAnalytics.SendAnalytic(new FaqQuestionClickedAnalytic(tutorialName, pageIndex, question));
-#else
-            var data = new FaqQuestionClickedEventData
-            {
-                ts = DateTime.UtcNow.Millisecond,
-                tutorialName = tutorialName,
-                pageIndex = pageIndex,
-                question = question
-            };
-            return SendEvent(k_EventTutorialFaqQuestionClicked, data);
-#endif
         }
 
-#if !UNITY_6000
-        static AnalyticsResult SendEvent(string eventName, object parameters)
-        {
-            AnalyticsResult result = EditorAnalytics.SendEventWithLimit(eventName, parameters);
-            if (result != AnalyticsResult.Ok)
-            {
-                DebugError("Error in {0}: {1}", eventName, result);
-            }
-            return result;
-        }
-#endif
     }
 }

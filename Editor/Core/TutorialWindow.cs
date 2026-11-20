@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using Unity.EditorCoroutines.Editor;
 using Unity.Tutorials.Editor.Paragraphs;
 using UnityEditor;
@@ -75,7 +74,11 @@ namespace Unity.Tutorials.Editor
 
         private static TutorialWindow _instance;
 
-        private static TutorialWindow FindInstance() => Resources.FindObjectsOfTypeAll<TutorialWindow>().FirstOrDefault();
+        private static TutorialWindow FindInstance()
+        {
+            TutorialWindow[] instances = Resources.FindObjectsOfTypeAll<TutorialWindow>();
+            return instances.Length > 0 ? instances[0] : null;
+        }
 
         /// <summary>
         /// Checks if the instance of the window is available, without creating one. Made mostly for tests.
@@ -176,22 +179,30 @@ namespace Unity.Tutorials.Editor
         /// <returns>The TutorialWindow, created or found open.</returns>
         public static TutorialWindow ShowWindow(bool shouldRefreshLayout)
         {
-            List<TutorialContainer> rootContainers = TutorialEditorUtils.FindAssets<TutorialContainer>()
-                                                    .Where(category => category.ParentContainer is null).ToList();
-
-            TutorialContainer defaultCategory = rootContainers.FirstOrDefault();
-            Object projectLayout = defaultCategory?.ProjectLayout;
-            if (rootContainers.Any(category => category.ProjectLayout != projectLayout))
+            List<TutorialContainer> rootContainers = new();
+            foreach (TutorialContainer category in TutorialEditorUtils.FindAssets<TutorialContainer>())
             {
+                if (category.ParentContainer is null)
+                    rootContainers.Add(category);
+            }
+
+            TutorialContainer defaultCategory = rootContainers.Count > 0 ? rootContainers[0] : null;
+            Object projectLayout = defaultCategory?.ProjectLayout;
+            foreach (TutorialContainer category in rootContainers)
+            {
+                if (category.ProjectLayout == projectLayout)
+                    continue;
+
                 Debug.LogWarningFormat(
                     "There is more than one TutorialContainers asset with different Project Layout setting in the project. " +
                     "Using asset at path {0} for the window behavior settings.",
                     AssetDatabase.GetAssetPath(defaultCategory)
                 );
+                break;
             }
 
             TutorialWindow window = null;
-            if (!rootContainers.Any() || defaultCategory!.ProjectLayout == null)
+            if (rootContainers.Count == 0 || defaultCategory!.ProjectLayout == null)
             {
                 window = GetOrCreateWindowNextToInspector();
             }
@@ -214,8 +225,15 @@ namespace Unity.Tutorials.Editor
         /// <returns>The created, or already existing, window instance.</returns>
         internal static TutorialWindow GetOrCreateWindowNextToInspector()
         {
-            EditorWindow inspector = Resources.FindObjectsOfTypeAll<EditorWindow>()
-                                           .FirstOrDefault(w => w.GetType().Name == "InspectorWindow");
+            EditorWindow inspector = null;
+            foreach (EditorWindow openWindow in Resources.FindObjectsOfTypeAll<EditorWindow>())
+            {
+                if (openWindow.GetType().Name != "InspectorWindow")
+                    continue;
+
+                inspector = openWindow;
+                break;
+            }
 
             Type windowToAnchorTo = inspector != null ? inspector.GetType() : null;
             bool wasWindowPresent = _instance is not null;
@@ -611,7 +629,13 @@ namespace Unity.Tutorials.Editor
 
         internal IModel GetModel(Type modelType)
         {
-            return m_Models.Where(m => m.GetType() == modelType).FirstOrDefault();
+            foreach (IModel model in m_Models)
+            {
+                if (model.GetType() == modelType)
+                    return model;
+            }
+
+            return null;
         }
 
         private VisualElement DrawAuthoringToolbar()
@@ -653,10 +677,11 @@ namespace Unity.Tutorials.Editor
             ToolbarButton autocompleteBtn = toolbar.Q<ToolbarButton>("AutocompleteButton");
             autocompleteBtn.clicked += () =>
             {
-                IEnumerable<ParagraphBase> paragraphsToComplete =
-                    Model.Tutorial.CurrentTutorial.CurrentPage.Paragraphs.Where(p => !p.IsCompleted());
-                foreach (ParagraphBase instructiveParagraph in paragraphsToComplete)
+                foreach (ParagraphBase instructiveParagraph in Model.Tutorial.CurrentTutorial.CurrentPage.Paragraphs)
                 {
+                    if (instructiveParagraph.IsCompleted())
+                        continue;
+
                     // TODO: UPDATE
                     // foreach (var criterion in instructiveParagraph.Criteria)
                     // {
@@ -730,12 +755,10 @@ namespace Unity.Tutorials.Editor
         /// </summary>
         internal void MarkAllTutorialsUncompleted()
         {
-            IEnumerable<Tutorial> allTutorials = TutorialEditorUtils.FindAssets<Tutorial>()
-                                                  .Where(t => t.ProgressTrackingEnabled);
-
-            foreach (Tutorial tutorial in allTutorials)
+            foreach (Tutorial tutorial in TutorialEditorUtils.FindAssets<Tutorial>())
             {
-                tutorial.CompletedByUser = false;
+                if (tutorial.ProgressTrackingEnabled)
+                    tutorial.CompletedByUser = false;
             }
 
             Broadcast(new TutorialsCompletionStatusUpdatedEvent());

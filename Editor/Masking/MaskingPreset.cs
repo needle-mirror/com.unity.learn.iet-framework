@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using System.Linq;
+using Unity.Tutorials.Editor.Paragraphs;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
@@ -20,16 +20,17 @@ namespace Unity.Tutorials.Editor
 
         private void OnValidate()
         {
-            TutorialPage[] allPages = AssetDatabase.FindAssets($"t:{nameof(TutorialPage)}")
-                .Select(guid => AssetDatabase.LoadAssetAtPath<TutorialPage>(AssetDatabase.GUIDToAssetPath(guid)))
-                .ToArray();
-
             // Find all MaskingSettings referencing this MaskingPreset
-            MaskingSettings[] matchingMaskingSettings = allPages
-                .SelectMany(page => page.Paragraphs)
-                .Where(paragraph => paragraph.MaskingSettings?.MaskPreset == this)
-                .Select(paragraph => paragraph.MaskingSettings)
-                .ToArray();
+            List<MaskingSettings> matchingMaskingSettings = new();
+            foreach (string guid in AssetDatabase.FindAssets($"t:{nameof(TutorialPage)}"))
+            {
+                TutorialPage page = AssetDatabase.LoadAssetAtPath<TutorialPage>(AssetDatabase.GUIDToAssetPath(guid));
+                foreach (ParagraphBase paragraph in page.Paragraphs)
+                {
+                    if (paragraph.MaskingSettings?.MaskPreset == this)
+                        matchingMaskingSettings.Add(paragraph.MaskingSettings);
+                }
+            }
 
             // Update the MaskingSettings in it to match any modification that might have occurred
             foreach (MaskingSettings maskingSetting in matchingMaskingSettings)

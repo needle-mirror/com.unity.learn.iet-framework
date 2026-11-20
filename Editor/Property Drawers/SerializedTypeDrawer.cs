@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
@@ -265,7 +264,16 @@ namespace Unity.Tutorials.Editor
                         DragAndDrop.visualMode = DragAndDropVisualMode.Generic;
                         if (Event.current.type == EventType.DragPerform)
                         {
-                            UnityObject selection = DragAndDrop.objectReferences.FirstOrDefault(o => o != null);
+                            UnityObject selection = null;
+                            foreach (UnityObject draggedObject in DragAndDrop.objectReferences)
+                            {
+                                if (draggedObject == null)
+                                    continue;
+
+                                selection = draggedObject;
+                                break;
+                            }
+
                             if (selection != null)
                             {
                                 Type type = selection.GetType();
@@ -365,7 +373,7 @@ namespace Unity.Tutorials.Editor
 
             allowedTypes.Remove(baseType);
 
-            int optionCount = allowedTypes.Count() + 1; // None
+            int optionCount = allowedTypes.Count + 1; // None
 
             Type resolvedType = Type.GetType(assemblyQualifiedName);
             bool typeNotFound = resolvedType == null && assemblyQualifiedName.IsNotNullOrEmpty();
@@ -389,7 +397,9 @@ namespace Unity.Tutorials.Editor
                 index++;
             }
 
-            Type[] allowedTypesOrdered = allowedTypes.OrderBy(t => t.FullName).ToArray();
+            List<Type> sortedAllowedTypes = new(allowedTypes);
+            CollectionUtils.StableSort(sortedAllowedTypes, (a, b) => a.FullName.CompareTo(b.FullName));
+            Type[] allowedTypesOrdered = sortedAllowedTypes.ToArray();
 
             //However, the non FQN might create ambiguity between
             //windows that share the same name but have different namespace.

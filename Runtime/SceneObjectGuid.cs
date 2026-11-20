@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using UnityEngine;
 
 namespace Unity.Tutorials
@@ -36,10 +35,14 @@ namespace Unity.Tutorials
             }
             else
             {
-                var components = RuntimeFindObjectUtils.FindObjectsByType<SceneObjectGuid>();
-                if (components.Any(c => c.m_Id == m_Id && c != this))
+                SceneObjectGuid[] components = RuntimeFindObjectUtils.FindObjectsByType<SceneObjectGuid>();
+                foreach (SceneObjectGuid component in components)
                 {
+                    if (component.m_Id != m_Id || component == this)
+                        continue;
+
                     m_Id = Guid.NewGuid().ToString();
+                    break;
                 }
             }
             hideFlags |= HideFlags.HideInInspector;

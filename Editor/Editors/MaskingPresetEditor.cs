@@ -1,4 +1,5 @@
-using System.Linq;
+using System.Collections.Generic;
+using Unity.Tutorials.Editor.Paragraphs;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -82,10 +83,21 @@ namespace Unity.Tutorials.Editor
 
         private void FindReferencingPages()
         {
-            m_referencingPages = AssetDatabase.FindAssets($"t:{nameof(TutorialPage)}")
-                .Select(guid => AssetDatabase.LoadAssetAtPath<TutorialPage>(AssetDatabase.GUIDToAssetPath(guid)))
-                .Where(page => page.Paragraphs.Any(paragraph => paragraph.MaskingSettings?.MaskPreset == m_MaskingPreset))
-                .ToArray();
+            List<TutorialPage> referencingPages = new();
+            foreach (string guid in AssetDatabase.FindAssets($"t:{nameof(TutorialPage)}"))
+            {
+                TutorialPage page = AssetDatabase.LoadAssetAtPath<TutorialPage>(AssetDatabase.GUIDToAssetPath(guid));
+                foreach (ParagraphBase paragraph in page.Paragraphs)
+                {
+                    if (paragraph.MaskingSettings?.MaskPreset != m_MaskingPreset)
+                        continue;
+
+                    referencingPages.Add(page);
+                    break;
+                }
+            }
+
+            m_referencingPages = referencingPages.ToArray();
         }
     }
 }

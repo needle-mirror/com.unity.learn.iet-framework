@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -227,7 +226,7 @@ namespace Unity.Tutorials.Editor
             while (iterator.NextVisible(enterChildren))
             {
                 enterChildren = false;
-                if (propsToIgnore.Contains(iterator.name)) continue;
+                if (Array.IndexOf(propsToIgnore, iterator.name) >= 0) continue;
 
                 PropertyField propertyField = new(iterator) { name = $"PropertyField:{iterator.name}" };
                 propertyField.BindProperty(iterator);

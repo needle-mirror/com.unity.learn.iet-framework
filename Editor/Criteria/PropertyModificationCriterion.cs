@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
@@ -102,16 +101,26 @@ namespace Unity.Tutorials.Editor
         private UndoPropertyModification[] PostprocessModifications(UndoPropertyModification[] modifications)
         {
             UnityObject targetObject = m_Target.SceneObjectReference.ReferencedObject;
-            IEnumerable<PropertyModification> modificationsToTest = GetPropertiesToTest(modifications, targetObject);
-            if (modificationsToTest.Any())
+            List<PropertyModification> modificationsToTest = GetPropertiesToTest(modifications, targetObject);
+            if (modificationsToTest.Count > 0)
             {
-                IsCompleted = modificationsToTest.Any(m => PropertyFulfillCriterion(m.target, m.propertyPath));
+                bool anyFulfilled = false;
+                foreach (PropertyModification modification in modificationsToTest)
+                {
+                    if (!PropertyFulfillCriterion(modification.target, modification.propertyPath))
+                        continue;
+
+                    anyFulfilled = true;
+                    break;
+                }
+
+                IsCompleted = anyFulfilled;
             }
 
             return modifications;
         }
 
-        private IEnumerable<PropertyModification> GetPropertiesToTest(UndoPropertyModification[] modifications, UnityObject target)
+        private List<PropertyModification> GetPropertiesToTest(UndoPropertyModification[] modifications, UnityObject target)
         {
             List<PropertyModification> result = new();
             foreach (UndoPropertyModification m in modifications)

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using Unity.Tutorials.Editor.CustomControl;
@@ -173,7 +172,8 @@ namespace Unity.Tutorials.Editor
         private void InitializeSerializedProperties()
         {
             m_PageTitle = serializedObject.FindProperty(k_PageTitleProperty);
-            k_EventPropertyPaths.ToList().ForEach(CreateEventProperty);
+            foreach (string propertyPath in k_EventPropertyPaths)
+                CreateEventProperty(propertyPath);
         }
 
         private void CreateEventProperty(string propertyPath)
@@ -238,8 +238,17 @@ namespace Unity.Tutorials.Editor
              callbacksFoldout.AddToClassList("foldout-bold-title");
 
              HelpBox warningHelpBox = TutorialEditorUtils.RenderEventStateWarningElement(callbacksFoldout.contentContainer);
-             warningHelpBox.style.display = m_Events.Any(e => TutorialEditorUtils.EventIsNotInState(e.Property, UnityEventCallState.EditorAndRuntime)) ?
-                 DisplayStyle.Flex : DisplayStyle.None;
+             bool anyEventNotInState = false;
+             foreach (EventPropertyData eventData in m_Events)
+             {
+                 if (!TutorialEditorUtils.EventIsNotInState(eventData.Property, UnityEventCallState.EditorAndRuntime))
+                     continue;
+
+                 anyEventNotInState = true;
+                 break;
+             }
+
+             warningHelpBox.style.display = anyEventNotInState ? DisplayStyle.Flex : DisplayStyle.None;
 
              m_Events.ForEach(data => callbacksFoldout.contentContainer.Add(CreateEventProperty(data.Content, data.Property)));
 

@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using Unity.EditorCoroutines.Editor;
 using Unity.Tutorials.Editor.Paragraphs;
 using UnityEditor;
@@ -38,6 +37,7 @@ namespace Unity.Tutorials.Editor
         private List<VisualElement> playOverlays = new();
 
         private HelpPanelHandler m_HelpPanelHandler = new();
+        private MaskingSettings m_FocusedMaskingSettings;
 
         public override void SubscribeEvents()
         {
@@ -177,6 +177,19 @@ namespace Unity.Tutorials.Editor
             ApplyMaskingSettings(true);
         }
 
+        // Focuses windows only when the active masking settings change, not on every remask, which would pull
+        // input out of the Game view. Skipped in Play mode; the first remask after exiting it catches up.
+        private void FocusWindowsOnce(MaskingSettings maskingSettings)
+        {
+            if (maskingSettings == m_FocusedMaskingSettings || EditorApplication.isPlayingOrWillChangePlaymode)
+            {
+                return;
+            }
+
+            m_FocusedMaskingSettings = maskingSettings;
+            UnmaskedView.FocusWindows(maskingSettings.UnmaskedViews);
+        }
+
         private void QueueMaskUpdate()
         {
             EditorApplication.update -= ApplyQueuedMask;
@@ -198,6 +211,7 @@ namespace Unity.Tutorials.Editor
         {
             if (!applyMask || !Model.MaskingEnabled || Model.IsLoadingLayout || !Model.CurrentTutorial)
             {
+                m_FocusedMaskingSettings = null;
                 MaskingManager.Unmask();
                 return;
             }
@@ -207,10 +221,12 @@ namespace Unity.Tutorials.Editor
             {
                 if (maskingSettings == null || !maskingSettings.Enabled)
                 {
+                    m_FocusedMaskingSettings = null;
                     MaskingManager.Unmask();
                 }
                 else
                 {
+                    FocusWindowsOnce(maskingSettings);
                     UnmaskedView.MaskData unmaskedViews = UnmaskedView.GetViewsAndRects(maskingSettings.UnmaskedViews, out bool foundAncestorProperty);
                     if (foundAncestorProperty)
                     {
@@ -241,11 +257,16 @@ namespace Unity.Tutorials.Editor
                     else // otherwise, highlight manually specified control rects if there are any
                     {
                         List<GuiControlSelector> unmaskedControls = new();
-                        UnmaskedView[] unmaskedViewsWithControlsSpecified =
-                            maskingSettings.UnmaskedViews.Where(v => v.GetUnmaskedControls(unmaskedControls) > 0).ToArray();
+                        List<UnmaskedView> unmaskedViewsWithControlsSpecified = new();
+                        foreach (UnmaskedView unmaskedView in maskingSettings.UnmaskedViews)
+                        {
+                            if (unmaskedView.GetUnmaskedControls(unmaskedControls) > 0)
+                                unmaskedViewsWithControlsSpecified.Add(unmaskedView);
+                        }
+
                         // if there are no manually specified control rects, highlight all unmasked views
                         highlightedViews = UnmaskedView.GetViewsAndRects(
-                            unmaskedViewsWithControlsSpecified.Length == 0 ?
+                            unmaskedViewsWithControlsSpecified.Count == 0 ?
                             maskingSettings.UnmaskedViews : unmaskedViewsWithControlsSpecified
                         );
                     }
@@ -691,6 +712,8 @@ namespace Unity.Tutorials.Editor
 
         internal void UpdateStateOfFooterButtons()
         {
+            if (ButtonNext == null || Model == null) return;
+
             ButtonNext.SetEnabled(Model.CanMoveToNextPage);
         }
     }

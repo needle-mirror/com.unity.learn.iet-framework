@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using Unity.Tutorials.Editor.Paragraphs;
 using UnityEditor;
@@ -66,7 +65,19 @@ namespace Unity.Tutorials.Editor
         /// <summary>
         /// Are all criteria satisfied?
         /// </summary>
-        public bool AreAllCriteriaSatisfied => Paragraphs.All(p => p.IsCompleted());
+        public bool AreAllCriteriaSatisfied
+        {
+            get
+            {
+                foreach (ParagraphBase paragraph in Paragraphs)
+                {
+                    if (!paragraph.IsCompleted())
+                        return false;
+                }
+
+                return true;
+            }
+        }
 
         /// <summary>
         /// Legacy Paragraphs of this page. Need migration to V6 format
@@ -316,17 +327,21 @@ namespace Unity.Tutorials.Editor
             // Destroy unreferenced criteria
             string assetPath = AssetDatabase.GetAssetPath(this);
             Object[] assets = AssetDatabase.LoadAllAssetsAtPath(assetPath);
-            IEnumerable<Criterion> criteria = assets.Where(o => o is Criterion).Cast<Criterion>();
-            foreach (Criterion criterion in criteria)
+            foreach (Object asset in assets)
             {
+                if (asset is not Criterion criterion)
+                    continue;
+
                 if (!referencedCriteriaIDs.Contains(IdUtils.GetIdFor(criterion)))
                     DestroyImmediate(criterion, true);
             }
 
             // Update future reference names
-            IEnumerable<FutureObjectReference> futureReferences = assets.Where(o => o is FutureObjectReference).Cast<FutureObjectReference>();
-            foreach (FutureObjectReference futureReference in futureReferences)
+            foreach (Object asset in assets)
             {
+                if (asset is not FutureObjectReference futureReference)
+                    continue;
+
                 if (futureReference.Criterion == null
                     || !referencedCriteriaIDs.Contains(IdUtils.GetIdFor(futureReference.Criterion)))
                 {
@@ -576,7 +591,7 @@ namespace Unity.Tutorials.Editor
                     {
                         bool hasTitle = !obsoleteParagraph.Title.Untranslated.IsNullOrEmpty();
                         bool hasText = !obsoleteParagraph.Text.Untranslated.IsNullOrEmpty();
-                        bool hasCriteria = obsoleteParagraph.Criteria.Any();
+                        bool hasCriteria = obsoleteParagraph.CriteriaList.Count > 0;
                         if (!hasTitle && !hasText && !hasCriteria)
                             break;
 

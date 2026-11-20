@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -53,7 +52,11 @@ namespace Unity.Tutorials.Editor
         /// <param name="onSelectionMade"> Callback to trigger when a choice is made. </param>
         public static void Show(Rect activatorRect, GUIContent[] options, int current, Action<int> onSelectionMade)
         {
-            Show(activatorRect, options.Select(o => o.text).ToArray(), current, onSelectionMade);
+            string[] texts = new string[options.Length];
+            for (int i = 0; i < options.Length; i++)
+                texts[i] = options[i].text;
+
+            Show(activatorRect, texts, current, onSelectionMade);
         }
 
         /// <summary>

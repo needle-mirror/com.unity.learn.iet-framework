@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using UnityEditor;
@@ -25,7 +23,11 @@ namespace Unity.Tutorials.Editor
         /// </summary>
         /// <typeparam name="T">The Type of the EditorWindow to find</typeparam>
         /// <returns>The first opened instance of the given EditorWindow type, or a new default one if none exist</returns>
-        public static T FindOpenInstance<T>() where T : EditorWindow => Resources.FindObjectsOfTypeAll<T>().FirstOrDefault();
+        public static T FindOpenInstance<T>() where T : EditorWindow
+        {
+            T[] instances = Resources.FindObjectsOfTypeAll<T>();
+            return instances.Length > 0 ? instances[0] : null;
+        }
 
         /// <summary>
         /// Supported dock positions.
@@ -99,9 +101,7 @@ namespace Unity.Tutorials.Editor
         {
             pos = default;
             // NOTE Code adapted from http://answers.unity.com/answers/960709/view.html
-            Type containerWinType = GetAllDerivedTypes(typeof(ScriptableObject))
-                .Where(t => t.Name == "ContainerWindow")
-                .FirstOrDefault();
+            Type containerWinType = FindDerivedType(typeof(ScriptableObject), "ContainerWindow");
             if (containerWinType == null)
                 throw new MissingMemberException("Can't find internal type ContainerWindow. Maybe something has changed inside Unity");
 
@@ -130,9 +130,7 @@ namespace Unity.Tutorials.Editor
         public static void SetEditorMainWindowPos(Rect pos)
         {
             // TODO copy-pasta, generalise and clean up the code with GetEditorMainWindowPos
-            Type containerWinType = GetAllDerivedTypes(typeof(ScriptableObject))
-                .Where(t => t.Name == "ContainerWindow")
-                .FirstOrDefault();
+            Type containerWinType = FindDerivedType(typeof(ScriptableObject), "ContainerWindow");
             if (containerWinType == null)
                 throw new MissingMemberException("Can't find internal type ContainerWindow. Maybe something has changed inside Unity");
 
@@ -154,15 +152,22 @@ namespace Unity.Tutorials.Editor
             throw new NotSupportedException("Can't find internal main window. Maybe something has changed inside Unity");
         }
 
-        private static IEnumerable<Type> GetAllDerivedTypes(Type parentType)
+        private static Type FindDerivedType(Type parentType, string typeName)
         {
 #if UNITY_6000_5_OR_NEWER
-            return CurrentAssemblies.GetLoadedAssemblies()
+            foreach (Assembly assembly in CurrentAssemblies.GetLoadedAssemblies())
 #else
-            return AppDomain.CurrentDomain.GetAssemblies()
+            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
 #endif
-                .SelectMany(assembly => assembly.GetTypes())
-                .Where(type => type.IsSubclassOf(parentType));
+            {
+                foreach (Type type in assembly.GetTypes())
+                {
+                    if (type.IsSubclassOf(parentType) && type.Name == typeName)
+                        return type;
+                }
+            }
+
+            return null;
         }
 
         static EditorWindowUtils()

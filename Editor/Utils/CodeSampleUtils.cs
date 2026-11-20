@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System;
 using System.Text;
 
 namespace Unity.Tutorials.Editor
@@ -13,15 +12,17 @@ namespace Unity.Tutorials.Editor
         /// <returns>The given string as tabulated formatted code</returns>
         public static string AsFormattedCode(string originalString)
         {
-            IEnumerable<string> lines = originalString.Split('\n').Select(s => s.Trim());
+            string[] lines = originalString.Split('\n');
 
             StringBuilder strBuilder = new();
 
             int indentCount = 0;
             bool shouldIndent = false;
 
-            foreach (string line in lines)
+            foreach (string untrimmedLine in lines)
             {
+                string line = untrimmedLine.Trim();
+
                 if (shouldIndent)
                     indentCount++;
 
@@ -110,7 +111,7 @@ namespace Unity.Tutorials.Editor
                         currentToken.Append(c);
                     }
                     //the character is a white space (space, line return etc.)
-                    else if (char.IsWhiteSpace(c) || separator.Any(c1 => c1 == c))
+                    else if (char.IsWhiteSpace(c) || Array.IndexOf(separator, c) >= 0)
                     {
                         //if we have a single comment type opened, this may mean we need to close it
                         if (singleLineCommentOpened)
@@ -135,7 +136,7 @@ namespace Unity.Tutorials.Editor
                         else
                         {
                             string token = currentToken.ToString();
-                            if (keyword.Any(s => token == s))
+                            if (Array.IndexOf(keyword, token) >= 0)
                             {
                                 currentToken.Insert(0, $"<color={keywordColor}>");
                                 currentToken.Append("</color>");

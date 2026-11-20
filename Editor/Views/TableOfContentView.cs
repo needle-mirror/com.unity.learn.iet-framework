@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using Unity.EditorCoroutines.Editor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -71,7 +70,7 @@ namespace Unity.Tutorials.Editor
 
             UIUtils.SetupLabel("ContainerTitle", title, imgTitleHeader, false);
             UIUtils.SetupLabel("ContainerSubtitle", subtitle, imgTitleHeader, false);
-            bool enableBackButton = Model.CurrentContainer && (Model.CurrentContainer.ParentContainer || Model.RootCategoriesOfProject.Count() > 1);
+            bool enableBackButton = Model.CurrentContainer && (Model.CurrentContainer.ParentContainer || Model.RootCategoriesOfProject.Count > 1);
 
             if(enableBackButton)
                 UIUtils.SetupButton("ButtonExitCategory", GoBackInContainerHierachy, enableBackButton, imgTitleHeader, string.Empty, Localization.Tr(LocalizationKeys.k_TOCButtonBackTooltip));
@@ -81,13 +80,14 @@ namespace Unity.Tutorials.Editor
 
         private void LoadCategories()
         {
-            IEnumerable<TutorialContainer> categoriesToLoad = Model.CurrentContainer == null ? Model.RootCategoriesOfProject
-                                                                                            : Model.CurrentContainer.FindSubCategories();
+            IEnumerable<TutorialContainer> foundCategories = Model.CurrentContainer == null ? Model.RootCategoriesOfProject
+                                                                                           : Model.CurrentContainer.FindSubCategories();
 
-            if (categoriesToLoad == null) { return; }
+            if (foundCategories == null) { return; }
 
             //sorting category by order in view
-            categoriesToLoad = categoriesToLoad.OrderBy(container => container.OrderInParent);
+            List<TutorialContainer> categoriesToLoad = new(foundCategories);
+            CollectionUtils.StableSort(categoriesToLoad, (a, b) => a.OrderInParent.CompareTo(b.OrderInParent));
 
             m_CategoriesInitialized = false;
             m_CategoryAwaitingStateUpdate = new();
@@ -223,13 +223,19 @@ namespace Unity.Tutorials.Editor
             IEnumerable<Section> sectionsToLoad;
             if (Model.CurrentContainer == null)
             {
-                if (Model.RootCategoriesOfProject.Count() > 1)
+                if (Model.RootCategoriesOfProject.Count > 1)
                 {
                     return; //nothing to load as we're in the 1st screen of the Table of Content
                 }
-                sectionsToLoad = Model.RootCategoriesOfProject
-                                      .OrderBy(rootCategory => rootCategory.OrderInParent)
-                                      .SelectMany(rootCategory => rootCategory.Sections);
+
+                List<TutorialContainer> sortedRootCategories = new(Model.RootCategoriesOfProject);
+                CollectionUtils.StableSort(sortedRootCategories, (a, b) => a.OrderInParent.CompareTo(b.OrderInParent));
+
+                List<Section> sectionsOfRootCategories = new();
+                foreach (TutorialContainer rootCategory in sortedRootCategories)
+                    sectionsOfRootCategories.AddRange(rootCategory.Sections);
+
+                sectionsToLoad = sectionsOfRootCategories;
             }
             else
             {
@@ -242,7 +248,17 @@ namespace Unity.Tutorials.Editor
                 return;
             }
 
-            if (sectionsToLoad.Any(section => section.Tutorial?.ProgressTrackingEnabled ?? false))
+            bool anySectionTracksProgress = false;
+            foreach (Section section in sectionsToLoad)
+            {
+                if (!(section.Tutorial?.ProgressTrackingEnabled ?? false))
+                    continue;
+
+                anySectionTracksProgress = true;
+                break;
+            }
+
+            if (anySectionTracksProgress)
             {
                 foreach (Section section in sectionsToLoad)
                 {

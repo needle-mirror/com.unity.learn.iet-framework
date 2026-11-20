@@ -57,7 +57,7 @@ namespace Unity.Tutorials.Editor
 
     /// <summary>
     /// Static helper functions for System.String.
-    /// Useful for example in LINQ queries.
+    /// Useful for example when a predicate needs to be passed as a method group.
     /// </summary>
     [MovedFrom(true, sourceNamespace: "Unity.Tutorials.Core.Editor", sourceAssembly: "Unity.Tutorials.Core.Editor")]
     public static class StringExt

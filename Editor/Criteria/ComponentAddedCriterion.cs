@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
@@ -48,12 +47,18 @@ namespace Unity.Tutorials.Editor
         {
             get
             {
-                return m_RequiredComponents.Select(typeAndFutureReference => typeAndFutureReference.SerializedType.Type)
-                    .ToList();
+                List<Type> types = new();
+                foreach (TypeAndFutureReference typeAndFutureReference in m_RequiredComponents)
+                    types.Add(typeAndFutureReference.SerializedType.Type);
+
+                return types;
             }
             set
             {
-                List<TypeAndFutureReference> items = value.Select(type => new TypeAndFutureReference(new SerializedType(type))).ToList();
+                List<TypeAndFutureReference> items = new(value.Count);
+                foreach (Type type in value)
+                    items.Add(new TypeAndFutureReference(new SerializedType(type)));
+
                 m_RequiredComponents.SetItems(items);
                 OnValidate();
             }
@@ -118,10 +123,11 @@ namespace Unity.Tutorials.Editor
             if (gameObject == null)
                 return false;
 
-            if (RequiredComponents.Count() == 0)
+            IList<Type> requiredComponents = RequiredComponents;
+            if (requiredComponents.Count == 0)
                 return true;
 
-            foreach (Type type in RequiredComponents)
+            foreach (Type type in requiredComponents)
             {
                 if (type == null)
                 {
@@ -149,9 +155,16 @@ namespace Unity.Tutorials.Editor
         /// <returns>The list of FutureObjectReference on the required component</returns>
         protected override IEnumerable<FutureObjectReference> GetFutureObjectReferences()
         {
-            return m_RequiredComponents
-                .Where(c => c.SerializedType.Type != null && c.FutureReference != null)
-                .Select(c => c.FutureReference);
+            List<FutureObjectReference> futureReferences = new();
+            foreach (TypeAndFutureReference typeAndFutureReference in m_RequiredComponents)
+            {
+                if (typeAndFutureReference.SerializedType.Type == null || typeAndFutureReference.FutureReference == null)
+                    continue;
+
+                futureReferences.Add(typeAndFutureReference.FutureReference);
+            }
+
+            return futureReferences;
         }
 
         /// <summary>

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
@@ -75,13 +74,16 @@ namespace Unity.Tutorials.Editor
                 List<GUIViewProxy> allViews = new();
                 GUIViewDebuggerHelperProxy.GetViews(allViews);
 
-                foreach (GUIViewProxy tooltipView in allViews.Where(v => v.IsGUIViewAssignableTo(GUIViewProxy.TooltipViewType)))
-                    m_MaskData[tooltipView] = MaskViewData.CreateEmpty(MaskType.FullyUnmasked);
+                foreach (GUIViewProxy view in allViews)
+                {
+                    if (view.IsGUIViewAssignableTo(GUIViewProxy.TooltipViewType))
+                        m_MaskData[view] = MaskViewData.CreateEmpty(MaskType.FullyUnmasked);
+                }
             }
 
             public void RemoveTooltipViews()
             {
-                foreach (GUIViewProxy view in m_MaskData.Keys.ToArray())
+                foreach (GUIViewProxy view in new List<GUIViewProxy>(m_MaskData.Keys))
                 {
                     if (view.IsGUIViewAssignableTo(GUIViewProxy.TooltipViewType))
                         m_MaskData.Remove(view);
@@ -93,19 +95,23 @@ namespace Unity.Tutorials.Editor
                 List<GUIViewProxy> allViews = new();
                 GUIViewDebuggerHelperProxy.GetViews(allViews);
 
-                foreach (GUIViewProxy tooltipView in allViews.Where(v => v.IsActualViewAssignableTo(typeof(MediaPopoutWindow))))
+                foreach (GUIViewProxy view in allViews)
                 {
-                    m_MaskData[tooltipView] = MaskViewData.CreateEmpty(MaskType.FullyUnmasked);
+                    if (view.IsActualViewAssignableTo(typeof(MediaPopoutWindow)))
+                        m_MaskData[view] = MaskViewData.CreateEmpty(MaskType.FullyUnmasked);
                 }
 
                 // Check if the AI install popup is displayed, we do not want to hide it
-                foreach (GUIViewProxy editorPopup in allViews.Where(v => v.IsActualViewAssignableTo(typeof(PopupWindow))))
+                foreach (GUIViewProxy editorPopup in allViews)
                 {
+                    if (!editorPopup.IsActualViewAssignableTo(typeof(PopupWindow)))
+                        continue;
+
                     PopupWindow popupWindow = editorPopup.GetActualEditorWindow() as PopupWindow;
 
                     if (popupWindow != null)
                     {
-                        if(popupWindow.rootVisualElement.Query<Label>().ToList().Any(elem => elem.text.Contains("Use of Unity AI")))
+                        if (ContainsUnityAiLabel(popupWindow.rootVisualElement))
                         {
                             m_MaskData[editorPopup] = MaskViewData.CreateEmpty(MaskType.FullyUnmasked);
                         }
@@ -116,25 +122,38 @@ namespace Unity.Tutorials.Editor
                 if (assistantWindowType != null)
                 {
                     //if the AI Assistant Window type exist, we also need to unmask it
-                    foreach (GUIViewProxy assistantWindow in allViews.Where(v => v.IsActualViewAssignableTo(assistantWindowType)))
+                    foreach (GUIViewProxy assistantWindow in allViews)
                     {
-                        m_MaskData[assistantWindow] = MaskViewData.CreateEmpty(MaskType.FullyUnmasked);
+                        if (assistantWindow.IsActualViewAssignableTo(assistantWindowType))
+                            m_MaskData[assistantWindow] = MaskViewData.CreateEmpty(MaskType.FullyUnmasked);
                     }
                 }
             }
 
             public void RemovePopoutWindow()
             {
-                foreach (GUIViewProxy view in m_MaskData.Keys.ToArray())
+                foreach (GUIViewProxy view in new List<GUIViewProxy>(m_MaskData.Keys))
                 {
                     if (view.IsGUIViewAssignableTo(typeof(MediaPopoutWindow)))
                         m_MaskData.Remove(view);
                 }
             }
 
+            // True if any Label in the given hierarchy mentions Unity AI, i.e. this is the AI install popup.
+            private static bool ContainsUnityAiLabel(VisualElement root)
+            {
+                foreach (Label label in root.Query<Label>().Build())
+                {
+                    if (label.text.Contains("Use of Unity AI"))
+                        return true;
+                }
+
+                return false;
+            }
+
             public object Clone()
             {
-                return new MaskData(m_MaskData.ToDictionary(kv => kv.Key, kv => kv.Value));
+                return new MaskData(new Dictionary<GUIViewProxy, MaskViewData>(m_MaskData));
             }
         }
 
@@ -183,10 +202,14 @@ namespace Unity.Tutorials.Editor
             {
                 if (viewWithWindow.Value.Count > 1)
                 {
+                    List<string> windowTypeNames = new(viewWithWindow.Value.Count);
+                    foreach (EditorWindow window in viewWithWindow.Value)
+                        windowTypeNames.Add(window.GetType().Name);
+
                     throw new ArgumentException(
                         string.Format(
                             "Tried to get controls from multiple EditorWindows docked in the same location: {0}",
-                            string.Join(", ", viewWithWindow.Value.Select(w => w.GetType().Name).ToArray())
+                            string.Join(", ", windowTypeNames)
                             ),
                         "unmaskedViews"
                     );
@@ -210,7 +233,13 @@ namespace Unity.Tutorials.Editor
 
                 // if the view refers to an InspectorWindow, flush the optimized GUI blocks so that Editor control rects will be updated
                 if (viewsWithWindows.TryGetValue(viewRects.Key, out HashSet<EditorWindow> windows) && windows.Count > 0)
-                    InspectorWindowProxy.DirtyAllEditors(windows.First());
+                {
+                    foreach (EditorWindow window in windows)
+                    {
+                        InspectorWindowProxy.DirtyAllEditors(window);
+                        break;
+                    }
+                }
 
                 // TODO: use actual selectors when API is in place
                 GUIViewDebuggerHelperProxy.DebugWindow(viewRects.Key);
@@ -305,7 +334,7 @@ namespace Unity.Tutorials.Editor
                                 }
                             }
 
-                            if (!regionRects.Any())
+                            if (regionRects.Count == 0)
                             {
                                 // Property instruction not found
                                 // Let's see if we can find any of the ancestor instructions to allow the user to unfold
@@ -400,7 +429,7 @@ namespace Unity.Tutorials.Editor
                             break;
                     }
 
-                    if (regionRects.Any())
+                    if (regionRects.Count > 0)
                     {
                         if (viewRects.Value.maskSizeModifier == MaskSizeModifier.ExpandWidthToWholeWindow)
                         {
@@ -498,6 +527,32 @@ namespace Unity.Tutorials.Editor
                 (string.IsNullOrEmpty(gc1.tooltip) ? string.IsNullOrEmpty(gc2.tooltip) : gc1.tooltip == gc2.tooltip);
         }
 
+        // Focuses the open EditorWindows marked as Open And Focus.
+        internal static void FocusWindows(IEnumerable<UnmaskedView> unmaskedViews)
+        {
+            foreach (UnmaskedView unmaskedView in unmaskedViews)
+            {
+                if (!unmaskedView.m_OpenAndFocus || unmaskedView.m_SelectorType != SelectorType.EditorWindow)
+                {
+                    continue;
+                }
+
+                Type windowType = unmaskedView.ResolvedEditorWindowType;
+                if (windowType == null)
+                {
+                    continue;
+                }
+
+                EditorWindow window = MaskingManager.FindOpenEditorWindowInstance(windowType);
+                if (window == null)
+                {
+                    continue;
+                }
+
+                window.Focus();
+            }
+        }
+
         private static IEnumerable<GUIViewProxy> GetMatchingViews(
             UnmaskedView unmaskedView,
             List<GUIViewProxy> allViews,
@@ -518,10 +573,11 @@ namespace Unity.Tutorials.Editor
                     }
                     if (targetEditorWindowType != null)
                     {
-                        EditorWindow window = null;
-                        window = unmaskedView.m_OpenAndFocus ?
-                            EditorWindow.GetWindow(targetEditorWindowType) :
-                            Resources.FindObjectsOfTypeAll(targetEditorWindowType).Cast<EditorWindow>().FirstOrDefault();
+                        // EditorWindow.GetWindow() would dock a new window here. Masking is recomputed
+                        // from a GUIView position-changed callback, so that can run in the middle of a
+                        // docking reflow, where rearranging windows corrupts the layout (UUM-153247).
+                        // Don't focus the window here: this runs on every remask (see TutorialView.FocusWindowsOnce).
+                        EditorWindow window = MaskingManager.FindOpenEditorWindowInstance(targetEditorWindowType);
 
                         if (window == null || window.GetParent() == null)
                         {

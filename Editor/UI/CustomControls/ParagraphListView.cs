@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Unity.Tutorials.Editor.Paragraphs;
 using UnityEditor;
 using UnityEditor.UIElements;
@@ -49,12 +48,12 @@ namespace Unity.Tutorials.Editor.CustomControl
             unbindItem += UnbindItem;
 
             // Build dropdown menu for [+] button
-            IEnumerable<Type> listOfParagraphTypes = TypeCache.GetTypesDerivedFrom<ParagraphBase>()
-                .Where(type => !type.IsAbstract);
-
             m_DropdownMenu = new GenericMenu();
-            foreach (Type t in listOfParagraphTypes)
+            foreach (Type t in TypeCache.GetTypesDerivedFrom<ParagraphBase>())
             {
+                if (t.IsAbstract)
+                    continue;
+
                 m_DropdownMenu.AddItem(new GUIContent(NicifyParagraphName(t.Name)), false, _ => NewParagraph(t), null);
             }
         }
@@ -70,7 +69,7 @@ namespace Unity.Tutorials.Editor.CustomControl
         {
             if (m_Page == null) return;
 
-            List<int> indexes = view.selectedIndices.ToList();
+            List<int> indexes = new(view.selectedIndices);
             if (indexes.Count == 0)
             {
                 if (m_Page.Paragraphs.Count == 0) return;

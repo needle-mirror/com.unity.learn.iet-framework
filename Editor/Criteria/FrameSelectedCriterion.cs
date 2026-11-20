@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
@@ -73,10 +72,11 @@ namespace Unity.Tutorials.Editor
             Event evt = Event.current;
             if (evt.type == EventType.ExecuteCommand && evt.commandName == "FrameSelected")
             {
-                if (!m_ObjectReferences.Any())
+                if (m_ObjectReferences.Count == 0)
                     return;
 
-                if (m_ObjectReferences.Count() != Selection.objects.Length)
+                Object[] selection = Selection.objects;
+                if (m_ObjectReferences.Count != selection.Length)
                     return;
 
                 foreach (ObjectReference objectReference in m_ObjectReferences)
@@ -85,7 +85,7 @@ namespace Unity.Tutorials.Editor
                     if (referencedObject == null)
                         return;
 
-                    if (!Selection.objects.Contains(referencedObject))
+                    if (Array.IndexOf(selection, referencedObject) < 0)
                         return;
                 }
 
@@ -99,17 +99,24 @@ namespace Unity.Tutorials.Editor
         /// <returns>True if the auto-completion succeeded.</returns>
         public override bool AutoComplete()
         {
-            if (!m_ObjectReferences.Any())
+            if (m_ObjectReferences.Count == 0)
             {
                 Debug.LogWarning("Cannot auto-complete FrameSelectedCriterion with no object references");
                 return false;
             }
 
-            IEnumerable<Object> referencedObjects = m_ObjectReferences.Select(or => or.SceneObjectReference.ReferencedObject);
-            if (referencedObjects.Any(obj => obj == null))
+            Object[] referencedObjects = new Object[m_ObjectReferences.Count];
+            int referencedObjectIndex = 0;
+            foreach (ObjectReference objectReference in m_ObjectReferences)
             {
-                Debug.LogWarning("Cannot auto-complete FrameSelectedCriterion with unresolved object references");
-                return false;
+                Object referencedObject = objectReference.SceneObjectReference.ReferencedObject;
+                if (referencedObject == null)
+                {
+                    Debug.LogWarning("Cannot auto-complete FrameSelectedCriterion with unresolved object references");
+                    return false;
+                }
+
+                referencedObjects[referencedObjectIndex++] = referencedObject;
             }
 
             if (SceneView.lastActiveSceneView == null)
@@ -119,9 +126,9 @@ namespace Unity.Tutorials.Editor
             }
 
             Object previousActiveObject = Selection.activeObject;
-            Object[] previousSelection = Selection.objects.ToArray();
+            Object[] previousSelection = (Object[])Selection.objects.Clone();
 
-            Selection.objects = referencedObjects.ToArray();
+            Selection.objects = referencedObjects;
 
             if (!SceneView.FrameLastActiveSceneView())
             {

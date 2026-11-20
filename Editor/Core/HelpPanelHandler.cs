@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
 using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.Requests;
@@ -139,7 +138,17 @@ namespace Unity.Tutorials.Editor
                 ListRequest listRequest = Client.List(true, false);
                 while (!listRequest.IsCompleted) ;
 
-                if (listRequest.Result.Any(info => info.name == "com.unity.muse.chat"))
+                bool museChatInstalled = false;
+                foreach (UnityEditor.PackageManager.PackageInfo info in listRequest.Result)
+                {
+                    if (info.name != "com.unity.muse.chat")
+                        continue;
+
+                    museChatInstalled = true;
+                    break;
+                }
+
+                if (museChatInstalled)
                 {
                     EditorApplication.ExecuteMenuItem("Muse/Chat");
                 }

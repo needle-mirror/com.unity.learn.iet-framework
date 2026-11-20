@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Reflection;
 using System.Text;
@@ -72,7 +71,16 @@ namespace Unity.Tutorials.Editor
             }
             GetTutorial(lessonId, list =>
             {
-                TutorialProgressStatus lesson = list.FirstOrDefault(s => s.lessonId == lessonId);
+                TutorialProgressStatus lesson = null;
+                foreach (TutorialProgressStatus status in list)
+                {
+                    if (status.lessonId != lessonId)
+                        continue;
+
+                    lesson = status;
+                    break;
+                }
+
                 if (lesson == null || string.IsNullOrEmpty(lesson.status.Trim()))
                 {
                     // The fact no entries exist means the user never opened (started) this tutorial
@@ -198,7 +206,7 @@ namespace Unity.Tutorials.Editor
 
         private static void WebRequestProcessor()
         {
-            if (!m_Requests.Any())
+            if (m_Requests.Count == 0)
                 return;
 
             for (int i = 0; i < m_Requests.Count; i++)

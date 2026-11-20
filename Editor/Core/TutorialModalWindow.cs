@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.Linq;
 using Unity.EditorCoroutines.Editor;
 using UnityEditor;
 using UnityEngine;
@@ -25,7 +24,12 @@ namespace Unity.Tutorials.Editor
         /// </summary>
         public static TutorialModalWindow Instance { get; set; }
 
-        private static TutorialModalWindow FindInstance() => Resources.FindObjectsOfTypeAll<TutorialModalWindow>().FirstOrDefault();
+        private static TutorialModalWindow FindInstance()
+        {
+            TutorialModalWindow[] instances = Resources.FindObjectsOfTypeAll<TutorialModalWindow>();
+            return instances.Length > 0 ? instances[0] : null;
+        }
+
         internal TutorialStyles Styles => TutorialProjectSettings.Instance.TutorialStyle;
 
         /// <summary>
@@ -273,8 +277,11 @@ namespace Unity.Tutorials.Editor
             VisualElement buttonContainer = m_Root.Q("ButtonContainer");
             buttonContainer.Clear();
 
-            foreach (TutorialWelcomePage.ButtonData buttonData in WelcomePage.Buttons.Where(buttonData => buttonData.Text.Value.IsNotNullOrEmpty()))
+            foreach (TutorialWelcomePage.ButtonData buttonData in WelcomePage.Buttons)
             {
+                if (!buttonData.Text.Value.IsNotNullOrEmpty())
+                    continue;
+
                 Button button = new(() => buttonData.OnClick?.Invoke())
                 {
                     text = buttonData.Text,

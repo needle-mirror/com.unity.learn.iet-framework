@@ -1,5 +1,4 @@
 using System.IO;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Scripting.APIUpdating;
@@ -81,7 +80,15 @@ namespace Unity.Tutorials.Editor
             }
         }
 
-        private static string GetFirstValidAssetPath(string[] paths) =>
-            paths.Where(path => AssetDatabase.AssetPathToGUID(path).IsNotNullOrEmpty()).FirstOrDefault();
+        private static string GetFirstValidAssetPath(string[] paths)
+        {
+            foreach (string path in paths)
+            {
+                if (AssetDatabase.AssetPathToGUID(path).IsNotNullOrEmpty())
+                    return path;
+            }
+
+            return null;
+        }
     }
 }

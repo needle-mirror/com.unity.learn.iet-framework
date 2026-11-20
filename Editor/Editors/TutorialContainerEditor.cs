@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Unity.Tutorials.Editor.CustomControl;
 using UnityEditor;
 using UnityEditor.UIElements;
@@ -46,8 +45,15 @@ namespace Unity.Tutorials.Editor
 
         private UndoPropertyModification[] OnPostprocessModifications(UndoPropertyModification[] modifications)
         {
-            UndoPropertyModification previousCategoryModification = modifications
-                .FirstOrDefault(m => m.previousValue.propertyPath == nameof(Target.ParentContainer));
+            UndoPropertyModification previousCategoryModification = default;
+            foreach (UndoPropertyModification modification in modifications)
+            {
+                if (modification.previousValue.propertyPath != nameof(Target.ParentContainer))
+                    continue;
+
+                previousCategoryModification = modification;
+                break;
+            }
 
             bool parentCategoryWasEdited = previousCategoryModification.previousValue != null;
             if (parentCategoryWasEdited)
@@ -82,9 +88,15 @@ namespace Unity.Tutorials.Editor
             UIUtils.DrawInspectorExcluding(root, serializedObject, this, k_PropertiesToHide);
 
             // Display all linked sub-containers (i.e. the Containers ones referencing this as their Parent Container)
-            List<TutorialContainer> subContainers = AssetDatabase.FindAssets($"t:{nameof(TutorialContainer)}")
-                            .Select(asset => AssetDatabase.LoadAssetAtPath<TutorialContainer>(AssetDatabase.GUIDToAssetPath(asset)))
-                            .Where(c => c.ParentContainer == Target).OrderBy(c => c.OrderInParent).ToList();
+            List<TutorialContainer> subContainers = new();
+            foreach (string guid in AssetDatabase.FindAssets($"t:{nameof(TutorialContainer)}"))
+            {
+                TutorialContainer container = AssetDatabase.LoadAssetAtPath<TutorialContainer>(AssetDatabase.GUIDToAssetPath(guid));
+                if (container.ParentContainer == Target)
+                    subContainers.Add(container);
+            }
+
+            CollectionUtils.StableSort(subContainers, (a, b) => a.OrderInParent.CompareTo(b.OrderInParent));
 
             // Inspector Tweaks ---
 

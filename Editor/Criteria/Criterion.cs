@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
@@ -151,7 +150,7 @@ namespace Unity.Tutorials.Editor
         /// <returns>An IEnumerable of all future objects references for this Criterion</returns>
         protected virtual IEnumerable<FutureObjectReference> GetFutureObjectReferences()
         {
-            return Enumerable.Empty<FutureObjectReference>();
+            return Array.Empty<FutureObjectReference>();
         }
 
         /// <summary>
@@ -227,11 +226,11 @@ namespace Unity.Tutorials.Editor
 
             string assetPath = AssetDatabase.GetAssetPath(this);
             TutorialPage tutorialPage = (TutorialPage)AssetDatabase.LoadMainAssetAtPath(assetPath);
-            IEnumerable<FutureObjectReference> futureReferences = AssetDatabase.LoadAllAssetsAtPath(assetPath)
-                .Where(o => o is FutureObjectReference)
-                .Cast<FutureObjectReference>();
-            foreach (FutureObjectReference futureReference in futureReferences)
-                tutorialPage.UpdateFutureObjectReferenceName(futureReference);
+            foreach (Object asset in AssetDatabase.LoadAllAssetsAtPath(assetPath))
+            {
+                if (asset is FutureObjectReference futureReference)
+                    tutorialPage.UpdateFutureObjectReferenceName(futureReference);
+            }
         }
     }
 }

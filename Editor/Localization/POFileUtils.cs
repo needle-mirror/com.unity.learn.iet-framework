@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using UnityEngine;
@@ -114,8 +113,23 @@ msgstr """"
         };
 
         // Chars to sanitize are a subset of the chars to escape
-        private static readonly string k_SanitizeRegexString =
-            string.Join("|", k_EscapeMapping.Keys.Except(new[] { '\"', '\\', '\n', '\t' }).ToArray());
+        private static readonly string k_SanitizeRegexString = BuildSanitizeRegexString();
+
+        private static string BuildSanitizeRegexString()
+        {
+            StringBuilder pattern = new();
+            foreach (char c in k_EscapeMapping.Keys)
+            {
+                if (c == '\"' || c == '\\' || c == '\n' || c == '\t')
+                    continue;
+
+                if (pattern.Length > 0)
+                    pattern.Append('|');
+                pattern.Append(c);
+            }
+
+            return pattern.ToString();
+        }
 
         /// <summary>
         /// https://www.gnu.org/software/gettext/manual/html_node/PO-Files.html
